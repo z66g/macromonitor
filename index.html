@@ -8021,6 +8021,12 @@ function renderTowerS4(d) {
           backgroundColor:'#1C2128', borderColor:'#30363D', borderWidth:0.5,
           titleColor:'#8B949E', bodyColor:'#E6EDF3',
           titleFont:{size:9}, bodyFont:{size:9},
+          caretSize: 0,        // 삼각형 제거
+          caretPadding: 0,
+          xAlign: function(ctx) {
+            // Week 1,2 (index 0,1) → 오른쪽, Week 3,4 (index 2,3) → 왼쪽
+            return ctx.tooltip.dataPoints?.[0]?.dataIndex < 2 ? 'left' : 'right';
+          },
           callbacks:{
             beforeBody: function(items) {
               const wi = items[0] && items[0].dataIndex;
@@ -8074,28 +8080,7 @@ function renderTowerS4(d) {
         },
       },
     },
-    plugins: [{
-      id: 'netLabel',
-      afterDatasetsDraw: function(chart) {
-        var dsIdx = chart.data.datasets.findIndex(function(d) { return d.label === 'Net Drain'; });
-        if (dsIdx < 0) return;
-        var meta = chart.getDatasetMeta(dsIdx);
-        var ctx2 = chart.ctx;
-        ctx2.save();
-        meta.data.forEach(function(pt, i) {
-          var val = weeks[i] && weeks[i].netDrain;
-          if (val == null) return;
-          var sign  = val > 0 ? '+' : '';
-          var color = val > 0 ? '#F85149' : '#3FB950';
-          var yOff  = val >= 0 ? -12 : 14;
-          ctx2.fillStyle = color;
-          ctx2.font = 'bold 9px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-          ctx2.textAlign = 'center';
-          ctx2.fillText(sign + '$' + val.toFixed(0) + 'B', pt.x, pt.y + yOff);
-        });
-        ctx2.restore();
-      },
-    }],
+    plugins: [],
   });
 }
 
