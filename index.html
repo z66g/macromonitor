@@ -2338,12 +2338,33 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
         <div style="font-size:16px;font-weight:700;color:#F0B429;" id="oc-rwa-total">—</div>
       </div>
     </div>
-    <!-- 상위 RWA 프로토콜 리스트 -->
-    <div id="oc-rwa-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px;"></div>
-    <!-- T-Bill 특화 -->
-    <div style="background:#0D1117;border:0.5px solid #30363D;border-radius:5px;padding:8px 10px;">
-      <div style="font-size:8px;color:#656D76;margin-bottom:5px;">🏛️ T-Bill 특화 RWA (토큰화 국채)</div>
-      <div id="oc-tbill-list" style="display:flex;flex-direction:column;gap:3px;"></div>
+    <!-- 상위 RWA 리스트 + 도넛 차트 2열 -->
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <!-- 좌: 프로토콜 리스트 -->
+      <div style="flex:1;min-width:0;">
+        <div id="oc-rwa-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;"></div>
+        <!-- T-Bill 특화 -->
+        <div style="background:#0D1117;border:0.5px solid #30363D;border-radius:5px;padding:7px 9px;">
+          <div style="font-size:8px;color:#656D76;margin-bottom:4px;">🏛️ T-Bill 특화 (토큰화 국채)</div>
+          <div id="oc-tbill-list" style="display:flex;flex-direction:column;gap:3px;"></div>
+        </div>
+      </div>
+      <!-- 우: 도넛 차트 -->
+      <div style="width:110px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="font-size:8px;color:#656D76;font-weight:600;letter-spacing:.04em;">TOP 6 비중</div>
+        <div style="position:relative;width:100px;height:100px;">
+          <canvas id="oc-rwa-chart" width="100" height="100"></canvas>
+          <!-- 중앙 TVL 오버레이 -->
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;
+                      align-items:center;justify-content:center;pointer-events:none;">
+            <div style="font-size:7px;color:#484F58;">Total</div>
+            <div style="font-size:11px;font-weight:700;color:#F0B429;font-family:'SF Mono',monospace;"
+                 id="oc-rwa-donut-label">—</div>
+          </div>
+        </div>
+        <!-- 범례 -->
+        <div id="oc-rwa-legend" style="display:flex;flex-direction:column;gap:2px;width:100%;"></div>
+      </div>
     </div>
   </div>
 
@@ -6896,6 +6917,7 @@ async function refreshTower(btn) {
 // ── T4: 온체인 매크로 ────────────────────────────────
 let _ocStableChart = null;
 let _ocEtfChart    = null;
+let _ocRwaChart    = null;
 
 async function loadT4(force = false) {
   // 패널 1+3: Worker 경유
@@ -6958,6 +6980,11 @@ function renderOnchainMacro(d, rwaProtos) {
     const labels  = st.history.map(h => h.date.slice(5));
     const totals  = st.history.map(h => h.totalB);
     const usdcPcts= st.history.map(h => h.usdcPct);
+    // Y2(USDC%) 동적 범위 — 실제 변동폭이 좁으므로 ±1.5p 여유 확보
+    const pctMin  = Math.floor((Math.min(...usdcPcts) - 1.5) * 10) / 10;
+    const pctMax  = Math.ceil ((Math.max(...usdcPcts) + 1.5) * 10) / 10;
+    // Y1(총시총) 하단 여백
+    const totMin  = Math.floor(Math.min(...totals) * 0.995);
     _ocStableChart = new Chart(stCtx, {
       data: {
         labels,
@@ -6982,9 +7009,11 @@ function renderOnchainMacro(d, rwaProtos) {
         },
         scales:{
           x:{ ticks:{color:'#484F58',font:{size:7},maxTicksLimit:8}, grid:{display:false} },
-          y:{ position:'left', ticks:{color:'#8B949E',font:{size:7},callback:v=>'$'+v+'B'},
+          y:{ position:'left', min: totMin,
+              ticks:{color:'#8B949E',font:{size:7},callback:v=>'$'+v+'B'},
               grid:{color:'rgba(48,54,61,0.4)',lineWidth:0.5} },
-          y2:{ position:'right', ticks:{color:'#58A6FF',font:{size:7},callback:v=>v.toFixed(1)+'%'},
+          y2:{ position:'right', min: pctMin, max: pctMax,
+               ticks:{color:'#58A6FF',font:{size:7},maxTicksLimit:5,callback:v=>v.toFixed(1)+'%'},
                grid:{display:false} },
         },
       },
@@ -7037,6 +7066,64 @@ function renderOnchainMacro(d, rwaProtos) {
         </div>`).join('');
     } else {
       tbillEl.innerHTML = '<div style="font-size:8px;color:#484F58;">데이터 로딩 중...</div>';
+    }
+  }
+
+  // ── RWA 도넛 차트 ──────────────────────────────────────
+  const rwaCtx = document.getElementById('oc-rwa-chart');
+  if (rwaCtx && rwaList.length > 0) {
+    if (_ocRwaChart) { _ocRwaChart.destroy(); _ocRwaChart = null; }
+    const TOP = 6;
+    const top6  = rwaList.slice(0, TOP);
+    const rest  = rwaList.slice(TOP);
+    const restTvl = rest.reduce((s,p) => s + p.tvlB, 0);
+    const chartLabels = [...top6.map(p => p.name), ...(restTvl > 0 ? ['기타'] : [])];
+    const chartData   = [...top6.map(p => p.tvlB),  ...(restTvl > 0 ? [+restTvl.toFixed(3)] : [])];
+    const PALETTE = ['#F0B429','#3FB950','#58A6FF','#F85149','#B06FCF','#56D3A0','#484F58'];
+    _ocRwaChart = new Chart(rwaCtx, {
+      type: 'doughnut',
+      data: {
+        labels:   chartLabels,
+        datasets: [{
+          data:            chartData,
+          backgroundColor: PALETTE.slice(0, chartLabels.length),
+          borderColor:     '#161B22',
+          borderWidth:     2,
+          hoverOffset:     4,
+        }],
+      },
+      options: {
+        responsive: false,
+        animation:  false,
+        cutout:     '62%',
+        plugins: {
+          legend:     { display: false },
+          datalabels: { display: false },
+          tooltip: {
+            backgroundColor: '#1C2128', borderColor: '#30363D', borderWidth: 0.5,
+            titleFont: {size:8}, bodyFont: {size:8},
+            callbacks: {
+              label: i => ` ${i.label}: $${i.parsed.toFixed(3)}B (${i.dataset.data
+                .reduce((s,v)=>s+v,0) > 0 ? (i.parsed / i.dataset.data.reduce((s,v)=>s+v,0)*100).toFixed(1) : 0}%)`,
+            },
+          },
+        },
+      },
+    });
+
+    // 중앙 TVL 레이블
+    const donutLabel = document.getElementById('oc-rwa-donut-label');
+    if (donutLabel) donutLabel.textContent = '$' + rwaTotal.toFixed(1) + 'B';
+
+    // 범례
+    const legendEl = document.getElementById('oc-rwa-legend');
+    if (legendEl) {
+      legendEl.innerHTML = chartLabels.map((lbl, i) => `
+        <div style="display:flex;align-items:center;gap:4px;">
+          <span style="width:7px;height:7px;border-radius:1px;background:${PALETTE[i]};flex-shrink:0;"></span>
+          <span style="font-size:7px;color:#8B949E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;"
+                title="${lbl}">${lbl.length > 12 ? lbl.slice(0,12)+'…' : lbl}</span>
+        </div>`).join('');
     }
   }
 
