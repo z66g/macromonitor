@@ -2195,7 +2195,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
         <div style="padding:12px 16px;">
           <div style="font-size:9px;color:#656D76;margin-bottom:8px;font-weight:600;">QRA 분기 목표</div>
           <div id="tw-qra-card"></div>
-          <div style="font-size:9px;color:#656D76;margin-top:12px;margin-bottom:6px;font-weight:600;">향후 경매 결제 예정</div>
+          <div style="font-size:9px;color:#656D76;margin-top:12px;margin-bottom:6px;font-weight:600;">향후 경매 결제 예정 <span style="font-weight:400;font-size:7px;color:#484F58;">(단위: 총발행액 Gross)</span></div>
           <div id="tw-auctions"></div>
         </div>
       </div>
@@ -7720,10 +7720,12 @@ function renderTowerS2(d) {
   if (ledEl) ledEl.style.color = ledColor;
 
   const fmtB  = v => v != null ? '$' + Math.abs(v).toFixed(1) + 'B' : '—';
-  const fmtDelta = (v, invertColor=false) => {
+  const fmtDelta = (v, redWhenPositive=true) => {
     if (v == null) return '';
-    const positive = invertColor ? v < 0 : v > 0;
-    const color = positive ? '#F85149' : '#3FB950';
+    // redWhenPositive=true: 양수→빨강(TGA상승=유동성흡수)
+    // redWhenPositive=false: 음수→빨강(QT=연준국채감소=흡수압박)
+    const isRed = redWhenPositive ? v > 0 : v < 0;
+    const color = isRed ? '#F85149' : '#3FB950';
     const arrow = v > 0 ? '▲' : '▼';
     return `<span style="font-size:10px;font-weight:600;color:${color};">${arrow} ${v > 0 ? '+' : ''}${v.toFixed(1)}B wk</span>`;
   };
@@ -7742,7 +7744,7 @@ function renderTowerS2(d) {
     ? (tgaDelta < -20 ? '💧 금고 소진 → 시장 유동성 유입' : tgaDelta > 20 ? '🔺 금고 충전 → 시장 유동성 흡수' : '안정 구간')
     : '';
   const ttHint = ttDelta != null
-    ? (ttDelta < 0 ? '💚 연준 국채 감소 → QT 롤오프 효과' : '🔴 연준 국채 증가 → 시장 흡수 압박')
+    ? (ttDelta < 0 ? '🔴 연준 국채 축소(QT) → 시장 유동성 흡수 압박' : '💚 연준 국채 증가(QE) → 시장 유동성 방출')
     : '';
 
   el.innerHTML = `
@@ -7752,7 +7754,7 @@ function renderTowerS2(d) {
         '높을수록 시장 유동성 악재 (WTREGEN)',
         fmtB(tgaCur),
         tgaDelta,
-        true,   // delta 상승 = 빨간색
+        true,   // TGA 상승 = 유동성 흡수 = 빨간
         tgaHint
       )}
       ${card(
@@ -7760,7 +7762,7 @@ function renderTowerS2(d) {
         '연준 보유 국채 WoW Δ (H.4.1 proxy)',
         ttDelta != null ? (ttDelta > 0 ? '+' : '') + ttDelta.toFixed(1) + 'B' : '—',
         ttDelta,
-        true,   // 증가(흡수) = 빨간색
+        false,  // 감소(QT)=빨간, 증가(QE)=녹색
         ttHint
       )}
     </div>
@@ -7820,7 +7822,7 @@ function renderTowerS2(d) {
             x: { display: false },
             y: {
               display: true,
-              min: Math.max(0, min * 0.9),
+              min: Math.max(0, min - 100),
               max: max * 1.05,
               ticks: { color: '#484F58', font: { size: 7 }, callback: v => '$' + Math.round(v) + 'B' },
               grid: { color: 'rgba(48,54,61,0.4)', lineWidth: 0.5 },
