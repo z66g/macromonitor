@@ -7930,39 +7930,77 @@ function renderTowerS4(d) {
     data: {
       labels: weeks.map(w => w.label),
       datasets: [
-        { label:'QT 롤오프',    data: weeks.map(w => w.breakdown.qtDrain),
-          backgroundColor:'rgba(185,28,28,0.85)',  stack:'drain' },
-        { label:'장기채 결제',  data: weeks.map(w => w.breakdown.couponDrain),
-          backgroundColor:'rgba(234,88,12,0.85)',  stack:'drain' },
-        { label:'T-Bill 흡수',  data: weeks.map(w => w.breakdown.billAbsorb),
-          backgroundColor:'rgba(202,138,4,0.85)',  stack:'drain' },
-        { label:'정부 지출',    data: weeks.map(w => w.breakdown.govOutflow),
-          backgroundColor:'rgba(22,163,74,0.85)',  stack:'inject' },
+        { label:'QT 롤오프',   type:'bar',
+          data: weeks.map(w => w.breakdown.qtDrain),
+          backgroundColor:'rgba(185,28,28,0.85)', stack:'s' },
+        { label:'장기채 결제', type:'bar',
+          data: weeks.map(w => w.breakdown.couponDrain),
+          backgroundColor:'rgba(234,88,12,0.85)',  stack:'s' },
+        { label:'T-Bill 흡수', type:'bar',
+          data: weeks.map(w => w.breakdown.billAbsorb),
+          backgroundColor:'rgba(202,138,4,0.85)',  stack:'s' },
+        { label:'정부 지출',   type:'bar',
+          data: weeks.map(w => w.breakdown.govOutflow),
+          backgroundColor:'rgba(22,163,74,0.85)',  stack:'s' },
+        { label:'순 유동성 증발 (Net)',  type:'line',
+          data: weeks.map(w => w.netDrain),
+          borderColor:'#E6EDF3',
+          borderWidth: 2,
+          borderDash: [5, 3],
+          pointBackgroundColor: weeks.map(w => w.isDangerZone ? '#F85149' : '#E6EDF3'),
+          pointBorderColor:     weeks.map(w => w.isDangerZone ? '#F85149' : '#E6EDF3'),
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: false,
+          tension: 0.3,
+          order: 0,   // 라인을 바 위에 렌더
+          yAxisID: 'y',
+        },
       ],
     },
     options: {
       responsive:true, maintainAspectRatio:false, animation:false,
+      interaction: { mode:'index', intersect:false },
       plugins:{
-        legend:{ display:true, position:'bottom',
-          labels:{ color:'#8B949E', font:{size:8}, boxWidth:10, padding:8 } },
+        legend:{
+          display:true, position:'bottom',
+          labels:{
+            color:'#8B949E', font:{size:8}, boxWidth:10, padding:8,
+            filter: (item) => item.text !== '순 유동성 증발 (Net)',  // 범례에서 숨김
+          },
+        },
         tooltip:{
           backgroundColor:'#1C2128', borderColor:'#30363D', borderWidth:0.5,
           titleColor:'#8B949E', bodyColor:'#E6EDF3', titleFont:{size:9}, bodyFont:{size:9},
           callbacks:{
-            afterBody: (items) => {
+            afterTitle: (items) => {
               const wi = items[0]?.dataIndex;
               if (wi == null) return '';
               const w = weeks[wi];
-              const net = w.netDrain;
-              const lines = [`순 유동성 증발: $${net}B`];
+              const sign = w.netDrain > 0 ? '+' : '';
+              const color = w.netDrain > 0 ? '🔴' : '🟢';
+              return `${color} 순 유동성 증발: ${sign}$${w.netDrain}B`;
+            },
+            afterBody: (items) => {
+              const wi = items[0]?.dataIndex;
+              if (wi == null) return [];
+              const w = weeks[wi];
+              const lines = ['─────────────'];
+              if (w.meta) {
+                lines.push(`QRA 주간순발행: $${w.meta.weeklyNet}B (${w.meta.qraSource})`);
+                lines.push(`Bill/Coupon 비율: ${w.meta.billRatio}% / ${w.meta.couponRatio}%`);
+                lines.push(`QT 소스: ${w.meta.maturitySource}`);
+              }
               if (w.auctionDetail?.length) {
-                lines.push('─ 예정 경매:');
-                w.auctionDetail.forEach(a => lines.push(`  ${a.label}: $${a.amtBn.toFixed(0)}B`));
+                lines.push('─ 예정 경매 (Gross):');
+                w.auctionDetail.forEach(a => lines.push(`  ${a.label}: $${(a.grossBn||0).toFixed(0)}B`));
               }
               return lines;
             },
           },
         },
+        // 순값 라벨 바 위에 직접 표시
+        afterDraw: undefined,
       },
       scales:{
         x:{ stacked:true, ticks:{color:'#8B949E',font:{size:9}},
@@ -7972,6 +8010,27 @@ function renderTowerS4(d) {
             grid:{color:'rgba(48,54,61,0.5)',lineWidth:0.5} },
       },
     },
+    plugins: [{
+      // 순값 포인트 옆에 레이블 직접 그리기
+      id: 'netLabel',
+      afterDatasetsDraw(chart) {
+        const ds = chart.data.datasets.find(d => d.label === '순 유동성 증발 (Net)');
+        if (!ds) return;
+        const meta = chart.getDatasetMeta(chart.data.datasets.indexOf(ds));
+        const ctx2 = chart.ctx;
+        ctx2.save();
+        meta.data.forEach((pt, i) => {
+          const val = ds.data[i];
+          const sign = val > 0 ? '+' : '';
+          const color = val > 0 ? '#F85149' : '#3FB950';
+          ctx2.fillStyle = color;
+          ctx2.font = 'bold 9px -apple-system, BlinkMacSystemFont, sans-serif';
+          ctx2.textAlign = 'center';
+          ctx2.fillText(`${sign}$${val}B`, pt.x, pt.y - 8);
+        });
+        ctx2.restore();
+      },
+    }],
   });
 }
 
