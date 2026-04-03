@@ -9149,13 +9149,13 @@ initAll();
     max-width: 100% !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    padding-left: 16px !important;
-    padding-right: 16px !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
   }
   .section-wrap {
     max-width: 100% !important;
     width: 100% !important;
-    padding: 16px 16px !important;
+    padding: 14px 12px !important;
   }
 
   /* 탭 네비게이션 — 가로 스크롤 */
@@ -9208,14 +9208,14 @@ initAll();
     justify-content: flex-start !important;
   }
 
-  /* 컨테이너 패딩 */
+  /* 컨테이너 패딩 — 모바일 전폭 활용 */
   #controls-bar-inner,
   .page-content,
   #t1-wrapper, #t2-wrapper, #t3-wrapper, #t4-wrapper {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
   }
-  .section-wrap { padding: 12px 12px !important; gap: 14px !important; }
+  .section-wrap { padding: 10px 6px !important; gap: 10px !important; }
 
   /* 파이프 다이어그램 — 단열 */
   .pipe-seg {
@@ -9327,6 +9327,27 @@ initAll();
   #t1-yields { grid-template-columns: 1fr !important; }
   #t3-kpi-grid { grid-template-columns: 1fr !important; }
   #t1-comm-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* 카드 내부 패딩 최소화 */
+  #t1-wrapper [style*="padding:14px"],
+  #t1-wrapper [style*="padding: 14px"] { padding: 10px !important; }
+  #t1-wrapper [style*="padding:12px"],
+  #t1-wrapper [style*="padding: 12px"] { padding: 8px !important; }
+  #t2-wrapper [style*="padding:12px"],
+  #t2-wrapper [style*="padding: 12px"] { padding: 8px !important; }
+  #t4-wrapper [style*="padding:14px"],
+  #t4-wrapper [style*="padding: 14px"] { padding: 8px !important; }
+
+  /* NLM 5열 통계 → 2열로 더 축소 */
+  #t1-nlm [style*="repeat(5,1fr)"],
+  #t1-nlm [style*="repeat(5, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* 헤더 패딩 최소화 */
+  #controls-bar-inner {
+    padding: 6px 8px !important;
+  }
 }
 </style>
 </body>
