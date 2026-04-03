@@ -1929,7 +1929,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
             <span style="font-size:10px;font-weight:600;color:#8B949E;">글로벌 유동성 다이버전스</span>
             <span style="font-size:9px;color:#484F58;">Global Liquidity Divergence · DXY vs Broad Dollar</span>
             <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i>
-              <span class="pd-tip-box" style="width:340px;left:0;bottom:calc(100% + 6px);top:auto;transform:none;">
+              <span class="pd-tip-box" style="width:300px;left:calc(100% + 8px);top:0;bottom:auto;transform:none;">
                 <b style="color:#E6EDF3;">글로벌 유동성 다이버전스</b> — DXY vs Broad Dollar<br><br>
                 DXY는 유로·엔·파운드 등 <b>G10 통화</b>만 반영하는 협의 달러. Broad Dollar는 신흥국 통화까지 포함한 <b>Fed 광의 달러</b>. 두 지수가 벌어질 때 숨겨진 글로벌 유동성 국면이 드러납니다.<br><br>
                 <b style="color:#F0B429;">탐지 조건</b><br>
@@ -7443,11 +7443,16 @@ function renderOnchainMacro(d, rwaProtos) {
           tooltip: {
             backgroundColor: '#1C2128', borderColor: '#30363D', borderWidth: 0.5,
             titleFont: {size:8}, bodyFont: {size:8},
+            yAlign: 'bottom',
             callbacks: {
               label: i => ` ${i.label}: $${i.parsed.toFixed(3)}B (${i.dataset.data
                 .reduce((s,v)=>s+v,0) > 0 ? (i.parsed / i.dataset.data.reduce((s,v)=>s+v,0)*100).toFixed(1) : 0}%)`,
             },
           },
+        },
+        onHover: (evt, active) => {
+          const wrap = document.getElementById('oc-rwa-donut-label')?.parentElement;
+          if (wrap) wrap.style.opacity = active.length > 0 ? '0' : '1';
         },
       },
     });
