@@ -2325,45 +2325,87 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
     </div>
   </div>
 
-  <!-- ── 패널 2: 토큰화 미국채 (RWA) ─────────────────── -->
+  <!-- ── 패널 2: 실물자산 토큰화 (RWA) ───────────────── -->
   <div class="pipe-card" style="margin-bottom:12px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <!-- 헤더 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:6px;">
         <span style="font-size:13px;">🏦</span>
-        <span style="font-size:11px;font-weight:700;color:#E6EDF3;">토큰화 미국채 (RWA)</span>
-        <span style="font-size:9px;color:#656D76;">DefiLlama 기준</span>
+        <span style="font-size:11px;font-weight:700;color:#E6EDF3;">실물자산 토큰화 (RWA)</span>
+        <span style="font-size:9px;color:#656D76;">DefiLlama · 온체인 기준</span>
+        <!-- 툴팁 -->
+        <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i>
+          <span class="pd-tip-box" style="width:340px;left:0;bottom:calc(100% + 8px);transform:none;">
+            <b style="color:#E6EDF3;font-size:11px;">🏦 실물자산 토큰화 (RWA)</b><br>
+            <span style="font-size:9px;color:#8B949E;">Real-World Assets — DefiLlama RWA Category</span>
+            <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
+            <b style="color:#CDD9E5;">📌 지표 의미</b><br>
+            부동산·채권·국채·금 등 <b>현실 세계 자산을 블록체인 토큰으로 발행</b>한 프로토콜의 총 예치 자산(TVL). 기관 자본이 온체인으로 유입되는 속도를 나타내는 <b>Web3 기관화 온도계</b>입니다.
+            <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
+            <b style="color:#CDD9E5;">🏷️ 자산 유형 분류</b><br>
+            <span style="color:#F0B429;">🥇 금(Gold)</span> — Tether Gold, Paxos Gold 등 금 담보 토큰<br>
+            <span style="color:#58A6FF;">🏛️ 국채(T-Bill)</span> — BlackRock BUIDL, USYC 등 미국채 토큰화<br>
+            <span style="color:#3FB950;">💳 신용(Credit)</span> — Centrifuge, Ondo 등 채권·대출 유동화
+            <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
+            <b style="color:#CDD9E5;">💡 해석 팁</b><br>
+            <b>T-Bill 토큰 TVL 증가</b> → 기관이 온체인에서 국채 금리 수익 추구, DeFi와 TradFi 융합 가속.<br>
+            <b>금 토큰 TVL 증가</b> → 위험 회피 심리, 안전자산 선호 강화.<br>
+            TVL 전체가 급감하면 온체인 유동성 경색 또는 규제 이슈 점검 필요.
+            <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
+            <b style="color:#CDD9E5;">⚠️ 한계</b><br>
+            DefiLlama RWA 카테고리는 금·신용·국채를 모두 포함. "토큰화 미국채" 만의 수치는 T-Bill 항목만 합산.
+          </span>
+        </span>
       </div>
       <div style="text-align:right;">
         <div style="font-size:7px;color:#484F58;">RWA 전체 TVL</div>
         <div style="font-size:16px;font-weight:700;color:#F0B429;" id="oc-rwa-total">—</div>
       </div>
     </div>
-    <!-- 상위 RWA 리스트 + 도넛 차트 2열 -->
-    <div style="display:flex;gap:12px;align-items:flex-start;">
-      <!-- 좌: 프로토콜 리스트 -->
-      <div style="flex:1;min-width:0;">
-        <div id="oc-rwa-list" style="display:flex;flex-direction:column;gap:3px;margin-bottom:8px;"></div>
-        <!-- T-Bill 특화 -->
-        <div style="background:#0D1117;border:0.5px solid #30363D;border-radius:5px;padding:7px 9px;">
-          <div style="font-size:8px;color:#656D76;margin-bottom:4px;">🏛️ T-Bill 특화 (토큰화 국채)</div>
-          <div id="oc-tbill-list" style="display:flex;flex-direction:column;gap:3px;"></div>
-        </div>
-      </div>
-      <!-- 우: 도넛 차트 -->
-      <div style="width:110px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;">
-        <div style="font-size:8px;color:#656D76;font-weight:600;letter-spacing:.04em;">TOP 6 비중</div>
-        <div style="position:relative;width:100px;height:100px;">
-          <canvas id="oc-rwa-chart" width="100" height="100"></canvas>
-          <!-- 중앙 TVL 오버레이 -->
+
+    <!-- 본문: 도넛(좌) + 테이블(우) -->
+    <div style="display:flex;gap:16px;align-items:flex-start;">
+
+      <!-- ① 좌: 도넛 차트 -->
+      <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;">
+        <div style="position:relative;width:120px;height:120px;">
+          <canvas id="oc-rwa-chart" width="120" height="120"></canvas>
           <div style="position:absolute;inset:0;display:flex;flex-direction:column;
                       align-items:center;justify-content:center;pointer-events:none;">
-            <div style="font-size:7px;color:#484F58;">Total</div>
-            <div style="font-size:11px;font-weight:700;color:#F0B429;font-family:'SF Mono',monospace;"
+            <div style="font-size:7px;color:#656D76;font-weight:600;letter-spacing:.04em;">TOTAL</div>
+            <div style="font-size:12px;font-weight:700;color:#F0B429;font-family:'SF Mono',monospace;"
                  id="oc-rwa-donut-label">—</div>
           </div>
         </div>
-        <!-- 범례 -->
-        <div id="oc-rwa-legend" style="display:flex;flex-direction:column;gap:2px;width:100%;"></div>
+        <!-- 도넛 범례 -->
+        <div id="oc-rwa-legend" style="display:flex;flex-direction:column;gap:3px;width:120px;"></div>
+      </div>
+
+      <!-- ② 우: 프로토콜 테이블 -->
+      <div style="flex:1;min-width:0;">
+        <!-- 테이블 헤더 -->
+        <div style="display:grid;grid-template-columns:18px 1fr 58px 70px 34px;gap:4px;
+                    padding:3px 4px 5px;border-bottom:0.5px solid #30363D;margin-bottom:4px;">
+          <div style="font-size:7px;color:#484F58;">#</div>
+          <div style="font-size:7px;color:#484F58;">프로토콜</div>
+          <div style="font-size:7px;color:#484F58;text-align:right;">TVL</div>
+          <div style="font-size:7px;color:#484F58;">비중</div>
+          <div style="font-size:7px;color:#484F58;text-align:right;">%</div>
+        </div>
+        <!-- 테이블 바디 -->
+        <div id="oc-rwa-list"></div>
+        <!-- T-Bill 합계 요약 -->
+        <div style="margin-top:8px;padding:6px 8px;background:#0D1117;border-radius:5px;
+                    border:0.5px solid #21262D;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="font-size:9px;">🏛️</span>
+            <span style="font-size:8px;color:#8B949E;font-weight:600;">토큰화 국채 (T-Bill) 합산</span>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:#58A6FF;font-family:'SF Mono',monospace;"
+               id="oc-tbill-total">—</div>
+        </div>
+        <!-- T-Bill 개별 목록 -->
+        <div id="oc-tbill-list" style="margin-top:3px;display:flex;flex-direction:column;gap:2px;"></div>
       </div>
     </div>
   </div>
@@ -7064,37 +7106,64 @@ function renderOnchainMacro(d, rwaProtos) {
   const rwaTotalEl = document.getElementById('oc-rwa-total');
   if (rwaTotalEl) rwaTotalEl.textContent = '$' + rwaTotal.toFixed(2) + 'B';
 
+  // 자산 유형 분류 (이름 키워드 기반)
+  const GOLD_KW    = ['gold','xaut','paxg'];
+  const TBILL_KW   = ['buidl','fobxx','ousg','benji','stbt','usyc','tbill','treasury','franklin','spiko','anemoy','wisdomtree'];
+  const getType = (name) => {
+    const n = (name||'').toLowerCase();
+    if (GOLD_KW.some(k => n.includes(k)))  return { badge:'🥇', color:'#F0B429', label:'금' };
+    if (TBILL_KW.some(k => n.includes(k))) return { badge:'🏛️', color:'#58A6FF', label:'국채' };
+    return { badge:'💳', color:'#3FB950', label:'신용' };
+  };
+
   const rwaListEl = document.getElementById('oc-rwa-list');
   if (rwaListEl) {
-    rwaListEl.innerHTML = rwaList.slice(0,8).map(p => `
-      <div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:0.5px solid #21262D;">
-        <div style="flex:1;font-size:9px;color:#E6EDF3;font-weight:600;">${p.name}</div>
-        <div style="width:100px;background:#21262D;border-radius:2px;height:4px;">
-          <div style="width:${Math.min(p.pct,100)}%;background:#F0B429;height:4px;border-radius:2px;"></div>
+    rwaListEl.innerHTML = rwaList.slice(0,8).map((p, i) => {
+      const tp  = getType(p.name);
+      const barW = Math.min(p.pct, 100);
+      const isEven = i % 2 === 1;
+      return `
+      <div style="display:grid;grid-template-columns:18px 1fr 58px 70px 34px;gap:4px;
+                  align-items:center;padding:4px 4px;border-radius:3px;
+                  background:${isEven ? 'rgba(255,255,255,0.02)' : 'transparent'};">
+        <div style="font-size:8px;color:#484F58;text-align:center;">${i+1}</div>
+        <div style="min-width:0;">
+          <div style="display:flex;align-items:center;gap:4px;">
+            <span style="font-size:8px;">${tp.badge}</span>
+            <span style="font-size:9px;color:#E6EDF3;font-weight:600;
+                         white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                  title="${p.name}">${p.name}</span>
+          </div>
         </div>
-        <div style="width:50px;text-align:right;font-size:9px;color:#F0B429;font-family:'SF Mono',monospace;">
-          $${p.tvlB.toFixed(2)}B
+        <div style="font-size:9px;color:${tp.color};font-family:'SF Mono',monospace;
+                    text-align:right;font-weight:600;">$${p.tvlB.toFixed(2)}B</div>
+        <div style="background:#21262D;border-radius:2px;height:4px;position:relative;">
+          <div style="width:${barW}%;background:${tp.color};height:4px;border-radius:2px;
+                      opacity:0.8;transition:width .3s;"></div>
         </div>
-        <div style="width:35px;text-align:right;font-size:8px;color:#484F58;">${p.pct}%</div>
-      </div>`).join('');
+        <div style="font-size:8px;color:#656D76;text-align:right;">${p.pct}%</div>
+      </div>`;
+    }).join('');
   }
 
-  // T-Bill 특화
-  const tbillKeywords = ['buidl','fobxx','ousg','benji','stbt','usyc','tbill','treasury','franklin'];
-  const tbills = rwaList.filter(p =>
-    tbillKeywords.some(k => (p.name||'').toLowerCase().includes(k))
-  );
+  // T-Bill 합산 + 개별 목록
+  const tbillKW2 = ['buidl','fobxx','ousg','benji','stbt','usyc','tbill','treasury','franklin','spiko','anemoy','wisdomtree'];
+  const tbills = rwaList.filter(p => tbillKW2.some(k => (p.name||'').toLowerCase().includes(k)));
+  const tbillSum = tbills.reduce((s,p) => s + p.tvlB, 0);
+
+  const tbillTotalEl = document.getElementById('oc-tbill-total');
+  if (tbillTotalEl) tbillTotalEl.textContent = '$' + tbillSum.toFixed(2) + 'B';
+
   const tbillEl = document.getElementById('oc-tbill-list');
   if (tbillEl) {
-    if (tbills.length) {
-      tbillEl.innerHTML = tbills.map(p => `
-        <div style="display:flex;justify-content:space-between;font-size:9px;padding:2px 0;">
-          <span style="color:#E6EDF3;">${p.name}</span>
-          <span style="color:#F0B429;font-family:'SF Mono',monospace;">$${p.tvlB.toFixed(3)}B</span>
-        </div>`).join('');
-    } else {
-      tbillEl.innerHTML = '<div style="font-size:8px;color:#484F58;">데이터 로딩 중...</div>';
-    }
+    tbillEl.innerHTML = tbills.length
+      ? tbills.map(p => `
+          <div style="display:flex;align-items:center;justify-content:space-between;
+                      padding:2px 8px;font-size:8px;">
+            <span style="color:#8B949E;">∟ ${p.name}</span>
+            <span style="color:#58A6FF;font-family:'SF Mono',monospace;">$${p.tvlB.toFixed(3)}B</span>
+          </div>`).join('')
+      : '<div style="font-size:8px;color:#484F58;padding:2px 8px;">매칭 항목 없음</div>';
   }
 
   // ── RWA 도넛 차트 ──────────────────────────────────────
@@ -7146,12 +7215,18 @@ function renderOnchainMacro(d, rwaProtos) {
     // 범례
     const legendEl = document.getElementById('oc-rwa-legend');
     if (legendEl) {
-      legendEl.innerHTML = chartLabels.map((lbl, i) => `
+      legendEl.innerHTML = chartLabels.map((lbl, i) => {
+        const tp2 = getType(lbl);
+        const short = lbl.length > 14 ? lbl.slice(0,14)+'…' : lbl;
+        return `
         <div style="display:flex;align-items:center;gap:4px;">
-          <span style="width:7px;height:7px;border-radius:1px;background:${PALETTE[i]};flex-shrink:0;"></span>
-          <span style="font-size:7px;color:#8B949E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;"
-                title="${lbl}">${lbl.length > 12 ? lbl.slice(0,12)+'…' : lbl}</span>
-        </div>`).join('');
+          <span style="width:7px;height:7px;border-radius:1px;background:${PALETTE[i]};
+                       flex-shrink:0;border:0.5px solid rgba(255,255,255,0.1);"></span>
+          <span style="font-size:7px;color:#8B949E;flex:1;white-space:nowrap;overflow:hidden;
+                       text-overflow:ellipsis;" title="${lbl}">${short}</span>
+          <span style="font-size:6px;color:${tp2.color};flex-shrink:0;">${tp2.badge}</span>
+        </div>`;
+      }).join('');
     }
   }
 
