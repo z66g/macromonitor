@@ -9511,13 +9511,39 @@ initAll();
   #t1-nlm [style*="font-size:40px"],
   #t1-nlm [style*="font-size: 40px"] { font-size: 28px !important; }
 
-  /* ⑧ 숫자+배지 flex 행 — wrap 허용 */
-  .gauge-grid [style*="display:flex"][style*="align-items:center"],
-  .ratio-grid [style*="display:flex"][style*="align-items:center"],
-  .sentiment-grid [style*="display:flex"][style*="align-items:center"] {
+  /* ⑧ (기존 인라인 타깃 제거, 클래스 직접 수정으로 대체) */
+}
+
+/* ══ 카드 내부 수치+배지 행: 모바일 전용 클래스 오버라이드 ══ */
+@media (max-width: 767px) {
+
+  /* ── gauge 카드 (VIX / MOVE) ── */
+  .gc-value-row {
     flex-wrap: wrap !important;
+    align-items: center !important;
     gap: 4px !important;
   }
+  .gc-value { font-size: 20px !important; }
+  .gc-change { flex-shrink: 0 !important; font-size: 10px !important; }
+
+  /* ── ratio 카드 (SPY/TLT 등) ── */
+  /* rc-ratio + rc-change 부모 div: inline style이라 flex-wrap 직접 */
+  .ratio-card [style*="display:flex"] {
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+  .rc-ratio { font-size: 18px !important; }
+  .rc-change { flex-shrink: 0 !important; }
+
+  /* ── sentiment 카드 (TQQQ/SQQQ, UVXY) ── */
+  .sent-card [style*="display:flex"] {
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+  }
+  .sent-value { font-size: 20px !important; }
+  .sent-change { flex-shrink: 0 !important; }
 }
 
 </style>
