@@ -1,0 +1,104 @@
+name: Fetch BTC ETF Flows
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # 매일 UTC 02:00 (미장 마감 후)
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch BTC ETF Flow Data
+        run: |
+          mkdir -p data
+          python3 << 'PYEOF'
+          import urllib.request, json, re
+          from datetime import datetime, timedelta
+
+          results = []
+
+          # SoSoValue 비공식 API 시도
+          try:
+              url = 'https://sosovalue.com/api/etf/us-btc-spot/info'
+              req = urllib.request.Request(url, headers={
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                  'Accept': 'application/json',
+                  'Referer': 'https://sosovalue.com/',
+              })
+              with urllib.request.urlopen(req, timeout=15) as r:
+                  data = json.loads(r.read().decode())
+              print(f'SoSoValue response type: {type(data)}')
+              print(f'SoSoValue keys: {list(data.keys()) if isinstance(data, dict) else "array"}')
+              # 데이터 파싱 시도
+              if isinstance(data, dict):
+                  flows = data.get('data', data.get('list', []))
+                  for item in flows[:30]:
+                      date    = item.get('date', item.get('tradeDate', ''))
+                      net     = float(item.get('netFlow', item.get('totalNetFlow', 0)) or 0)
+                      cum     = float(item.get('cumFlow', item.get('totalCumFlow', 0)) or 0)
+                      if date:
+                          results.append({'date': date[:10], 'netFlow': net, 'cumFlow': cum})
+              print(f'SoSoValue parsed: {len(results)} rows')
+          except Exception as e:
+              print(f'SoSoValue failed: {e}')
+
+          # Coinglass 폴백
+          if not results:
+              try:
+                  url = 'https://open-api.coinglass.com/public/v2/etf_flow?symbol=BTC'
+                  req = urllib.request.Request(url, headers={
+                      'User-Agent': 'Mozilla/5.0',
+                      'Accept': 'application/json',
+                  })
+                  with urllib.request.urlopen(req, timeout=15) as r:
+                      data = json.loads(r.read().decode())
+                  flows = data.get('data', [])
+                  cum = 0
+                  for item in reversed(flows[:30]):
+                      net = float(item.get('netFlow', 0) or 0) / 1e6  # M→B
+                      cum += net
+                      results.insert(0, {
+                          'date': item.get('date', '')[:10],
+                          'netFlow': round(net, 3),
+                          'cumFlow': round(cum, 3),
+                      })
+                  print(f'Coinglass parsed: {len(results)} rows')
+              except Exception as e:
+                  print(f'Coinglass failed: {e}')
+
+          # 둘 다 실패 시 기존 데이터 유지
+          if not results:
+              try:
+                  with open('data/etf_flows.json') as f:
+                      existing = json.load(f)
+                  results = existing.get('dailyFlows', [])
+                  print(f'Using existing data: {len(results)} rows')
+              except:
+                  results = []
+
+          # 최종 출력
+          cum_total = results[0]['cumFlow'] if results else 0
+          output = {
+              'updated':    datetime.utcnow().isoformat() + 'Z',
+              'source':     'sosovalue/coinglass',
+              'cumTotal':   cum_total,
+              'dailyFlows': results[:30],
+          }
+          with open('data/etf_flows.json', 'w') as f:
+              json.dump(output, f, indent=2)
+          print(f'완료: {len(results)}일치 / 누적 ${cum_total:.1f}B')
+          PYEOF
+
+      - name: Commit and Push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/etf_flows.json
+          git diff --staged --quiet || git commit -m "chore: update BTC ETF flows [$(date -u '+%Y-%m-%d')]"
+          git push
