@@ -7048,10 +7048,10 @@ function renderOnchainMacro(d, rwaProtos) {
   // 누적 레이블: 데이터 기간 표시 (예: "21일 누적 순유입")
   const cumLabelEl = document.getElementById('oc-etf-cum-label');
   if (cumLabelEl && flows.length > 0) {
-    const nDays = flows.length;
-    const oldestDate = flows[flows.length - 1]?.date?.slice(5) || '';
-    cumLabelEl.textContent = `${nDays}일 누적 순유입`;
-    cumLabelEl.title = `${oldestDate} 이후 누적`;
+    const oldestDate = flows[flows.length - 1]?.date || '';
+    const isFullHistory = oldestDate <= '2024-02-01';  // 출시일(2024-01-11) 포함 여부
+    cumLabelEl.textContent = isFullHistory ? '누적 순유입 (출시 이후)' : `${flows.length}일 누적 순유입`;
+    cumLabelEl.title = `${oldestDate} 이후 누적 / ${flows.length}거래일`;
   }
   const latestNet = etf.latestNet || 0;
   const latestEl  = document.getElementById('oc-etf-latest');
