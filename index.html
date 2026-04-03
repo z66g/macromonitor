@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MacroMonitor</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <style>
 /* ═══════════════════════════
    기반 리셋
@@ -2144,7 +2145,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
       <div style="font-size:9px;color:#484F58;margin-top:1px;">Liquidity Intelligence Tower</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button onclick="loadLiqTower(true)" title="새로고침"
+      <button onclick="refreshTower(this)" title="새로고침"
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:13px;padding:2px;">↻</button>
       <button onclick="toggleLiqTower()"
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
@@ -6758,6 +6759,34 @@ async function loadT2(force = false) {
   }
 }
 
+// ChartDataLabels 플러그인 전역 등록 (뱀파이어 Net Line 라벨용)
+if (typeof ChartDataLabels !== 'undefined') {
+  Chart.register(ChartDataLabels);
+  // 모든 차트에서 기본 비활성화 — 뱀파이어 Net Line에서만 개별 활성화
+  Chart.defaults.plugins.datalabels = { display: false };
+}
+
+// ── 관제탑 새로고침 (스핀 애니메이션) ─────────────────────
+async function refreshTower(btn) {
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.style.animation = 'spin 0.8s linear infinite';
+  btn.style.display = 'inline-block';
+  // spin 키프레임 (없으면 추가)
+  if (!document.getElementById('spin-kf')) {
+    const s = document.createElement('style');
+    s.id = 'spin-kf';
+    s.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+    document.head.appendChild(s);
+  }
+  try {
+    await loadLiqTower(true);
+  } finally {
+    btn.disabled = false;
+    btn.style.animation = '';
+  }
+}
+
 async function initAll() {
   await Promise.all([loadS1(), loadS2(), loadS3()]);
 }
@@ -7959,6 +7988,21 @@ function renderTowerS4(d) {
           tension: 0.3,
           order: 1,
           yAxisID: 'y',
+          datalabels: {
+            display: true,
+            color: function(ctx2) {
+              const v = netData[ctx2.dataIndex];
+              return v > 0 ? '#F85149' : '#3FB950';
+            },
+            font: { size: 9, weight: 'bold',
+              family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' },
+            formatter: function(v) {
+              return (v > 0 ? '+' : '') + '$' + v.toFixed(0) + 'B';
+            },
+            anchor: function(ctx2) { return netData[ctx2.dataIndex] >= 0 ? 'end' : 'start'; },
+            align:  function(ctx2) { return netData[ctx2.dataIndex] >= 0 ? 'top' : 'bottom'; },
+            offset: 4,
+          },
         },
       ],
     },
