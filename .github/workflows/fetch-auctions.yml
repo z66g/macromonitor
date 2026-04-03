@@ -2,8 +2,8 @@ name: Fetch Treasury Auctions
 
 on:
   schedule:
-    - cron: '0 */4 * * *'   # 매 4시간 (UTC 기준 0, 4, 8, 12, 16, 20시)
-  workflow_dispatch:          # 수동 실행 가능
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
 
 jobs:
   fetch:
@@ -18,67 +18,68 @@ jobs:
         run: |
           mkdir -p data
 
-          # upcoming: Bill, Note, Bond, TIPS, FRN
-          for TYPE in Bill Note Bond TIPS FRN; do
-            curl -sf "https://www.treasurydirect.gov/TA_WS/securities/upcoming?format=jsonp&limitByTerm=true&type=${TYPE}&callback=cb" \
-              | sed 's/^cb(//; s/)$//' > /tmp/upcoming_${TYPE}.json || echo '[]' > /tmp/upcoming_${TYPE}.json
-          done
+          # JSONP → JSON 변환 Python 스크립트
+          python3 << 'PYEOF'
+          import urllib.request, json, re, os
 
-          # auctioned (최근 낙찰 완료): Bill, Note, Bond
-          for TYPE in Bill Note Bond; do
-            curl -sf "https://www.treasurydirect.gov/TA_WS/securities/auctioned?format=jsonp&limitByTerm=true&type=${TYPE}&callback=cb" \
-              | sed 's/^cb(//; s/)$//' > /tmp/auctioned_${TYPE}.json || echo '[]' > /tmp/auctioned_${TYPE}.json
-          done
+          BASE = 'https://www.treasurydirect.gov/TA_WS/securities'
+          HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; MacroMonitor/1.0)'}
 
-          # Node.js로 병합 및 정리
-          node -e "
-            const fs = require('fs');
-            const readJson = (f) => { try { return JSON.parse(fs.readFileSync(f,'utf8')); } catch(e) { return []; } };
+          def fetch_jsonp(endpoint, sec_type):
+              url = f'{BASE}/{endpoint}?format=jsonp&limitByTerm=true&type={sec_type}&callback=cb'
+              try:
+                  req = urllib.request.Request(url, headers=HEADERS)
+                  with urllib.request.urlopen(req, timeout=15) as r:
+                      text = r.read().decode('utf-8')
+                  # cb([...]) → [...]
+                  m = re.search(r'cb\s*\(\s*(\[[\s\S]*\])\s*\)', text)
+                  if m:
+                      return json.loads(m.group(1))
+              except Exception as e:
+                  print(f'Error {endpoint}/{sec_type}: {e}')
+              return []
 
-            const upcoming = [
-              ...readJson('/tmp/upcoming_Bill.json'),
-              ...readJson('/tmp/upcoming_Note.json'),
-              ...readJson('/tmp/upcoming_Bond.json'),
-              ...readJson('/tmp/upcoming_TIPS.json'),
-              ...readJson('/tmp/upcoming_FRN.json'),
-            ].map(a => ({
-              type:        a.securityType || '',
-              term:        a.securityTerm || '',
-              auctionDate: (a.auctionDate || '').slice(0, 10),
-              issueDate:   (a.issueDate   || '').slice(0, 10),
-              maturityDate:(a.maturityDate|| '').slice(0, 10),
-              offeringAmt: parseFloat(a.offeringAmount) || 0,
-              cusip:       a.cusip || '',
-            })).sort((a, b) => (a.issueDate || '').localeCompare(b.issueDate || ''));
+          upcoming = []
+          for t in ['Bill', 'Note', 'Bond', 'TIPS', 'FRN']:
+              items = fetch_jsonp('upcoming', t)
+              print(f'upcoming/{t}: {len(items)}건')
+              upcoming += items
 
-            const auctioned = [
-              ...readJson('/tmp/auctioned_Bill.json'),
-              ...readJson('/tmp/auctioned_Note.json'),
-              ...readJson('/tmp/auctioned_Bond.json'),
-            ].map(a => ({
-              type:        a.securityType || '',
-              term:        a.securityTerm || '',
-              auctionDate: (a.auctionDate || '').slice(0, 10),
-              issueDate:   (a.issueDate   || '').slice(0, 10),
-              offeringAmt: parseFloat(a.offeringAmount) || 0,
-              highRate:    a.highRate || a.highYield || null,
-              cusip:       a.cusip || '',
-            })).sort((a, b) => (b.auctionDate || '').localeCompare(a.auctionDate || '')).slice(0, 20);
+          auctioned = []
+          for t in ['Bill', 'Note', 'Bond']:
+              items = fetch_jsonp('auctioned', t)
+              print(f'auctioned/{t}: {len(items)}건')
+              auctioned += items
 
-            const output = {
-              updated:   new Date().toISOString(),
-              upcoming,
-              auctioned,
-            };
+          def clean(a, kind):
+              base = {
+                  'type':        a.get('securityType', ''),
+                  'term':        a.get('securityTerm', ''),
+                  'auctionDate':(a.get('auctionDate') or '')[:10],
+                  'issueDate':  (a.get('issueDate')   or '')[:10],
+                  'offeringAmt': float(a.get('offeringAmount') or 0),
+                  'cusip':       a.get('cusip', ''),
+              }
+              if kind == 'auctioned':
+                  base['highRate'] = a.get('highRate') or a.get('highYield')
+              return base
 
-            fs.writeFileSync('data/auctions.json', JSON.stringify(output, null, 2));
-            console.log('upcoming:', upcoming.length, '/ auctioned:', auctioned.length);
-          "
+          result = {
+              'updated':  __import__('datetime').datetime.utcnow().isoformat() + 'Z',
+              'upcoming': sorted([clean(a,'upcoming')  for a in upcoming],  key=lambda x: x['issueDate']),
+              'auctioned':sorted([clean(a,'auctioned') for a in auctioned], key=lambda x: x['auctionDate'], reverse=True)[:20],
+          }
+
+          with open('data/auctions.json', 'w') as f:
+              json.dump(result, f, indent=2)
+
+          print(f"완료: upcoming {len(result['upcoming'])}건 / auctioned {len(result['auctioned'])}건")
+          PYEOF
 
       - name: Commit and Push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/auctions.json
-          git diff --staged --quiet || git commit -m "chore: update auctions data [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git diff --staged --quiet || git commit -m "chore: update auctions [$(date -u '+%Y-%m-%d %H:%M UTC')]"
           git push
