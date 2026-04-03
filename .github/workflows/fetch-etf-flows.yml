@@ -62,9 +62,20 @@ jobs:
 
           def parse_date(s):
               s = s.strip()
+              # 표준 포맷 시도 (연도 포함)
               for fmt in ['%d %b %y','%d %b %Y','%-d %b %y','%-d %b %Y',
-                          '%b %d, %Y','%Y-%m-%d','%m/%d/%Y']:
+                          '%b %d, %Y','%Y-%m-%d','%m/%d/%Y','%d/%m/%Y']:
                   try: return datetime.strptime(s, fmt)
+                  except: pass
+              # 연도 없는 포맷: 현재 연도 추정 (예: "Mar 28", "3 Apr")
+              cur_year = datetime.now(timezone.utc).year
+              for fmt in ['%b %d','%d %b','%b %-d','%-d %b']:
+                  try:
+                      dt = datetime.strptime(f'{s} {cur_year}', f'{fmt} %Y')
+                      # 미래 날짜면 전년도로 조정
+                      if dt.date() > datetime.now(timezone.utc).date():
+                          dt = dt.replace(year=cur_year - 1)
+                      return dt
                   except: pass
               return None
 
@@ -105,6 +116,11 @@ jobs:
                   p = TableParser()
                   p.feed(html)
                   print(f'[DEBUG] Tables: {len(p.tables)}, rows: {[len(t) for t in p.tables]}')
+                  # 가장 큰 테이블의 첫 3행 샘플 출력
+                  if p.tables:
+                      biggest = max(p.tables, key=len)
+                      for i, row in enumerate(biggest[:4]):
+                          print(f'[DEBUG] row[{i}] first={repr(row[0])} last={repr(row[-1])} len={len(row)}')
 
                   parsed = []
                   for tbl in p.tables:
