@@ -3317,10 +3317,8 @@ async function fetchLiqTowerData(env) {
   else if (rrpBn > 100) { billWeight = 0.5; billWeightLabel = '0.5 (마찰적 흡수 시작)'; }
   else                  { billWeight = 1.0; billWeightLabel = '1.0 (RRP 소진, 장기채 동등 충격)'; }
 
-  const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive, h41Tower?.maturity ?? null);
-
-  // H.4.1 ForTower (KPI카드 + 부채구조 + WALCL 이상징후)
   const h41Tower = await fetchH41ForTower(env);
+  const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive, h41Tower?.maturity ?? null);
 
   return {
     _savedAt: new Date().toISOString(),
