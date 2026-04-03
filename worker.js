@@ -92,6 +92,8 @@ export default {
       if (path.startsWith('/t2'))            return await t2Cached(env, force, ctx);
       if (path.startsWith('/t3'))            return await t3Cached(env, force, ctx);
       // QRA 엔드포인트 — /qra-apply, /qra-preview 등 구체적인 것 먼저
+      if (path.startsWith('/qra-debug'))     return await qraDebug(env);
+      if (path.startsWith('/qra-trigger'))   return await qraTrigger(env);
       if (path.startsWith('/qra-status'))    return await qraStatus(env);
       if (path.startsWith('/qra-preview'))   return await qraPreview(env);
       if (path.startsWith('/qra-apply'))     return await qraApply(request, env);
@@ -3315,7 +3317,7 @@ async function fetchLiqTowerData(env) {
   else if (rrpBn > 100) { billWeight = 0.5; billWeightLabel = '0.5 (마찰적 흡수 시작)'; }
   else                  { billWeight = 1.0; billWeightLabel = '1.0 (RRP 소진, 장기채 동등 충격)'; }
 
-  const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive);
+  const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive, h41Tower?.maturity ?? null);
 
   // H.4.1 ForTower (KPI카드 + 부채구조 + WALCL 이상징후)
   const h41Tower = await fetchH41ForTower(env);
@@ -3473,9 +3475,26 @@ async function fetchH41HtmlData() {
 }
 
 // ── TGA 뱀파이어 4주 추정 모델 ──────────────────────────
-function buildVampireModel(auctions, rrpBn, billWeight, qraActive) {
+function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData) {
   const now = new Date();
   const weeks = [];
+
+  // ── QRA 기반 주간 순발행 필요액 ──────────────────────
+  // QRA net_borrowing_billions ÷ 13주 = 주간 평균 순발행
+  const weeklyNet = qraActive?.net_borrowing_billions
+    ? +(qraActive.net_borrowing_billions / 13).toFixed(1)
+    : 30; // Fallback: $30B/주
+
+  // ── H.4.1 만기 데이터 → 주차별 QT 동적 계산 ─────────
+  const within15d = maturityData?.treasury_within_15d ?? null; // $B
+  const d16_90d   = maturityData?.treasury_d16_90d    ?? null; // $B
+
+  const qtByWeek = [
+    within15d != null ? +(within15d / 2).toFixed(1) : 15,  // Week1: ≤15일 ÷ 2
+    within15d != null ? +(within15d / 2).toFixed(1) : 15,  // Week2: 동일
+    d16_90d   != null ? +(d16_90d   / 10).toFixed(1) : 15, // Week3: 16~90일 ÷ 10
+    d16_90d   != null ? +(d16_90d   / 10).toFixed(1) : 15, // Week4: 동일
+  ];
 
   for (let w = 0; w < 4; w++) {
     const weekStart = new Date(now);
@@ -3486,46 +3505,72 @@ function buildVampireModel(auctions, rrpBn, billWeight, qraActive) {
     const wsStr = weekStart.toISOString().slice(0,10);
     const weStr = weekEnd.toISOString().slice(0,10);
 
-    // 해당 주 경매 결제 필터링
+    // 해당 주 경매 결제 필터링 (Gross 비율 계산용)
     const weekAuctions = auctions.filter(a => {
       const issue = a.issueDate?.slice(0,10);
       return issue >= wsStr && issue <= weStr;
     });
 
-    let couponDrain = 0; // 장기채 (Note/Bond)
-    let billAbsorb  = 0; // T-Bill
+    // ── 총발행 구성 비율 산출 (Gross) ────────────────────
+    let billGross   = 0;
+    let couponGross = 0;
     const auctionDetail = [];
 
     for (const a of weekAuctions) {
-      const amt = a.offeringAmt / 1e9; // 십억달러
+      const amt = a.offeringAmt / 1e9;
       if (a.type === 'Bill') {
-        billAbsorb += amt * billWeight;
-        auctionDetail.push({ label: `T-Bill ${a.term}`, amtBn: amt, weighted: amt * billWeight });
+        billGross += amt;
+        auctionDetail.push({ label: `T-Bill ${a.term}`, grossBn: +amt.toFixed(1) });
       } else {
-        couponDrain += amt;
-        auctionDetail.push({ label: `${a.type} ${a.term}`, amtBn: amt, weighted: amt });
+        couponGross += amt;
+        auctionDetail.push({ label: `${a.type} ${a.term}`, grossBn: +amt.toFixed(1) });
       }
     }
 
-    // QT 추정 (연준 월 600억 달러 롤오프 → 주당 약 150억)
-    const qtDrain = 15; // $15B/week 추정
+    const totalGross = billGross + couponGross;
 
-    // 정부 지출 (월초/월말 추정)
+    // ── QRA 탑다운 순발행 할당 ───────────────────────────
+    let netBillAbsorb  = 0;
+    let netCouponDrain = 0;
+
+    if (totalGross > 0) {
+      const billRatio   = billGross   / totalGross;
+      const couponRatio = couponGross / totalGross;
+      netBillAbsorb  = +(weeklyNet * billRatio).toFixed(1);
+      netCouponDrain = +(weeklyNet * couponRatio).toFixed(1);
+    } else {
+      // 경매 없는 주: 전체를 50/50 추정
+      netBillAbsorb  = +(weeklyNet * 0.5).toFixed(1);
+      netCouponDrain = +(weeklyNet * 0.5).toFixed(1);
+    }
+
+    // ── QT (H.4.1 만기 동적) ─────────────────────────────
+    const qtDrain = qtByWeek[w];
+
+    // ── 정부 지출 (월초/월말 추정) ───────────────────────
     const dayOfMonth = weekStart.getDate();
-    const govOutflow = (dayOfMonth <= 5 || dayOfMonth >= 26) ? -50 : -20; // $B
+    const govOutflow = (dayOfMonth <= 5 || dayOfMonth >= 26) ? -50 : -20;
 
-    const netDrain = couponDrain + billAbsorb + qtDrain + govOutflow;
-    const isDangerZone = netDrain > 50; // $50B 임계값
+    // ── 최종 순 유동성 흡수 ──────────────────────────────
+    const netDrain = +(netCouponDrain + (netBillAbsorb * billWeight) + qtDrain + govOutflow).toFixed(1);
+    const isDangerZone = netDrain > 50;
 
     weeks.push({
-      label:    `Week ${w+1}`,
+      label:     `Week ${w+1}`,
       dateRange: `${wsStr} ~ ${weStr}`,
-      netDrain: +netDrain.toFixed(1),
+      netDrain,
       breakdown: {
-        couponDrain:  +couponDrain.toFixed(1),
-        billAbsorb:   +billAbsorb.toFixed(1),
-        qtDrain:      +qtDrain.toFixed(1),
-        govOutflow:   +govOutflow.toFixed(1),
+        couponDrain:  +netCouponDrain.toFixed(1),       // Net 쿠폰 흡수
+        billAbsorb:   +(netBillAbsorb * billWeight).toFixed(1), // Net Bill (가중)
+        qtDrain:      +qtDrain.toFixed(1),               // QT 롤오프
+        govOutflow:   +govOutflow.toFixed(1),            // 정부 지출
+      },
+      meta: {
+        weeklyNet,
+        billRatio:    totalGross > 0 ? +(billGross/totalGross*100).toFixed(0) : 50,
+        couponRatio:  totalGross > 0 ? +(couponGross/totalGross*100).toFixed(0) : 50,
+        maturitySource: maturityData ? 'H.4.1' : 'fallback',
+        qraSource:      qraActive ? 'QRA' : 'fallback',
       },
       auctionDetail,
       isDangerZone,
@@ -3810,4 +3855,58 @@ async function auctionHtmlDebug() {
   } catch(e) { results.search_error = e.message; }
 
   return json(results);
+}
+
+// ── QRA 디버그 (/qra-debug) ──────────────────────────────
+async function qraDebug(env) {
+  const results = {};
+
+  // 1. API 키 존재 여부
+  results.gemini_key_set = !!env?.GEMINI_API_KEY;
+
+  // 2. KV 현재 상태
+  results.kv_active  = await kvGet(env, KV_KEYS.qraActive);
+  results.kv_pending = await kvGet(env, KV_KEYS.qraPending);
+
+  // 3. Gemini 연결 테스트 (간단한 ping)
+  if (env?.GEMINI_API_KEY) {
+    try {
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'Reply with just: OK' }] }],
+          }),
+        }
+      );
+      results.gemini_ping_status = r.status;
+      if (r.ok) {
+        const d = await r.json();
+        results.gemini_ping_response = d.candidates?.[0]?.content?.parts?.[0]?.text?.slice(0, 50);
+      } else {
+        results.gemini_ping_error = await r.text().then(t => t.slice(0, 200));
+      }
+    } catch(e) { results.gemini_ping_error = e.message; }
+  }
+
+  return json(results);
+}
+
+// ── QRA 수동 트리거 (/qra-trigger) ──────────────────────
+async function qraTrigger(env) {
+  const result = await fetchQraFromGemini(env);
+  if (result.error) return json({ success: false, error: result.error });
+
+  // confidence HIGH면 자동 저장
+  if (result.confidence === 'high') {
+    await kvPut(env, KV_KEYS.qraActive, {
+      ...result,
+      applied_at: new Date().toISOString(),
+      applied_by: 'manual_trigger',
+    }, KV_TTL.qraActive);
+    return json({ success: true, saved: true, data: result });
+  }
+  return json({ success: true, saved: false, reason: `confidence=${result.confidence}`, data: result });
 }
