@@ -7246,7 +7246,7 @@ function renderOnchainMacro(d, rwaProtos) {
   }
 
   // ── RWA TVL 히스토리 차트 ────────────────────────────────
-  const rwaHist = (d.rwa?.history || []);
+  const rwaHist = (d.rwa?.history || []).slice(0, -1);  // 당일 부분집계 제외
   const histCtx = document.getElementById('oc-rwa-hist-chart');
   if (histCtx && rwaHist.length > 5) {
     if (_ocRwaHistChart) { _ocRwaHistChart.destroy(); _ocRwaHistChart = null; }
