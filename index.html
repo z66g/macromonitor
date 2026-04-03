@@ -9489,13 +9489,35 @@ initAll();
     grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
   }
-  .sentiment-grid > * { min-width: 0 !important; overflow: hidden !important; }
+  .sentiment-grid > * { min-width: 0 !important; overflow-x: clip !important; }
 
   /* ⑤ 슬라이더 전체 너비 초과 방지 */
   [style*="position:relative"][style*="width"] { max-width: 100% !important; }
 
-  /* ⑥ gauge-grid 카드 내부 콘텐츠 overflow 방지 */
-  .gauge-grid > * { overflow: hidden !important; }
+  /* ⑥ gauge-grid 카드 내부: 가로 overflow만 차단, 세로 허용 */
+  .gauge-grid > * { overflow-x: clip !important; overflow-y: visible !important; }
+
+  /* ⑦ 큰 숫자 폰트 모바일 축소 — 변화량 배지가 같은 행에 들어오도록 */
+  /* VIX/MOVE 40px 숫자 */
+  .gauge-grid [style*="font-size:40px"],
+  .gauge-grid [style*="font-size: 40px"] { font-size: 26px !important; }
+  /* ratio-grid 큰 숫자 */
+  .ratio-grid [style*="font-size:28px"],
+  .ratio-grid [style*="font-size: 28px"] { font-size: 20px !important; }
+  /* sentiment-grid 큰 숫자 */
+  .sentiment-grid [style*="font-size:36px"],
+  .sentiment-grid [style*="font-size: 36px"] { font-size: 26px !important; }
+  /* T1 NLM 40px */
+  #t1-nlm [style*="font-size:40px"],
+  #t1-nlm [style*="font-size: 40px"] { font-size: 28px !important; }
+
+  /* ⑧ 숫자+배지 flex 행 — wrap 허용 */
+  .gauge-grid [style*="display:flex"][style*="align-items:center"],
+  .ratio-grid [style*="display:flex"][style*="align-items:center"],
+  .sentiment-grid [style*="display:flex"][style*="align-items:center"] {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
 }
 
 </style>
