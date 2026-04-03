@@ -3284,7 +3284,7 @@ async function fetchLiqTowerData(env) {
 
   // GitHub Actions가 4시간마다 갱신 → raw URL로 fetch (Akamai 우회)
   const auctionsFetch = async () => {
-    const RAW = 'https://raw.githubusercontent.com/zzibu-0070/macromonitor/main/data/auctions.json';
+    const RAW = 'https://raw.githubusercontent.com/z66g/macromonitor/main/data/auctions.json';
     try {
       const r = await fetch(RAW, { cf: { cacheTtl: 3600 } });
       if (!r.ok) return [];
