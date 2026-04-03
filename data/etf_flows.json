@@ -1,42 +1,457 @@
 {
-  "updated": "2026-04-03T12:50:14.380336+00:00",
+  "updated": "2026-04-03T12:56:04.524570+00:00",
   "source": "farside.co.uk",
-  "cumTotal": 0.768,
+  "cumTotal": 55.933,
   "dailyFlows": [
     {
       "date": "2026-04-02",
       "netFlow": 0.009,
-      "cumFlow": 0.768
+      "cumFlow": 55.933
+    },
+    {
+      "date": "2026-04-01",
+      "netFlow": -0.174,
+      "cumFlow": 55.924
     },
     {
       "date": "2026-03-31",
       "netFlow": 0.117,
-      "cumFlow": 0.759
+      "cumFlow": 56.098
     },
     {
       "date": "2026-03-30",
       "netFlow": 0.069,
-      "cumFlow": 0.642
+      "cumFlow": 55.981
+    },
+    {
+      "date": "2026-03-27",
+      "netFlow": -0.226,
+      "cumFlow": 55.912
+    },
+    {
+      "date": "2026-03-26",
+      "netFlow": -0.171,
+      "cumFlow": 56.138
     },
     {
       "date": "2026-03-25",
       "netFlow": 0.008,
-      "cumFlow": 0.573
+      "cumFlow": 56.309
+    },
+    {
+      "date": "2026-03-24",
+      "netFlow": -0.074,
+      "cumFlow": 56.301
     },
     {
       "date": "2026-03-23",
       "netFlow": 0.167,
-      "cumFlow": 0.565
+      "cumFlow": 56.375
+    },
+    {
+      "date": "2026-03-20",
+      "netFlow": -0.052,
+      "cumFlow": 56.208
+    },
+    {
+      "date": "2026-03-19",
+      "netFlow": -0.09,
+      "cumFlow": 56.26
+    },
+    {
+      "date": "2026-03-18",
+      "netFlow": -0.164,
+      "cumFlow": 56.35
     },
     {
       "date": "2026-03-17",
       "netFlow": 0.199,
-      "cumFlow": 0.398
+      "cumFlow": 56.514
     },
     {
       "date": "2026-03-16",
       "netFlow": 0.199,
-      "cumFlow": 0.199
+      "cumFlow": 56.315
+    },
+    {
+      "date": "2026-03-13",
+      "netFlow": 0.18,
+      "cumFlow": 56.116
+    },
+    {
+      "date": "2026-03-12",
+      "netFlow": 0.054,
+      "cumFlow": 55.936
+    },
+    {
+      "date": "2026-03-11",
+      "netFlow": 0.115,
+      "cumFlow": 55.882
+    },
+    {
+      "date": "2026-03-10",
+      "netFlow": 0.247,
+      "cumFlow": 55.767
+    },
+    {
+      "date": "2026-03-09",
+      "netFlow": 0.167,
+      "cumFlow": 55.52
+    },
+    {
+      "date": "2026-03-06",
+      "netFlow": -0.349,
+      "cumFlow": 55.353
+    },
+    {
+      "date": "2026-03-05",
+      "netFlow": -0.228,
+      "cumFlow": 55.702
+    },
+    {
+      "date": "2026-03-04",
+      "netFlow": 0.462,
+      "cumFlow": 55.93
+    },
+    {
+      "date": "2026-03-03",
+      "netFlow": 0.225,
+      "cumFlow": 55.468
+    },
+    {
+      "date": "2026-03-02",
+      "netFlow": 0.458,
+      "cumFlow": 55.243
+    },
+    {
+      "date": "2026-02-27",
+      "netFlow": -0.028,
+      "cumFlow": 54.785
+    },
+    {
+      "date": "2026-02-26",
+      "netFlow": 0.254,
+      "cumFlow": 54.813
+    },
+    {
+      "date": "2026-02-25",
+      "netFlow": 0.507,
+      "cumFlow": 54.559
+    },
+    {
+      "date": "2026-02-24",
+      "netFlow": 0.258,
+      "cumFlow": 54.052
+    },
+    {
+      "date": "2026-02-23",
+      "netFlow": -0.204,
+      "cumFlow": 53.794
+    },
+    {
+      "date": "2026-02-20",
+      "netFlow": 0.088,
+      "cumFlow": 53.998
+    },
+    {
+      "date": "2026-02-19",
+      "netFlow": -0.166,
+      "cumFlow": 53.91
+    },
+    {
+      "date": "2026-02-18",
+      "netFlow": -0.133,
+      "cumFlow": 54.076
+    },
+    {
+      "date": "2026-02-17",
+      "netFlow": -0.105,
+      "cumFlow": 54.209
+    },
+    {
+      "date": "2026-02-13",
+      "netFlow": 0.015,
+      "cumFlow": 54.314
+    },
+    {
+      "date": "2026-02-12",
+      "netFlow": -0.41,
+      "cumFlow": 54.299
+    },
+    {
+      "date": "2026-02-11",
+      "netFlow": -0.276,
+      "cumFlow": 54.709
+    },
+    {
+      "date": "2026-02-10",
+      "netFlow": 0.167,
+      "cumFlow": 54.985
+    },
+    {
+      "date": "2026-02-09",
+      "netFlow": 0.145,
+      "cumFlow": 54.818
+    },
+    {
+      "date": "2026-02-06",
+      "netFlow": 0.371,
+      "cumFlow": 54.673
+    },
+    {
+      "date": "2026-02-05",
+      "netFlow": -0.434,
+      "cumFlow": 54.302
+    },
+    {
+      "date": "2026-02-04",
+      "netFlow": -0.545,
+      "cumFlow": 54.736
+    },
+    {
+      "date": "2026-02-03",
+      "netFlow": -0.272,
+      "cumFlow": 55.281
+    },
+    {
+      "date": "2026-02-02",
+      "netFlow": 0.562,
+      "cumFlow": 55.553
+    },
+    {
+      "date": "2026-01-30",
+      "netFlow": -0.51,
+      "cumFlow": 54.991
+    },
+    {
+      "date": "2026-01-29",
+      "netFlow": -0.818,
+      "cumFlow": 55.501
+    },
+    {
+      "date": "2026-01-28",
+      "netFlow": -0.02,
+      "cumFlow": 56.319
+    },
+    {
+      "date": "2026-01-27",
+      "netFlow": -0.147,
+      "cumFlow": 56.339
+    },
+    {
+      "date": "2026-01-26",
+      "netFlow": 0.007,
+      "cumFlow": 56.486
+    },
+    {
+      "date": "2026-01-23",
+      "netFlow": -0.103,
+      "cumFlow": 56.479
+    },
+    {
+      "date": "2026-01-22",
+      "netFlow": -0.032,
+      "cumFlow": 56.582
+    },
+    {
+      "date": "2026-01-21",
+      "netFlow": -0.709,
+      "cumFlow": 56.614
+    },
+    {
+      "date": "2026-01-20",
+      "netFlow": -0.48,
+      "cumFlow": 57.323
+    },
+    {
+      "date": "2026-01-16",
+      "netFlow": -0.395,
+      "cumFlow": 57.803
+    },
+    {
+      "date": "2026-01-15",
+      "netFlow": 0.1,
+      "cumFlow": 58.198
+    },
+    {
+      "date": "2026-01-14",
+      "netFlow": 0.841,
+      "cumFlow": 58.098
+    },
+    {
+      "date": "2026-01-13",
+      "netFlow": 0.754,
+      "cumFlow": 57.257
+    },
+    {
+      "date": "2026-01-12",
+      "netFlow": 0.117,
+      "cumFlow": 56.503
+    },
+    {
+      "date": "2026-01-09",
+      "netFlow": -0.25,
+      "cumFlow": 56.386
+    },
+    {
+      "date": "2026-01-08",
+      "netFlow": -0.399,
+      "cumFlow": 56.636
+    },
+    {
+      "date": "2026-01-07",
+      "netFlow": -0.486,
+      "cumFlow": 57.035
+    },
+    {
+      "date": "2026-01-06",
+      "netFlow": -0.243,
+      "cumFlow": 57.521
+    },
+    {
+      "date": "2026-01-05",
+      "netFlow": 0.697,
+      "cumFlow": 57.764
+    },
+    {
+      "date": "2026-01-02",
+      "netFlow": 0.471,
+      "cumFlow": 57.067
+    },
+    {
+      "date": "2025-12-31",
+      "netFlow": -0.348,
+      "cumFlow": 56.596
+    },
+    {
+      "date": "2025-12-30",
+      "netFlow": 0.355,
+      "cumFlow": 56.944
+    },
+    {
+      "date": "2025-12-29",
+      "netFlow": -0.019,
+      "cumFlow": 56.589
+    },
+    {
+      "date": "2025-12-26",
+      "netFlow": -0.276,
+      "cumFlow": 56.608
+    },
+    {
+      "date": "2025-12-24",
+      "netFlow": -0.175,
+      "cumFlow": 56.884
+    },
+    {
+      "date": "2025-12-23",
+      "netFlow": -0.189,
+      "cumFlow": 57.059
+    },
+    {
+      "date": "2025-12-22",
+      "netFlow": -0.142,
+      "cumFlow": 57.248
+    },
+    {
+      "date": "2025-12-19",
+      "netFlow": -0.158,
+      "cumFlow": 57.39
+    },
+    {
+      "date": "2025-12-18",
+      "netFlow": -0.161,
+      "cumFlow": 57.548
+    },
+    {
+      "date": "2025-12-17",
+      "netFlow": 0.457,
+      "cumFlow": 57.709
+    },
+    {
+      "date": "2025-12-16",
+      "netFlow": -0.277,
+      "cumFlow": 57.252
+    },
+    {
+      "date": "2025-12-15",
+      "netFlow": -0.358,
+      "cumFlow": 57.529
+    },
+    {
+      "date": "2025-12-12",
+      "netFlow": 0.049,
+      "cumFlow": 57.887
+    },
+    {
+      "date": "2025-12-11",
+      "netFlow": -0.077,
+      "cumFlow": 57.838
+    },
+    {
+      "date": "2025-12-10",
+      "netFlow": 0.224,
+      "cumFlow": 57.915
+    },
+    {
+      "date": "2025-12-09",
+      "netFlow": 0.152,
+      "cumFlow": 57.691
+    },
+    {
+      "date": "2025-12-08",
+      "netFlow": -0.06,
+      "cumFlow": 57.539
+    },
+    {
+      "date": "2025-12-05",
+      "netFlow": 0.055,
+      "cumFlow": 57.599
+    },
+    {
+      "date": "2025-12-04",
+      "netFlow": -0.195,
+      "cumFlow": 57.544
+    },
+    {
+      "date": "2025-12-03",
+      "netFlow": -0.015,
+      "cumFlow": 57.739
+    },
+    {
+      "date": "2025-12-02",
+      "netFlow": 0.059,
+      "cumFlow": 57.754
+    },
+    {
+      "date": "2025-12-01",
+      "netFlow": 0.009,
+      "cumFlow": 57.695
+    },
+    {
+      "date": "2025-11-28",
+      "netFlow": 0.071,
+      "cumFlow": 57.686
+    },
+    {
+      "date": "2025-11-26",
+      "netFlow": 0.021,
+      "cumFlow": 57.615
+    },
+    {
+      "date": "2025-11-25",
+      "netFlow": 0.129,
+      "cumFlow": 57.594
+    },
+    {
+      "date": "2025-11-24",
+      "netFlow": -0.151,
+      "cumFlow": 57.465
+    },
+    {
+      "date": "2025-11-21",
+      "netFlow": 0.238,
+      "cumFlow": 57.616
     }
   ]
 }
