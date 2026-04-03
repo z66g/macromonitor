@@ -7261,12 +7261,7 @@ function renderOnchainMacro(d, rwaProtos) {
       if (!hMonthTicks[ym]) hMonthTicks[ym] = i;
     });
 
-    // 현재 TVL 기준 색상
-    const curTvl = hData[hData.length - 1] || 0;
-    const maxTvl = Math.max(...hData);
-    const histColor = curTvl / maxTvl >= 0.9 ? '#F0B429'
-                    : curTvl / maxTvl >= 0.7 ? '#58A6FF'
-                    : '#8B949E';
+    const histColor = '#F0B429';  // RWA 테마색 고정
 
     _ocRwaHistChart = new Chart(histCtx, {
       type: 'line',
@@ -7278,9 +7273,7 @@ function renderOnchainMacro(d, rwaProtos) {
           borderColor:     histColor,
           borderWidth:     1.5,
           fill:            true,
-          backgroundColor: histColor === '#F0B429' ? 'rgba(240,180,41,0.12)'
-                         : histColor === '#58A6FF' ? 'rgba(88,166,255,0.10)'
-                         : 'rgba(139,148,158,0.08)',
+          backgroundColor: 'rgba(240,180,41,0.10)',
           pointRadius:  0,
           tension:      0.3,
         }],
