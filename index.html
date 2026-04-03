@@ -5398,8 +5398,7 @@ async function loadT1(force = false) {
       const drains   = towerJson?.vampire?.weeks ?? [];         // [{netDrain, label, breakdown, dateRange}, ...]
       const nlSeries = nlm?.series ?? [];                        // [{date, nl, walcl, tga, rrp}, ...]  index0=latest
       const fEl      = t1$('t1-nl-forecast');
-      if (!fEl) goto_skip: { break goto_skip; }
-
+      if (fEl) {
       if (nlCurB == null || drains.length < 4 || nlSeries.length < 4) {
         fEl.innerHTML = `<div style="font-size:10px;color:#484F58;padding:8px;">예측에 필요한 데이터 부족 (liq-tower 또는 NL 시계열 미수신)</div>`;
       } else {
@@ -5507,6 +5506,7 @@ async function loadT1(force = false) {
             <div style="font-size:8px;color:#484F58;">⚠️ 방향성 참고용 — 투자 결정 아님</div>
           </div>`;
       }
+      } // if (fEl)
     }
 
     // ── 원자재 차트 맵 (SPY 제외, COMM_ARR 인덱스만) ──
