@@ -1,6 +1,157 @@
 {
-  "updated": "2026-04-03T12:30:11.948157+00:00",
-  "source": "preserved",
-  "cumTotal": 0,
-  "dailyFlows": []
+  "updated": "2026-04-03T12:40:42.020614+00:00",
+  "source": "farside.co.uk",
+  "cumTotal": 93.366,
+  "dailyFlows": [
+    {
+      "date": "2026-04-02",
+      "netFlow": 1.846,
+      "cumFlow": 93.366
+    },
+    {
+      "date": "2026-04-01",
+      "netFlow": 1.938,
+      "cumFlow": 91.52
+    },
+    {
+      "date": "2026-03-31",
+      "netFlow": 2.876,
+      "cumFlow": 89.582
+    },
+    {
+      "date": "2026-03-30",
+      "netFlow": 2.204,
+      "cumFlow": 86.706
+    },
+    {
+      "date": "2026-03-27",
+      "netFlow": 3.19,
+      "cumFlow": 84.502
+    },
+    {
+      "date": "2026-03-26",
+      "netFlow": 2.327,
+      "cumFlow": 81.312
+    },
+    {
+      "date": "2026-03-25",
+      "netFlow": 2.241,
+      "cumFlow": 78.985
+    },
+    {
+      "date": "2026-03-24",
+      "netFlow": 2.857,
+      "cumFlow": 76.744
+    },
+    {
+      "date": "2026-03-23",
+      "netFlow": 2.803,
+      "cumFlow": 73.887
+    },
+    {
+      "date": "2026-03-20",
+      "netFlow": 2.561,
+      "cumFlow": 71.084
+    },
+    {
+      "date": "2026-03-19",
+      "netFlow": 3.092,
+      "cumFlow": 68.523
+    },
+    {
+      "date": "2026-03-18",
+      "netFlow": 3.268,
+      "cumFlow": 65.431
+    },
+    {
+      "date": "2026-03-17",
+      "netFlow": 2.504,
+      "cumFlow": 62.163
+    },
+    {
+      "date": "2026-03-16",
+      "netFlow": 3.48,
+      "cumFlow": 59.659
+    },
+    {
+      "date": "2026-03-13",
+      "netFlow": 4.616,
+      "cumFlow": 56.179
+    },
+    {
+      "date": "2026-03-12",
+      "netFlow": 2.442,
+      "cumFlow": 51.563
+    },
+    {
+      "date": "2026-03-11",
+      "netFlow": 2.55,
+      "cumFlow": 49.121
+    },
+    {
+      "date": "2026-03-10",
+      "netFlow": 3.346,
+      "cumFlow": 46.571
+    },
+    {
+      "date": "2026-03-09",
+      "netFlow": 3.723,
+      "cumFlow": 43.225
+    },
+    {
+      "date": "2026-03-06",
+      "netFlow": 2.887,
+      "cumFlow": 39.502
+    },
+    {
+      "date": "2026-03-05",
+      "netFlow": 3.413,
+      "cumFlow": 36.615
+    },
+    {
+      "date": "2026-03-04",
+      "netFlow": 6.059,
+      "cumFlow": 33.202
+    },
+    {
+      "date": "2026-03-03",
+      "netFlow": 3.751,
+      "cumFlow": 27.143
+    },
+    {
+      "date": "2026-03-02",
+      "netFlow": 5.426,
+      "cumFlow": 23.392
+    },
+    {
+      "date": "2026-02-27",
+      "netFlow": 2.324,
+      "cumFlow": 17.966
+    },
+    {
+      "date": "2026-02-26",
+      "netFlow": 2.864,
+      "cumFlow": 15.642
+    },
+    {
+      "date": "2026-02-25",
+      "netFlow": 3.956,
+      "cumFlow": 12.778
+    },
+    {
+      "date": "2026-02-24",
+      "netFlow": 2.302,
+      "cumFlow": 8.822
+    },
+    {
+      "date": "2026-02-23",
+      "netFlow": 3.081,
+      "cumFlow": 6.52
+    },
+    {
+      "date": "2026-02-20",
+      "netFlow": 3.439,
+      "cumFlow": 3.439
+    }
+  ]
 }
