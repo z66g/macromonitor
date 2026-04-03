@@ -14,206 +14,184 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ── Python으로 직접 실행 (shell: python3 {0}) ─────────────────
+      # heredoc 방식 제거 → YAML 들여쓰기 충돌 없음
       - name: Fetch BTC ETF Flow Data
+        shell: python3 {0}
         run: |
-          mkdir -p data
-          python3 << 'PYEOF'
-import urllib.request, json, re
-from datetime import datetime, timezone
-from html.parser import HTMLParser
+          import urllib.request, json, re, os
+          from datetime import datetime, timezone
+          from html.parser import HTMLParser
 
-results = []
+          os.makedirs('data', exist_ok=True)
+          results = []
 
-# ── HTML 테이블 파서 (regex보다 견고) ──────────────────────────
-class TableParser(HTMLParser):
-    def __init__(self):
-        super().__init__()
-        self.tables   = []          # [[row, row, ...], ...]
-        self._in_tbl  = False
-        self._in_row  = False
-        self._in_cell = False
-        self._cur_row = []
-        self._cur_cell= ''
+          # ── HTML 테이블 파서 ─────────────────────────────────────
+          class TableParser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.tables   = []
+                  self._in_tbl  = False
+                  self._in_row  = False
+                  self._in_cell = False
+                  self._cur_row = []
+                  self._cur_cell= ''
 
-    def handle_starttag(self, tag, attrs):
-        if tag == 'table':
-            self.tables.append([])
-            self._in_tbl  = True
-        elif tag == 'tr'              and self._in_tbl:
-            self._in_row  = True;  self._cur_row = []
-        elif tag in ('td','th')       and self._in_row:
-            self._in_cell = True;  self._cur_cell = ''
+              def handle_starttag(self, tag, attrs):
+                  if tag == 'table':
+                      self.tables.append([]);  self._in_tbl = True
+                  elif tag == 'tr' and self._in_tbl:
+                      self._in_row = True;  self._cur_row = []
+                  elif tag in ('td','th') and self._in_row:
+                      self._in_cell = True;  self._cur_cell = ''
 
-    def handle_endtag(self, tag):
-        if tag == 'table':            self._in_tbl  = False
-        elif tag == 'tr':
-            if self._cur_row:         self.tables[-1].append(self._cur_row[:])
-            self._in_row  = False
-        elif tag in ('td','th'):
-            self._cur_row.append(self._cur_cell.strip())
-            self._in_cell = False
+              def handle_endtag(self, tag):
+                  if tag == 'table':
+                      self._in_tbl = False
+                  elif tag == 'tr':
+                      if self._cur_row: self.tables[-1].append(self._cur_row[:])
+                      self._in_row = False
+                  elif tag in ('td','th'):
+                      self._cur_row.append(self._cur_cell.strip())
+                      self._in_cell = False
 
-    def handle_data(self, data):
-        if self._in_cell:
-            self._cur_cell += data
-    def handle_entityref(self, name):
-        if self._in_cell and name == 'nbsp': self._cur_cell += ' '
-    def handle_charref(self, name):
-        if self._in_cell and name in ('160','xa0'): self._cur_cell += ' '
+              def handle_data(self, data):
+                  if self._in_cell: self._cur_cell += data
 
-def parse_date(s):
-    s = s.strip()
-    for fmt in ['%d %b %y', '%d %b %Y', '%-d %b %y', '%-d %b %Y',
-                '%b %d, %Y', '%Y-%m-%d', '%m/%d/%Y']:
-        try: return datetime.strptime(s, fmt)
-        except: pass
-    return None
+              def handle_entityref(self, name):
+                  if self._in_cell and name == 'nbsp': self._cur_cell += ' '
 
-def clean_num(s):
-    """'−1,234.5' → -1234.5  /  '' | '—' → None"""
-    s = (s.replace(',','').replace('−','-').replace('–','-')
-          .replace('*','').replace('\xa0','').replace('\u2212','-').strip())
-    if not s or s in ('-','—','n/a','N/A'): return None
-    try: return float(s)
-    except: return None
+          def parse_date(s):
+              s = s.strip()
+              for fmt in ['%d %b %y','%d %b %Y','%-d %b %y','%-d %b %Y',
+                          '%b %d, %Y','%Y-%m-%d','%m/%d/%Y']:
+                  try: return datetime.strptime(s, fmt)
+                  except: pass
+              return None
 
-# ── Source 1: Farside Investors ────────────────────────────────
-try:
-    url = 'https://farside.co.uk/bitcoin-etf-flow-all-data-public/'
-    req = urllib.request.Request(url, headers={
-        'User-Agent':      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36',
-        'Accept':          'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'Connection':      'keep-alive',
-    })
-    with urllib.request.urlopen(req, timeout=25) as r:
-        raw = r.read()
-    # gzip 자동 디코딩 시도
-    try:
-        import gzip
-        html = gzip.decompress(raw).decode('utf-8', errors='replace')
-    except:
-        html = raw.decode('utf-8', errors='replace')
+          def clean_num(s):
+              s = (s.replace(',','').replace('−','-').replace('–','-')
+                    .replace('\u2212','-').replace('*','').replace('\xa0','').strip())
+              if not s or s in ('-','—','n/a','N/A',''): return None
+              try: return float(s)
+              except: return None
 
-    # ── 디버그: 응답 첫 400자 ──
-    snippet = html[:400].replace('\n','↩')
-    print(f'[DEBUG] Farside HTML[0:400]: {snippet}')
-    print(f'[DEBUG] Has <table>: {"<table" in html.lower()} / Has <tr>: {"<tr" in html.lower()}')
+          # ── Source 1: Farside Investors ──────────────────────────
+          try:
+              url = 'https://farside.co.uk/bitcoin-etf-flow-all-data-public/'
+              req = urllib.request.Request(url, headers={
+                  'User-Agent':      ('Mozilla/5.0 (X11; Linux x86_64) '
+                                      'AppleWebKit/537.36 Chrome/122.0.0.0 Safari/537.36'),
+                  'Accept':          'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8',
+                  'Accept-Language': 'en-US,en;q=0.5',
+                  'Accept-Encoding': 'gzip, deflate',
+              })
+              with urllib.request.urlopen(req, timeout=25) as r:
+                  raw = r.read()
 
-    # ── 파서 실행 ──
-    p = TableParser()
-    p.feed(html)
-    print(f'[DEBUG] Tables found: {len(p.tables)}, rows per table: {[len(t) for t in p.tables]}')
+              try:
+                  import gzip
+                  html = gzip.decompress(raw).decode('utf-8', errors='replace')
+              except Exception:
+                  html = raw.decode('utf-8', errors='replace')
 
-    parsed = []
-    for tbl in p.tables:
-        for row in tbl:
-            if len(row) < 3: continue
-            date_obj = parse_date(row[0])
-            if not date_obj: continue
-            # Total = 마지막 셀
-            total_m = clean_num(row[-1])
-            if total_m is None: continue
-            parsed.append({
-                'date':    date_obj.strftime('%Y-%m-%d'),
-                'netFlow': round(total_m / 1000, 3),  # $M → $B
-            })
+              # 디버그
+              print(f'[DEBUG] Farside HTML[0:400]: {html[:400].replace(chr(10)," ")}')
+              print(f'[DEBUG] <table> found: {"<table" in html.lower()}')
 
-    if parsed:
-        parsed.sort(key=lambda x: x['date'])
-        cum = 0.0
-        for item in parsed:
-            cum += item['netFlow']
-            item['cumFlow'] = round(cum, 3)
-        parsed.reverse()
-        results = parsed
-        print(f'Farside 성공: {len(results)}일치 / 누적 ${cum:.1f}B')
-    else:
-        print(f'Farside: 파싱된 행 없음 (테이블 {len(p.tables)}개 발견)')
+              p = TableParser()
+              p.feed(html)
+              print(f'[DEBUG] Tables: {len(p.tables)}, rows: {[len(t) for t in p.tables]}')
 
-except Exception as e:
-    print(f'Farside 실패: {e}')
+              parsed = []
+              for tbl in p.tables:
+                  for row in tbl:
+                      if len(row) < 3: continue
+                      date_obj = parse_date(row[0])
+                      if not date_obj: continue
+                      total_m = clean_num(row[-1])
+                      if total_m is None: continue
+                      parsed.append({
+                          'date':    date_obj.strftime('%Y-%m-%d'),
+                          'netFlow': round(total_m / 1000, 3),
+                      })
 
-# ── Source 2: 개별 ETF 주식수 변화 추정 (Yahoo Finance) ──────────
-# IBIT, FBTC, BITB, ARKB, GBTC 5개 ETF의 전일 거래량×가격으로 플로우 추정
-# ※ 정확한 순유입 대신 유입 방향성 지표로 활용
-if not results:
-    print('[Source2] Yahoo Finance ETF 대리 지표 시도...')
-    try:
-        tickers = {
-            'IBIT': 'BlackRock',
-            'FBTC': 'Fidelity',
-            'BITB': 'Bitwise',
-            'ARKB': 'ARK',
-            'GBTC': 'Grayscale',
-        }
-        flow_items = []
-        for ticker, name in tickers.items():
-            try:
-                yurl = (f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}'
-                        f'?interval=1d&range=5d')
-                yreq = urllib.request.Request(yurl, headers={
-                    'User-Agent': 'Mozilla/5.0',
-                    'Accept': 'application/json',
-                })
-                with urllib.request.urlopen(yreq, timeout=10) as yr:
-                    yd = json.loads(yr.read().decode())
-                ts    = yd['chart']['result'][0]['timestamp']
-                close = yd['chart']['result'][0]['indicators']['quote'][0]['close']
-                vol   = yd['chart']['result'][0]['indicators']['quote'][0]['volume']
-                if ts and close and vol:
-                    dates = [datetime.utcfromtimestamp(t).strftime('%Y-%m-%d') for t in ts]
-                    for i, d in enumerate(dates):
-                        if close[i] and vol[i]:
-                            # 거래량×가격 = 추정 유동 자금 ($M)
-                            flow_items.append({'date': d, 'ticker': ticker, 'flowM': close[i]*vol[i]/1e6})
-            except Exception as te:
-                print(f'  {ticker}: {te}')
+              if parsed:
+                  parsed.sort(key=lambda x: x['date'])
+                  cum = 0.0
+                  for item in parsed:
+                      cum += item['netFlow']
+                      item['cumFlow'] = round(cum, 3)
+                  parsed.reverse()
+                  results = parsed
+                  print(f'Farside 성공: {len(results)}일치 / 누적 ${cum:.1f}B')
+              else:
+                  print(f'Farside: 파싱된 행 없음 (테이블 {len(p.tables)}개)')
 
-        if flow_items:
-            from collections import defaultdict
-            daily = defaultdict(float)
-            for fi in flow_items:
-                daily[fi['date']] += fi['flowM']
-            sorted_dates = sorted(daily.keys())
-            cum = 0.0
-            temp = []
-            for d in sorted_dates:
-                net = round(daily[d]/1000, 3)
-                cum += net
-                temp.append({'date': d, 'netFlow': net, 'cumFlow': round(cum, 3)})
-            temp.reverse()
-            results = temp
-            print(f'Yahoo ETF 대리지표: {len(results)}일치')
-    except Exception as e2:
-        print(f'Yahoo ETF 실패: {e2}')
+          except Exception as e:
+              print(f'Farside 실패: {e}')
 
-# ── Fallback: 기존 파일 유지 ────────────────────────────────────
-if not results:
-    try:
-        with open('data/etf_flows.json') as f:
-            existing = json.load(f)
-        results = existing.get('dailyFlows', [])
-        print(f'기존 데이터 유지: {len(results)}일치')
-    except:
-        results = []
-        print('기존 데이터 없음')
+          # ── Source 2: Yahoo Finance ETF 대리지표 ─────────────────
+          if not results:
+              print('[Source2] Yahoo Finance 시도...')
+              try:
+                  from collections import defaultdict
+                  tickers = ['IBIT','FBTC','BITB','ARKB','GBTC']
+                  daily = defaultdict(float)
+                  for ticker in tickers:
+                      try:
+                          yurl = (f'https://query1.finance.yahoo.com/v8/finance/chart/{ticker}'
+                                  f'?interval=1d&range=30d')
+                          yreq = urllib.request.Request(yurl, headers={'User-Agent':'Mozilla/5.0'})
+                          with urllib.request.urlopen(yreq, timeout=10) as yr:
+                              yd = json.loads(yr.read().decode())
+                          res   = yd['chart']['result'][0]
+                          ts    = res['timestamp']
+                          close = res['indicators']['quote'][0]['close']
+                          vol   = res['indicators']['quote'][0]['volume']
+                          for i, t in enumerate(ts):
+                              if close[i] and vol[i]:
+                                  d = datetime.utcfromtimestamp(t).strftime('%Y-%m-%d')
+                                  daily[d] += close[i] * vol[i] / 1e6
+                      except Exception as te:
+                          print(f'  {ticker}: {te}')
 
-# ── 저장 ────────────────────────────────────────────────────────
-cum_total = results[0]['cumFlow'] if results else 0.0
-source    = ('farside.co.uk' if results and results[0].get('netFlow',0) < 10
-             else 'yahoo-etf-proxy')
-output = {
-    'updated':    datetime.now(timezone.utc).isoformat(),
-    'source':     source,
-    'cumTotal':   cum_total,
-    'dailyFlows': results[:90],
-}
-with open('data/etf_flows.json', 'w') as f:
-    json.dump(output, f, indent=2)
-print(f'완료: {len(results)}일치 / 누적 ${cum_total:.1f}B / 소스={source}')
-PYEOF
+                  if daily:
+                      temp = []
+                      cum = 0.0
+                      for d in sorted(daily.keys()):
+                          net = round(daily[d] / 1000, 3)
+                          cum += net
+                          temp.append({'date':d,'netFlow':net,'cumFlow':round(cum,3)})
+                      temp.reverse()
+                      results = temp
+                      print(f'Yahoo ETF 대리지표: {len(results)}일치')
+              except Exception as e2:
+                  print(f'Yahoo ETF 실패: {e2}')
+
+          # ── Fallback: 기존 파일 유지 ─────────────────────────────
+          if not results:
+              try:
+                  with open('data/etf_flows.json') as f:
+                      existing = json.load(f)
+                  results = existing.get('dailyFlows', [])
+                  print(f'기존 데이터 유지: {len(results)}일치')
+              except Exception:
+                  results = []
+                  print('기존 데이터 없음')
+
+          # ── 저장 ─────────────────────────────────────────────────
+          cum_total = results[0]['cumFlow'] if results else 0.0
+          source    = 'farside.co.uk' if len(results) > 5 else 'yahoo-etf-proxy'
+          output = {
+              'updated':    datetime.now(timezone.utc).isoformat(),
+              'source':     source,
+              'cumTotal':   cum_total,
+              'dailyFlows': results[:90],
+          }
+          with open('data/etf_flows.json', 'w') as f:
+              json.dump(output, f, indent=2)
+          print(f'완료: {len(results)}일치 / 누적 ${cum_total:.1f}B / 소스={source}')
 
       - name: Commit and Push
         run: |
