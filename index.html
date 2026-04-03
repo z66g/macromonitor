@@ -1024,9 +1024,6 @@ body{
 <!-- ═══════ CONTROLS BAR (탭과 무관, 항상 표시) ═══════ -->
 <div id="controls-bar">
   <div id="controls-bar-inner">
-    <div id="hdr-updated" style="font-size:9px;color:#484F58;display:none;">
-      갱신: <span id="hdr-updated-time">—</span>
-    </div>
     <button id="hdr-cal-btn" onclick="toggleCalPanel()" title="이벤트 캘린더"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
@@ -1043,6 +1040,9 @@ body{
     </button>
     <div class="hdr-clock" id="clock">—</div>
     <div class="hdr-live">LIVE</div>
+    <div id="hdr-updated" style="font-size:9px;color:#484F58;display:none;">
+      갱신: <span id="hdr-updated-time">—</span>
+    </div>
     <button id="hdr-refresh-btn" onclick="forceRefreshAll()" title="데이터 강제 새로고침"
       style="background:transparent;border:none;
              color:#8B949E;font-size:14px;padding:3px 4px;cursor:pointer;
