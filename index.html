@@ -1596,6 +1596,29 @@ body{
         <!-- Divergence Tracker (같은 행, 우측) -->
         <div id="t1-divergence"></div>
       </div>
+      <!-- NL 1~4주 예측 -->
+      <div style="margin-top:14px;">
+        <div style="font-size:10px;font-weight:600;color:#8B949E;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:4px;">
+          📡 NL Score 1~4주 예측
+          <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i>
+            <span class="pd-tip-box" style="width:300px;">
+              <b style="color:#E6EDF3;">📡 NL Score 1~4주 예측</b><br>
+              <span style="font-size:9px;color:#8B949E;">현재 NL + 유동성 드레인 예측 → 미래 NL Score 시뮬레이션</span>
+              <div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+              <b style="color:#CDD9E5;">📌 계산 방식</b><br>
+              예측 NL[W] = 현재 NL − 누적 주간 드레인<br>
+              예측 Score[W] = (예측 NL − 이동 4주 평균) / |이동 4주 평균| × 100<br>
+              이동 평균은 이전 실제값 + 앞선 주 예측값의 혼합으로 구성.
+              <div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+              <b style="color:#CDD9E5;">⚠️ 신뢰도 감쇠</b><br>
+              W1 (높음) → W2 (중간) → W3~4 (참고용)<br>
+              드레인 예측 오차·QRA 변경·연준 임시 조치 반영 불가.<br>
+              <b>투자 결정이 아닌 방향성 참고용으로만 활용.</b>
+            </span>
+          </span>
+        </div>
+        <div id="t1-nl-forecast"></div>
+      </div>
     </div>
 
     <!-- 1-2 MMF 자본 이동 및 유동성 질(Quality) 분석 -->
@@ -5183,8 +5206,9 @@ async function loadT1(force = false) {
     const COMM_ARR     = ['CL=F','BZ=F','NG=F','URA','HG=F','ALI=F','GC=F','SI=F','ZW=F','ZS=F','LBR=F','BDRY'];
     const SPY_IDX      = COMM_ARR.length;   // index 12 — SPY chart
 
-    const [liqResp, commResp, iciResp, yhResp, ...chartResps] = await Promise.allSettled([
+    const [liqResp, towerResp, commResp, iciResp, yhResp, ...chartResps] = await Promise.allSettled([
       fetchWithTimeout(`${WORKER}/liq${fq}`, 20000),
+      fetchWithTimeout(`${WORKER}/liq-tower`, 15000),                 // NL 예측용 vampire drains
       fetchWithTimeout(`${WORKER}/yahoo?tickers=${COMM_TICKERS}`, 12000),
       fetchWithTimeout(`${WORKER}/ici${fq}`, 15000),
       fetchWithTimeout(`${WORKER}/yields-hist${fq}`, 20000),          // 국채 3년 시계열
@@ -5201,6 +5225,7 @@ async function loadT1(force = false) {
 
     const liqJson    = await safeJson(liqResp);
     if (liqJson?._savedAt) showLastUpdated(liqJson._savedAt);
+    const towerJson  = await safeJson(towerResp);
     const commJson   = await safeJson(commResp);
     const iciJson    = await safeJson(iciResp);
     const yhJson     = await safeJson(yhResp);
@@ -5342,6 +5367,122 @@ async function loadT1(force = false) {
           </div>
         </div>
       </div>` : `<div></div>`;
+
+    // ── NL 1~4주 예측 계산 ────────────────────────────────────────
+    {
+      const drains   = towerJson?.vampire?.weeks ?? [];         // [{netDrain, label, breakdown, dateRange}, ...]
+      const nlSeries = nlm?.series ?? [];                        // [{date, nl, walcl, tga, rrp}, ...]  index0=latest
+      const fEl      = t1$('t1-nl-forecast');
+      if (!fEl) goto_skip: { break goto_skip; }
+
+      if (nlCurB == null || drains.length < 4 || nlSeries.length < 4) {
+        fEl.innerHTML = `<div style="font-size:10px;color:#484F58;padding:8px;">예측에 필요한 데이터 부족 (liq-tower 또는 NL 시계열 미수신)</div>`;
+      } else {
+        // Step 1: 누적 드레인 적용 → 예측 NL
+        const forecastNLs = [];
+        let cumDrain = 0;
+        for (let w = 0; w < 4; w++) {
+          cumDrain += (drains[w]?.netDrain ?? 0);
+          forecastNLs.push(+(nlCurB - cumDrain).toFixed(2));
+        }
+
+        // Step 2: 예측 NL Score (이동 4주 평균 — 실제+예측 혼합)
+        const forecastItems = forecastNLs.map((fNL, w) => {
+          // prior4[k]: forecast week(w)의 이전 4주 평균
+          // k=1~4 순서로 (w+1)주 이전 값 수집
+          const prior4 = [];
+          for (let k = 1; k <= 4; k++) {
+            if (k <= w) {
+              prior4.push(forecastNLs[w - k]);               // 앞선 예측주
+            } else if (k === w + 1) {
+              prior4.push(nlSeries[0]?.nl ?? null);           // 현재 실제
+            } else {
+              prior4.push(nlSeries[k - w - 1]?.nl ?? null);  // 과거 실제
+            }
+          }
+          const valid = prior4.filter(v => v != null);
+          const avg   = valid.length ? valid.reduce((s, v) => s + v, 0) / valid.length : null;
+          const score = (avg != null && Math.abs(avg) > 1)
+            ? +((fNL - avg) / Math.abs(avg) * 100).toFixed(2) : null;
+          const regime = score == null ? null : score > 0.5 ? 'on'
+            : score < -0.5 ? 'off' : 'neutral';
+          const weekDrain = drains[w]?.netDrain ?? 0;
+
+          return { fNL, score, regime, weekDrain,
+            label: drains[w]?.label ?? `W${w+1}`,
+            dateRange: drains[w]?.dateRange ?? '',
+            breakdown: drains[w]?.breakdown ?? {},
+          };
+        });
+
+        // Step 3: 렌더링
+        const NLF_COLOR = {
+          on:      { color:'#3FB950', bg:'rgba(26,127,90,0.08)',  badge:'Risk-On'  },
+          off:     { color:'#F85149', bg:'rgba(207,34,43,0.08)', badge:'Risk-Off' },
+          neutral: { color:'#8B949E', bg:'rgba(48,54,61,0.12)',  badge:'중립'     },
+        };
+        const fmtSc = v => v != null ? `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` : '—';
+        const fmtDr = v => `${v >= 0 ? '−' : '+'}$${Math.abs(v).toFixed(1)}B`;  // drain양수=NL감소→'−'
+        const CONF  = ['높음','중간','낮음','낮음'];  // W1~W4 신뢰도
+
+        // 현재(좌) + 4주 예측(우) 5열 그리드
+        const cols = [
+          // 현재 (실제)
+          `<div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;
+                       background:#161B22;border:0.5px solid #30363D;border-radius:7px;">
+            <div style="font-size:8px;color:#656D76;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">현재</div>
+            <div style="font-size:18px;font-weight:700;font-family:'SF Mono',monospace;
+                        color:${nlScore >= 0 ? '#3FB950' : '#F85149'};">
+              ${nlScoreStr}
+            </div>
+            <div style="font-size:8px;color:#8B949E;">$${nlCurB?.toLocaleString(undefined,{maximumFractionDigits:1})}B</div>
+            <div style="font-size:8px;padding:1px 6px;border-radius:2px;margin-top:2px;display:inline-block;
+                        background:${nlScore >= 0.5 ? '#0D3321' : nlScore <= -0.5 ? '#3D0000' : '#21262D'};
+                        color:${nlScore >= 0.5 ? '#3FB950' : nlScore <= -0.5 ? '#F85149' : '#8B949E'};">
+              ${nlScore >= 0.5 ? 'Risk-On' : nlScore <= -0.5 ? 'Risk-Off' : '중립'}
+            </div>
+          </div>`,
+          // W1~W4 예측
+          ...forecastItems.map((fi, w) => {
+            const c = NLF_COLOR[fi.regime ?? 'neutral'];
+            return `
+            <div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;
+                         background:${c.bg};border:0.5px solid ${fi.regime === 'on' ? '#238636' : fi.regime === 'off' ? '#B91C1C' : '#30363D'};
+                         border-radius:7px;position:relative;">
+              <!-- 신뢰도 배지 -->
+              <div style="position:absolute;top:6px;right:7px;font-size:7px;color:#484F58;">${CONF[w]}</div>
+              <div style="font-size:8px;color:#656D76;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">
+                W${w+1} 예측
+              </div>
+              <div style="font-size:18px;font-weight:700;font-family:'SF Mono',monospace;color:${c.color};">
+                ${fmtSc(fi.score)}
+              </div>
+              <div style="font-size:8px;color:#8B949E;">$${fi.fNL.toLocaleString(undefined,{maximumFractionDigits:1})}B</div>
+              <div style="font-size:8px;color:${fi.weekDrain > 0 ? '#F85149' : '#3FB950'};">
+                주간 ${fmtDr(fi.weekDrain)}
+              </div>
+              <div style="font-size:8px;padding:1px 6px;border-radius:2px;margin-top:2px;display:inline-block;
+                          background:${fi.regime === 'on' ? '#0D3321' : fi.regime === 'off' ? '#3D0000' : '#21262D'};
+                          color:${c.color};">
+                ${c.badge}
+              </div>
+            </div>`;
+          }),
+        ].join('');
+
+        fEl.innerHTML = `
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;">
+            ${cols}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+            <div style="font-size:8px;color:#484F58;">
+              드레인 방향: <span style="color:#F85149;">−$B = NL 감소(흡수)</span> /
+              <span style="color:#3FB950;">+$B = NL 증가(공급)</span>
+            </div>
+            <div style="font-size:8px;color:#484F58;">⚠️ 방향성 참고용 — 투자 결정 아님</div>
+          </div>`;
+      }
+    }
 
     // ── 원자재 차트 맵 (SPY 제외, COMM_ARR 인덱스만) ──
     const chartMap = {};
