@@ -2293,6 +2293,33 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
         <span style="font-size:13px;">💧</span>
         <span style="font-size:11px;font-weight:700;color:#E6EDF3;">온체인 달러 배관</span>
         <span style="font-size:9px;color:#656D76;">Stablecoin Dominance & Fiat Inflow</span>
+        <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i>
+          <span class="pd-tip-box" style="width:340px;left:0;bottom:calc(100% + 8px);transform:none;">
+            <b style="color:#E6EDF3;font-size:11px;">💧 온체인 달러 배관</b><br>
+            <span style="font-size:9px;color:#8B949E;">Stablecoin Market Cap — CoinGecko</span>
+            <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
+
+            <b style="color:#CDD9E5;">📌 지표 의미</b><br>
+            USDT·USDC 두 스테이블코인의 <b>총 시가총액과 구성 비율</b>을 추적. 스테이블코인은 암호화폐 시장의 <b>현금성 대기자금</b>으로, 총량 변화는 온체인 유동성 팽창·수축을, USDC 점유율 변화는 기관 자금 성격을 나타냅니다.
+            <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
+
+            <b style="color:#CDD9E5;">💡 해석 팁</b><br>
+            <span style="color:#3FB950;">■</span> <b>총시총 증가</b> — 법정화폐→온체인 신규 자금 유입. 매수 여력 확대 신호.<br>
+            <span style="color:#F85149;">■</span> <b>총시총 감소</b> — 온체인 자금 이탈. 위험자산 투자 또는 출금 증가.<br>
+            <span style="color:#58A6FF;">■</span> <b>USDC 점유율 상승</b> — 규제 친화적 기관 자금 비중 확대. 기관 매수 대기 자금↑.<br>
+            <span style="color:#8B949E;">■</span> <b>USDC 점유율 하락</b> — 리테일·오프쇼어 자금(USDT) 비중 증가. 투기 심리 강화.
+            <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
+
+            <b style="color:#CDD9E5;">🎨 차트 색상 기준</b><br>
+            <span style="color:#3FB950;">■ 녹색 막대</span> — 총 스테이블코인 시총 ($B, 좌축)<br>
+            <span style="color:#58A6FF;">— 청색 선</span> — USDC 점유율 % (우축, 동적 범위)<br>
+            우축 범위는 <b>데이터 실제 변동폭 ±1.5p</b>로 자동 확대되어 미세 변화도 가시화.
+            <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
+
+            <b style="color:#CDD9E5;">⚠️ 한계</b><br>
+            USDT·USDC 외 BUSD·DAI·FDUSD 등 미포함. CoinGecko API rate-limit 시 전일 기준값으로 자동 대체.
+          </span>
+        </span>
       </div>
       <div style="display:flex;gap:12px;text-align:right;">
         <div>
@@ -7050,8 +7077,20 @@ function renderOnchainMacro(d, rwaProtos) {
   } else if (banner) banner.style.display = 'none';
 
   // ── 패널 1: 스테이블코인 ─────────────────────────────
-  const st = d.stablecoin || {};
+  let st = { ...(d.stablecoin || {}) };
   const setTxt = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+
+  // KPI가 0이면 history 최신 항목으로 프론트 폴백
+  // (CoinGecko simple/price rate-limit 시 market_chart history는 정상인 케이스 대응)
+  if ((!st.totalB || st.totalB === 0) && st.history?.length > 0) {
+    const latest = st.history[st.history.length - 1];
+    st = { ...st,
+      totalB:  latest.totalB  || st.totalB,
+      usdtB:   latest.usdtB   || st.usdtB,
+      usdcB:   latest.usdcB   || st.usdcB,
+      usdcPct: latest.usdcPct || st.usdcPct,
+    };
+  }
 
   setTxt('oc-stable-total', fmtB(st.totalB, 0));
   setTxt('oc-usdc-pct', st.usdcPct != null ? st.usdcPct.toFixed(1) + '%' : '—');

@@ -3971,11 +3971,7 @@ async function fetchOnchainMacro() {
     ]),
   ]);
 
-  const usdtMcap = cgPrice?.tether?.['usd_market_cap']   ?? 0;
-  const usdcMcap = cgPrice?.['usd-coin']?.['usd_market_cap'] ?? 0;
-  const totalMcap = usdtMcap + usdcMcap;
-
-  // 30일 시계열 병합
+  // 30일 시계열 병합 (history는 price API보다 안정적 → 먼저 계산)
   const usdtHistory = cgHistory[0]?.market_caps || [];
   const usdcHistory = cgHistory[1]?.market_caps || [];
   const stableHistory = usdtHistory.map((u, i) => {
@@ -3986,9 +3982,22 @@ async function fetchOnchainMacro() {
     return {
       date:      new Date(ts).toISOString().slice(0, 10),
       totalB:    +(tot  / 1e9).toFixed(1),
+      usdtB:     +(usdt / 1e9).toFixed(1),
+      usdcB:     +(usdc / 1e9).toFixed(1),
       usdcPct:   tot > 0 ? +(usdc / tot * 100).toFixed(2) : 0,
     };
   });
+
+  // 현재 시총: price API 우선, rate-limit 등으로 0 반환 시 history 최신 항목으로 폴백
+  let usdtMcap = cgPrice?.tether?.['usd_market_cap']   ?? 0;
+  let usdcMcap = cgPrice?.['usd-coin']?.['usd_market_cap'] ?? 0;
+
+  if (usdtMcap === 0 && usdtHistory.length > 0)
+    usdtMcap = usdtHistory[usdtHistory.length - 1][1] || 0;
+  if (usdcMcap === 0 && usdcHistory.length > 0)
+    usdcMcap = usdcHistory[usdcHistory.length - 1][1] || 0;
+
+  const totalMcap = usdtMcap + usdcMcap;
 
   const stablecoin = {
     totalB:      +(totalMcap / 1e9).toFixed(1),
