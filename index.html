@@ -9210,19 +9210,20 @@ initAll();
     justify-content: flex-start !important;
   }
 
-  /* 컨테이너 패딩 — 모바일 전폭 활용 */
+  /* 컨테이너 — 모바일 전폭 + 적절한 패딩 */
   #controls-bar-inner,
   .page-content,
   #t1-wrapper, #t2-wrapper, #t3-wrapper, #t4-wrapper {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
   .section-wrap {
     padding: 12px 10px !important;
     gap: 10px !important;
-    border-radius: 0 !important;
   }
 
   /* 파이프 다이어그램 — 단열 */
