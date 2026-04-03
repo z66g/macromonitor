@@ -29,6 +29,7 @@ const KV_KEYS = {
   qraActive:  'qra_active_v1',
   qraPending: 'qra_pending_v1',
   liqTower:   'liq_tower_v1',
+  crypto:     'crypto_tower_v1',
 };
 const KV_TTL = {
   liq:        7200,
@@ -39,6 +40,7 @@ const KV_TTL = {
   qraActive:  86400 * 95,  // 95일 (분기+여유)
   qraPending: 86400 * 30,  // 30일
   liqTower:   3600 * 6,    // 6h
+  crypto:     300,           // 5분 (실시간성)
 };
 
 const kvGet = async (env, key) => {
@@ -91,6 +93,7 @@ export default {
       if (path.startsWith('/calendar'))      return await calendarEndpoint(env, force, ctx);
       if (path.startsWith('/t2'))            return await t2Cached(env, force, ctx);
       if (path.startsWith('/t3'))            return await t3Cached(env, force, ctx);
+      if (path.startsWith('/crypto-tower'))  return await cryptoTowerCached(env, force, ctx);
       // QRA 엔드포인트 — /qra-apply, /qra-preview 등 구체적인 것 먼저
       if (path.startsWith('/qra-debug'))     return await qraDebug(env);
       if (path.startsWith('/qra-trigger'))   return await qraTrigger(env);
@@ -3928,4 +3931,164 @@ async function qraTrigger(env) {
     return json({ success: true, saved: true, data: result });
   }
   return json({ success: true, saved: false, reason: `confidence=${result.confidence}`, data: result });
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 크립토 타워 — 3단 유동성 폭포 구조
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function cryptoTowerCached(env, force = false, ctx) {
+  if (!force) {
+    const cached = await kvGet(env, KV_KEYS.crypto);
+    if (cached) return json(cached);
+  }
+  const data = await fetchCryptoTower();
+  const putPromise = kvPut(env, KV_KEYS.crypto, data, KV_TTL.crypto);
+  if (ctx?.waitUntil) ctx.waitUntil(putPromise); else await putPromise;
+  return json(data);
+}
+
+async function fetchCryptoTower() {
+  const get = async (url, opts = {}) => {
+    try {
+      const r = await fetch(url, { headers: { 'Accept': 'application/json' }, ...opts });
+      if (!r.ok) return null;
+      return await r.json();
+    } catch(e) { return null; }
+  };
+
+  // ── Layer 1: 외부 자금 게이트웨이 ────────────────────
+  // 스테이블코인 시총 (CoinGecko Public)
+  const cgStable = await get(
+    'https://api.coingecko.com/api/v3/simple/price?ids=tether,usd-coin&vs_currencies=usd&include_market_cap=true'
+  );
+  const usdtMcap = cgStable?.tether?.usd_market_cap        ?? 0;
+  const usdcMcap = cgStable?.['usd-coin']?.usd_market_cap  ?? 0;
+  const stableTotalB = +((usdtMcap + usdcMcap) / 1e9).toFixed(1); // $B
+
+  // BTC 현재가 (CoinGecko)
+  const cgBtc = await get(
+    'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true'
+  );
+  const btcPrice   = cgBtc?.bitcoin?.usd              ?? null;
+  const btcChange24= cgBtc?.bitcoin?.usd_24h_change   ?? null;
+
+  // ETF 순유입 — 임시 0 (추후 GitHub Actions 릴레이)
+  const etfNetFlow = { today: 0, week: 0, source: 'pending' };
+
+  // ── Layer 2: 현물 수급 & 가치 평가 ───────────────────
+  // 코인베이스 프리미엄 갭 (Binance vs Coinbase)
+  const [binanceTicker, coinbaseTicker] = await Promise.all([
+    get('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT'),
+    get('https://api.exchange.coinbase.com/products/BTC-USD/ticker'),
+  ]);
+  const binancePrice  = parseFloat(binanceTicker?.price)       || null;
+  const coinbasePrice = parseFloat(coinbaseTicker?.price)      || null;
+  let cbPremium = null;
+  if (binancePrice && coinbasePrice) {
+    cbPremium = +((( coinbasePrice - binancePrice) / binancePrice) * 100).toFixed(4);
+  }
+
+  // MVRV Z-Score — CoinMetrics 무료 API (daily)
+  // 무료 티어: community data
+  const today = new Date().toISOString().slice(0, 10);
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10);
+  const cmMvrv = await get(
+    `https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=MVRV&start_time=${thirtyDaysAgo}&end_time=${today}&limit=1&sort=time&direction=desc`
+  );
+  const mvrvRaw = cmMvrv?.data?.[0]?.MVRV ?? null;
+  const mvrv = mvrvRaw ? +parseFloat(mvrvRaw).toFixed(3) : null;
+
+  // 거래소 보유량 — CoinMetrics (SplyAddrCnt 대체)
+  // SupplyOnExchangesUSD proxy via SER (Supply On Exchanges Ratio)
+  const cmExRes = await get(
+    `https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=SER&start_time=${thirtyDaysAgo}&end_time=${today}&limit=2&sort=time&direction=desc`
+  );
+  const serLatest = cmExRes?.data?.[0]?.SER ?? null;  // Exchange Reserve ratio
+  const serPrev   = cmExRes?.data?.[1]?.SER ?? null;
+  const exchangeReserve = serLatest ? {
+    ratio:  +parseFloat(serLatest).toFixed(4),
+    delta:  serPrev ? +((parseFloat(serLatest) - parseFloat(serPrev))).toFixed(4) : null,
+  } : null;
+
+  // ── Layer 3: 파생 발작 리스크 (Binance Futures) ───────
+  const [fundingData, oiData, longShortData] = await Promise.all([
+    get('https://fapi.binance.com/fapi/v1/premiumIndex?symbol=BTCUSDT'),
+    get('https://fapi.binance.com/fapi/v1/openInterest?symbol=BTCUSDT'),
+    get('https://fapi.binance.com/futures/data/topLongShortPositionRatio?symbol=BTCUSDT&period=1d&limit=1'),
+  ]);
+
+  const fundingRate    = fundingData?.lastFundingRate
+    ? +( parseFloat(fundingData.lastFundingRate) * 100).toFixed(4)  // % 변환
+    : null;
+  const openInterest   = oiData?.openInterest
+    ? +parseFloat(oiData.openInterest).toFixed(0)  // BTC 개수
+    : null;
+  const longShortRatio = Array.isArray(longShortData) && longShortData[0]
+    ? +parseFloat(longShortData[0].longShortRatio).toFixed(3)
+    : null;
+
+  // ── State Machine ─────────────────────────────────────
+  let alert = null;
+  let alertLevel = 'NORMAL';
+
+  if (fundingRate !== null && longShortRatio !== null) {
+    if (fundingRate > 0.05 && longShortRatio > 2.0) {
+      alert = 'LONG_SQUEEZE_WARNING';
+      alertLevel = 'CRITICAL';
+    } else if (fundingRate < -0.05 && longShortRatio < 0.5) {
+      alert = 'SHORT_SQUEEZE_WARNING';
+      alertLevel = 'CRITICAL';
+    } else if (fundingRate > 0.03 && longShortRatio > 1.5) {
+      alert = 'LEVERAGE_WATCH';
+      alertLevel = 'WARNING';
+    }
+  }
+
+  // 스테이블코인 상태
+  const stableStatus = stableTotalB > 0 ? 'OK' : 'NO_DATA';
+
+  // 코인베이스 프리미엄 상태
+  let cbStatus = 'NEUTRAL';
+  if (cbPremium !== null) {
+    if (cbPremium > 0.05)      cbStatus = 'BULLISH';
+    else if (cbPremium < -0.05) cbStatus = 'BEARISH';
+  }
+
+  // MVRV 상태
+  let mvrvStatus = 'NEUTRAL';
+  if (mvrv !== null) {
+    if (mvrv < 0)      mvrvStatus = 'UNDERVALUED';
+    else if (mvrv > 7) mvrvStatus = 'BUBBLE';
+    else if (mvrv > 3) mvrvStatus = 'OVERVALUED';
+  }
+
+  return {
+    _savedAt: new Date().toISOString(),
+    alert,
+    alertLevel,
+    btc: {
+      price:    btcPrice,
+      change24: btcChange24 ? +btcChange24.toFixed(2) : null,
+    },
+    layer1: {
+      stablecoin: {
+        totalB:  stableTotalB,
+        usdtB:   +( usdtMcap / 1e9).toFixed(1),
+        usdcB:   +( usdcMcap / 1e9).toFixed(1),
+        status:  stableStatus,
+      },
+      etfNetFlow,
+    },
+    layer2: {
+      cbPremium:  { value: cbPremium, status: cbStatus },
+      mvrv:       { value: mvrv,      status: mvrvStatus },
+      exchangeReserve,
+    },
+    layer3: {
+      fundingRate:    { value: fundingRate },
+      openInterest:   { value: openInterest },
+      longShortRatio: { value: longShortRatio },
+      alertLevel,
+    },
+  };
 }
