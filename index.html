@@ -2408,6 +2408,20 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
         <div id="oc-tbill-list" style="margin-top:3px;display:flex;flex-direction:column;gap:2px;"></div>
       </div>
     </div>
+
+    <!-- ── RWA TVL 히스토리 차트 ── -->
+    <div style="margin-top:14px;padding-top:12px;border-top:0.5px solid #21262D;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:9px;font-weight:600;color:#8B949E;text-transform:uppercase;letter-spacing:.06em;">TVL 히스토리</span>
+          <span style="font-size:8px;color:#484F58;" id="oc-rwa-hist-label">상위 10개 합산 · 2년</span>
+        </div>
+        <div style="font-size:8px;color:#484F58;" id="oc-rwa-hist-range"></div>
+      </div>
+      <div style="position:relative;height:130px;">
+        <canvas id="oc-rwa-hist-chart"></canvas>
+      </div>
+    </div>
   </div>
 
   <!-- ── 패널 3: BTC 현물 ETF 순유입 (통합 — 전체 흐름) ── -->
@@ -6987,6 +7001,7 @@ async function refreshTower(btn) {
 let _ocStableChart = null;
 let _ocEtfChart    = null;
 let _ocRwaChart    = null;
+let _ocRwaHistChart= null;
 let _ocEtfCumChart = null;
 
 async function loadT4(force = false) {
@@ -7228,6 +7243,96 @@ function renderOnchainMacro(d, rwaProtos) {
         </div>`;
       }).join('');
     }
+  }
+
+  // ── RWA TVL 히스토리 차트 ────────────────────────────────
+  const rwaHist = (d.rwa?.history || []);
+  const histCtx = document.getElementById('oc-rwa-hist-chart');
+  if (histCtx && rwaHist.length > 5) {
+    if (_ocRwaHistChart) { _ocRwaHistChart.destroy(); _ocRwaHistChart = null; }
+
+    const hLabels = rwaHist.map(h => h.date);
+    const hData   = rwaHist.map(h => h.tvlB);
+
+    // 월별 tick 맵
+    const hMonthTicks = {};
+    hLabels.forEach((d, i) => {
+      const ym = d.slice(0, 7);
+      if (!hMonthTicks[ym]) hMonthTicks[ym] = i;
+    });
+
+    // 현재 TVL 기준 색상
+    const curTvl = hData[hData.length - 1] || 0;
+    const maxTvl = Math.max(...hData);
+    const histColor = curTvl / maxTvl >= 0.9 ? '#F0B429'
+                    : curTvl / maxTvl >= 0.7 ? '#58A6FF'
+                    : '#8B949E';
+
+    _ocRwaHistChart = new Chart(histCtx, {
+      type: 'line',
+      data: {
+        labels: hLabels,
+        datasets: [{
+          label: 'RWA TVL ($B)',
+          data:  hData,
+          borderColor:     histColor,
+          borderWidth:     1.5,
+          fill:            true,
+          backgroundColor: histColor === '#F0B429' ? 'rgba(240,180,41,0.12)'
+                         : histColor === '#58A6FF' ? 'rgba(88,166,255,0.10)'
+                         : 'rgba(139,148,158,0.08)',
+          pointRadius:  0,
+          tension:      0.3,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        interaction: { mode:'index', intersect: false },
+        plugins: {
+          legend:     { display: false },
+          datalabels: { display: false },
+          tooltip: {
+            backgroundColor:'#1C2128', borderColor:'#30363D', borderWidth:0.5,
+            titleFont:{size:8}, bodyFont:{size:8},
+            callbacks: {
+              title: items => items[0].label,
+              label: i => ` TVL: $${i.parsed.y.toFixed(2)}B`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              color:'#484F58', font:{size:7}, maxTicksLimit:14,
+              callback: function(val) {
+                const dt = this.getLabelForValue(val);
+                if (!dt) return '';
+                const ym = dt.slice(0,7);
+                if (hMonthTicks[ym] !== val) return '';
+                const [y, m] = dt.split('-');
+                const MO = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                return MO[parseInt(m)-1] + " '" + y.slice(2);
+              },
+            },
+            grid: { display: false },
+          },
+          y: {
+            position: 'right',
+            ticks: { color:'#8B949E', font:{size:7}, callback: v=>'$'+v.toFixed(0)+'B' },
+            grid:  { color:'rgba(48,54,61,0.4)', lineWidth:0.5 },
+          },
+        },
+      },
+    });
+
+    // 기간 표시
+    const rangeEl = document.getElementById('oc-rwa-hist-range');
+    if (rangeEl && hLabels.length > 0)
+      rangeEl.textContent = hLabels[0] + ' ~ ' + hLabels[hLabels.length-1];
+
+    // 레이블: 현재 구성 프로토콜 수
+    const lblEl = document.getElementById('oc-rwa-hist-label');
+    if (lblEl) lblEl.textContent = `상위 ${rwaList.length}개 합산 · 2년`;
   }
 
   // ── 패널 3: BTC ETF (통합) ──────────────────────────

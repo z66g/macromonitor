@@ -3999,28 +3999,62 @@ async function fetchOnchainMacro() {
   };
 
   // ── 패널 2: RWA (DefiLlama) ───────────────────────────
-  // 카테고리별 TVL (RWA 전체)
-  const [rwaCategory, allProtocols] = await Promise.all([
-    get('https://api.llama.fi/v2/historicalChainTvl/all').then(d => null), // 불필요
-    get('https://api.llama.fi/protocols'),
-  ]);
+  const allProtocols = await get('https://api.llama.fi/protocols');
 
-  // RWA 카테고리 필터링
+  // RWA 카테고리 필터링 — 상위 10개
   const rwaProtos = (allProtocols || [])
     .filter(p => (p.category || '').toLowerCase() === 'rwa')
     .sort((a, b) => (b.tvl || 0) - (a.tvl || 0));
 
+  const top10 = rwaProtos.slice(0, 10);
   const rwaTotal = rwaProtos.reduce((s, p) => s + (p.tvl || 0), 0);
 
   // 주요 RWA 개별 TVL (상위 10개)
-  const rwaList = rwaProtos.slice(0, 10).map(p => ({
+  const rwaList = top10.map(p => ({
     name:   p.name,
     symbol: p.symbol || '',
+    slug:   p.slug   || '',
     tvlB:   +((p.tvl || 0) / 1e9).toFixed(3),
     pct:    rwaTotal > 0 ? +(( p.tvl || 0) / rwaTotal * 100).toFixed(1) : 0,
     chain:  p.chains?.[0] || '',
     logo:   p.logo || '',
   }));
+
+  // ── RWA 히스토리 — 동적 슬러그 병렬 fetch ────────────────
+  // 상위 10개의 slug를 실시간으로 추출 → 하드코딩 없이 자동 갱신
+  const rwaHistory = await (async () => {
+    const slugs = top10.map(p => p.slug).filter(Boolean);
+    if (!slugs.length) return [];
+
+    // 각 프로토콜 히스토리 병렬 fetch (최대 10개)
+    const results = await Promise.allSettled(
+      slugs.map(slug =>
+        get(`https://api.llama.fi/protocol/${slug}`)
+          .then(d => ({ slug, tvl: d?.tvl || [] }))
+      )
+    );
+
+    // 날짜별 합산 맵 (timestamp → totalUSD)
+    const dayMap = new Map();
+    for (const r of results) {
+      if (r.status !== 'fulfilled') continue;
+      for (const entry of (r.value.tvl || [])) {
+        const date = entry.date;           // unix timestamp (초)
+        const val  = entry.totalLiquidityUSD || 0;
+        dayMap.set(date, (dayMap.get(date) || 0) + val);
+      }
+    }
+
+    // 정렬 후 날짜 문자열로 변환, 최근 730일(2년) 반환
+    const cutoff = Math.floor(Date.now() / 1000) - 730 * 86400;
+    return [...dayMap.entries()]
+      .filter(([ts]) => ts >= cutoff)
+      .sort(([a], [b]) => a - b)
+      .map(([ts, val]) => ({
+        date:  new Date(ts * 1000).toISOString().slice(0, 10),
+        tvlB:  +( val / 1e9).toFixed(3),
+      }));
+  })();
 
   // T-Bill 특화 RWA (토큰화 국채) 필터
   const tbillKeywords = ['buidl','fobxx','ousg','benji','stbt','usyc','tbill','t-bill','treasury'];
@@ -4029,9 +4063,10 @@ async function fetchOnchainMacro() {
   );
 
   const rwa = {
-    totalB:   +( rwaTotal / 1e9).toFixed(3),
-    protocols: rwaList,
-    tbills:    tbillList,
+    totalB:    +( rwaTotal / 1e9).toFixed(3),
+    protocols:  rwaList,
+    tbills:     tbillList,
+    history:    rwaHistory,   // [{date, tvlB}] — 상위 10개 합산, 2년치
   };
 
   // ── 패널 3: BTC ETF (GitHub Actions 릴레이) ─────────────
