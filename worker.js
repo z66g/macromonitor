@@ -4034,25 +4034,34 @@ async function fetchOnchainMacro() {
       )
     );
 
-    // 날짜별 합산 맵 (timestamp → totalUSD)
+    // 날짜별 합산 맵 — 키를 YYYY-MM-DD 문자열로 정규화
+    // (프로토콜마다 timestamp가 조금씩 달라 raw timestamp 키를 쓰면 부분합산 오류 발생)
     const dayMap = new Map();
+    const cutoffDate = new Date(Date.now() - 730 * 86400 * 1000)
+                         .toISOString().slice(0, 10);  // 2년 전 날짜
+
     for (const r of results) {
       if (r.status !== 'fulfilled') continue;
       for (const entry of (r.value.tvl || [])) {
-        const date = entry.date;           // unix timestamp (초)
-        const val  = entry.totalLiquidityUSD || 0;
-        dayMap.set(date, (dayMap.get(date) || 0) + val);
+        const dateStr = new Date(entry.date * 1000).toISOString().slice(0, 10);
+        if (dateStr < cutoffDate) continue;            // 2년 이전 스킵
+        const val = entry.totalLiquidityUSD || 0;
+        dayMap.set(dateStr, (dayMap.get(dateStr) || 0) + val);
       }
     }
 
-    // 정렬 후 날짜 문자열로 변환, 최근 730일(2년) 반환
-    const cutoff = Math.floor(Date.now() / 1000) - 730 * 86400;
+    // 오늘 날짜 기준 미래 날짜 제거 (일부 프로토콜 데이터 오류 방어)
+    const todayStr = new Date().toISOString().slice(0, 10);
+    for (const k of dayMap.keys()) {
+      if (k > todayStr) dayMap.delete(k);
+    }
+
+    // 날짜 오름차순 정렬
     return [...dayMap.entries()]
-      .filter(([ts]) => ts >= cutoff)
-      .sort(([a], [b]) => a - b)
-      .map(([ts, val]) => ({
-        date:  new Date(ts * 1000).toISOString().slice(0, 10),
-        tvlB:  +( val / 1e9).toFixed(3),
+      .sort(([a], [b]) => a < b ? -1 : 1)
+      .map(([date, val]) => ({
+        date,
+        tvlB: +( val / 1e9).toFixed(3),
       }));
   })();
 
