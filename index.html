@@ -9392,7 +9392,7 @@ initAll();
     gap: 12px !important;
   }
 
-  /* 4. Labor Pipeline — 가로 스크롤 + 카드 최소 너비 보장 */
+  /* 4. Labor Pipeline — 가로 스크롤 */
   #t2-pipeline-board {
     overflow-x: auto !important;
     overflow-y: visible !important;
@@ -9401,11 +9401,17 @@ initAll();
     gap: 0 !important;
     scroll-snap-type: x mandatory;
   }
-  /* 파이프라인 각 카드 (arrow 제외) */
-  #t2-pipeline-board > * {
-    min-width: 130px !important;
+  /* 카드 wrapper(flex:1) → 고정 너비로 강제 */
+  #t2-pipeline-board > [style*="flex:1"] {
+    flex: none !important;
+    width: 150px !important;
+    min-width: 150px !important;
     scroll-snap-align: start;
-    flex-shrink: 0 !important;
+  }
+  /* 화살표: 크기 축소 */
+  #t2-pipeline-board > [style*="width:18px"] {
+    width: 12px !important;
+    font-size: 9px !important;
   }
 
   /* 5. T3 DXY 차트 헤더 — 버튼 행 분리 */
