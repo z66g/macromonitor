@@ -5404,8 +5404,8 @@ async function loadT1(force = false) {
           const avg   = valid.length ? valid.reduce((s, v) => s + v, 0) / valid.length : null;
           const score = (avg != null && Math.abs(avg) > 1)
             ? +((fNL - avg) / Math.abs(avg) * 100).toFixed(2) : null;
-          const regime = score == null ? null : score > 0.5 ? 'on'
-            : score < -0.5 ? 'off' : 'neutral';
+          const regime = score == null ? null : score > 0 ? 'on'
+            : score < 0 ? 'off' : 'neutral';
           const weekDrain = drains[w]?.netDrain ?? 0;
 
           return { fNL, score, regime, weekDrain,
@@ -5423,13 +5423,13 @@ async function loadT1(force = false) {
         };
         const fmtSc = v => v != null ? `${v >= 0 ? '+' : ''}${v.toFixed(2)}%` : '—';
         const fmtDr = v => `${v >= 0 ? '−' : '+'}$${Math.abs(v).toFixed(1)}B`;  // drain양수=NL감소→'−'
-        const CONF  = ['높음','중간','낮음','낮음'];  // W1~W4 신뢰도
+        const CONF  = ['신뢰도 높음','신뢰도 중간','신뢰도 낮음','신뢰도 낮음'];  // W1~W4 신뢰도
 
         // 현재(좌) + 4주 예측(우) 5열 그리드
         const cols = [
           // 현재 (실제)
           `<div style="display:flex;flex-direction:column;gap:4px;padding:10px 12px;
-                       background:#161B22;border:0.5px solid #30363D;border-radius:7px;">
+                       background:${nlRegime==='risk_on'?'rgba(26,127,90,0.08)':nlRegime==='risk_off'?'rgba(207,34,43,0.08)':'#161B22'};border:0.5px solid ${nlRegime==='risk_on'?'#238636':nlRegime==='risk_off'?'#B91C1C':'#30363D'};border-radius:7px;">
             <div style="font-size:8px;color:#656D76;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">현재</div>
             <div style="font-size:18px;font-weight:700;font-family:'SF Mono',monospace;
                         color:${nlScore >= 0 ? '#3FB950' : '#F85149'};">
@@ -5437,9 +5437,9 @@ async function loadT1(force = false) {
             </div>
             <div style="font-size:8px;color:#8B949E;">$${nlCurB?.toLocaleString(undefined,{maximumFractionDigits:1})}B</div>
             <div style="font-size:8px;padding:1px 6px;border-radius:2px;margin-top:2px;display:inline-block;
-                        background:${nlScore >= 0.5 ? '#0D3321' : nlScore <= -0.5 ? '#3D0000' : '#21262D'};
-                        color:${nlScore >= 0.5 ? '#3FB950' : nlScore <= -0.5 ? '#F85149' : '#8B949E'};">
-              ${nlScore >= 0.5 ? 'Risk-On' : nlScore <= -0.5 ? 'Risk-Off' : '중립'}
+                        background:${nlRegime === 'risk_on' ? '#0D3321' : nlRegime === 'risk_off' ? '#3D0000' : '#21262D'};
+                        color:${nlRegime === 'risk_on' ? '#3FB950' : nlRegime === 'risk_off' ? '#F85149' : '#8B949E'};">
+              ${nlRegime === 'risk_on' ? 'Risk-On' : nlRegime === 'risk_off' ? 'Risk-Off' : '중립'}
             </div>
           </div>`,
           // W1~W4 예측
