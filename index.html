@@ -365,6 +365,13 @@ body{
 .pd-tip-box::after{display:none;}
 .pd-tip-wrap:hover .pd-tip-box{display:block;}
 
+@media (max-width: 767px) {
+  .pd-tip-box {
+    max-width: calc(100vw - 24px) !important;
+    width: 220px !important;
+  }
+}
+
 /* 종합 스트레스 바 */
 .stress-row{background:#0D1117;border:0.5px solid #21262D;border-radius:6px;padding:8px 14px;display:flex;align-items:center;gap:12px;}
 .sr-label{font-size:9px;font-weight:600;color:#8B949E;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
@@ -9596,5 +9603,49 @@ initAll();
 }
 
 </style>
+
+<script>
+/* ── 툴팁 viewport 이탈 방지 ── */
+(function() {
+  function clampTip(box) {
+    if (!box) return;
+    box.style.marginLeft = '';
+    box.style.marginRight = '';
+    var r = box.getBoundingClientRect();
+    var vw = window.innerWidth;
+    var pad = 8;
+    if (r.right > vw - pad) {
+      box.style.marginLeft = '-' + Math.ceil(r.right - vw + pad) + 'px';
+    } else if (r.left < pad) {
+      box.style.marginLeft = Math.ceil(pad - r.left) + 'px';
+    }
+  }
+
+  function bindWrap(wrap) {
+    if (wrap._tipBound) return;
+    wrap._tipBound = true;
+    var box = wrap.querySelector('.pd-tip-box');
+    if (!box) return;
+    function onShow() { requestAnimationFrame(function(){ clampTip(box); }); }
+    wrap.addEventListener('mouseenter', onShow);
+    wrap.addEventListener('touchstart', onShow, {passive: true});
+  }
+
+  function bindAll() {
+    document.querySelectorAll('.pd-tip-wrap').forEach(bindWrap);
+  }
+
+  // 초기 바인딩
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindAll);
+  } else {
+    bindAll();
+  }
+
+  // 동적으로 추가된 툴팁(JS innerHTML) 대응
+  new MutationObserver(bindAll)
+    .observe(document.body, { childList: true, subtree: true });
+})();
+</script>
 </body>
 </html>
