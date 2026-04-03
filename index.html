@@ -9439,6 +9439,24 @@ initAll();
   }
   /* SPY 토글 버튼 숨기기 (모바일 공간 절약) */
   #t3-spy-toggle { display: none !important; }
+
+  /* 6. T3 글로벌 실물경기 카드 배지 — 세로 표시 방지 */
+  #t3-asia-badge, #t3-euro-badge {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    word-break: keep-all !important;
+  }
+  /* 카드 헤더 행 wrap 허용 + 한국어 영문 서브타이틀 줄바꿈 */
+  #t3-b2 [style*="justify-content:space-between"],
+  #t3-b2 [style*="justify-content: space-between"] {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+  }
+  /* 우측 배지+버튼 묶음: 오른쪽 정렬 유지 */
+  #t3-b2 [style*="justify-content:space-between"] > div:last-child {
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+  }
 }
 
 /* ── 태블릿: gauge-grid, ratio-grid 조정 ── */
