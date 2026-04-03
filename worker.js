@@ -3297,12 +3297,13 @@ async function fetchLiqTowerData(env) {
   };
 
 
-  const [walcl, rrp, rrpSeries, tga, walclSeries, auctions, qraActive] = await Promise.all([
+  const [walcl, rrp, rrpSeries, tga, walclSeries, tgaSeries, auctions, qraActive] = await Promise.all([
     fredVal('WALCL'),
     fredVal('RRPONTSYD'),
     fredSeries('RRPONTSYD', 52),
     fredVal('WTREGEN'),
     fredSeries('WALCL', 15),
+    fredSeries('WTREGEN', 26),   // TGA 6개월 시계열 (Millions)
     auctionsFetch(),
     kvGet(env, KV_KEYS.qraActive),
   ]);
@@ -3326,6 +3327,7 @@ async function fetchLiqTowerData(env) {
       rrp:         rrp,
       rrpSeries:   rrpSeries.slice(-26),
       walclSeries: walclSeries,
+      tgaSeries:   tgaSeries,   // WTREGEN 26주 (Millions)
       h41:         h41Tower,
     },
     auctions,
@@ -3419,7 +3421,8 @@ async function fetchH41ForTower(env) {
     liabilities: { res, rrp: rrpV, tga: tgaV, curr, other: otherV, total: totL },
     data_date: h41HtmlResult?.loans?.date ?? kv.reserve_balances?.date ?? null,
     walcl_anomaly,
-    maturity: h41HtmlResult?.maturity ?? null,
+    maturity:       h41HtmlResult?.maturity       ?? null,
+    treasury_total: h41HtmlResult?.treasury_total ?? null,
   };
 }
 
@@ -3453,10 +3456,19 @@ async function fetchH41HtmlData() {
     const currency = rawCur?.fed_notes_net != null
       ? +(rawCur.fed_notes_net / 1000).toFixed(1) : null;
 
-    return { loans, maturity, currency };
+    // treasury_total WoW delta (H.4.1 → 연준 보유 국채 변화 = 순발행 프록시)
+    const ttCur  = s.treasury_total?.[0] ?? null;
+    const ttPrev = s.treasury_total?.[1] ?? null;
+    const treasury_total = ttCur != null ? {
+      cur:   ttCur,
+      prev:  ttPrev,
+      delta: ttPrev != null ? +(ttCur - ttPrev).toFixed(1) : null,
+    } : null;
+
+    return { loans, maturity, currency, treasury_total };
   } catch(e) {
     console.error('[fetchH41HtmlData]', e.message);
-    return { loans: null, maturity: null, currency: null };
+    return { loans: null, maturity: null, currency: null, treasury_total: null };
   }
 }
 

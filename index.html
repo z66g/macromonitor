@@ -2173,8 +2173,8 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
     <div class="tw-section" id="tw-s2">
       <div class="tw-hdr" onclick="twToggle('s2')">
         <span id="tw-s2-led" class="tw-led">●</span>
-        <span>DTS 유동성 감시</span>
-        <span style="font-size:8px;color:#484F58;margin-left:4px;">D-1</span>
+        <span>TGA 주간 유동성 감시</span>
+        <span style="font-size:8px;color:#484F58;margin-left:4px;">Weekly</span>
         <span class="tw-chevron" id="tw-s2-chv">▾</span>
       </div>
       <div class="tw-body" id="tw-s2-body">
@@ -7449,14 +7449,8 @@ async function loadLiqTower(force = false) {
   const loading = document.getElementById('tower-loading');
   if (loading) loading.style.display = 'block';
   try {
-    // 백엔드(/liq-tower)와 브라우저 DTS 병렬 호출
-    const [r, dts] = await Promise.all([
-      fetchT(`${WORKER}/liq-tower${force ? '?force=1' : ''}`, 20000),
-      fetchTreasuryDts(),
-    ]);
+    const r = await fetchT(`${WORKER}/liq-tower${force ? '?force=1' : ''}`, 20000);
     const d = await r.json();
-    // DTS 데이터 병합
-    d.dts = dts;
     _towerData = d;
     if (loading) loading.style.display = 'none';
     renderTowerS1(d);
@@ -7699,53 +7693,143 @@ function renderTowerS1(d) {
 
 // ── S2: DTS ─────────────────────────────────────────────
 function renderTowerS2(d) {
-  const dts = d.dts || {};
-  const tga = dts.tgaLatest;
-  const ledEl = document.getElementById('tw-s2-led');
-  const el    = document.getElementById('tw-s2-content');
+  const h41     = d.fed?.h41 || {};
+  const ledEl   = document.getElementById('tw-s2-led');
+  const el      = document.getElementById('tw-s2-content');
   if (!el) return;
 
-  // TGA 변화: 전일 대비 급등(유동성 흡수) → 주의
-  const netFlow = tga?.netFlow ?? 0;
-  const ledColor = netFlow > 50 ? '#F85149' : netFlow > 20 ? '#F0B429' : '#3FB950';
+  // TGA 데이터 (WTREGEN — Millions → /1000 = $B already done in worker)
+  const tga     = h41.tga || {};
+  const tgaCur  = tga.cur;                       // $B
+  const tgaDelta= tga.delta ?? null;             // $B WoW
+
+  // treasury_total WoW delta (H.4.1 연준 국채 보유 변화 = 순발행 프록시)
+  const tt      = h41.treasury_total || {};
+  const ttDelta = tt.delta ?? null;              // $B WoW
+
+  // TGA 6개월 시계열 (WTREGEN, Millions)
+  const tgaSeries = (d.fed?.tgaSeries || []).map(o => ({
+    date:  o.date,
+    value: +(o.value / 1000).toFixed(1),         // Millions → $B
+  }));
+
+  // LED 색상: TGA 급등 = 유동성 흡수 경고
+  const ledColor = tgaDelta != null
+    ? (tgaDelta > 30 ? '#F85149' : tgaDelta > 10 ? '#F0B429' : '#3FB950')
+    : '#484F58';
   if (ledEl) ledEl.style.color = ledColor;
 
-  const rows = (dts.netIssuance || []).slice(0, 5).map(r => `
-    <tr style="font-size:9px;">
-      <td style="padding:4px 0;color:#656D76;">${r.date}</td>
-      <td style="text-align:right;color:${r.netIssued > 0 ? '#F85149':'#3FB950'};">
-        ${r.netIssued > 0 ? '+' : ''}${r.netIssued.toFixed(0)}B
-      </td>
-      <td style="text-align:right;color:#8B949E;">${r.issued.toFixed(0)}B</td>
-      <td style="text-align:right;color:#8B949E;">${r.redeemed.toFixed(0)}B</td>
-    </tr>`).join('');
+  const fmtB  = v => v != null ? '$' + Math.abs(v).toFixed(1) + 'B' : '—';
+  const fmtDelta = (v, invertColor=false) => {
+    if (v == null) return '';
+    const positive = invertColor ? v < 0 : v > 0;
+    const color = positive ? '#F85149' : '#3FB950';
+    const arrow = v > 0 ? '▲' : '▼';
+    return `<span style="font-size:10px;font-weight:600;color:${color};">${arrow} ${v > 0 ? '+' : ''}${v.toFixed(1)}B wk</span>`;
+  };
+
+  // 카드 2개
+  const card = (label, sub, main, delta, invertColor=false, hint='') => `
+    <div style="background:#0D1117;border:0.5px solid #21262D;border-radius:6px;padding:10px 12px;">
+      <div style="font-size:8px;color:#484F58;margin-bottom:4px;">${label}</div>
+      <div style="font-size:7px;color:#656D76;margin-bottom:6px;">${sub}</div>
+      <div style="font-size:18px;font-weight:700;color:#E6EDF3;margin-bottom:3px;">${main}</div>
+      <div style="min-height:16px;">${fmtDelta(delta, invertColor)}</div>
+      ${hint ? `<div style="font-size:7px;color:#484F58;margin-top:3px;">${hint}</div>` : ''}
+    </div>`;
+
+  const tgaHint  = tgaDelta != null
+    ? (tgaDelta < -20 ? '💧 금고 소진 → 시장 유동성 유입' : tgaDelta > 20 ? '🔺 금고 충전 → 시장 유동성 흡수' : '안정 구간')
+    : '';
+  const ttHint = ttDelta != null
+    ? (ttDelta < 0 ? '💚 연준 국채 감소 → QT 롤오프 효과' : '🔴 연준 국채 증가 → 시장 흡수 압박')
+    : '';
 
   el.innerHTML = `
-    <div class="tw-kpi" style="margin-bottom:10px;">
-      <div class="tw-kpi-card">
-        <div class="tw-kpi-label">TGA 잔고 (D-1)</div>
-        <div class="tw-kpi-val">${tga ? '$' + tga.close.toFixed(0) + 'B' : '—'}</div>
-        <div class="tw-kpi-sub">${tga?.date ?? ''}</div>
-      </div>
-      <div class="tw-kpi-card">
-        <div class="tw-kpi-label">전일 Net 흐름</div>
-        <div class="tw-kpi-val" style="color:${ledColor};">
-          ${netFlow > 0 ? '+' : ''}${netFlow.toFixed(0)}B
-        </div>
-        <div class="tw-kpi-sub">${netFlow > 0 ? '유동성 흡수 ↑' : '유동성 방출 ↓'}</div>
-      </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      ${card(
+        'TGA 재무부 금고 잔고',
+        '높을수록 시장 유동성 악재 (WTREGEN)',
+        fmtB(tgaCur),
+        tgaDelta,
+        true,   // delta 상승 = 빨간색
+        tgaHint
+      )}
+      ${card(
+        '국채 순발행 모멘텀',
+        '연준 보유 국채 WoW Δ (H.4.1 proxy)',
+        ttDelta != null ? (ttDelta > 0 ? '+' : '') + ttDelta.toFixed(1) + 'B' : '—',
+        ttDelta,
+        true,   // 증가(흡수) = 빨간색
+        ttHint
+      )}
     </div>
-    <div style="font-size:9px;color:#656D76;font-weight:600;margin-bottom:4px;">최근 순발행 (DTS Table 3A)</div>
-    <table style="width:100%;border-collapse:collapse;">
-      <tr style="font-size:8px;color:#484F58;">
-        <th style="text-align:left;padding-bottom:3px;">날짜</th>
-        <th style="text-align:right;">순발행</th>
-        <th style="text-align:right;">발행</th>
-        <th style="text-align:right;">상환</th>
-      </tr>
-      ${rows || '<tr><td colspan="4" style="color:#484F58;font-size:9px;padding:6px 0;">데이터 없음</td></tr>'}
-    </table>
-    <div style="font-size:8px;color:#484F58;margin-top:6px;">📌 출처: 재무부 DTS API (D-1 기준)</div>`;
+
+    <div style="font-size:9px;color:#656D76;font-weight:600;margin-bottom:6px;">
+      📈 TGA 잔고 6개월 추세
+      <span style="font-weight:400;color:#484F58;margin-left:4px;">채워지면 시장 악재 / 소진되면 호재</span>
+    </div>
+    <div style="position:relative;height:70px;margin-bottom:4px;">
+      <canvas id="tw-tga-spark"></canvas>
+    </div>
+    <div style="font-size:7px;color:#484F58;margin-top:6px;">
+      📌 출처: FRED WTREGEN (주간) + H.4.1 연준 보고서 / 기준: ${h41.data_date || ''}
+    </div>`;
+
+  // TGA 스파크라인
+  if (tgaSeries.length > 1) {
+    setTimeout(() => {
+      const ctx = document.getElementById('tw-tga-spark');
+      if (!ctx) return;
+      const vals = tgaSeries.map(o => o.value);
+      const min  = Math.min(...vals);
+      const max  = Math.max(...vals);
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: tgaSeries.map(o => o.date.slice(5)),
+          datasets: [{
+            data: vals,
+            borderColor: '#F0B429',
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: true,
+            backgroundColor: (ctx2) => {
+              const g = ctx2.chart.ctx.createLinearGradient(0, 0, 0, 70);
+              g.addColorStop(0, 'rgba(240,180,41,0.2)');
+              g.addColorStop(1, 'rgba(240,180,41,0.02)');
+              return g;
+            },
+            tension: 0.3,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1C2128',
+              borderColor: '#30363D',
+              borderWidth: 0.5,
+              callbacks: { label: i => '$' + i.parsed.y.toFixed(0) + 'B' },
+            },
+          },
+          scales: {
+            x: { display: false },
+            y: {
+              display: true,
+              min: Math.max(0, min * 0.9),
+              max: max * 1.05,
+              ticks: { color: '#484F58', font: { size: 7 }, callback: v => '$' + Math.round(v) + 'B' },
+              grid: { color: 'rgba(48,54,61,0.4)', lineWidth: 0.5 },
+            },
+          },
+        },
+      });
+    }, 100);
+  }
 }
 
 // ── S3: 발행 스케줄 + QRA ────────────────────────────────
