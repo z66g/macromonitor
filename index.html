@@ -7899,31 +7899,31 @@ function renderTowerS4(d) {
   const hasAlert = weeks.some(w => w.isDangerZone);
   if (ledEl) ledEl.style.color = hasAlert ? '#F85149' : '#3FB950';
 
-  // 가중치 텍스트
   const wEl = document.getElementById('tw-bill-weight');
   if (wEl && vamp.billWeightLabel) {
-    wEl.textContent = `* ON RRP $${(vamp.rrpBn||0).toFixed(0)}B 반영 → T-Bill 흡수 가중치 ${vamp.billWeightLabel}`;
+    wEl.textContent = '* ON RRP $' + (vamp.rrpBn||0).toFixed(0) + 'B 반영 → T-Bill 흡수 가중치 ' + vamp.billWeightLabel;
   }
 
-  // 데스 밸리 경고
   const alertEl = document.getElementById('tw-danger-alert');
   if (alertEl) {
     const danger = weeks.filter(w => w.isDangerZone);
+    alertEl.style.display = danger.length ? 'block' : 'none';
     if (danger.length) {
-      alertEl.style.display = 'block';
-      alertEl.innerHTML = danger.map(w => `
-        <div style="background:rgba(248,81,73,0.08);border:0.5px solid #B91C1C;
-          border-radius:4px;padding:7px 10px;margin-bottom:6px;font-size:9px;color:#F85149;">
-          🚨 ${w.label} (${w.dateRange}): 순 유동성 증발 $${w.netDrain}B
-          — 장기채 결제 집중, 지급준비금 경색 주의
-        </div>`).join('');
+      alertEl.innerHTML = danger.map(w =>
+        '<div style="background:rgba(248,81,73,0.08);border:0.5px solid #B91C1C;' +
+        'border-radius:4px;padding:7px 10px;margin-bottom:6px;font-size:9px;color:#F85149;">' +
+        '🚨 ' + w.label + ' (' + w.dateRange + '): 순 유동성 증발 $' + w.netDrain + 'B' +
+        '</div>'
+      ).join('');
     }
   }
 
-  // 차트
   const ctx = document.getElementById('tw-vampire-chart');
   if (!ctx || !weeks.length) return;
   if (_vampireChart) { _vampireChart.destroy(); _vampireChart = null; }
+
+  const netData    = weeks.map(w => w.netDrain);
+  const ptColors   = weeks.map(w => w.isDangerZone ? '#F85149' : (w.netDrain < 0 ? '#3FB950' : '#FFFFFF'));
 
   _vampireChart = new Chart(ctx, {
     type: 'bar',
@@ -7932,28 +7932,28 @@ function renderTowerS4(d) {
       datasets: [
         { label:'QT 롤오프',   type:'bar',
           data: weeks.map(w => w.breakdown.qtDrain),
-          backgroundColor:'rgba(185,28,28,0.85)', stack:'s' },
+          backgroundColor:'rgba(185,28,28,0.75)', stack:'s', order:2 },
         { label:'장기채 결제', type:'bar',
           data: weeks.map(w => w.breakdown.couponDrain),
-          backgroundColor:'rgba(234,88,12,0.85)',  stack:'s' },
+          backgroundColor:'rgba(234,88,12,0.75)',  stack:'s', order:2 },
         { label:'T-Bill 흡수', type:'bar',
           data: weeks.map(w => w.breakdown.billAbsorb),
-          backgroundColor:'rgba(202,138,4,0.85)',  stack:'s' },
+          backgroundColor:'rgba(202,138,4,0.75)',  stack:'s', order:2 },
         { label:'정부 지출',   type:'bar',
           data: weeks.map(w => w.breakdown.govOutflow),
-          backgroundColor:'rgba(22,163,74,0.85)',  stack:'s' },
-        { label:'순 유동성 증발 (Net)',  type:'line',
-          data: weeks.map(w => w.netDrain),
-          borderColor:'#E6EDF3',
-          borderWidth: 2,
-          borderDash: [5, 3],
-          pointBackgroundColor: weeks.map(w => w.isDangerZone ? '#F85149' : '#E6EDF3'),
-          pointBorderColor:     weeks.map(w => w.isDangerZone ? '#F85149' : '#E6EDF3'),
-          pointRadius: 5,
-          pointHoverRadius: 7,
+          backgroundColor:'rgba(22,163,74,0.75)',  stack:'s', order:2 },
+        { label:'Net Drain',   type:'line',
+          data: netData,
+          borderColor: '#FFFFFF',
+          borderWidth: 2.5,
+          pointBackgroundColor: ptColors,
+          pointBorderColor: '#FFFFFF',
+          pointBorderWidth: 2,
+          pointRadius: 6,
+          pointHoverRadius: 8,
           fill: false,
           tension: 0.3,
-          order: 0,   // 라인을 바 위에 렌더
+          order: 1,
           yAxisID: 'y',
         },
       ],
@@ -7966,67 +7966,84 @@ function renderTowerS4(d) {
           display:true, position:'bottom',
           labels:{
             color:'#8B949E', font:{size:8}, boxWidth:10, padding:8,
-            filter: (item) => item.text !== '순 유동성 증발 (Net)',  // 범례에서 숨김
+            filter: function(item) { return item.text !== 'Net Drain'; },
           },
         },
         tooltip:{
           backgroundColor:'#1C2128', borderColor:'#30363D', borderWidth:0.5,
-          titleColor:'#8B949E', bodyColor:'#E6EDF3', titleFont:{size:9}, bodyFont:{size:9},
+          titleColor:'#8B949E', bodyColor:'#E6EDF3',
+          titleFont:{size:9}, bodyFont:{size:9},
           callbacks:{
-            afterTitle: (items) => {
-              const wi = items[0]?.dataIndex;
-              if (wi == null) return '';
-              const w = weeks[wi];
-              const sign = w.netDrain > 0 ? '+' : '';
-              const color = w.netDrain > 0 ? '🔴' : '🟢';
-              return `${color} 순 유동성 증발: ${sign}$${w.netDrain}B`;
-            },
-            afterBody: (items) => {
-              const wi = items[0]?.dataIndex;
+            beforeBody: function(items) {
+              const wi = items[0] && items[0].dataIndex;
               if (wi == null) return [];
               const w = weeks[wi];
-              const lines = ['─────────────'];
+              const sign = w.netDrain > 0 ? '+' : '';
+              const icon = w.netDrain > 0 ? '🔴' : '🟢';
+              return [icon + ' 순 유동성 증발: ' + sign + '$' + w.netDrain + 'B', '────────────────'];
+            },
+            label: function(item) {
+              if (item.dataset.label === 'Net Drain') return undefined;
+              const sign = item.parsed.y > 0 ? '+' : '';
+              return '  ' + item.dataset.label + ': ' + sign + '$' + item.parsed.y.toFixed(1) + 'B';
+            },
+            afterBody: function(items) {
+              const wi = items[0] && items[0].dataIndex;
+              if (wi == null) return [];
+              const w = weeks[wi];
+              const lines = [];
               if (w.meta) {
-                lines.push(`QRA 주간순발행: $${w.meta.weeklyNet}B (${w.meta.qraSource})`);
-                lines.push(`Bill/Coupon 비율: ${w.meta.billRatio}% / ${w.meta.couponRatio}%`);
-                lines.push(`QT 소스: ${w.meta.maturitySource}`);
+                lines.push('────────────────');
+                lines.push('QRA 주간순발행: $' + w.meta.weeklyNet + 'B (' + w.meta.qraSource + ')');
+                lines.push('Bill ' + w.meta.billRatio + '% / Coupon ' + w.meta.couponRatio + '%');
               }
-              if (w.auctionDetail?.length) {
-                lines.push('─ 예정 경매 (Gross):');
-                w.auctionDetail.forEach(a => lines.push(`  ${a.label}: $${(a.grossBn||0).toFixed(0)}B`));
+              if (w.auctionDetail && w.auctionDetail.length) {
+                lines.push('경매 (Gross):');
+                w.auctionDetail.slice(0,4).forEach(function(a) {
+                  lines.push('  ' + a.label + ': $' + (a.grossBn||0).toFixed(0) + 'B');
+                });
               }
               return lines;
             },
           },
         },
-        // 순값 라벨 바 위에 직접 표시
-        afterDraw: undefined,
       },
       scales:{
-        x:{ stacked:true, ticks:{color:'#8B949E',font:{size:9}},
-            grid:{color:'rgba(48,54,61,0.5)',lineWidth:0.5} },
-        y:{ stacked:true, ticks:{color:'#8B949E',font:{size:8},
-              callback:v=>`$${v}B`},
-            grid:{color:'rgba(48,54,61,0.5)',lineWidth:0.5} },
+        x:{
+          stacked:true,
+          ticks:{ color:'#8B949E', font:{size:9} },
+          grid:{ color:'rgba(48,54,61,0.4)', lineWidth:0.5 },
+        },
+        y:{
+          stacked:true,
+          ticks:{ color:'#8B949E', font:{size:8}, callback: function(v) { return '$' + v + 'B'; } },
+          grid:{
+            color: function(ctx2) {
+              return ctx2.tick.value === 0 ? 'rgba(200,200,200,0.7)' : 'rgba(48,54,61,0.4)';
+            },
+            lineWidth: function(ctx2) { return ctx2.tick.value === 0 ? 2.5 : 0.5; },
+          },
+        },
       },
     },
     plugins: [{
-      // 순값 포인트 옆에 레이블 직접 그리기
       id: 'netLabel',
-      afterDatasetsDraw(chart) {
-        const ds = chart.data.datasets.find(d => d.label === '순 유동성 증발 (Net)');
-        if (!ds) return;
-        const meta = chart.getDatasetMeta(chart.data.datasets.indexOf(ds));
-        const ctx2 = chart.ctx;
+      afterDatasetsDraw: function(chart) {
+        var dsIdx = chart.data.datasets.findIndex(function(d) { return d.label === 'Net Drain'; });
+        if (dsIdx < 0) return;
+        var meta = chart.getDatasetMeta(dsIdx);
+        var ctx2 = chart.ctx;
         ctx2.save();
-        meta.data.forEach((pt, i) => {
-          const val = ds.data[i];
-          const sign = val > 0 ? '+' : '';
-          const color = val > 0 ? '#F85149' : '#3FB950';
+        meta.data.forEach(function(pt, i) {
+          var val = weeks[i] && weeks[i].netDrain;
+          if (val == null) return;
+          var sign  = val > 0 ? '+' : '';
+          var color = val > 0 ? '#F85149' : '#3FB950';
+          var yOff  = val >= 0 ? -12 : 14;
           ctx2.fillStyle = color;
-          ctx2.font = 'bold 9px -apple-system, BlinkMacSystemFont, sans-serif';
+          ctx2.font = 'bold 9px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
           ctx2.textAlign = 'center';
-          ctx2.fillText(`${sign}$${val}B`, pt.x, pt.y - 8);
+          ctx2.fillText(sign + '$' + val.toFixed(0) + 'B', pt.x, pt.y + yOff);
         });
         ctx2.restore();
       },

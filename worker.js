@@ -3291,7 +3291,28 @@ async function fetchLiqTowerData(env) {
       const r = await fetch(RAW, { cf: { cacheTtl: 3600 } });
       if (!r.ok) return [];
       const d = await r.json();
-      return d.upcoming || [];
+
+      const today = new Date().toISOString().slice(0, 10);
+
+      // upcoming: 아직 경매 미실시
+      const upcoming = d.upcoming || [];
+
+      // auctioned: 경매 완료됐지만 결제일(issueDate)이 아직 안 된 것
+      const unsettled = (d.auctioned || []).filter(a =>
+        a.issueDate && a.issueDate >= today
+      );
+
+      // 합산 후 issueDate 기준 정렬, 중복 cusip 제거
+      const seen = new Set();
+      const combined = [...upcoming, ...unsettled]
+        .filter(a => {
+          if (!a.cusip || seen.has(a.cusip)) return !a.cusip;
+          seen.add(a.cusip);
+          return true;
+        })
+        .sort((a, b) => (a.issueDate || '').localeCompare(b.issueDate || ''));
+
+      return combined;
     } catch(e) {
       console.error('[auctions] GitHub fetch error:', e.message);
       return [];
