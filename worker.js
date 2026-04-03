@@ -3282,43 +3282,20 @@ async function fetchLiqTowerData(env) {
     } catch(e) { return []; }
   };
 
+  // GitHub Actions가 4시간마다 갱신 → raw URL로 fetch (Akamai 우회)
   const auctionsFetch = async () => {
-    const BASE = 'https://www.treasurydirect.gov/TA_WS/securities';
-    const hdrs = { 'Accept': '*/*', 'User-Agent': 'Mozilla/5.0' };
-
-    // JSONP 파싱 헬퍼: "jQuery123([{...}])" → [{...}]
-    const parseJsonp = (text) => {
-      const m = text.match(/\((\[[\s\S]*\])\)/);
-      if (!m) return [];
-      try { return JSON.parse(m[1]); } catch(e) { return []; }
-    };
-
-    const fetchJsonp = async (endpoint, type) => {
-      const url = `${BASE}/${endpoint}?format=jsonp&limitByTerm=true&type=${type}&callback=cb`;
-      try {
-        const r = await fetch(url, { headers: hdrs });
-        if (!r.ok) return [];
-        return parseJsonp(await r.text());
-      } catch(e) { return []; }
-    };
-
-    // upcoming: Bill, Note, Bond 병렬 fetch
-    const [bills, notes, bonds] = await Promise.all([
-      fetchJsonp('upcoming', 'Bill'),
-      fetchJsonp('upcoming', 'Note'),
-      fetchJsonp('upcoming', 'Bond'),
-    ]);
-
-    const all = [...bills, ...notes, ...bonds];
-    return all.slice(0, 30).map(a => ({
-      type:        a.securityType,
-      term:        a.securityTerm,
-      auctionDate: a.auctionDate?.slice(0, 10),
-      issueDate:   a.issueDate?.slice(0, 10),
-      offeringAmt: parseFloat(a.offeringAmount) || 0,
-      cusip:       a.cusip,
-    })).sort((a, b) => (a.issueDate || '').localeCompare(b.issueDate || ''));
+    const RAW = 'https://raw.githubusercontent.com/zzibu-0070/macromonitor/main/data/auctions.json';
+    try {
+      const r = await fetch(RAW, { cf: { cacheTtl: 3600 } });
+      if (!r.ok) return [];
+      const d = await r.json();
+      return d.upcoming || [];
+    } catch(e) {
+      console.error('[auctions] GitHub fetch error:', e.message);
+      return [];
+    }
   };
+
 
   const [walcl, rrp, rrpSeries, tga, walclSeries, auctions, qraActive] = await Promise.all([
     fredVal('WALCL'),
