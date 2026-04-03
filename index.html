@@ -9132,5 +9132,202 @@ initAll();
          display:none;align-items:center;justify-content:center;
          box-shadow:0 4px 16px rgba(0,0,0,.6);transition:opacity .2s,background .2s;">↑</button>
 
+
+<style>
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE LAYOUT
+   ≥ 1024px  → 데스크톱: 변경 없음
+   768~1023px → 태블릿
+   ≤ 767px   → 모바일
+═══════════════════════════════════════════════════ */
+
+/* ── 공통: 컨테이너 너비 해제 ── */
+@media (max-width: 1023px) {
+  #controls-bar-inner,
+  .page-content,
+  #t1-wrapper, #t2-wrapper, #t3-wrapper, #t4-wrapper {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .section-wrap {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 16px 16px !important;
+  }
+
+  /* 탭 네비게이션 — 가로 스크롤 */
+  .tab-nav {
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 0 16px !important;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn { padding: 10px 14px 4px !important; font-size: 11px !important; white-space: nowrap; }
+
+  /* 파이프 다이어그램 — 2×2 */
+  .pipe-row { flex-wrap: wrap !important; }
+  .pipe-seg {
+    flex: 1 1 calc(50% - 2px) !important;
+    min-width: calc(50% - 2px) !important;
+    border-radius: 0 !important;
+  }
+  .pipe-seg:nth-child(1) { border-radius: 7px 0 0 0 !important; }
+  .pipe-seg:nth-child(2) { border-radius: 0 7px 0 0 !important; }
+  .pipe-seg:nth-child(3) { border-radius: 0 0 0 7px !important; }
+  .pipe-seg:nth-child(4) { border-radius: 0 0 7px 0 !important; }
+
+  /* T3 KPI 4열 → 2열 */
+  #t3-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* T1 yields 4열 → 2열 */
+  #t1-yields { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* T1 원자재 4열 → 2열 */
+  #t1-comm-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* ── 모바일 전용 (≤767px) ── */
+@media (max-width: 767px) {
+
+  /* 헤더 */
+  .hdr { height: 44px !important; padding: 0 12px !important; }
+  .logo { font-size: 20px !important; }
+  .hdr-clock { display: none !important; }
+  .hdr-live { display: none !important; }
+
+  /* 컨트롤 바 */
+  #controls-bar-inner {
+    flex-wrap: wrap !important;
+    gap: 5px !important;
+    padding: 8px 12px !important;
+    justify-content: flex-start !important;
+  }
+
+  /* 컨테이너 패딩 */
+  #controls-bar-inner,
+  .page-content,
+  #t1-wrapper, #t2-wrapper, #t3-wrapper, #t4-wrapper {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  .section-wrap { padding: 12px 12px !important; gap: 14px !important; }
+
+  /* 파이프 다이어그램 — 단열 */
+  .pipe-seg {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+    border-radius: 0 !important;
+  }
+  .pipe-seg:nth-child(1) { border-radius: 7px 7px 0 0 !important; }
+  .pipe-seg:nth-child(4) { border-radius: 0 0 7px 7px !important; }
+
+  /* T1: NLM + Divergence 2:1 → 스택 */
+  #t1-nlm { grid-column: 1 / -1 !important; }
+  #t1-divergence { grid-column: 1 / -1 !important; }
+  #t1-b1 [style*="grid-template-columns:2fr 1fr"],
+  #t1-b1 [style*="grid-template-columns: 2fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* T1: NLM 내부 5열 통계 → 3열 */
+  #t1-nlm [style*="repeat(5,1fr)"],
+  #t1-nlm [style*="repeat(5, 1fr)"] {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* T1: NL 예측 5열 → 가로 스크롤 */
+  #t1-nl-forecast { overflow: hidden; }
+  #t1-nl-forecast > div:first-child {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #30363D transparent;
+    padding-bottom: 6px !important;
+    grid-template-columns: repeat(5, 160px) !important;
+  }
+
+  /* T1: yields → 1열 */
+  #t1-yields { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* T1: 원자재 → 2열 */
+  #t1-comm-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* T1: 스프레드 카드 2열 */
+  #t1-sp-cards { grid-template-columns: 1fr !important; }
+
+  /* T1: 기대인플레이션 2fr 1fr → 스택 */
+  #t1-infl-expect {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* T2: Consumer 3단 스테이지 → 스택 */
+  #t2-wrapper [style*="grid-template-columns:1fr 2.5fr 1fr"],
+  #t2-wrapper [style*="grid-template-columns: 1fr 2.5fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* T2: Consumer Stage2 내부 2열 카드 → 스택 */
+  #t2-cs-s2-box [style*="grid-template-columns:1fr 1fr"],
+  #t2-cs-s2-box [style*="grid-template-columns: 1fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* T2: Labor 5단계 보드 → 가로 스크롤 */
+  #t2-b2 [style*="repeat(5"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    grid-template-columns: repeat(5, 160px) !important;
+  }
+
+  /* T3: KPI 4열 → 2열 */
+  #t3-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+  /* T3: 글로벌 팩토리 1:1 → 스택 */
+  #t3-b2 [style*="grid-template-columns:1fr 1fr"],
+  #t3-b2 [style*="grid-template-columns: 1fr 1fr"] {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  /* T3: 차트 높이 축소 */
+  #t3-b1 [style*="height:200px"] { height: 150px !important; }
+  #t3-b2 [style*="height:200px"] { height: 150px !important; }
+
+  /* T4: RWA 도넛+테이블 → 세로 */
+  #t4-wrapper [style*="display:flex"][style*="gap:16px"] {
+    flex-direction: column !important;
+  }
+  #oc-rwa-legend { width: 100% !important; }
+
+  /* T4: ETF KPI → wrap */
+  #t4-wrapper [style*="display:flex;gap:14px"] {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* 유동성 관제탑 KPI 2열 → 유지 (이미 2열이라 OK) */
+
+  /* 큰 숫자 폰트 모바일 축소 */
+  #t1-nlm [style*="font-size:40px"] { font-size: 28px !important; }
+}
+
+/* ── 소형 모바일 (≤480px) ── */
+@media (max-width: 480px) {
+  .logo { font-size: 16px !important; }
+  .tab-btn { font-size: 10px !important; padding: 10px 10px 4px !important; }
+  #t1-yields { grid-template-columns: 1fr !important; }
+  #t3-kpi-grid { grid-template-columns: 1fr !important; }
+  #t1-comm-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+</style>
 </body>
 </html>
