@@ -82,6 +82,9 @@ jobs:
           def clean_num(s):
               s = (s.replace(',','').replace('−','-').replace('–','-')
                     .replace('\u2212','-').replace('*','').replace('\xa0','').strip())
+              # 괄호 표기 음수 처리: (163.5) → -163.5  (Farside 방식)
+              if s.startswith('(') and s.endswith(')'):
+                  s = '-' + s[1:-1]
               if not s or s in ('-','—','n/a','N/A',''): return None
               try: return float(s)
               except: return None
@@ -101,11 +104,12 @@ jobs:
               except Exception:
                   return raw.decode('utf-8', errors='replace')
 
-          # ── Source 1: Farside Investors (복수 URL 순서대로 시도) ─────
+          # ── Source 1: Farside Investors ──────────────────────────────
+          # /bitcoin-etf-flow-all-data/ : 2024-01 출시일부터 전체 누적 기록
+          # /btc/                       : 당월 최근 데이터 (폴백)
           FARSIDE_URLS = [
-              'https://farside.co.uk/btc/',
               'https://farside.co.uk/bitcoin-etf-flow-all-data/',
-              'https://farside.co.uk/bitcoin-etf-flow-all-data-public/',
+              'https://farside.co.uk/btc/',
           ]
           for url in FARSIDE_URLS:
               try:
