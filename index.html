@@ -2368,7 +2368,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
     </div>
   </div>
 
-  <!-- ── 패널 3: BTC 현물 ETF 누적 순유입 ─────────────── -->
+  <!-- ── 패널 3: BTC 현물 ETF 순유입 (통합 — 전체 흐름) ── -->
   <div class="pipe-card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:6px;">
@@ -2376,57 +2376,32 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
         <span style="font-size:11px;font-weight:700;color:#E6EDF3;">BTC 현물 ETF 순유입</span>
         <span style="font-size:9px;color:#656D76;">월가 자산배분 추적</span>
       </div>
-      <div style="display:flex;gap:12px;text-align:right;">
+      <div style="display:flex;gap:14px;text-align:right;">
         <div>
-          <div style="font-size:7px;color:#484F58;" id="oc-etf-cum-label">기간 누적 순유입</div>
-          <div style="font-size:14px;font-weight:700;color:#3FB950;" id="oc-etf-cum">—</div>
+          <div style="font-size:7px;color:#484F58;">누적 순유입 (출시 이후)</div>
+          <div style="font-size:15px;font-weight:700;color:#3FB950;" id="oc-etf-cum2">—</div>
         </div>
         <div>
-          <div style="font-size:7px;color:#484F58;">최근 일일</div>
-          <div style="font-size:14px;font-weight:700;" id="oc-etf-latest">—</div>
+          <div style="font-size:7px;color:#484F58;">최근 1일</div>
+          <div style="font-size:15px;font-weight:700;" id="oc-etf-latest">—</div>
         </div>
       </div>
     </div>
-    <!-- 복합 차트: 누적 면적 + 일일 바 -->
-    <div style="position:relative;height:130px;">
-      <canvas id="oc-etf-chart"></canvas>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;">
-      <div style="display:flex;gap:12px;font-size:7px;color:#484F58;">
-        <span>■ <span style="color:rgba(26,127,90,0.6);">일별 순유입/유출</span></span>
-        <span>— <span style="color:#3FB950;">누적 순유입 (우축)</span></span>
-      </div>
-      <div style="font-size:7px;color:#484F58;" id="oc-etf-updated"></div>
-    </div>
-    <div id="oc-etf-warning" style="display:none;margin-top:6px;padding:5px 8px;
-      background:rgba(248,81,73,0.08);border:0.5px solid #B91C1C;border-radius:4px;
-      font-size:8px;color:#F85149;">
-      ⚠️ 3일 연속 순유출 — 월가 매수 알고리즘 매도 전환 시그널
-    </div>
-  </div>
-
-  <!-- ── 패널 4: BTC ETF 누적 순유입 전체 흐름 (출시 이후) ── -->
-  <div class="pipe-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:13px;">📈</span>
-        <span style="font-size:11px;font-weight:700;color:#E6EDF3;">BTC ETF 누적 순유입 — 전체 흐름</span>
-        <span style="font-size:9px;color:#656D76;">출시일(2024-01-11) 이후 전체</span>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:7px;color:#484F58;">출시 이후 누적</div>
-        <div style="font-size:14px;font-weight:700;color:#3FB950;" id="oc-etf-cum2">—</div>
-      </div>
-    </div>
-    <div style="position:relative;height:200px;">
+    <!-- 전체 누적 면적 차트 -->
+    <div style="position:relative;height:220px;">
       <canvas id="oc-etf-cum-chart"></canvas>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
       <div style="display:flex;gap:12px;font-size:7px;color:#484F58;">
         <span>▪ <span style="color:rgba(63,185,80,0.7);">누적 순유입 ($B, 좌축)</span></span>
-        <span>— <span style="color:#F0B429;">일별 순유입 ($B, 우축)</span></span>
+        <span>■ <span style="color:rgba(26,127,90,0.5);">일별 순유입/유출 ($B, 우축)</span></span>
       </div>
       <div style="font-size:7px;color:#484F58;" id="oc-etf-cum-range"></div>
+    </div>
+    <div id="oc-etf-warning" style="display:none;margin-top:6px;padding:5px 8px;
+      background:rgba(248,81,73,0.08);border:0.5px solid #B91C1C;border-radius:4px;
+      font-size:8px;color:#F85149;">
+      ⚠️ 3일 연속 순유출 — 월가 매수 알고리즘 매도 전환 시그널
     </div>
   </div>
 
@@ -7153,26 +7128,9 @@ function renderOnchainMacro(d, rwaProtos) {
     }
   }
 
-  // ── 패널 3: BTC ETF ──────────────────────────────────
+  // ── 패널 3: BTC ETF (통합) ──────────────────────────
   const etf = d.etf || {};
   const flows = etf.dailyFlows || [];
-
-  setTxt('oc-etf-cum', fmtB(etf.cumTotal, 1));
-  // 누적 레이블: 데이터 기간 표시 (예: "21일 누적 순유입")
-  const cumLabelEl = document.getElementById('oc-etf-cum-label');
-  if (cumLabelEl && flows.length > 0) {
-    const oldestDate = flows[flows.length - 1]?.date || '';
-    const isFullHistory = oldestDate <= '2024-02-01';  // 출시일(2024-01-11) 포함 여부
-    cumLabelEl.textContent = isFullHistory ? '누적 순유입 (출시 이후)' : `${flows.length}일 누적 순유입`;
-    cumLabelEl.title = `${oldestDate} 이후 누적 / ${flows.length}거래일`;
-  }
-  const latestNet = etf.latestNet || 0;
-  const latestEl  = document.getElementById('oc-etf-latest');
-  if (latestEl) {
-    latestEl.textContent = (latestNet >= 0 ? '+' : '') + fmtB(latestNet, 2);
-    latestEl.style.color = latestNet >= 0 ? '#3FB950' : '#F85149';
-  }
-  setTxt('oc-etf-updated', etf.updated ? '기준 ' + etf.updated.slice(0,10) : '');
 
   const warnEl = document.getElementById('oc-etf-warning');
   if (warnEl) warnEl.style.display = etf.consecutiveOutflows >= 3 ? 'block' : 'none';
@@ -7272,62 +7230,17 @@ function renderOnchainMacro(d, rwaProtos) {
     // 헤더 KPI & 기간 표시
     const cum2El = document.getElementById('oc-etf-cum2');
     if (cum2El) { cum2El.textContent = '$' + lastCum.toFixed(1) + 'B'; cum2El.style.color = lineColor; }
+    // 최근 1일 순유입
+    const latestNet2 = etf.latestNet || 0;
+    const latestEl2  = document.getElementById('oc-etf-latest');
+    if (latestEl2) {
+      latestEl2.textContent = (latestNet2 >= 0 ? '+' : '') + '$' + Math.abs(latestNet2).toFixed(3) + 'B';
+      latestEl2.style.color  = latestNet2 >= 0 ? '#3FB950' : '#F85149';
+    }
     const rangeEl = document.getElementById('oc-etf-cum-range');
     if (rangeEl) rangeEl.textContent = cLabels[0] + ' ~ ' + cLabels[cLabels.length-1] + ' (' + flows.length + '거래일)';
   }
 
-  const etfCtx = document.getElementById('oc-etf-chart');
-  if (etfCtx && flows.length > 1) {
-    if (_ocEtfChart) { _ocEtfChart.destroy(); _ocEtfChart = null; }
-    const labels = flows.map(f => f.date?.slice(5) || '').reverse();
-    const daily  = flows.map(f => f.netFlow || 0).reverse();
-    const cum    = flows.map(f => f.cumFlow || 0).reverse();
-    _ocEtfChart = new Chart(etfCtx, {
-      data: {
-        labels,
-        datasets: [
-          { type:'bar', label:'일별 순유입 ($B)', data: daily,
-            backgroundColor: daily.map(v => v >= 0 ? 'rgba(26,127,90,0.55)' : 'rgba(207,34,43,0.55)'),
-            yAxisID:'y', order:2 },
-          { type:'line', label:'누적 순유입 ($B)', data: cum,
-            borderColor:'#3FB950', borderWidth:2, pointRadius:0,
-            fill:true, backgroundColor:'rgba(26,127,90,0.08)',
-            tension:0.3, yAxisID:'y2', order:1 },
-        ],
-      },
-      options: {
-        responsive:true, maintainAspectRatio:false, animation:false,
-        interaction:{ mode:'index', intersect:false },
-        plugins:{
-          legend:{display:false},
-          datalabels:{display:false},
-          tooltip:{ backgroundColor:'#1C2128', borderColor:'#30363D', borderWidth:0.5,
-            titleFont:{size:8}, bodyFont:{size:8},
-            callbacks:{
-              label: i => {
-                const v = i.parsed.y;
-                return i.dataset.label + ': ' + (v>=0?'+':'') + '$' + v.toFixed(2) + 'B';
-              }
-            },
-          },
-        },
-        scales:{
-          x:{ ticks:{color:'#484F58',font:{size:7},maxTicksLimit:10}, grid:{display:false} },
-          y:{ position:'left', ticks:{color:'#8B949E',font:{size:7},callback:v=>(v>=0?'+':'')+v.toFixed(1)+'B'},
-              grid:{color:'rgba(48,54,61,0.4)',lineWidth:0.5} },
-          y2:{ position:'right', ticks:{color:'#3FB950',font:{size:7},callback:v=>'$'+v.toFixed(0)+'B'},
-               grid:{display:false} },
-        },
-      },
-    });
-  } else if (etfCtx) {
-    // 데이터 없음 안내
-    const ctx2 = etfCtx.getContext('2d');
-    ctx2.fillStyle = '#484F58';
-    ctx2.font = '10px sans-serif';
-    ctx2.textAlign = 'center';
-    ctx2.fillText('GitHub Actions 릴레이 초기화 후 데이터 표시', etfCtx.width/2, 65);
-  }
 }
 
 
