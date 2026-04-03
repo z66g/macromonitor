@@ -2298,7 +2298,12 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
   </div>
 </div>
 <div id="t4" class="tab-panel">
-  <div id="t4-wrapper" style="padding:10px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:24px;">
+  <div id="t4-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
+    <div style="font-size:28px;">🪙</div>
+    <div style="font-size:12px;color:#484F58;">온체인 데이터 로딩 중...</div>
+  </div>
+  <div id="t4-error" style="display:none;padding:24px;color:#F85149;font-size:11px;text-align:center;"></div>
+  <div id="t4-wrapper" style="display:none;padding:10px 24px;max-width:940px;margin:0 auto;flex-direction:column;gap:24px;">
 
   <!-- ETF 유출 경고 배너 -->
   <div id="onchain-alert-banner" style="display:none;background:rgba(248,81,73,0.12);
@@ -7180,35 +7185,52 @@ let _ocRwaHistChart= null;
 let _ocEtfCumChart = null;
 
 async function loadT4(force = false) {
-  // 패널 1+3: Worker 경유
-  const workerUrl = force
-    ? `${WORKER}/onchain-macro?force=1`
-    : `${WORKER}/onchain-macro`;
+  const t4$ = id => document.getElementById(id);
+  const showEl = id => { const e = t4$(id); if (e) e.style.display = 'flex'; };
+  const hideEl = id => { const e = t4$(id); if (e) e.style.display = 'none'; };
+  const showWrap = () => { const e = t4$('t4-wrapper'); if (e) { e.style.display = 'flex'; e.style.flexDirection = 'column'; } };
 
-  // 패널 2: DefiLlama 브라우저 직접 (CORS 허용)
-  const [workerResp, llamaResp] = await Promise.allSettled([
-    fetchT(workerUrl, 20000),
-    fetch('https://api.llama.fi/protocols', { headers: { Accept: 'application/json' } }),
-  ]);
-
-  let workerData = {};
-  let rwaProtos  = [];
+  showEl('t4-loading');
+  hideEl('t4-error');
+  hideEl('t4-wrapper');
 
   try {
-    if (workerResp.status === 'fulfilled') {
-      workerData = await workerResp.value.json();
-    }
-  } catch(e) { console.warn('[T4] worker error:', e); }
+    // 패널 1+3: Worker 경유
+    const workerUrl = force
+      ? `${WORKER}/onchain-macro?force=1`
+      : `${WORKER}/onchain-macro`;
 
-  try {
-    if (llamaResp.status === 'fulfilled' && llamaResp.value.ok) {
-      const all = await llamaResp.value.json();
-      rwaProtos  = (all || []).filter(p => (p.category||'').toLowerCase() === 'rwa')
-                              .sort((a,b) => (b.tvl||0)-(a.tvl||0));
-    }
-  } catch(e) { console.warn('[T4] llama error:', e); }
+    // 패널 2: DefiLlama 브라우저 직접 (CORS 허용)
+    const [workerResp, llamaResp] = await Promise.allSettled([
+      fetchT(workerUrl, 20000),
+      fetch('https://api.llama.fi/protocols', { headers: { Accept: 'application/json' } }),
+    ]);
 
-  renderOnchainMacro(workerData, rwaProtos);
+    let workerData = {};
+    let rwaProtos  = [];
+
+    try {
+      if (workerResp.status === 'fulfilled') {
+        workerData = await workerResp.value.json();
+      }
+    } catch(e) { console.warn('[T4] worker error:', e); }
+
+    try {
+      if (llamaResp.status === 'fulfilled' && llamaResp.value.ok) {
+        const all = await llamaResp.value.json();
+        rwaProtos  = (all || []).filter(p => (p.category||'').toLowerCase() === 'rwa')
+                                .sort((a,b) => (b.tvl||0)-(a.tvl||0));
+      }
+    } catch(e) { console.warn('[T4] llama error:', e); }
+
+    renderOnchainMacro(workerData, rwaProtos);
+    hideEl('t4-loading');
+    showWrap();
+  } catch(e) {
+    hideEl('t4-loading');
+    const errEl = t4$('t4-error');
+    if (errEl) { errEl.textContent = '데이터 로딩 실패: ' + e.message; errEl.style.display = 'block'; }
+  }
 }
 
 function renderOnchainMacro(d, rwaProtos) {
