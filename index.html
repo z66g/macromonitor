@@ -4894,6 +4894,12 @@ async function selectSector(ticker) {
   detail.offsetHeight;
   detail.style.animation = 'slideIn .2s ease';
 
+  // 모바일: 상세 패널 표시 + 스크롤
+  if (window.innerWidth <= 767) {
+    detail.classList.add('mobile-visible');
+    setTimeout(() => detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  }
+
   detail.innerHTML = `
     <!-- 헤더 -->
     <div class="sd-header">
@@ -9440,6 +9446,56 @@ initAll();
   .ratio-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+}
+
+
+/* ════════════════════════════════════════
+   MOBILE OVERFLOW ROOT FIX
+════════════════════════════════════════ */
+@media (max-width: 767px) {
+
+  /* ① 뷰포트 초과 완전 차단 */
+  body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* ② Grid 아이템 min-width:0 일괄 적용
+        (기본값 auto = 콘텐츠 너비로 팽창 → overflow 원인) */
+  .gauge-grid > *,
+  .ratio-grid > *,
+  .sentiment-grid > *,
+  #t0 .section-wrap > *,
+  #t1-wrapper .section-wrap > * { min-width: 0 !important; }
+
+  /* ③ 섹터 로테이션: 1fr 260px → 단열 스택 */
+  .sector-layout {
+    grid-template-columns: 1fr !important;
+  }
+  /* 상세 패널: 클릭 전 숨김, 클릭 후 전폭 표시 */
+  #sectorDetail {
+    display: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  #sectorDetail.mobile-visible {
+    display: block !important;
+  }
+  /* 상세 패널 내부 오버플로 방지 */
+  .sector-detail { overflow-x: hidden !important; }
+
+  /* ④ 레버리지 심리 sentiment-grid 2열 유지하되 카드 축소 */
+  .sentiment-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  .sentiment-grid > * { min-width: 0 !important; overflow: hidden !important; }
+
+  /* ⑤ 슬라이더 전체 너비 초과 방지 */
+  [style*="position:relative"][style*="width"] { max-width: 100% !important; }
+
+  /* ⑥ gauge-grid 카드 내부 콘텐츠 overflow 방지 */
+  .gauge-grid > * { overflow: hidden !important; }
 }
 
 </style>
