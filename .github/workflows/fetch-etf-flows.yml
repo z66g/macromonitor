@@ -217,7 +217,7 @@ jobs:
               'updated':    datetime.now(timezone.utc).isoformat(),
               'source':     data_source,
               'cumTotal':   cum_total,
-              'dailyFlows': results[:90],
+              'dailyFlows': results[:600],   # 전체 기록 보관 (출시 이후 전체 누적 차트용)
           }
           with open('data/etf_flows.json', 'w') as f:
               json.dump(output, f, indent=2)

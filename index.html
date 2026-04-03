@@ -2405,6 +2405,31 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
     </div>
   </div>
 
+  <!-- ── 패널 4: BTC ETF 누적 순유입 전체 흐름 (출시 이후) ── -->
+  <div class="pipe-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:13px;">📈</span>
+        <span style="font-size:11px;font-weight:700;color:#E6EDF3;">BTC ETF 누적 순유입 — 전체 흐름</span>
+        <span style="font-size:9px;color:#656D76;">출시일(2024-01-11) 이후 전체</span>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:7px;color:#484F58;">출시 이후 누적</div>
+        <div style="font-size:14px;font-weight:700;color:#3FB950;" id="oc-etf-cum2">—</div>
+      </div>
+    </div>
+    <div style="position:relative;height:200px;">
+      <canvas id="oc-etf-cum-chart"></canvas>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+      <div style="display:flex;gap:12px;font-size:7px;color:#484F58;">
+        <span>▪ <span style="color:rgba(63,185,80,0.7);">누적 순유입 ($B, 좌축)</span></span>
+        <span>— <span style="color:#F0B429;">일별 순유입 ($B, 우축)</span></span>
+      </div>
+      <div style="font-size:7px;color:#484F58;" id="oc-etf-cum-range"></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -6918,6 +6943,7 @@ async function refreshTower(btn) {
 let _ocStableChart = null;
 let _ocEtfChart    = null;
 let _ocRwaChart    = null;
+let _ocEtfCumChart = null;
 
 async function loadT4(force = false) {
   // 패널 1+3: Worker 경유
@@ -7150,6 +7176,105 @@ function renderOnchainMacro(d, rwaProtos) {
 
   const warnEl = document.getElementById('oc-etf-warning');
   if (warnEl) warnEl.style.display = etf.consecutiveOutflows >= 3 ? 'block' : 'none';
+
+  // ── 패널 4: 전체 누적 흐름 차트 ─────────────────────────
+  const cumCtx2 = document.getElementById('oc-etf-cum-chart');
+  if (cumCtx2 && flows.length > 10) {
+    if (_ocEtfCumChart) { _ocEtfCumChart.destroy(); _ocEtfCumChart = null; }
+    // flows는 최신→과거 순, 차트는 과거→최신(시계열)
+    const chrono  = [...flows].reverse();
+    const cLabels = chrono.map(f => f.date);
+    const cCum    = chrono.map(f => f.cumFlow);
+    const cDaily  = chrono.map(f => f.netFlow);
+
+    // X축 레이블 — 월별로만 표시
+    const monthTicks = {};
+    cLabels.forEach((d, i) => {
+      const ym = d.slice(0, 7); // "2024-01"
+      if (!monthTicks[ym]) monthTicks[ym] = i;
+    });
+
+    // 누적 차트 색상: 최고점 기준으로 현재 수준 평가
+    const maxCum  = Math.max(...cCum);
+    const lastCum = cCum[cCum.length - 1] || 0;
+    const fromPeak= lastCum / maxCum;  // 1.0이면 신고점, <0.9면 하락
+    const areaColor = fromPeak >= 0.95 ? 'rgba(26,127,90,0.25)'
+                    : fromPeak >= 0.85 ? 'rgba(240,180,41,0.18)'
+                    : 'rgba(207,34,43,0.15)';
+    const lineColor = fromPeak >= 0.95 ? '#3FB950'
+                    : fromPeak >= 0.85 ? '#F0B429'
+                    : '#F85149';
+
+    _ocEtfCumChart = new Chart(cumCtx2, {
+      data: {
+        labels: cLabels,
+        datasets: [
+          // ① 누적 면적 (주축 y)
+          { type:'line', label:'누적 순유입 ($B)', data: cCum,
+            borderColor: lineColor, borderWidth: 1.5,
+            fill: true, backgroundColor: areaColor,
+            pointRadius: 0, tension: 0.25, yAxisID:'y', order: 1 },
+          // ② 일별 바 (보조축 y2) — 작게 오버레이
+          { type:'bar', label:'일별 순유입 ($B)', data: cDaily,
+            backgroundColor: cDaily.map(v => v >= 0 ? 'rgba(26,127,90,0.35)' : 'rgba(207,34,43,0.35)'),
+            yAxisID:'y2', order: 2 },
+        ],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        interaction: { mode:'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          datalabels: { display: false },
+          tooltip: {
+            backgroundColor:'#1C2128', borderColor:'#30363D', borderWidth:0.5,
+            titleFont:{size:8}, bodyFont:{size:8},
+            callbacks: {
+              title: items => items[0].label,
+              label: i => i.datasetIndex === 0
+                ? ` 누적: $${i.parsed.y.toFixed(2)}B`
+                : ` 일별: ${i.parsed.y >= 0 ? '+' : ''}$${i.parsed.y.toFixed(3)}B`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              color:'#484F58', font:{size:7}, maxTicksLimit:14,
+              callback: function(val) {
+                const d = this.getLabelForValue(val);
+                if (!d) return '';
+                // 매월 첫 번째 거래일만 표시
+                const ym = d.slice(0,7);
+                const firstIdx = Object.values(monthTicks)[Object.keys(monthTicks).indexOf(ym)];
+                if (val !== firstIdx) return '';
+                const [y, m] = d.split('-');
+                const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                return MONTHS[parseInt(m)-1] + " '" + y.slice(2);
+              },
+            },
+            grid: { display: false },
+          },
+          y: {  // 누적 ($B) — 좌축
+            position:'left',
+            ticks:{color:'#8B949E', font:{size:7}, callback: v=>'$'+v.toFixed(0)+'B'},
+            grid:{color:'rgba(48,54,61,0.4)', lineWidth:0.5},
+          },
+          y2: {  // 일별 ($B) — 우축, 작은 범위
+            position:'right',
+            ticks:{color:'#484F58', font:{size:7}, callback: v=>(v>=0?'+':'')+v.toFixed(1)+'B', maxTicksLimit:4},
+            grid:{display:false},
+          },
+        },
+      },
+    });
+
+    // 헤더 KPI & 기간 표시
+    const cum2El = document.getElementById('oc-etf-cum2');
+    if (cum2El) { cum2El.textContent = '$' + lastCum.toFixed(1) + 'B'; cum2El.style.color = lineColor; }
+    const rangeEl = document.getElementById('oc-etf-cum-range');
+    if (rangeEl) rangeEl.textContent = cLabels[0] + ' ~ ' + cLabels[cLabels.length-1] + ' (' + flows.length + '거래일)';
+  }
 
   const etfCtx = document.getElementById('oc-etf-chart');
   if (etfCtx && flows.length > 1) {
