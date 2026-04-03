@@ -9647,5 +9647,66 @@ initAll();
     .observe(document.body, { childList: true, subtree: true });
 })();
 </script>
+
+<style>
+/* ── 텍스트 선택 차단 ── */
+body, * {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+/* ── 인쇄 차단 ── */
+@media print {
+  body { display: none !important; }
+}
+</style>
+
+<script>
+/* ── 스크랩 방지 ── */
+(function() {
+  // 우클릭 차단
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  // 복사 차단
+  document.addEventListener('copy', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  // 드래그 차단
+  document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    return false;
+  });
+
+  // 키보드 단축키 차단
+  document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + U (소스보기)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+      e.preventDefault(); return false;
+    }
+    // Ctrl/Cmd + S (저장)
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault(); return false;
+    }
+    // Ctrl/Cmd + P (인쇄)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+      e.preventDefault(); return false;
+    }
+    // Ctrl/Cmd + A (전체선택)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+      e.preventDefault(); return false;
+    }
+    // F12 (개발자도구)
+    if (e.key === 'F12') {
+      e.preventDefault(); return false;
+    }
+  });
+})();
+</script>
 </body>
 </html>
