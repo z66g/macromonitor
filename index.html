@@ -6825,14 +6825,14 @@ async function loadT2(force = false) {
     t2$('t2-cs-psavert').innerHTML = consCard({
       label: '개인 저축률', asOf: cons.psavert?.asOf, sig: psaSig,
       badge: cBadge(psaSig, psaSig==='red'?'🔴 비상금 고갈':psaSig==='yellow'?'🟡 주의':'🟢 안정'),
-      mainVal: cons.psavert?.current?.toFixed(1)+'%' ?? '—',
+      mainVal: cons.psavert?.current != null ? cons.psavert.current.toFixed(1)+'%' : '—',
       subVal: cons.psavert?.mma3 != null ? `3MMA ${cons.psavert.mma3.toFixed(1)}%` : null,
       heat: heatRow('MoM', cons.psavert?.delta, 1, '%p', false),
     });
     t2$('t2-cs-delinq').innerHTML = consCard({
       label: '신용카드 연체율', asOf: cons.delinq?.asOf, sig: delSig,
       badge: cBadge(delSig, delSig==='red'?'🔴 임계점 돌파':delSig==='yellow'?'🟡 주의':'🟢 안정'),
-      mainVal: cons.delinq?.current?.toFixed(2)+'%' ?? '—',
+      mainVal: cons.delinq?.current != null ? cons.delinq.current.toFixed(2)+'%' : '—',
       subVal: cons.delinq?.prev != null ? `전기 ${cons.delinq.prev.toFixed(2)}%` : null,
       heat: heatRow('YoY', cons.delinq?.yoyDelta, 2, '%p', true),
     });
