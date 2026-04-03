@@ -9358,6 +9358,90 @@ initAll();
     padding: 6px 8px !important;
   }
 }
+
+/* ── 모바일 오버플로 원천 차단 ── */
+@media (max-width: 767px) {
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
+
+  /* 1. VIX·MOVE·Z-SCORE — gauge-grid 2열로 변환, Z-SCORE 전폭 */
+  .gauge-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .gauge-grid > *:nth-child(3) {
+    grid-column: 1 / -1 !important;
+  }
+
+  /* 2. Capital Migration 4비율카드 → 2×2 */
+  .ratio-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* 3. Corporate Pulse 3열 → 단열 스택 */
+  #t2-corporate {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+  }
+
+  /* 4. Labor Pipeline — 가로 스크롤 + 카드 최소 너비 보장 */
+  #t2-pipeline-board {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 8px !important;
+    gap: 0 !important;
+    scroll-snap-type: x mandatory;
+  }
+  /* 파이프라인 각 카드 (arrow 제외) */
+  #t2-pipeline-board > * {
+    min-width: 130px !important;
+    scroll-snap-align: start;
+    flex-shrink: 0 !important;
+  }
+
+  /* 5. T3 DXY 차트 헤더 — 버튼 행 분리 */
+  #t3-b1 .section-wrap > div:first-child > div:first-child {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  /* 타이틀 + 영문 표시 일렬 유지 */
+  #t3-b1 [style*="justify-content:space-between"],
+  #t3-b1 [style*="justify-content: space-between"] {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  /* 범위 버튼 그룹: 더 작게 */
+  #t3-range-btns { gap: 2px !important; }
+  .t3-rbtn {
+    font-size: 8px !important;
+    padding: 2px 5px !important;
+  }
+  /* DXY 차트 제목 텍스트 줄바꿈 허용 (세로 표시 방지) */
+  #t3-b1 [style*="font-size:10px"] {
+    white-space: normal !important;
+    word-break: keep-all !important;
+  }
+  /* SPY 토글 버튼 숨기기 (모바일 공간 절약) */
+  #t3-spy-toggle { display: none !important; }
+}
+
+/* ── 태블릿: gauge-grid, ratio-grid 조정 ── */
+@media (max-width: 1023px) {
+  .gauge-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .gauge-grid > *:nth-child(3) {
+    grid-column: 1 / -1 !important;
+  }
+  .ratio-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
 </style>
 </body>
 </html>
