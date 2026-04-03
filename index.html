@@ -8752,22 +8752,38 @@ function renderTowerS3(d) {
   const qraCard = document.getElementById('tw-qra-card');
   if (qraCard) {
     if (qra) {
+      const appliedIcon = qra.applied_by === 'auto' ? '🤖' : '✋';
+      const appliedTip  = `${qra.applied_by === 'auto' ? '자동 적용' : '수동 적용'} · ${(qra.applied_at||'').slice(0,10)}`;
       qraCard.innerHTML = `
-        <div style="background:#0D1117;border:0.5px solid #238636;border-radius:5px;padding:10px 12px;margin-bottom:8px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-size:10px;font-weight:700;color:#3FB950;">${qra.target_quarter}</span>
-            <span style="font-size:8px;color:#484F58;">${qra.applied_by==='auto'?'🤖 자동 적용':'✋ 수동 적용'} ${(qra.applied_at||'').slice(0,10)}</span>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <div><div style="font-size:7px;color:#484F58;">순차입 목표</div>
-              <div style="font-size:13px;font-weight:700;color:#E6EDF3;">$${qra.net_borrowing_billions}B</div></div>
-            <div><div style="font-size:7px;color:#484F58;">TGA 말잔 목표</div>
-              <div style="font-size:13px;font-weight:700;color:#E6EDF3;">$${qra.tga_target_balance_billions}B</div></div>
-          </div>
-          <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-            ${qra.source_url ? `<a href="${qra.source_url}" target="_blank" style="font-size:8px;color:#58A6FF;text-decoration:none;">🔗 보도자료</a>` : ''}
-            ${qra.pdf_url    ? `<a href="${qra.pdf_url}" target="_blank" style="font-size:8px;color:#58A6FF;text-decoration:none;">📄 PDF</a>` : ''}
-            <button onclick="openQraModal()" style="background:transparent;border:0.5px solid #30363D;border-radius:3px;color:#8B949E;font-size:8px;padding:1px 6px;cursor:pointer;">✏️ 수정</button>
+        <div style="background:#0D1117;border:0.5px solid #238636;border-radius:5px;padding:7px 10px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;gap:6px;">
+            <!-- 분기 + 적용 아이콘 -->
+            <span style="font-size:10px;font-weight:700;color:#3FB950;white-space:nowrap;">
+              ● ${qra.target_quarter}
+              <span title="${appliedTip}" style="cursor:default;margin-left:3px;">${appliedIcon}</span>
+            </span>
+            <!-- 구분선 -->
+            <span style="color:#30363D;font-size:9px;">|</span>
+            <!-- 순차입 -->
+            <span style="white-space:nowrap;">
+              <span style="font-size:7px;color:#484F58;">순차입</span>
+              <span style="font-size:11px;font-weight:700;color:#E6EDF3;margin-left:3px;">$${qra.net_borrowing_billions}B</span>
+            </span>
+            <!-- 구분선 -->
+            <span style="color:#30363D;font-size:9px;">|</span>
+            <!-- TGA -->
+            <span style="white-space:nowrap;">
+              <span style="font-size:7px;color:#484F58;">TGA</span>
+              <span style="font-size:11px;font-weight:700;color:#E6EDF3;margin-left:3px;">$${qra.tga_target_balance_billions}B</span>
+            </span>
+            <!-- 구분선 -->
+            <span style="color:#30363D;font-size:9px;">|</span>
+            <!-- 버튼들 -->
+            <span style="display:flex;align-items:center;gap:5px;margin-left:auto;">
+              ${qra.source_url ? `<a href="${qra.source_url}" target="_blank" style="font-size:8px;color:#58A6FF;text-decoration:none;white-space:nowrap;">🔗 보도자료</a>` : ''}
+              ${qra.pdf_url    ? `<a href="${qra.pdf_url}" target="_blank" style="font-size:8px;color:#58A6FF;text-decoration:none;white-space:nowrap;">📄 PDF</a>` : ''}
+              <button onclick="openQraModal()" style="background:transparent;border:0.5px solid #30363D;border-radius:3px;color:#8B949E;font-size:8px;padding:1px 6px;cursor:pointer;white-space:nowrap;">✏️ 수정</button>
+            </span>
           </div>
         </div>`;
     } else {
