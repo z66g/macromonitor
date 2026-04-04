@@ -9950,10 +9950,22 @@ window.addEventListener('orientationchange', function() {
     overflow: hidden !important;
   }
 
-  /* ── T2 Labor Pipeline 태블릿: 가로스크롤 유지(공간 부족), 카드 너비 확대 ── */
+  /* ── T2 Labor Pipeline 태블릿: 5카드 화면 균등 분배 ── */
+  #t2-pipeline-board {
+    overflow: visible !important;
+    flex-wrap: nowrap !important;
+  }
   #t2-pipeline-board > [style*="flex:1"] {
-    width: 180px !important;
-    min-width: 180px !important;
+    flex: 1 1 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow: hidden !important;
+  }
+  #t2-pipeline-board > [style*="width:18px"] {
+    flex-shrink: 0 !important;
+    width: 12px !important;
+    min-width: 12px !important;
   }
 
   /* ── T2 Consumer Stage2 지표 2열 (5열→2열 스크롤 복원) ── */
