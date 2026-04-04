@@ -315,71 +315,85 @@ async function t2DataEndpoint(env) {
 
   // Atlanta Fed GDPNow 파싱 (HTML 스크래핑 → FRED fallback)
   const gdpNowFetch = async () => {
-    // ── 1순위: FRED GDPNOW vintage dates (헤드라인 + 전 추정치) ──
+    // ── 1순위: Atlanta Fed RSS 피드 (가장 빠른 업데이트) ──
     try {
-      const u = `https://api.stlouisfed.org/fred/series/observations`
-        + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
-        + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
-        + `&sort_order=desc&limit=10`;
-      const r = await fetch(u, { cf: { cacheTtl: 1800 } });
-      if (!r.ok) throw new Error(`FRED ${r.status}`);
-      const d = await r.json();
-      const obs = (d.observations || []).filter(o => o.value !== '.');
-      if (!obs.length) throw new Error('no obs');
-      const latestDate = obs[0].date;
-      const sameQtr = obs
-        .filter(o => o.date === latestDate)
-        .sort((a, b) => (b.realtime_start || '').localeCompare(a.realtime_start || ''));
-      const current = parseFloat(sameQtr[0].value);
-      const prevEst = sameQtr[1] ? parseFloat(sameQtr[1].value) : null;
-      const delta   = prevEst != null ? +(current - prevEst).toFixed(2) : null;
+      const rss = await fetch('https://www.atlantafed.org/rss/GDPNow', {
+        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/rss+xml,text/xml' },
+        cf: { cacheTtl: 1800 },
+      });
+      if (!rss.ok) throw new Error(`RSS ${rss.status}`);
+      const xml = await rss.text();
 
-      // ── 2순위: Atlanta Fed HTML에서 기여도 데이터 파싱 ──
-      let components = null;
-      let qualityWarning = false;
-      let warningReason  = null;
-      try {
-        const hr = await fetch('https://www.atlantafed.org/cqer/research/gdpnow', {
-          headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'text/html' },
-          cf: { cacheTtl: 7200 },
-        });
-        if (hr.ok) {
-          const html = await hr.text();
-          // Atlanta Fed 페이지 내 JSON 데이터 블록 파싱 시도
-          // data-* 또는 script 태그 내 subcomponent 값 추출
-          const numRe = /-?\d+\.?\d*/g;
-          // PCE contribution
-          const pceM   = html.match(/pce[^>]*>([-\d.]+)/i);
-          const invM   = html.match(/inventor[^>]*>([-\d.]+)/i);
-          const nxM    = html.match(/net.export[^>]*>([-\d.]+)/i);
-          const govM   = html.match(/government[^>]*>([-\d.]+)/i);
-          const grossM = html.match(/gross.private[^>]*>([-\d.]+)/i);
-          const parse  = m => m ? parseFloat(m[1]) : null;
-          const pce = parse(pceM), inv = parse(invM), nx = parse(nxM), gov = parse(govM), gross = parse(grossM);
-          if (pce != null || inv != null || nx != null || gov != null) {
-            components = { pce, investment: gross, inventories: inv, netExports: nx, government: gov };
-          }
-        }
-      } catch(_) {}
+      // 최신 아이템의 description에서 % 추출
+      // "is X.X percent on Month DD" 패턴
+      const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+      if (!items.length) throw new Error('RSS no items');
 
-      // components가 없어도 경고 로직 (current 기준)
-      if (components && current != null && Math.abs(current) > 0.1) {
-        const invShare = components.inventories != null ? Math.abs(components.inventories) / Math.abs(current) : 0;
-        const govShare = components.government  != null ? Math.abs(components.government)  / Math.abs(current) : 0;
-        if      (invShare > 0.5)           { qualityWarning = true; warningReason = '재고'; }
-        else if (govShare > 0.5)           { qualityWarning = true; warningReason = '정부지출'; }
-        else if (invShare + govShare > 0.6){ qualityWarning = true; warningReason = '재고+정부지출'; }
-      }
+      // pubDate로 정렬 후 최신 선택
+      const parsed = items.map(m => {
+        const desc = m[1].match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? '';
+        const link = m[1].match(/<link>(.*?)<\/link>/)?.[1] ?? '';
+        const pub  = m[1].match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? '';
+        // "is X.X percent on Month DD" 패턴
+        const valM = desc.match(/is\s+(-?[\d.]+)\s+percent\s+on\s+(\w+\s+\d+)/i);
+        // URL에서 날짜 추출: /updates/2026/04/01
+        const dateM = link.match(/updates\/(\d{4})\/(\d{2})\/(\d{2})/);
+        return {
+          current:  valM ? parseFloat(valM[1]) : null,
+          dateStr:  valM ? valM[2] : null,
+          isoDate:  dateM ? `${dateM[1]}-${dateM[2]}-${dateM[3]}` : null,
+          pubDate:  pub,
+          desc,
+        };
+      }).filter(i => i.current !== null && i.isoDate !== null)
+        .sort((a, b) => b.isoDate.localeCompare(a.isoDate));
+
+      if (!parsed.length) throw new Error('RSS parse failed');
+
+      const latest = parsed[0];
+      const prev   = parsed[1] ?? null;
+      const delta  = prev ? +(latest.current - prev.current).toFixed(2) : null;
 
       return {
-        current, prevEst, delta,
-        asOf:    sameQtr[0]?.realtime_start?.slice(0, 10) ?? null,
-        qtrDate: latestDate,
-        components, qualityWarning, warningReason,
-        source: 'fred',
+        current:      latest.current,
+        prevEst:      prev?.current ?? null,
+        delta,
+        asOf:         latest.isoDate,
+        qtrDate:      latest.isoDate,
+        components:   null,
+        qualityWarning: false,
+        warningReason:  null,
+        source: 'atlanta_rss',
       };
-    } catch(e) {
-      return null;
+    } catch(rssErr) {
+      // ── 2순위: FRED GDPNOW (지연 있음) ──
+      try {
+        const u = `https://api.stlouisfed.org/fred/series/observations`
+          + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
+          + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
+          + `&sort_order=desc&limit=10`;
+        const r = await fetch(u, { cf: { cacheTtl: 1800 } });
+        if (!r.ok) throw new Error(`FRED ${r.status}`);
+        const d = await r.json();
+        const obs = (d.observations || []).filter(o => o.value !== '.');
+        if (!obs.length) throw new Error('no obs');
+        const latestDate = obs[0].date;
+        const sameQtr = obs
+          .filter(o => o.date === latestDate)
+          .sort((a, b) => (b.realtime_start || '').localeCompare(a.realtime_start || ''));
+        const current = parseFloat(sameQtr[0].value);
+        const prevEst = sameQtr[1] ? parseFloat(sameQtr[1].value) : null;
+        const delta   = prevEst != null ? +(current - prevEst).toFixed(2) : null;
+        return {
+          current, prevEst, delta,
+          asOf:    sameQtr[0]?.realtime_start?.slice(0, 10) ?? null,
+          qtrDate: latestDate,
+          components: null, qualityWarning: false, warningReason: null,
+          source: 'fred_fallback',
+        };
+      } catch(e) {
+        return null;
+      }
     }
   };
 
