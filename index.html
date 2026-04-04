@@ -3171,6 +3171,9 @@ async function loadS1(force = false) {
 // 파이프 렌더
 // ──────────────────────────────
 function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJson, ofrMmfJson, dxyJson, jpyJson, fsiJson, pipe3Json) {
+  // ── h41Hist.series: 함수 스코프로 선언 (Pipe0 IIFE + 외부 참조 모두 접근 가능) ──
+  const hs = h41Hist?.series || {};
+
   // ── SOFR: NY Fed 직접 (FRED 대신)
   const sofrRec  = sofrJson?.refRates?.[0];
   const sofr     = sofrRec?.percentRate ?? null;
@@ -3267,8 +3270,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   // PIPE 0: 중앙은행 유동성 — H.4.1 HTML 직접 파싱 기반
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   (() => {
-    // h41-history series 사용 (h41-html 의존성 제거)
-    const hs  = h41Hist?.series || {};
+    // hs는 renderPipe 함수 스코프에서 선언됨 (공유)
 
     // ── 현재값: series[0] = 최신 주 ──
     const rc_B   = hs.reserve_credit?.[0]    ?? null;  // 총자산 프록시
