@@ -9448,10 +9448,21 @@ initAll();
 
 /* ── 화면 회전 시 레이아웃 강제 재계산 ── */
 window.addEventListener('orientationchange', function() {
+  // 회전 후 브라우저 viewport 반영까지 대기 (iOS: 300~500ms)
   setTimeout(function() {
     document.body.style.minHeight = window.innerHeight + 'px';
     window.dispatchEvent(new Event('resize'));
-  }, 300);
+    // Chart.js 차트 강제 재조정
+    if (window.Chart) {
+      Chart.instances && Object.values(Chart.instances).forEach(function(c) {
+        try { c.resize(); } catch(e) {}
+      });
+    }
+  }, 400);
+  // 2차 보정 (일부 기기 지연)
+  setTimeout(function() {
+    window.dispatchEvent(new Event('resize'));
+  }, 800);
 });
 
 </script>
@@ -9822,7 +9833,7 @@ window.addEventListener('orientationchange', function() {
     grid-template-columns: repeat(2, 1fr) !important;
   }
 
-  /* 4. Corporate Pulse 3열 유지 (모바일의 단열 스택 override) */
+  /* 4. Corporate Pulse 3열 유지 */
   #t2-corporate {
     display: grid !important;
     grid-template-columns: 1fr 1.4fr 1.4fr !important;
@@ -9830,17 +9841,60 @@ window.addEventListener('orientationchange', function() {
     gap: 10px !important;
   }
 
-  /* 5. RWA 도넛+테이블 가로 배치 유지 */
+  /* 5. Consumer Health 3-Stage 가로 유지 */
+  #t2-wrapper [style*="grid-template-columns:1fr 2.5fr 1fr"],
+  #t2-wrapper [style*="grid-template-columns: 1fr 2.5fr 1fr"] {
+    grid-template-columns: 1fr 2.5fr 1fr !important;
+  }
+
+  /* 6. 국채 수익률 4열 유지 */
+  #t1-yields {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* 7. 2s10s·3m10y 스프레드 2열 유지 */
+  #t1-sp-cards {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* 8. 시장 기대 인플레이션 카드 (2fr 1fr) 유지 */
+  #t1-infl-expect {
+    grid-template-columns: 2fr 1fr !important;
+  }
+
+  /* 9. 자본이동비율 4열 유지 */
+  .ratio-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* 10. T3 글로벌 유동성 KPI 카드 4열 유지 */
+  #t3-kpi-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* 11. T3 팩토리·수요 KPI 카드 2열 유지 */
+  #t3-asia-kpi, #t3-euro-kpi {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* 12. RWA 도넛+테이블 가로 배치 유지 */
   #t4-wrapper [style*="display:flex"][style*="gap:16px"] {
     flex-direction: row !important;
     flex-wrap: nowrap !important;
   }
 
-  /* 6. 화면 회전 시 레이아웃 깨짐 방지 */
+  /* 13. 원자재 4열 유지 */
+  #t1-comm-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+
+  /* 14. 화면 회전 깨짐 방지 */
   #t0, #t1-wrapper, #t2-wrapper, #t3-wrapper, #t4-wrapper {
     overflow-x: hidden !important;
+    min-height: 0 !important;
   }
   .pipe-row { overflow: hidden !important; }
+  * { min-width: 0; }
 }
 
 /* ── 소형 모바일 전용 (≤599px): gauge-grid 2열 ── */
