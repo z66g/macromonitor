@@ -9907,16 +9907,6 @@ window.addEventListener('orientationchange', function() {
     grid-template-columns: 1fr 1fr !important;
   }
 
-  /* 12-pre. 섹터 로테이션 — 데스크탑 2열 유지 (좌: 바차트, 우: 상세패널) */
-  .sector-layout {
-    grid-template-columns: 1fr 260px !important;
-  }
-  #sectorDetail {
-    display: block !important;
-    width: auto !important;
-    max-width: none !important;
-  }
-
   /* 12. RWA 도넛+테이블 가로 배치 유지 */
   #t4-wrapper [style*="display:flex"][style*="gap:16px"] {
     flex-direction: row !important;
@@ -9974,11 +9964,14 @@ window.addEventListener('orientationchange', function() {
   #t0 .section-wrap > *,
   #t1-wrapper .section-wrap > * { min-width: 0 !important; }
 
-  /* ③ 섹터 로테이션: 1fr 260px → 단열 스택 */
+  /* ③ 섹터 로테이션: 600px 미만에서만 단열 스택 */
+}
+
+/* ── 섹터 로테이션: 599px 이하(소형모바일)에서만 단열 스택 ── */
+@media (max-width: 599px) {
   .sector-layout {
     grid-template-columns: 1fr !important;
   }
-  /* 상세 패널: 클릭 전 숨김, 클릭 후 전폭 표시 */
   #sectorDetail {
     display: none !important;
     width: 100% !important;
@@ -9987,7 +9980,20 @@ window.addEventListener('orientationchange', function() {
   #sectorDetail.mobile-visible {
     display: block !important;
   }
-  /* 상세 패널 내부 오버플로 방지 */
+  .sector-detail { overflow-x: hidden !important; }
+}
+
+/* ── 섹터 로테이션: 600px+ 에서 항상 데스크탑 2열 유지 ── */
+@media (min-width: 600px) {
+  .sector-layout {
+    display: grid !important;
+    grid-template-columns: 1fr 260px !important;
+  }
+  #sectorDetail {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+  }
   .sector-detail { overflow-x: hidden !important; }
 
   /* ④ 레버리지 심리 sentiment-grid 2열 유지하되 카드 축소 */
