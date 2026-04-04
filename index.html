@@ -1850,7 +1850,24 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
     <div class="section-wrap">
       <div style="margin-bottom:4px;">
         <span id="ds-badge-t2"></span>
-        <div style="font-size:14px;font-weight:700;color:#E6EDF3;">Corporate Pulse</div>
+        <div style="font-size:14px;font-weight:700;color:#E6EDF3;display:flex;align-items:center;gap:6px;">
+          Corporate Pulse
+          <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:340px;left:calc(100% + 8px);top:auto;bottom:0;transform:none;">
+<b style="color:#E6EDF3;">Corporate Pulse 섹션</b><br>
+<span style="color:#8B949E;font-size:9px;">기업 경기 심리 · GDP 성장 속도 · 제조/서비스 확산지수</span>
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">📌 섹션 의의</b><br>
+경기 사이클의 <b>방향과 속도</b>를 실시간으로 추적합니다. GDP 공식 발표(분기 1회) 대신 매주·매월 발표되는 고빈도 지표로 경기 전환을 선행 포착합니다.
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">📊 포함 지표</b><br>
+<span style="color:#3FB950;">■</span> <b>GDPNow</b> — Atlanta Fed 실시간 GDP 추정 (주 2~3회 갱신)<br>
+<span style="color:#3FB950;">■</span> <b>Regional Mfg</b> — NY·Philly·Dallas·Richmond 연준 제조업 확산지수 복합평균<br>
+<span style="color:#3FB950;">■</span> <b>Regional Svc</b> — Dallas·NY·Philly 연준 서비스업 확산지수 복합평균
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">⚡ ISM 대비 장점</b><br>
+ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 불가합니다. 지역 연준 확산지수는 <b>ISM과 방향성 상관관계가 높으면서 월중 수시 발표</b>되어 더 빠른 흐름 확인이 가능합니다. ISM 원본은 상단 링크에서 직접 확인하세요.
+</span></span>
+        </div>
         <div style="font-size:11px;color:#8B949E;margin-top:2px;">GDPNow · 선행 기업 심리 · 서비스 경기 심리</div>
         <!-- ISM PMI 외부 링크 배지 -->
         <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
@@ -6753,7 +6770,22 @@ async function loadT2(force = false) {
       <div style="background:#161B22;border:0.5px solid #30363D;border-radius:8px;padding:16px;display:flex;flex-direction:column;">
         <div style="font-size:10px;font-weight:600;color:#8B949E;margin-bottom:8px;display:flex;align-items:center;gap:4px;">
           GDP Now ${gnSourceBadge}
-          <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:260px;left:calc(100% + 8px);top:0;bottom:auto;transform:none;">Atlanta Fed 실시간 GDP 추정치. BEA 공식 발표 전 가장 빠른 성장률 선행지표.<br><br>분기 업데이트마다 수치가 변동되며 추정치 변화 방향(Δ)이 핵심 관찰 포인트. 연속 하향 조정 시 경기 둔화 신호.</span></span>
+          <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:320px;left:calc(100% + 8px);top:auto;bottom:0;transform:none;">
+<b style="color:#E6EDF3;">GDPNow (Atlanta Fed)</b><br>
+<span style="color:#8B949E;font-size:9px;">실시간 GDP Nowcast — 분기 공식 발표 前 선행 추정</span>
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">📌 지표 의의</b><br>
+BEA의 GDP 공식 발표(분기 후 4주) 이전에 Atlanta Fed가 <b>13개 GDP 하위 구성 요소를 실시간 데이터로 추정</b>합니다. 주 2~3회 갱신되며 시장에서 가장 빠른 GDP 선행지표로 활용됩니다.
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">🎯 경계값 &amp; 해석</b><br>
+<span style="color:#3FB950;">≥ 2.5%</span> — 건강한 성장 · 연준 긴축 유지 가능성 ↑<br>
+<span style="color:#F0B429;">0 ~ 2.5%</span> — 둔화 구간 · 피벗 기대 부각 가능<br>
+<span style="color:#F85149;">&lt; 0%</span> — 역성장 · 침체 논의 본격화<br>
+<span style="color:#8B949E;font-size:8px;">연속 하향 조정(Δ) → 추세 둔화 신호로 절댓값보다 중요</span>
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">🔗 외부 링크(↗) 활용법</b><br>
+Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인하세요. 특히 <b>재고 변동(Inventories) 비중</b>이 전체 성장률의 50% 이상이면 재고 주도 성장으로 실질 소비·투자 부진 가능성이 있습니다. PCE·고정투자 기여도가 높을수록 실질 성장에 가깝습니다.
+</span></span>
           <a href="https://www.atlantafed.org/research-and-data/data/gdpnow" target="_blank" rel="noopener"
              style="margin-left:auto;font-size:9px;color:#484F58;text-decoration:none;display:flex;align-items:center;gap:2px;
                     padding:1px 5px;border:0.5px solid #30363D;border-radius:3px;transition:color .15s;"
