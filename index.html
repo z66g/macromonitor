@@ -1065,6 +1065,20 @@ body{
 <!-- TAB 0: 거시경제 모니터 -->
 <div id="t0" class="tab-panel active">
   <div style="padding:10px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:24px;">
+  <!-- 데이터 상태 패널 -->
+  <div id="ds-panel-t0" style="margin-bottom:10px;">
+    <div onclick="toggleDsPanel(0)"
+         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
+                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
+                cursor:pointer;user-select:none;">
+      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
+      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
+      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
+    </div>
+    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
+         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
+    </div>
+  </div>
 <!-- ────── SECTION 1 ────── -->
   <div>
 <div class="section-wrap">
@@ -1573,6 +1587,20 @@ body{
 <div id="t1" class="tab-panel">
 
   <!-- ── 로딩 / 에러 ── -->
+  <!-- 데이터 상태 패널 -->
+  <div id="ds-panel-t1" style="margin-bottom:10px;">
+    <div onclick="toggleDsPanel(1)"
+         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
+                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
+                cursor:pointer;user-select:none;">
+      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
+      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
+      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
+    </div>
+    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
+         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
+    </div>
+  </div>
   <div id="t1-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
     <div style="font-size:28px;">📊</div>
     <div style="font-size:12px;color:#484F58;">유동성 & 시장 데이터 로딩 중...</div>
@@ -1763,6 +1791,20 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
 <!-- TAB 2: 실물경제 -->
 <div id="t2" class="tab-panel">
 
+  <!-- 데이터 상태 패널 -->
+  <div id="ds-panel-t2" style="margin-bottom:10px;">
+    <div onclick="toggleDsPanel(2)"
+         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
+                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
+                cursor:pointer;user-select:none;">
+      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
+      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
+      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
+    </div>
+    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
+         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
+    </div>
+  </div>
   <div id="t2-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
     <div style="font-size:28px;">📈</div>
     <div style="font-size:12px;color:#484F58;">실물경제 데이터 로딩 중...</div>
@@ -1908,6 +1950,20 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
 <div id="t3" class="tab-panel">
   <div id="t3-wrapper" style="padding:10px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:24px;">
   <!-- 로딩 / 에러 -->
+  <!-- 데이터 상태 패널 -->
+  <div id="ds-panel-t3" style="margin-bottom:10px;">
+    <div onclick="toggleDsPanel(3)"
+         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
+                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
+                cursor:pointer;user-select:none;">
+      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
+      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
+      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
+    </div>
+    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
+         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
+    </div>
+  </div>
   <div id="t3-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
     <div style="font-size:28px;">🌐</div>
     <div style="font-size:12px;color:#484F58;">글로벌 데이터 로딩 중...</div>
@@ -2312,6 +2368,20 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
   </div>
 </div>
 <div id="t4" class="tab-panel">
+  <!-- 데이터 상태 패널 -->
+  <div id="ds-panel-t4" style="margin-bottom:10px;">
+    <div onclick="toggleDsPanel(4)"
+         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
+                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
+                cursor:pointer;user-select:none;">
+      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
+      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
+      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
+    </div>
+    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
+         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
+    </div>
+  </div>
   <div id="t4-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
     <div style="font-size:28px;">🪙</div>
     <div style="font-size:12px;color:#484F58;">온체인 데이터 로딩 중...</div>
@@ -2592,12 +2662,14 @@ tick(); setInterval(tick, 1000);
 let t2Loaded = false;
 let t3Loaded = false;
 let t4Loaded = false;
+let currentTabIdx = 0;
 function goTab(n, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   const t = document.getElementById('t' + n);
   if (t) t.classList.add('active');
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
+  currentTabIdx = n;
   if (n === 1 && !t1Loaded) { t1Loaded = true; loadT1(); }
   if (n === 2 && !t2Loaded) { t2Loaded = true; loadT2(); }
   if (n === 3 && !t3Loaded) { t3Loaded = true; loadT3(); }
@@ -2968,7 +3040,7 @@ async function loadDxyChart(range, btnEl) {
 // ──────────────────────────────
 // 데이터 로딩
 // ──────────────────────────────
-async function loadS1() {
+async function loadS1(force = false) {
   showLoading();
   try {
     const FRED_IDS = ['IORB','DTWEXBGS','WRMFNS'];
@@ -3063,6 +3135,26 @@ async function loadS1() {
     if (!moveQ?.price) throw new Error(`MOVE 수신 실패: ${moveQ?.error || '—'}`);
 
     renderPipe(fs, iciJson, h41HtmlJson, h41HistJson, sofrJson, rrpJson, srfJson, nypdJson, ofrMmfJson, dxyJson, jpyJson, fsiJson, pipe3Json);
+    // ── T0 데이터 상태 기록 ──
+    h41HtmlJson && !h41HtmlJson.error
+      ? dsSet('h41_html',  h41HtmlJson.data_date ?? h41HtmlJson._savedAt?.slice(0,10))
+      : dsNull('h41_html');
+    h41HistJson?.history?.length
+      ? dsSet('h41_hist',  h41HistJson.history?.[0]?.date)
+      : dsNull('h41_hist');
+    pipe3Json && !pipe3Json.error
+      ? dsSet('pipe3',     pipe3Json.asOf ?? new Date().toISOString().slice(0,10))
+      : dsNull('pipe3');
+    dxyJson && !dxyJson.error
+      ? dsSet('dxy',       new Date().toISOString().slice(0,10))
+      : dsNull('dxy');
+    jpyJson && !jpyJson.error
+      ? dsSet('jpy',       new Date().toISOString().slice(0,10))
+      : dsNull('jpy');
+    fsiJson && !fsiJson.error
+      ? dsSet('ofr_fsi',   new Date().toISOString().slice(0,10))
+      : dsNull('ofr_fsi');
+    renderDataStatus(0);
     renderVIX(vixQ);
     renderMOVE(moveQ);
     renderZScore(vixQ.price, moveQ.price, vixHistJson, moveHistJson);
@@ -4162,7 +4254,7 @@ let prices = {};
 // ══════════════════════════════
 // 데이터 로딩
 // ══════════════════════════════
-async function loadS2() {
+async function loadS2(force = false) {
   showLoading2();
   try {
     const yahooTickers = 'SPY,TLT,QQQ,DIA,GC%3DF,HG%3DF';
@@ -4206,6 +4298,25 @@ async function loadS2() {
 
     renderRatioGrid(prices, pct24h);
     renderCSP(tipsJson, iciJson, mmfRetailJson, mmfInstJson);
+    // ── T2 데이터 상태 기록 ──
+    const _t2d = d ?? {};
+    _t2d.corporate?.gdpNow
+      ? dsSet('t2_corp',     _t2d.corporate.gdpNow.asOf)
+      : dsNull('t2_corp');
+    _t2d.labor?.jolts
+      ? dsSet('t2_labor',    _t2d.labor.jolts.asOf)
+      : dsNull('t2_labor');
+    _t2d.consumer?.umcsent
+      ? dsSet('t2_consumer', _t2d.consumer.umcsent.asOf)
+      : dsNull('t2_consumer');
+    _t2d.consumer?.psavert
+      ? dsSet('t2_psavert',  _t2d.consumer.psavert.asOf)
+      : dsNull('t2_psavert');
+    _t2d.consumer?.delinq
+      ? dsSet('t2_delinq',   _t2d.consumer.delinq.asOf)
+      : dsNull('t2_delinq');
+    renderDataStatus(2);
+
     showContent2();
 
   } catch(e) {
@@ -4671,7 +4782,7 @@ const STATUS_INTERP = {
 };
 
 // ── 데이터 로딩 ──
-async function loadS3() {
+async function loadS3(force = false) {
   showLoading3();
   try {
     // 11개 섹터 + 레버리지 ETF 차트 데이터 병렬 로드
@@ -5255,6 +5366,29 @@ async function loadT1(force = false) {
     const iciJson    = await safeJson(iciResp);
     const yhJson     = await safeJson(yhResp);
     const chartJsons = await Promise.all(chartResps.map(safeJson));
+
+    // ── 데이터 상태 기록 ──
+    liqJson && !liqJson.error
+      ? dsSet('liq',       liqJson.nlMomentum?.asOf ?? liqJson.asOf)
+      : dsNull('liq');
+    towerJson && !towerJson.error
+      ? dsSet('liq_tower', towerJson._savedAt?.slice(0,10) ?? null)
+      : dsNull('liq_tower');
+    iciJson && !iciJson.error
+      ? dsSet('ici',       iciJson.weekEnded?.slice(0,10) ?? null)
+      : dsNull('ici');
+    yhJson && !yhJson.error
+      ? dsSet('yields',    yhJson.asOf ?? null)
+      : dsNull('yields');
+    // VIX/MOVE: yahoo-chart 첫 번째 두 개
+    chartJsons[COMM_ARR.length]?.closes?.length
+      ? dsSet('vix',  new Date().toISOString().slice(0,10))
+      : dsNull('vix', 'Yahoo VIX 미수신');
+    commJson && !commJson.error
+      ? dsSet('comm', new Date().toISOString().slice(0,10))
+      : dsNull('comm', 'Yahoo 원자재 미수신');
+    dsSet('move', new Date().toISOString().slice(0,10));
+    renderDataStatus(1);
 
     if (!liqJson || liqJson.error) throw new Error(liqJson?.error || '/liq 응답 오류');
 
@@ -7244,6 +7378,18 @@ async function loadT4(force = false) {
     } catch(e) { console.warn('[T4] llama error:', e); }
 
     renderOnchainMacro(workerData, rwaProtos);
+    // ── T4 데이터 상태 기록 ──
+    workerData.stablecoin?.totalB
+      ? dsSet('oc_stable', workerData.stablecoin.asOf ?? new Date().toISOString().slice(0,10))
+      : dsNull('oc_stable');
+    rwaProtos.length > 0 || workerData.rwa?.protocols?.length
+      ? dsSet('oc_rwa',    new Date().toISOString().slice(0,10))
+      : dsNull('oc_rwa');
+    workerData.etf?.dailyFlows?.length
+      ? dsSet('oc_etf',    workerData.etf.dailyFlows[0]?.date ?? new Date().toISOString().slice(0,10))
+      : dsNull('oc_etf');
+    renderDataStatus(4);
+
     hideEl('t4-loading');
     showWrap();
   } catch(e) {
@@ -8046,6 +8192,21 @@ async function loadT3(force = false) {
       </div>` : '',
       tip: `<b style="color:#E6EDF3;">SPY / EEM 비율</b><br><br>S&P 500(미국) 대비 신흥국 ETF 상대 강도. <b>글로벌 자본이 미국에 집중되는지 신흥국으로 분산되는지</b>를 추적합니다.<br><br><b style="color:#F0B429;">경계값</b><br>• 현재가 > 3MMA → 🟡 미국 쏠림: 달러 강세 동반<br>• 현재가 < 3MMA → 🟢 자본 확산: EM 고베타 랠리<br><br><span style="color:#8B949E;font-size:9px;">📌 다이버전스 차트의 역방향(녹색) 구간과 SPY/EEM 하락 전환이 겹칠 때 EM 진입 신뢰도 최고.</span>`,
     });
+
+    // ── T3 데이터 상태 기록 ──
+    d?.dxyHistory?.length
+      ? dsSet('t3_dxy',     new Date().toISOString().slice(0,10))
+      : dsNull('t3_dxy');
+    d
+      ? dsSet('t3_main',    d._savedAt?.slice(0,10) ?? new Date().toISOString().slice(0,10))
+      : dsNull('t3_main');
+    d?.asiaEngine?.aud?.series?.length
+      ? dsSet('t3_factory', new Date().toISOString().slice(0,10))
+      : dsNull('t3_factory');
+    d?.euroEngine?.eur?.series?.length
+      ? dsSet('t3_demand',  new Date().toISOString().slice(0,10))
+      : dsNull('t3_demand');
+    renderDataStatus(3);
 
     hide3('t3-loading');
     show3('t3-b1');
@@ -9134,17 +9295,16 @@ window.addEventListener('scroll', () => {
   if (btn) btn.style.display = window.scrollY > 300 ? 'flex' : 'none';
 });
 
-async function forceRefreshAll() {  const btn  = document.getElementById('hdr-refresh-btn');
+async function forceRefreshAll() {
+  const btn  = document.getElementById('hdr-refresh-btn');
   const icon = document.getElementById('hdr-refresh-icon');
   if (!btn || !icon) return;
 
-  // 스피너 애니메이션
   btn.disabled = true;
   btn.style.opacity = '0.5';
   icon.style.display = 'inline-block';
   icon.style.animation = 'spin 1s linear infinite';
 
-  // CSS 애니메이션 정의 (한 번만)
   if (!document.getElementById('spin-style')) {
     const s = document.createElement('style');
     s.id = 'spin-style';
@@ -9153,8 +9313,14 @@ async function forceRefreshAll() {  const btn  = document.getElementById('hdr-re
   }
 
   try {
-    // t1(유동성&시장) 강제 새로고침
-    await loadT1(true);
+    // 현재 활성 탭만 강제 새로고침
+    switch (currentTabIdx) {
+      case 0: await Promise.all([loadS1(true), loadS2(true), loadS3(true)]); break;
+      case 1: await loadT1(true); break;
+      case 2: await loadT2(true); break;
+      case 3: await loadT3(true); break;
+      case 4: await loadT4(true); break;
+    }
   } finally {
     btn.disabled = false;
     btn.style.opacity = '1';
@@ -9678,6 +9844,157 @@ initAll();
   new MutationObserver(bindAll)
     .observe(document.body, {childList: true, subtree: true});
 })();
+</script>
+
+
+/* ═══════════════════════════════════════════════
+   DATA STATUS ENGINE
+═══════════════════════════════════════════════ */
+<script>
+// ── 데이터 신선도 기준 (일 단위) ──────────────────
+const FRESHNESS = {
+  daily:     { warn: 3,   label: '일간'  },
+  weekly:    { warn: 10,  label: '주간'  },
+  monthly:   { warn: 45,  label: '월간'  },
+  quarterly: { warn: 100, label: '분기'  },
+  event:     { warn: 95,  label: '이벤트' },
+};
+
+// 탭별 지표 정의
+const TAB_INDICATORS = {
+  0: [ // T0: 거시경제 모니터
+    { key:'h41_html',   label:'H.4.1 (연준 대차대조표)', freq:'weekly'    },
+    { key:'h41_hist',   label:'H.4.1 역사 52주',         freq:'weekly'    },
+    { key:'pipe3',      label:'신용/실물 리스크',         freq:'daily'     },
+    { key:'dxy',        label:'DXY 달러인덱스',           freq:'daily'     },
+    { key:'jpy',        label:'JPY 엔화',                 freq:'daily'     },
+    { key:'ofr_fsi',    label:'OFR 금융스트레스',         freq:'daily'     },
+  ],
+  1: [ // T1: 유동성&시장
+    { key:'liq',        label:'FRED 유동성 (NL·MMF)',     freq:'weekly'    },
+    { key:'liq_tower',  label:'유동성 드레인 4주',        freq:'weekly'    },
+    { key:'ici',        label:'ICI MMF 주간잔고',         freq:'weekly'    },
+    { key:'yields',     label:'국채 수익률 시계열',       freq:'daily'     },
+    { key:'vix',        label:'VIX',                      freq:'daily'     },
+    { key:'move',       label:'MOVE',                     freq:'daily'     },
+    { key:'comm',       label:'원자재 시세',              freq:'daily'     },
+  ],
+  2: [ // T2: 실물경제
+    { key:'t2_corp',    label:'GDPNow·기업심리',          freq:'monthly'   },
+    { key:'t2_labor',   label:'고용 파이프라인',          freq:'monthly'   },
+    { key:'t2_consumer',label:'소비자 체력',              freq:'monthly'   },
+    { key:'t2_psavert', label:'개인 저축률',              freq:'monthly'   },
+    { key:'t2_delinq',  label:'신용카드 연체율',          freq:'quarterly' },
+  ],
+  3: [ // T3: 글로벌
+    { key:'t3_main',    label:'글로벌 유동성 지수',       freq:'weekly'    },
+    { key:'t3_dxy',     label:'DXY vs Broad Dollar',       freq:'daily'     },
+    { key:'t3_factory', label:'AUD/USD·KOSPI',            freq:'daily'     },
+    { key:'t3_demand',  label:'EUR/USD·FEZ',              freq:'daily'     },
+  ],
+  4: [ // T4: 온체인 매크로
+    { key:'oc_stable',  label:'스테이블코인 시총',        freq:'daily'     },
+    { key:'oc_rwa',     label:'RWA TVL',                  freq:'daily'     },
+    { key:'oc_etf',     label:'BTC ETF 플로우',           freq:'daily'     },
+  ],
+};
+
+// ── 상태 저장소 ───────────────────────────────────
+const _dataStatus = {};  // { key: { asOf, ok, note } }
+
+function dsSet(key, asOf, ok = true, note = '') {
+  _dataStatus[key] = { asOf, ok, note, ts: new Date() };
+}
+function dsNull(key, note = '수신 실패') {
+  _dataStatus[key] = { asOf: null, ok: false, note, ts: new Date() };
+}
+
+// ── 신선도 판단 ───────────────────────────────────
+function dsFreshness(key, freq) {
+  const s = _dataStatus[key];
+  if (!s) return null;           // 아직 로드 전
+  if (!s.ok || !s.asOf) return 'error';
+  const threshold = FRESHNESS[freq]?.warn ?? 10;
+  const days = (Date.now() - new Date(s.asOf).getTime()) / 86400000;
+  return days > threshold ? 'warn' : 'ok';
+}
+
+// ── 패널 렌더 ─────────────────────────────────────
+function renderDataStatus(tabIdx) {
+  const panelId = `ds-panel-t${tabIdx}`;
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+
+  const indicators = TAB_INDICATORS[tabIdx] || [];
+  let errCount = 0, warnCount = 0;
+
+  const rows = indicators.map(ind => {
+    const s = _dataStatus[ind.key];
+    const fresh = dsFreshness(ind.key, ind.freq);
+    let icon, color, bg, dateStr, note;
+
+    if (!s) {
+      icon = '⏳'; color = '#656D76'; bg = 'transparent';
+      dateStr = '로딩 중'; note = '';
+    } else if (fresh === 'error') {
+      icon = '❌'; color = '#F85149'; bg = 'rgba(207,34,43,0.08)';
+      dateStr = '수신 실패'; note = s.note || '';
+      errCount++;
+    } else if (fresh === 'warn') {
+      icon = '⚠️'; color = '#F0B429'; bg = 'rgba(240,180,41,0.08)';
+      const days = Math.round((Date.now() - new Date(s.asOf).getTime()) / 86400000);
+      dateStr = s.asOf ? s.asOf.slice(0,10) : '—';
+      note = `${days}일 전 · ${FRESHNESS[ind.freq]?.label ?? ''} 데이터`;
+      warnCount++;
+    } else {
+      icon = '✅'; color = '#3FB950'; bg = 'transparent';
+      dateStr = s.asOf ? s.asOf.slice(0,10) : '정상';
+      note = FRESHNESS[ind.freq]?.label ?? '';
+    }
+
+    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:4px;background:${bg};">
+      <span style="font-size:10px;flex-shrink:0;">${icon}</span>
+      <span style="font-size:9px;color:#CDD9E5;flex:1;min-width:0;">${ind.label}</span>
+      <span style="font-size:8px;color:${color};font-family:'SF Mono',monospace;white-space:nowrap;">${dateStr}</span>
+      ${note ? `<span style="font-size:7px;color:#656D76;white-space:nowrap;">${note}</span>` : ''}
+    </div>`;
+  }).join('');
+
+  const hasIssue = errCount > 0 || warnCount > 0;
+  const summaryColor = errCount > 0 ? '#F85149' : warnCount > 0 ? '#F0B429' : '#3FB950';
+  const summaryText  = errCount > 0
+    ? `❌ ${errCount}개 수신 실패`
+    : warnCount > 0
+    ? `⚠️ ${warnCount}개 갱신 지연`
+    : '✅ 모든 데이터 정상';
+
+  const body = panel.querySelector('.ds-body');
+  const toggle = panel.querySelector('.ds-toggle');
+  const summary = panel.querySelector('.ds-summary');
+
+  if (summary) { summary.textContent = summaryText; summary.style.color = summaryColor; }
+  if (body)    body.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:8px 0;">${rows}</div>`;
+
+  // 이슈 있으면 자동 펼침
+  if (hasIssue && body && body.style.display === 'none') {
+    body.style.display = 'block';
+    if (toggle) toggle.textContent = '▴';
+  }
+  // 이슈 없으면 자동 접기
+  if (!hasIssue && body && body.style.display !== 'none') {
+    body.style.display = 'none';
+    if (toggle) toggle.textContent = '▾';
+  }
+}
+
+function toggleDsPanel(tabIdx) {
+  const body = document.querySelector(`#ds-panel-t${tabIdx} .ds-body`);
+  const toggle = document.querySelector(`#ds-panel-t${tabIdx} .ds-toggle`);
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  if (toggle) toggle.textContent = open ? '▾' : '▴';
+}
 </script>
 
 <style>
