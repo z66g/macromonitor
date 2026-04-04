@@ -3144,6 +3144,9 @@ async function loadS1(force = false) {
     h41HistJson?.series?.labels?.length
       ? dsSet('h41_hist',  h41HistJson.series.labels?.[0])
       : dsNull('h41_hist');
+    iciJson && !iciJson.error
+      ? dsSet('t0_ici',    iciJson.weekEnded?.slice(0,10) ?? null)
+      : dsNull('t0_ici',   'ICI MMF 수신 실패');
     pipe3Json && !pipe3Json.error
       ? dsSet('pipe3',     pipe3Json.asOf ?? new Date().toISOString().slice(0,10))
       : dsNull('pipe3');
@@ -9866,6 +9869,7 @@ const TAB_INDICATORS = {
   0: [ // T0: 거시경제 모니터
     { key:'h41_html',   label:'H.4.1 (연준 대차대조표)', freq:'weekly'    },
     { key:'h41_hist',   label:'H.4.1 역사 52주',         freq:'weekly'    },
+    { key:'t0_ici',     label:'ICI MMF 주간잔고',         freq:'weekly'    },
     { key:'pipe3',      label:'신용/실물 리스크',         freq:'daily'     },
     { key:'dxy',        label:'DXY 달러인덱스',           freq:'daily'     },
     { key:'jpy',        label:'JPY 엔화',                 freq:'daily'     },
