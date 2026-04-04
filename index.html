@@ -5043,7 +5043,7 @@ async function selectSector(ticker) {
   detail.style.animation = 'slideIn .2s ease';
 
   // 모바일: 상세 패널 표시 + 스크롤
-  if (window.innerWidth <= 767) {
+  if (window.innerWidth < 600) {
     detail.classList.add('mobile-visible');
     setTimeout(() => detail.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
   }
@@ -9905,6 +9905,16 @@ window.addEventListener('orientationchange', function() {
     display: grid !important;
     flex-direction: unset !important;
     grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* 12-pre. 섹터 로테이션 — 데스크탑 2열 유지 (좌: 바차트, 우: 상세패널) */
+  .sector-layout {
+    grid-template-columns: 1fr 260px !important;
+  }
+  #sectorDetail {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
   }
 
   /* 12. RWA 도넛+테이블 가로 배치 유지 */
