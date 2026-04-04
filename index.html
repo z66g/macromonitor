@@ -6638,6 +6638,10 @@ async function loadT2(force = false) {
         <div style="font-size:10px;font-weight:600;color:#8B949E;margin-bottom:8px;display:flex;align-items:center;gap:4px;">
           GDP Now ${gnSourceBadge}
           <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:260px;">Atlanta Fed 실시간 GDP 추정치. BEA 공식 발표 전 가장 빠른 성장률 선행지표.<br><br>분기 업데이트마다 수치가 변동되며 추정치 변화 방향(Δ)이 핵심 관찰 포인트. 연속 하향 조정 시 경기 둔화 신호.</span></span>
+          <a href="https://www.atlantafed.org/research-and-data/data/gdpnow" target="_blank" rel="noopener"
+             style="margin-left:auto;font-size:9px;color:#484F58;text-decoration:none;display:flex;align-items:center;gap:2px;
+                    padding:1px 5px;border:0.5px solid #30363D;border-radius:3px;transition:color .15s;"
+             onmouseover="this.style.color='#58A6FF'" onmouseout="this.style.color='#484F58'">↗</a>
         </div>
         <div style="font-size:38px;font-weight:700;font-family:'SF Mono',monospace;color:${gnColor};margin-bottom:6px;">${gn?.current != null ? gn.current.toFixed(1)+'%' : '—'}</div>
         <div style="font-size:9px;color:#8B949E;margin-bottom:4px;">연율 환산 실질 GDP 성장률 추정</div>
