@@ -7285,6 +7285,25 @@ async function loadT2(force = false) {
       });
     }
 
+    // ── T2 데이터 상태 기록 ──
+    const _t2d = d ?? {};
+    _t2d.corporate?.gdpNow
+      ? dsSet('t2_corp',     _t2d.corporate.gdpNow.asOf)
+      : dsNull('t2_corp');
+    _t2d.labor?.jolts
+      ? dsSet('t2_labor',    _t2d.labor.jolts.asOf)
+      : dsNull('t2_labor');
+    _t2d.consumer?.umcsent
+      ? dsSet('t2_consumer', _t2d.consumer.umcsent.asOf)
+      : dsNull('t2_consumer');
+    _t2d.consumer?.psavert
+      ? dsSet('t2_psavert',  _t2d.consumer.psavert.asOf)
+      : dsNull('t2_psavert');
+    _t2d.consumer?.delinq
+      ? dsSet('t2_delinq',   _t2d.consumer.delinq.asOf)
+      : dsNull('t2_delinq');
+    renderDataStatus(2);
+
     hide2('t2-loading');
     show2('t2-b1');
     show2('t2-b2');
