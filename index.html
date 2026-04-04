@@ -1081,11 +1081,9 @@ body{
   </div>
 
   <!-- 로딩 -->
-  <div id="loadingState">
-    <div class="loading-overlay">
-      <div class="spinner"></div>
-      <span>FRED + Yahoo Finance 데이터 수신 중...</span>
-    </div>
+  <div id="loadingState" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
+    <div style="font-size:28px;">🖥️</div>
+    <div style="font-size:12px;color:#484F58;">거시경제 데이터 로딩 중...</div>
   </div>
 
   <!-- 에러 -->
@@ -4112,7 +4110,8 @@ function scoreReserve(res, rrp) {
 // UI 상태
 // ──────────────────────────────
 function showLoading() {
-  document.getElementById('loadingState').style.display='flex';
+  const ls = document.getElementById('loadingState');
+  if (ls) { ls.style.display='flex'; ls.style.flexDirection='column'; ls.style.alignItems='center'; ls.style.justifyContent='center'; }
   document.getElementById('mainContent').style.display='none';
   document.getElementById('errorPanel').classList.remove('show');
 }
