@@ -1038,6 +1038,7 @@ body{
              display:flex;align-items:center;gap:4px;transition:all .2s;">
       <span style="font-size:11px;">📅</span>
       <span style="font-size:9px;">캘린더</span>
+      <span id="led-cal" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
     </button>
     <button id="hdr-tower-btn" onclick="toggleLiqTower()" title="유동성 관제탑"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
@@ -1045,6 +1046,7 @@ body{
              display:flex;align-items:center;gap:4px;transition:all .2s;">
       <span style="font-size:11px;">🏛️</span>
       <span style="font-size:9px;">Plumbing</span>
+      <span id="led-tower" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
     </button>
     <div class="hdr-clock" id="clock">—</div>
     <div class="hdr-live">LIVE</div>
@@ -6523,8 +6525,16 @@ async function loadCalendar(force = false) {
       updEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} 기준`;
     }
     renderCalendar();
+    // LED 갱신
+    const ledCal = document.getElementById('led-cal');
+    if (ledCal) {
+      ledCal.style.background = '#3FB950';
+      ledCal.title = `캘린더 정상 · ${d._savedAt ? new Date(d._savedAt).toLocaleDateString('ko-KR') : '방금'}`;
+    }
   } catch(e) {
     listEl.innerHTML = '<div style="color:#F85149;font-size:11px;padding:20px 0;text-align:center;">로딩 실패</div>';
+    const ledCal = document.getElementById('led-cal');
+    if (ledCal) { ledCal.style.background = '#F85149'; ledCal.title = '캘린더 로딩 실패'; }
   }
 }
 
@@ -8538,8 +8548,18 @@ async function loadLiqTower(force = false) {
     renderTowerS2(d);
     renderTowerS3(d);
     renderTowerS4(d);
+    // LED 갱신
+    const ledTower = document.getElementById('led-tower');
+    if (ledTower) {
+      const savedAt = d._savedAt ?? d.fed?.h41?._savedAt ?? null;
+      const daysOld = savedAt ? (Date.now() - new Date(savedAt).getTime()) / 86400000 : 0;
+      ledTower.style.background = daysOld > 10 ? '#F0B429' : '#3FB950';
+      ledTower.title = `Plumbing ${daysOld > 10 ? '갱신 지연' : '정상'} · ${savedAt ? new Date(savedAt).toLocaleDateString('ko-KR') : '방금'}`;
+    }
   } catch(e) {
     if (loading) loading.textContent = `⚠️ 로딩 실패: ${e.message}`;
+    const ledTower = document.getElementById('led-tower');
+    if (ledTower) { ledTower.style.background = '#F85149'; ledTower.title = 'Plumbing 로딩 실패'; }
   }
 }
 
