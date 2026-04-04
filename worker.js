@@ -30,6 +30,7 @@ const KV_KEYS = {
   qraPending: 'qra_pending_v1',
   liqTower:   'liq_tower_v1',
   onchainMacro: 'onchain_macro_v1',
+  h41Html:    'h41_html_v1',
 };
 const KV_TTL = {
   liq:        7200,
@@ -41,6 +42,7 @@ const KV_TTL = {
   qraPending: 86400 * 30,  // 30일
   liqTower:   3600 * 6,    // 6h
   onchainMacro: 3600,          // 1h
+  h41Html:    3600 * 6,    // 6h (H.4.1 주간 발표)
 };
 
 const kvGet = async (env, key) => {
@@ -75,7 +77,7 @@ export default {
       if (path.startsWith('/ofr-fsi'))       return await ofrFsi(env);
       if (path.startsWith('/ofr'))           return await ofrFallback(url, env);
       if (path.startsWith('/h41-history'))   return await h41HistoryFetcher(url);
-      if (path.startsWith('/h41-html'))      return await h41HtmlParser();
+      if (path.startsWith('/h41-html'))      return await h41HtmlParser(env, ctx, url.searchParams.get('force') === '1');
       if (path.startsWith('/h41'))           return await h41Parser(env);
       if (path.startsWith('/multifред'))     return await fredMulti(url, env);
       if (path.startsWith('/dxy'))           return await dxyAnalysis();
@@ -1515,8 +1517,15 @@ async function h41HistoryFetcher(url) {
 //    CORS 차단 없음 (Worker 서버사이드 fetch)
 //    Table 1: 자산/부채 전체, Table 2: 만기별 보유량
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function h41HtmlParser() {
+async function h41HtmlParser(env, ctx, forceRefresh = false) {
   const FED_URL = 'https://www.federalreserve.gov/releases/h41/current/';
+
+  // ── KV 캐시 확인 (force=1 아닐 때) ──
+  if (!forceRefresh) {
+    const cached = await kvGet(env, KV_KEYS.h41Html);
+    if (cached) return json(cached);
+  }
+
   let html;
   try {
     const resp = await fetch(FED_URL, {
@@ -1526,6 +1535,9 @@ async function h41HtmlParser() {
     if (!resp.ok) throw new Error(`Fed HTTP ${resp.status}`);
     html = await resp.text();
   } catch(e) {
+    // ── fetch 실패 시 KV 캐시 fallback ──
+    const cached = await kvGet(env, KV_KEYS.h41Html);
+    if (cached) return json({ ...cached, _fromCache: true });
     return json({ success: false, error: `Fed 원본 HTML 접근 실패: ${e.message}` }, 502);
   }
 
@@ -1849,6 +1861,24 @@ async function h41HtmlParser() {
       })),
     };
   }).filter(t => t.validRowCount > 0);
+
+  // ── KV 저장 (성공 시) ──
+  const resultPayload = {
+    success: true,
+    source:  'Federal Reserve H.4.1 HTML Direct Parse',
+    url:     FED_URL,
+    releaseDate,
+    _savedAt: new Date().toISOString(),
+    parseQuality,
+    summary,
+    data,
+    maturity: matData,
+  };
+  if (ctx?.waitUntil) {
+    ctx.waitUntil(kvPut(env, KV_KEYS.h41Html, resultPayload, KV_TTL.h41Html));
+  } else {
+    kvPut(env, KV_KEYS.h41Html, resultPayload, KV_TTL.h41Html).catch(() => {});
+  }
 
   return json({
     success: true,
