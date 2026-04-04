@@ -9769,26 +9769,39 @@ initAll();
   }
 }
 
-/* ── 태블릿 전용 (768~1023px): 데스크톱 배치 유지 + 크기만 조정 ── */
-@media (min-width: 768px) and (max-width: 1023px) {
+/* ── 태블릿 전용 (600~1023px): 핵심 레이아웃 데스크톱 유지 ── */
+@media (min-width: 600px) and (max-width: 1023px) {
 
   /* 1. 탭 내비게이션 가운데 정렬 */
   .tab-nav {
     justify-content: center !important;
-    overflow-x: visible !important;
+    overflow-x: auto !important;
   }
 
-  /* 2. 배관 4구간 — 가로 1열 유지 (데스크톱과 동일) */
-  .pipe-row { flex-wrap: nowrap !important; }
+  /* 2. 배관 4구간 — 가로 4열 유지, overflow 방지 */
+  #pipeRow {
+    overflow: hidden !important;
+  }
+  .pipe-row { flex-wrap: nowrap !important; overflow: hidden !important; }
   .pipe-seg {
-    flex: 1 1 25% !important;
+    flex: 1 1 0 !important;
     min-width: 0 !important;
+    width: 25% !important;
+    max-width: 25% !important;
+    padding: 10px 8px 8px !important;
     border-radius: 0 !important;
+    overflow: hidden !important;
   }
   .pipe-seg:nth-child(1) { border-radius: 7px 0 0 7px !important; }
   .pipe-seg:nth-child(4) { border-radius: 0 7px 7px 0 !important; }
+  /* 파이프 내부 텍스트 축소 */
+  .pipe-seg .ps-label span:first-child { font-size: 11px !important; }
+  .pipe-seg .ps-inds  { font-size: 9px !important; line-height: 1.5 !important; }
+  .pipe-seg .ps-status { font-size: 9px !important; padding: 1px 5px !important; }
+  /* pipe-arrow 숨기거나 축소 */
+  .pipe-arrow { width: 14px !important; min-width: 14px !important; font-size: 10px !important; }
 
-  /* 3. VIX·MOVE·Z-SCORE — 3열 1행 유지 (데스크톱과 동일) */
+  /* 3. VIX·MOVE·Z-SCORE — 3열 1행 유지 */
   .gauge-grid {
     grid-template-columns: 2fr 2fr 1fr !important;
   }
@@ -9802,8 +9815,8 @@ initAll();
   }
 }
 
-/* ── 모바일 전용: gauge-grid 2열 ── */
-@media (max-width: 767px) {
+/* ── 소형 모바일 전용 (≤599px): gauge-grid 2열 ── */
+@media (max-width: 599px) {
   .gauge-grid {
     grid-template-columns: 1fr 1fr !important;
   }
