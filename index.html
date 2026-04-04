@@ -3052,8 +3052,8 @@ async function loadS1(force = false) {
       fetchWithTimeout(`${WORKER}/yahoo?tickers=%5EVIX,%5EMOVE`),
       fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EVIX&range=3mo`),
       fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EMOVE&range=3mo`),
-      fetchWithTimeout(`${WORKER}/h41-html`, 30000),
-      fetchWithTimeout(`${WORKER}/h41-history?weeks=52`, 90000),
+      fetchWithTimeout(`${WORKER}/h41-html${force ? '?force=1' : ''}`, 30000),
+      fetchWithTimeout(`${WORKER}/h41-history?weeks=52${force ? '&force=1' : ''}`, 90000),
       ...FRED_IDS.map(id =>
         fetchWithTimeout(`${WORKER}/fred?series_id=${id}&limit=2&sort_order=desc`)
       )
@@ -3138,11 +3138,11 @@ async function loadS1(force = false) {
 
     renderPipe(fs, iciJson, h41HtmlJson, h41HistJson, sofrJson, rrpJson, srfJson, nypdJson, ofrMmfJson, dxyJson, jpyJson, fsiJson, pipe3Json);
     // ── T0 데이터 상태 기록 ──
-    h41HtmlJson && !h41HtmlJson.error
+    h41HtmlJson && h41HtmlJson.success !== false && !h41HtmlJson.error
       ? dsSet('h41_html',  h41HtmlJson.data_date ?? h41HtmlJson._savedAt?.slice(0,10))
-      : dsNull('h41_html');
-    h41HistJson?.history?.length
-      ? dsSet('h41_hist',  h41HistJson.history?.[0]?.date)
+      : dsNull('h41_html', h41HtmlJson?.error ?? 'H.4.1 HTML 파싱 실패');
+    h41HistJson?.series?.labels?.length
+      ? dsSet('h41_hist',  h41HistJson.series.labels?.[0])
       : dsNull('h41_hist');
     pipe3Json && !pipe3Json.error
       ? dsSet('pipe3',     pipe3Json.asOf ?? new Date().toISOString().slice(0,10))
@@ -4300,25 +4300,6 @@ async function loadS2(force = false) {
 
     renderRatioGrid(prices, pct24h);
     renderCSP(tipsJson, iciJson, mmfRetailJson, mmfInstJson);
-    // ── T2 데이터 상태 기록 ──
-    const _t2d = d ?? {};
-    _t2d.corporate?.gdpNow
-      ? dsSet('t2_corp',     _t2d.corporate.gdpNow.asOf)
-      : dsNull('t2_corp');
-    _t2d.labor?.jolts
-      ? dsSet('t2_labor',    _t2d.labor.jolts.asOf)
-      : dsNull('t2_labor');
-    _t2d.consumer?.umcsent
-      ? dsSet('t2_consumer', _t2d.consumer.umcsent.asOf)
-      : dsNull('t2_consumer');
-    _t2d.consumer?.psavert
-      ? dsSet('t2_psavert',  _t2d.consumer.psavert.asOf)
-      : dsNull('t2_psavert');
-    _t2d.consumer?.delinq
-      ? dsSet('t2_delinq',   _t2d.consumer.delinq.asOf)
-      : dsNull('t2_delinq');
-    renderDataStatus(2);
-
     showContent2();
 
   } catch(e) {
@@ -9958,7 +9939,8 @@ function renderDataStatus(tabIdx) {
       dateStr = '로딩 중'; note = '';
     } else if (fresh === 'error') {
       icon = '❌'; color = '#F85149'; bg = 'rgba(207,34,43,0.08)';
-      dateStr = '수신 실패'; note = s.note || '';
+      dateStr = '수신 실패';
+      note = s.note && s.note !== '수신 실패' ? s.note.slice(0, 30) : '';
       errCount++;
     } else if (fresh === 'warn') {
       icon = '⚠️'; color = '#F0B429'; bg = 'rgba(240,180,41,0.08)';
