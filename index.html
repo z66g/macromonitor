@@ -9496,17 +9496,7 @@ initAll();
   .tab-nav::-webkit-scrollbar { display: none; }
   .tab-btn { padding: 10px 14px 4px !important; font-size: 11px !important; white-space: nowrap; }
 
-  /* 파이프 다이어그램 — 2×2 */
-  .pipe-row { flex-wrap: wrap !important; }
-  .pipe-seg {
-    flex: 1 1 calc(50% - 2px) !important;
-    min-width: calc(50% - 2px) !important;
-    border-radius: 0 !important;
-  }
-  .pipe-seg:nth-child(1) { border-radius: 7px 0 0 0 !important; }
-  .pipe-seg:nth-child(2) { border-radius: 0 7px 0 0 !important; }
-  .pipe-seg:nth-child(3) { border-radius: 0 0 0 7px !important; }
-  .pipe-seg:nth-child(4) { border-radius: 0 0 7px 0 !important; }
+  /* 파이프 다이어그램 — 태블릿은 min-width:768 블록에서 처리 */
 
   /* T3 KPI 4열 → 2열 */
   #t3-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
@@ -9779,8 +9769,41 @@ initAll();
   }
 }
 
-/* ── 태블릿: gauge-grid, ratio-grid 조정 ── */
-@media (max-width: 1023px) {
+/* ── 태블릿 전용 (768~1023px): 데스크톱 배치 유지 + 크기만 조정 ── */
+@media (min-width: 768px) and (max-width: 1023px) {
+
+  /* 1. 탭 내비게이션 가운데 정렬 */
+  .tab-nav {
+    justify-content: center !important;
+    overflow-x: visible !important;
+  }
+
+  /* 2. 배관 4구간 — 가로 1열 유지 (데스크톱과 동일) */
+  .pipe-row { flex-wrap: nowrap !important; }
+  .pipe-seg {
+    flex: 1 1 25% !important;
+    min-width: 0 !important;
+    border-radius: 0 !important;
+  }
+  .pipe-seg:nth-child(1) { border-radius: 7px 0 0 7px !important; }
+  .pipe-seg:nth-child(4) { border-radius: 0 7px 7px 0 !important; }
+
+  /* 3. VIX·MOVE·Z-SCORE — 3열 1행 유지 (데스크톱과 동일) */
+  .gauge-grid {
+    grid-template-columns: 2fr 2fr 1fr !important;
+  }
+  .gauge-grid > *:nth-child(3) {
+    grid-column: auto !important;
+  }
+
+  /* ratio-grid 2열 유지 */
+  .ratio-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ── 모바일 전용: gauge-grid 2열 ── */
+@media (max-width: 767px) {
   .gauge-grid {
     grid-template-columns: 1fr 1fr !important;
   }
