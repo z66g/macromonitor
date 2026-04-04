@@ -9569,25 +9569,7 @@ window.addEventListener('orientationchange', function() {
     gap: 10px !important;
   }
 
-  /* 파이프 다이어그램 — 세로 단열 스택 */
-  .pipe-row {
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    overflow: visible !important;
-  }
-  #pipeRow { overflow: visible !important; }
-  .pipe-seg {
-    flex: none !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 0 !important;
-  }
-  .pipe-seg:nth-child(1) { border-radius: 7px 7px 0 0 !important; }
-  .pipe-seg:nth-child(2) { border-radius: 0 !important; }
-  .pipe-seg:nth-child(3) { border-radius: 0 !important; }
-  .pipe-seg:nth-child(4) { border-radius: 0 0 7px 7px !important; }
-  .pipe-arrow { display: none !important; }
+  /* 파이프 다이어그램 — 599px 이하에서만 세로 스택 (태블릿 제외) */
 
   /* T1: NLM + Divergence 2:1 → 스택 */
   #t1-nlm { grid-column: 1 / -1 !important; }
@@ -9929,6 +9911,96 @@ window.addEventListener('orientationchange', function() {
     grid-template-columns: repeat(4, 1fr) !important;
   }
 
+  /* ── 헤더 태블릿: 폰 크기 축소 복원 ── */
+  .hdr { height: 56px !important; padding: 0 16px !important; }
+  .logo { font-size: 24px !important; }
+  .hdr-clock { display: flex !important; }
+  .hdr-live  { display: flex !important; }
+
+  /* ── section-wrap 패딩 복원 ── */
+  .section-wrap { padding: 14px 10px !important; gap: 14px !important; }
+
+  /* ── T1 NLM: 2fr 1fr 가로 배치 복원 ── */
+  #t1-nlm  { grid-column: auto !important; }
+  #t1-divergence { grid-column: auto !important; }
+  #t1-b1 [style*="grid-template-columns:2fr 1fr"],
+  #t1-b1 [style*="grid-template-columns: 2fr 1fr"] {
+    display: grid !important;
+    grid-template-columns: 2fr 1fr !important;
+    flex-direction: unset !important;
+  }
+
+  /* ── T1 NL 예측 스크롤 복원 ── */
+  #t1-nl-forecast { overflow: visible !important; }
+  #t1-nl-forecast > div:first-child { overflow-x: visible !important; }
+
+  /* ── T2 Labor Pipeline 태블릿: 가로스크롤 유지(공간 부족), 카드 너비 확대 ── */
+  #t2-pipeline-board > [style*="flex:1"] {
+    width: 180px !important;
+    min-width: 180px !important;
+  }
+
+  /* ── T2 Consumer Stage2 지표 2열 (5열→2열 스크롤 복원) ── */
+  #t2-b2 [style*="repeat(5"] {
+    overflow-x: visible !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  /* ── T3 DXY 헤더 가로 배치 복원 ── */
+  #t3-b1 .section-wrap > div:first-child > div:first-child {
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+  #t3-b1 [style*="justify-content:space-between"],
+  #t3-b1 [style*="justify-content: space-between"] {
+    flex-wrap: nowrap !important;
+  }
+  #t3-range-btns { gap: 4px !important; }
+  .t3-rbtn { font-size: 9px !important; padding: 3px 7px !important; }
+  #t3-b1 [style*="font-size:10px"] { white-space: nowrap !important; }
+  #t3-spy-toggle { display: flex !important; }
+
+  /* ── T3 차트 높이 복원 ── */
+  #t3-b1 [style*="height:200px"],
+  #t3-b2 [style*="height:200px"] { height: 200px !important; }
+
+  /* ── T4 RWA 범례 너비 복원 ── */
+  #oc-rwa-legend { width: 156px !important; }
+
+  /* ── 카드 숫자 크기 복원 (VIX/MOVE, ratio, sentiment) ── */
+  .gc-value-row { flex-wrap: nowrap !important; }
+  .gc-value { font-size: 28px !important; }
+  .gc-change { font-size: 11px !important; }
+  .rc-ratio  { font-size: 22px !important; }
+  .rc-change { font-size: 11px !important; }
+  .sent-value { font-size: 22px !important; }
+  .sent-change { font-size: 11px !important; }
+
+  /* ── 컨트롤 바 복원 ── */
+  #controls-bar-inner {
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    padding: 6px 12px !important;
+    justify-content: flex-end !important;
+  }
+
+  /* ── T3 배지 복원 ── */
+  #t3-asia-badge, #t3-euro-badge {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* ── ratio/sentiment 카드 내부 줄바꿈 복원 ── */
+  .ratio-card [style*="display:flex"] {
+    flex-wrap: nowrap !important;
+  }
+  .sent-card [style*="display:flex"] {
+    flex-wrap: nowrap !important;
+  }
+
+  /* ── Plumbing 패널 너비 복원 ── */
+  #tower-panel { width: 420px !important; }
+
   /* 14. 화면 회전 깨짐 방지 */
   #t0, #t1-wrapper, #t2-wrapper, #t3-wrapper, #t4-wrapper {
     overflow-x: hidden !important;
@@ -9938,8 +10010,27 @@ window.addEventListener('orientationchange', function() {
   * { min-width: 0; }
 }
 
-/* ── 소형 모바일 전용 (≤599px): gauge-grid 2열 ── */
+/* ── 소형 모바일 전용 (≤599px): 파이프 세로스택 + gauge 2열 ── */
 @media (max-width: 599px) {
+  /* 파이프 4구간 — 세로 단열 스택 */
+  .pipe-row {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+  }
+  #pipeRow { overflow: visible !important; }
+  .pipe-seg {
+    flex: none !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+  }
+  .pipe-seg:nth-child(1) { border-radius: 7px 7px 0 0 !important; }
+  .pipe-seg:nth-child(2) { border-radius: 0 !important; }
+  .pipe-seg:nth-child(3) { border-radius: 0 !important; }
+  .pipe-seg:nth-child(4) { border-radius: 0 0 7px 7px !important; }
+  .pipe-arrow { display: none !important; }
   .gauge-grid {
     grid-template-columns: 1fr 1fr !important;
   }
