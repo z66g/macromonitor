@@ -1067,20 +1067,6 @@ body{
 <!-- TAB 0: 거시경제 모니터 -->
 <div id="t0" class="tab-panel active">
   <div style="padding:10px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:24px;">
-  <!-- 데이터 상태 패널 -->
-  <div id="ds-panel-t0" style="margin-bottom:10px;">
-    <div onclick="toggleDsPanel(0)"
-         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
-                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
-                cursor:pointer;user-select:none;">
-      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
-      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
-      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
-    </div>
-    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
-         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
-    </div>
-  </div>
 <!-- ────── SECTION 1 ────── -->
   <div>
 <div class="section-wrap">
@@ -1088,6 +1074,7 @@ body{
   <!-- 섹션 헤더 -->
   <div style="display:flex;align-items:center;justify-content:space-between;">
     <div>
+      <span id="ds-badge-t0"></span>
       <div style="font-size:14px;font-weight:600;color:#E6EDF3;">Financial Plumbing</div>
       <div style="font-size:11px;color:#8B949E;margin-top:2px;">금융 배관 압력 현황 · VIX · MOVE · Guardrail 판정</div>
     </div>
@@ -1589,21 +1576,7 @@ body{
 <div id="t1" class="tab-panel">
 
   <!-- ── 로딩 / 에러 ── -->
-  <!-- 데이터 상태 패널 -->
-  <div id="ds-panel-t1" style="margin-bottom:10px;">
-    <div onclick="toggleDsPanel(1)"
-         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
-                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
-                cursor:pointer;user-select:none;">
-      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
-      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
-      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
-    </div>
-    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
-         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
-    </div>
-  </div>
-  <div id="t1-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
+<div id="t1-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
     <div style="font-size:28px;">📊</div>
     <div style="font-size:12px;color:#484F58;">유동성 & 시장 데이터 로딩 중...</div>
   </div>
@@ -1618,6 +1591,7 @@ body{
   <div id="t1-b1" style="display:none;">
   <div class="section-wrap">
     <div style="margin-bottom:14px;">
+      <span id="ds-badge-t1"></span>
       <div style="font-size:14px;font-weight:700;color:#E6EDF3;">Liquidity Flow</div>
       <div style="font-size:11px;color:#8B949E;margin-top:2px;">유동성 흐름 — Net Liquidity · MMF · 은행 예금 · 레포 유입 국면</div>
     </div>
@@ -1793,21 +1767,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
 <!-- TAB 2: 실물경제 -->
 <div id="t2" class="tab-panel">
 
-  <!-- 데이터 상태 패널 -->
-  <div id="ds-panel-t2" style="margin-bottom:10px;">
-    <div onclick="toggleDsPanel(2)"
-         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
-                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
-                cursor:pointer;user-select:none;">
-      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
-      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
-      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
-    </div>
-    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
-         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
-    </div>
-  </div>
-  <div id="t2-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
+<div id="t2-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
     <div style="font-size:28px;">📈</div>
     <div style="font-size:12px;color:#484F58;">실물경제 데이터 로딩 중...</div>
   </div>
@@ -1819,6 +1779,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
     <div id="t2-b1" style="display:none;">
     <div class="section-wrap">
       <div style="margin-bottom:4px;">
+        <span id="ds-badge-t2"></span>
         <div style="font-size:14px;font-weight:700;color:#E6EDF3;">Corporate Pulse</div>
         <div style="font-size:11px;color:#8B949E;margin-top:2px;">GDPNow · 선행 기업 심리 · 서비스 경기 심리</div>
         <!-- ISM PMI 외부 링크 배지 -->
@@ -1952,21 +1913,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
 <div id="t3" class="tab-panel">
   <div id="t3-wrapper" style="padding:10px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:24px;">
   <!-- 로딩 / 에러 -->
-  <!-- 데이터 상태 패널 -->
-  <div id="ds-panel-t3" style="margin-bottom:10px;">
-    <div onclick="toggleDsPanel(3)"
-         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
-                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
-                cursor:pointer;user-select:none;">
-      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
-      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
-      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
-    </div>
-    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
-         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
-    </div>
-  </div>
-  <div id="t3-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
+<div id="t3-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
     <div style="font-size:28px;">🌐</div>
     <div style="font-size:12px;color:#484F58;">글로벌 데이터 로딩 중...</div>
   </div>
@@ -1976,6 +1923,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
   <div id="t3-b1" style="display:none;">
   <div class="section-wrap">
     <div style="margin-bottom:12px;">
+      <span id="ds-badge-t3"></span>
       <div style="font-size:14px;font-weight:700;color:#E6EDF3;">글로벌 유동성과 위험 선호도 <span style="font-size:11px;font-weight:400;color:#656D76;">Global Liquidity &amp; Risk Appetite</span></div>
       <div style="font-size:11px;color:#8B949E;margin-top:2px;">이종 자산(Cross-Asset) 간 상관관계를 통한 글로벌 자본 이동 판독 — 당일 노이즈 배제</div>
     </div>
@@ -2370,21 +2318,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
   </div>
 </div>
 <div id="t4" class="tab-panel">
-  <!-- 데이터 상태 패널 -->
-  <div id="ds-panel-t4" style="margin-bottom:10px;">
-    <div onclick="toggleDsPanel(4)"
-         style="display:flex;align-items:center;gap:8px;padding:5px 10px;
-                background:#161B22;border:0.5px solid #30363D;border-radius:6px;
-                cursor:pointer;user-select:none;">
-      <span style="font-size:9px;color:#484F58;font-weight:600;letter-spacing:.05em;text-transform:uppercase;">데이터 상태</span>
-      <span class="ds-summary" style="font-size:9px;color:#656D76;flex:1;">⏳ 로딩 중...</span>
-      <span class="ds-toggle" style="font-size:9px;color:#484F58;">▾</span>
-    </div>
-    <div class="ds-body" style="display:none;background:#161B22;border:0.5px solid #30363D;
-         border-top:none;border-radius:0 0 6px 6px;padding:0 2px 4px;">
-    </div>
-  </div>
-  <div id="t4-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
+<div id="t4-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
     <div style="font-size:28px;">🪙</div>
     <div style="font-size:12px;color:#484F58;">온체인 데이터 로딩 중...</div>
   </div>
@@ -2406,6 +2340,7 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
       <div>
         <div style="font-size:14px;font-weight:700;color:#E6EDF3;">
+          <span id="ds-badge-t4" style="display:block;margin-bottom:4px;"></span>
           온체인 달러 배관
           
           <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i>
@@ -9946,9 +9881,8 @@ function dsFreshness(key, freq) {
 
 // ── 패널 렌더 ─────────────────────────────────────
 function renderDataStatus(tabIdx) {
-  const panelId = `ds-panel-t${tabIdx}`;
-  const panel = document.getElementById(panelId);
-  if (!panel) return;
+  const badge = document.getElementById(`ds-badge-t${tabIdx}`);
+  if (!badge) return;
 
   const indicators = TAB_INDICATORS[tabIdx] || [];
   let errCount = 0, warnCount = 0;
@@ -9956,29 +9890,27 @@ function renderDataStatus(tabIdx) {
   const rows = indicators.map(ind => {
     const s = _dataStatus[ind.key];
     const fresh = dsFreshness(ind.key, ind.freq);
-    let icon, color, bg, dateStr, note;
+    let icon, color, dateStr, note;
 
     if (!s) {
-      icon = '⏳'; color = '#656D76'; bg = 'transparent';
-      dateStr = '로딩 중'; note = '';
+      icon = '⏳'; color = '#656D76'; dateStr = '로딩 중'; note = '';
     } else if (fresh === 'error') {
-      icon = '❌'; color = '#F85149'; bg = 'rgba(207,34,43,0.08)';
-      dateStr = '수신 실패';
-      note = s.note && s.note !== '수신 실패' ? s.note.slice(0, 30) : '';
+      icon = '❌'; color = '#F85149'; dateStr = '수신 실패';
+      note = s.note && s.note !== '수신 실패' ? s.note.slice(0,30) : '';
       errCount++;
     } else if (fresh === 'warn') {
-      icon = '⚠️'; color = '#F0B429'; bg = 'rgba(240,180,41,0.08)';
+      icon = '⚠️'; color = '#F0B429';
       const days = Math.round((Date.now() - new Date(s.asOf).getTime()) / 86400000);
       dateStr = s.asOf ? s.asOf.slice(0,10) : '—';
-      note = `${days}일 전 · ${FRESHNESS[ind.freq]?.label ?? ''} 데이터`;
+      note = `${days}일 전`;
       warnCount++;
     } else {
-      icon = '✅'; color = '#3FB950'; bg = 'transparent';
+      icon = '✅'; color = '#3FB950';
       dateStr = s.asOf ? s.asOf.slice(0,10) : '정상';
       note = FRESHNESS[ind.freq]?.label ?? '';
     }
 
-    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:4px;background:${bg};">
+    return `<div style="display:flex;align-items:center;gap:7px;padding:3px 0;">
       <span style="font-size:10px;flex-shrink:0;">${icon}</span>
       <span style="font-size:9px;color:#CDD9E5;flex:1;min-width:0;">${ind.label}</span>
       <span style="font-size:8px;color:${color};font-family:'SF Mono',monospace;white-space:nowrap;">${dateStr}</span>
@@ -9986,40 +9918,33 @@ function renderDataStatus(tabIdx) {
     </div>`;
   }).join('');
 
-  const hasIssue = errCount > 0 || warnCount > 0;
   const summaryColor = errCount > 0 ? '#F85149' : warnCount > 0 ? '#F0B429' : '#3FB950';
+  const summaryIcon  = errCount > 0 ? '❌' : warnCount > 0 ? '⚠️' : '✅';
   const summaryText  = errCount > 0
-    ? `❌ ${errCount}개 수신 실패`
+    ? `${errCount}개 수신 실패`
     : warnCount > 0
-    ? `⚠️ ${warnCount}개 갱신 지연`
-    : '✅ 모든 데이터 정상';
+    ? `${warnCount}개 갱신 지연`
+    : '모든 데이터 정상';
 
-  const body = panel.querySelector('.ds-body');
-  const toggle = panel.querySelector('.ds-toggle');
-  const summary = panel.querySelector('.ds-summary');
+  // 툴팁 내용
+  const tipContent = `
+    <b style="color:#E6EDF3;font-size:10px;">데이터 상태</b>
+    <div style="margin:6px 0 2px;height:0.5px;background:#30363D;"></div>
+    ${rows}`;
 
-  if (summary) { summary.textContent = summaryText; summary.style.color = summaryColor; }
-  if (body)    body.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:8px 0;">${rows}</div>`;
-
-  // 이슈 있으면 자동 펼침
-  if (hasIssue && body && body.style.display === 'none') {
-    body.style.display = 'block';
-    if (toggle) toggle.textContent = '▴';
-  }
-  // 이슈 없으면 자동 접기
-  if (!hasIssue && body && body.style.display !== 'none') {
-    body.style.display = 'none';
-    if (toggle) toggle.textContent = '▾';
-  }
-}
-
-function toggleDsPanel(tabIdx) {
-  const body = document.querySelector(`#ds-panel-t${tabIdx} .ds-body`);
-  const toggle = document.querySelector(`#ds-panel-t${tabIdx} .ds-toggle`);
-  if (!body) return;
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
-  if (toggle) toggle.textContent = open ? '▾' : '▴';
+  badge.innerHTML = `
+    <span class="pd-tip-wrap" style="display:inline-flex;align-items:center;margin-bottom:6px;margin-left:0;">
+      <span style="display:inline-flex;align-items:center;gap:4px;
+                   font-size:9px;font-weight:600;padding:2px 8px;border-radius:3px;cursor:default;
+                   color:${summaryColor};
+                   background:${errCount>0?'rgba(207,34,43,0.12)':warnCount>0?'rgba(240,180,41,0.1)':'rgba(26,127,90,0.1)'};
+                   border:0.5px solid ${summaryColor}40;">
+        ${summaryIcon} ${summaryText}
+      </span>
+      <span class="pd-tip-box" style="left:0;transform:none;top:calc(100% + 6px);bottom:auto;width:280px;">
+        ${tipContent}
+      </span>
+    </span>`;
 }
 </script>
 
