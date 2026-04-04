@@ -9501,8 +9501,8 @@ window.addEventListener('orientationchange', function() {
     max-width: 100% !important;
     width: 100% !important;
     box-sizing: border-box !important;
-    padding-left: 8px !important;
-    padding-right: 8px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
   }
@@ -9594,7 +9594,7 @@ window.addEventListener('orientationchange', function() {
     scrollbar-width: thin;
     scrollbar-color: #30363D transparent;
     padding-bottom: 6px !important;
-    grid-template-columns: repeat(5, 160px) !important;
+    grid-template-columns: repeat(5, minmax(120px, 1fr)) !important;
   }
 
   /* T1: yields → 1열 */
@@ -9917,8 +9917,8 @@ window.addEventListener('orientationchange', function() {
   .hdr-clock { display: flex !important; }
   .hdr-live  { display: flex !important; }
 
-  /* ── section-wrap 패딩 복원 ── */
-  .section-wrap { padding: 14px 10px !important; gap: 14px !important; }
+  /* ── section-wrap 좌우 패딩 제거, 상하만 유지 ── */
+  .section-wrap { padding: 12px 0 !important; gap: 14px !important; }
 
   /* ── T1 NLM: 2fr 1fr 가로 배치 복원 ── */
   #t1-nlm  { grid-column: auto !important; }
@@ -9930,9 +9930,19 @@ window.addEventListener('orientationchange', function() {
     flex-direction: unset !important;
   }
 
-  /* ── T1 NL 예측 스크롤 복원 ── */
+  /* ── T1 NL 예측: 5열 동적 너비 (화면 폭에 맞춤) ── */
   #t1-nl-forecast { overflow: visible !important; }
   #t1-nl-forecast > div:first-child { overflow-x: visible !important; }
+  #t1-nl-forecast [style*="repeat(5,1fr)"],
+  #t1-nl-forecast [style*="repeat(5, 1fr)"] {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    min-width: 0 !important;
+  }
+  #t1-nl-forecast [style*="repeat(5,1fr)"] > *,
+  #t1-nl-forecast [style*="repeat(5, 1fr)"] > * {
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
 
   /* ── T2 Labor Pipeline 태블릿: 가로스크롤 유지(공간 부족), 카드 너비 확대 ── */
   #t2-pipeline-board > [style*="flex:1"] {
