@@ -3048,12 +3048,11 @@ async function loadS1(force = false) {
     const FRED_IDS = ['IORB','DTWEXBGS','WRMFNS'];
 
     // FRED + Yahoo + H.4.1 병렬 (타임아웃 10초)
-    const [yahooResp, vixHistResp, moveHistResp, h41HtmlResp, h41HistResp, ...fredResps] = await Promise.all([
+    const [yahooResp, vixHistResp, moveHistResp, h41HistResp, ...fredResps] = await Promise.all([
       fetchWithTimeout(`${WORKER}/yahoo?tickers=%5EVIX,%5EMOVE`),
       fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EVIX&range=3mo`),
       fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EMOVE&range=3mo`),
-      fetchWithTimeout(`${WORKER}/h41-html${force ? '?force=1' : ''}`, 30000),
-      fetchWithTimeout(`${WORKER}/h41-history?weeks=52${force ? '&force=1' : ''}`, 90000),
+      fetchWithTimeout(`${WORKER}/h41-history?weeks=52${force ? '?force=1' : ''}`, 90000),
       ...FRED_IDS.map(id =>
         fetchWithTimeout(`${WORKER}/fred?series_id=${id}&limit=2&sort_order=desc`)
       )
@@ -3062,7 +3061,7 @@ async function loadS1(force = false) {
     const yahooJson    = await yahooResp.json();
     const vixHistJson  = await vixHistResp.json();
     const moveHistJson = await moveHistResp.json();
-    const h41HtmlJson  = await h41HtmlResp.json().catch(() => null);
+    const h41HtmlJson  = null;  // h41-html 사용 중단 — h41-history series[0]으로 대체
     const h41HistJson  = await h41HistResp.json().catch(() => null);
     const fredRaws     = await Promise.all(fredResps.map(r => r.json()));
 
@@ -3138,9 +3137,6 @@ async function loadS1(force = false) {
 
     renderPipe(fs, iciJson, h41HtmlJson, h41HistJson, sofrJson, rrpJson, srfJson, nypdJson, ofrMmfJson, dxyJson, jpyJson, fsiJson, pipe3Json);
     // ── T0 데이터 상태 기록 ──
-    h41HtmlJson && h41HtmlJson.success !== false && !h41HtmlJson.error
-      ? dsSet('h41_html',  h41HtmlJson.data_date ?? h41HtmlJson._savedAt?.slice(0,10))
-      : dsNull('h41_html', h41HtmlJson?.error ?? 'H.4.1 HTML 파싱 실패');
     h41HistJson?.series?.labels?.length
       ? dsSet('h41_hist',  h41HistJson.series.labels?.[0])
       : dsNull('h41_hist');
@@ -3271,17 +3267,19 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   // PIPE 0: 중앙은행 유동성 — H.4.1 HTML 직접 파싱 기반
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   (() => {
-    const d   = h41Html?.data   || {};
+    // h41-history series 사용 (h41-html 의존성 제거)
     const hs  = h41Hist?.series || {};
 
-    // ── 현재값 (h41-html, Billions) ──
-    const rc_B   = d.reserve_credit?.valueB;    // 총자산 프록시 $6,613B
-    const tga_B  = d.tga?.valueB;               // TGA $837B
-    const rrpT_B = d.rrp_total?.valueB;         // 역레포 합계 (Table2 주간평균)
-    const rrpF_B = d.rrp_foreign?.valueB;       // 외국계 역레포
-    const res_B  = d.reserve_balances?.valueB;  // 은행 준비금 (Table16 수요일)
-    // ON RRP domestic = rrp_total - rrp_foreign
-    const onRRP_B = (rrpT_B != null && rrpF_B != null) ? rrpT_B - rrpF_B : rrpT_B;
+    // ── 현재값: series[0] = 최신 주 ──
+    const rc_B   = hs.reserve_credit?.[0]    ?? null;  // 총자산 프록시
+    const tga_B  = hs.tga?.[0]               ?? null;  // TGA
+    const rrpT_B = hs.rrp_total?.[0]         ?? null;  // 역레포 합계
+    const rrpF_B = hs.rrp_foreign?.[0]       ?? null;  // 외국계 역레포
+    const res_B  = hs.reserve_balances?.[0]  ?? null;  // 은행 준비금
+    // ON RRP domestic = rrp_total - rrp_foreign (없으면 on_rrp_domestic 직접 사용)
+    const onRRP_B = (rrpT_B != null && rrpF_B != null)
+      ? +(rrpT_B - rrpF_B).toFixed(1)
+      : (hs.on_rrp_domestic?.[0] ?? rrpT_B);
 
     // ── 히스토리 시계열 (B) ──
     const hRC  = hs.reserve_credit    || [];
@@ -3424,7 +3422,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   const loansPrev3  = loansSeries[3] ?? null;   // 3주 전
 
   // 현재주 h41-html 단일값 우선 사용 (더 최신)
-  const loansNowHtml = h41Html?.data?.loans?.valueB ?? null;
+  const loansNowHtml = hs.loans?.[0] ?? null;  // h41Hist.series 사용
   const loansLatest  = loansNowHtml ?? loansNow;   // html 단일값 우선
 
   // 3주 연속 증가 판별 (히스토리 기준)
@@ -3648,15 +3646,17 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   //   위험: FIMA > 0 ($1이라도) OR 커스터디 WoW < -$30B
   //   주의: FIMA == 0 AND 커스터디 WoW < -$10B
   //   정상: FIMA == 0 AND 커스터디 WoW ≥ -$10B
-  const custodyT    = h41Html?.data?.custody_treasury ?? null;
-  const custodyB    = custodyT?.valueB   ?? null;
-  const custodyDlt  = custodyT?.deltaB   ?? null;
+  // custody: h41Hist.series 사용 (series[0]=최신, [1]=전주)
+  const custodyB    = hs.custody_treasury?.[0] ?? null;
+  const custodyDlt  = (hs.custody_treasury?.[0] != null && hs.custody_treasury?.[1] != null)
+    ? +(hs.custody_treasury[0] - hs.custody_treasury[1]).toFixed(1) : null;
   // FIMA Repo: 자산(Assets) 측 "Repurchase agreements > Foreign official"
   // Worker가 recOrZero로 파싱 → 미사용 시 valueB=0 반환
-  const fimaData    = h41Html?.data?.fima_repo ?? null;
-  const fimaB       = fimaData?.valueB ?? 0;    // 기본값 0 ($1이라도 > 0이면 패닉)
-  const fimaDlt     = fimaData?.deltaB ?? null;
-  const fimaIsZero  = fimaData?.isZeroDefault ?? (fimaB === 0);
+  // fima: h41Hist.series 사용
+  const fimaB       = hs.fima_repo?.[0] ?? 0;
+  const fimaDlt     = (hs.fima_repo?.[0] != null && hs.fima_repo?.[1] != null)
+    ? +(hs.fima_repo[0] - hs.fima_repo[1]).toFixed(1) : null;
+  const fimaIsZero  = fimaB === 0;
   const fimaActive  = fimaB >= 0.01;  // $10M 이상만 실제 사용 판정 (부동소수점/소규모 노이즈 제외)
   const custodyWoW  = custodyDlt;
   const custodySig  = (fimaActive || (custodyWoW != null && custodyWoW < -30)) ? 'r'
@@ -9867,8 +9867,7 @@ const FRESHNESS = {
 // 탭별 지표 정의
 const TAB_INDICATORS = {
   0: [ // T0: 거시경제 모니터
-    { key:'h41_html',   label:'H.4.1 (연준 대차대조표)', freq:'weekly'    },
-    { key:'h41_hist',   label:'H.4.1 역사 52주',         freq:'weekly'    },
+    { key:'h41_hist',   label:'H.4.1 (연준 H.4.1 52주)', freq:'weekly'    },
     { key:'t0_ici',     label:'ICI MMF 주간잔고',         freq:'weekly'    },
     { key:'pipe3',      label:'신용/실물 리스크',         freq:'daily'     },
     { key:'dxy',        label:'DXY 달러인덱스',           freq:'daily'     },

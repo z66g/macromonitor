@@ -1190,11 +1190,19 @@ async function iciMMF(env, ctx) {
   const dateMatch = html.match(/week ended\s+\w+,\s+(\w+ \d+(?:,?\s*\d{4})?)/i);
   const weekEnded = dateMatch ? dateMatch[1].trim() : null;
 
-  // 연도 보정: "March 19" → "March 19, 2026" (연도 없으면 현재 연도 추가)
+  // 연도 보정 후 ISO(YYYY-MM-DD) 변환
   const normalizeDate = (d) => {
     if (!d) return null;
-    if (/\d{4}/.test(d)) return d;  // 이미 연도 있음
-    return `${d}, ${new Date().getFullYear()}`;
+    // 연도 없으면 현재 연도 추가
+    const withYear = /\d{4}/.test(d) ? d : `${d}, ${new Date().getFullYear()}`;
+    // "April 1, 2026" → Date → ISO
+    try {
+      const parsed = new Date(withYear);
+      if (!isNaN(parsed.getTime())) {
+        return parsed.toISOString().slice(0, 10);  // "2026-04-01"
+      }
+    } catch(e) {}
+    return withYear;  // 파싱 실패 시 원본 반환
   };
   const weekEndedFull = normalizeDate(weekEnded);
 
@@ -1489,8 +1497,13 @@ async function h41HistoryFetcher(url) {
       reserve_credit:      valid.map(r => B(r.reserve_credit)),   // 총자산 프록시 (B)
       treasury_total:      valid.map(r => B(r.treasury_total)),
       mbs_total:           valid.map(r => B(r.mbs_total)),
-      // ── ON RRP domestic (rrp_total - rrp_foreign, B) ──
+      // ── ON RRP domestic + 원본 RRP 분리 ──
       on_rrp_domestic:     valid.map(r => r.on_rrp_domestic != null ? +(r.on_rrp_domestic/1000).toFixed(1) : null),
+      rrp_total:           valid.map(r => B(r.rrp_total)),
+      rrp_foreign:         valid.map(r => B(r.rrp_foreign)),
+      // ── Custody & FIMA ──
+      custody_treasury:    valid.map(r => B(r.custody_treasury)),
+      fima_repo:           valid.map(r => B(r.fima_repo)),
       // ── 만기별 국채 (treasury) — Millions → Billions ──
       treasury_within_15d: valid.map(r => B(r.maturity?.treasury_within_15d)),
       treasury_d16_90d:    valid.map(r => B(r.maturity?.treasury_d16_90d)),
