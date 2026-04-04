@@ -6651,7 +6651,7 @@ async function loadT2(force = false) {
     };
 
     const gn = corp.gdpNow;
-    const gnColor = gn?.current == null ? '#8B949E' : gn.current >= 2 ? '#3FB950' : gn.current >= 0 ? '#F0B429' : '#F85149';
+    const gnColor = gn?.current == null ? '#8B949E' : gn.current >= 2.5 ? '#3FB950' : gn.current >= 0 ? '#F0B429' : '#F85149';
     const gnDelta  = gn?.delta != null
       ? `${gn.delta >= 0 ? '▲ +' : '▼ '}${gn.delta.toFixed(2)}%p (전 추정치 대비)`
       : '전 추정치 비교 불가';
