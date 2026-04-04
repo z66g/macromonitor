@@ -370,8 +370,8 @@ body{
 .pd-tip-box::after{display:none;}
 .pd-tip-wrap:hover .pd-tip-box{display:block;}
 
-@media (max-width: 767px) {
-  /* 모바일: 오버레이로 대체하므로 네이티브 박스 숨김 */
+@media (hover: none) {
+  /* 터치 기기(모바일·태블릿): CSS hover 완전 비활성화 → JS 오버레이로 대체 */
   .pd-tip-wrap:hover .pd-tip-box,
   .pd-tip-wrap:active .pd-tip-box {
     display: none !important;
@@ -9893,10 +9893,10 @@ initAll();
 </style>
 
 <script>
-/* ── 모바일 툴팁 오버레이 ── */
+/* ── 터치 기기 툴팁 오버레이 (모바일·태블릿 공통) ── */
 (function() {
-  /* 데스크톱: 기존 CSS hover 그대로 사용 */
-  if (window.innerWidth > 767) return;
+  /* hover 가능 기기(마우스 데스크톱): CSS hover 그대로 사용 */
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
   /* 오버레이 생성 (body 최상단 → transformed 부모 영향 없음) */
   var overlay = document.createElement('div');
@@ -9916,7 +9916,7 @@ initAll();
     'line-height:1.65',
     'z-index:99999',
     'max-width:calc(100vw - 32px)',
-    'width:280px',
+    'width:min(340px, calc(100vw - 48px))',
     'box-shadow:0 4px 24px rgba(0,0,0,.75)',
     'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
     'pointer-events:none',
