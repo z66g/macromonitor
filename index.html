@@ -9930,6 +9930,12 @@ window.addEventListener('orientationchange', function() {
     flex-direction: unset !important;
   }
 
+  /* ── Divergence Detector: 라벨 전폭 → 배지들 아랫줄 배치 ── */
+  .ss-label {
+    flex-basis: 100% !important;
+    margin-bottom: 2px !important;
+  }
+
   /* ── T1 NL 예측: 5열 동적 너비 (화면 폭에 맞춤) ── */
   #t1-nl-forecast { overflow: visible !important; }
   #t1-nl-forecast > div:first-child { overflow-x: visible !important; }
