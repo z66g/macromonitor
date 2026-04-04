@@ -9569,14 +9569,25 @@ window.addEventListener('orientationchange', function() {
     gap: 10px !important;
   }
 
-  /* 파이프 다이어그램 — 단열 */
+  /* 파이프 다이어그램 — 세로 단열 스택 */
+  .pipe-row {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    overflow: visible !important;
+  }
+  #pipeRow { overflow: visible !important; }
   .pipe-seg {
-    flex: 1 1 100% !important;
+    flex: none !important;
+    width: 100% !important;
     min-width: 100% !important;
+    max-width: 100% !important;
     border-radius: 0 !important;
   }
   .pipe-seg:nth-child(1) { border-radius: 7px 7px 0 0 !important; }
+  .pipe-seg:nth-child(2) { border-radius: 0 !important; }
+  .pipe-seg:nth-child(3) { border-radius: 0 !important; }
   .pipe-seg:nth-child(4) { border-radius: 0 0 7px 7px !important; }
+  .pipe-arrow { display: none !important; }
 
   /* T1: NLM + Divergence 2:1 → 스택 */
   #t1-nlm { grid-column: 1 / -1 !important; }
