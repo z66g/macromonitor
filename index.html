@@ -9844,7 +9844,16 @@ window.addEventListener('orientationchange', function() {
   /* 5. Consumer Health 3-Stage 가로 유지 */
   #t2-wrapper [style*="grid-template-columns:1fr 2.5fr 1fr"],
   #t2-wrapper [style*="grid-template-columns: 1fr 2.5fr 1fr"] {
+    display: grid !important;
     grid-template-columns: 1fr 2.5fr 1fr !important;
+    flex-direction: unset !important;
+  }
+  /* Stage2 내부 psavert/delinq 2열 유지 */
+  #t2-cs-s2-box [style*="grid-template-columns:1fr 1fr"],
+  #t2-cs-s2-box [style*="grid-template-columns: 1fr 1fr"] {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    flex-direction: unset !important;
   }
 
   /* 6. 국채 수익률 4열 유지 */
@@ -9854,26 +9863,39 @@ window.addEventListener('orientationchange', function() {
 
   /* 7. 2s10s·3m10y 스프레드 2열 유지 */
   #t1-sp-cards {
+    display: grid !important;
     grid-template-columns: 1fr 1fr !important;
   }
 
   /* 8. 시장 기대 인플레이션 카드 (2fr 1fr) 유지 */
   #t1-infl-expect {
+    display: grid !important;
     grid-template-columns: 2fr 1fr !important;
+    flex-direction: unset !important;
   }
 
   /* 9. 자본이동비율 4열 유지 */
   .ratio-grid {
+    display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
   }
 
   /* 10. T3 글로벌 유동성 KPI 카드 4열 유지 */
   #t3-kpi-grid {
+    display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
   }
 
   /* 11. T3 팩토리·수요 KPI 카드 2열 유지 */
   #t3-asia-kpi, #t3-euro-kpi {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    flex-direction: unset !important;
+  }
+  #t3-b2 [style*="grid-template-columns:1fr 1fr"],
+  #t3-b2 [style*="grid-template-columns: 1fr 1fr"] {
+    display: grid !important;
+    flex-direction: unset !important;
     grid-template-columns: 1fr 1fr !important;
   }
 
