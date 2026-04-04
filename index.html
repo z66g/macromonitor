@@ -8209,7 +8209,7 @@ async function loadT3(force = false) {
     });
 
     // ── T3 데이터 상태 기록 ──
-    d?.dxyHistory?.length
+    d?.dxy?.series?.length
       ? dsSet('t3_dxy',     new Date().toISOString().slice(0,10))
       : dsNull('t3_dxy');
     d
@@ -8218,7 +8218,7 @@ async function loadT3(force = false) {
     d?.asiaEngine?.aud?.series?.length
       ? dsSet('t3_factory', new Date().toISOString().slice(0,10))
       : dsNull('t3_factory');
-    d?.euroEngine?.eur?.series?.length
+    d?.euroEngine?.eurusd?.series?.length
       ? dsSet('t3_demand',  new Date().toISOString().slice(0,10))
       : dsNull('t3_demand');
     renderDataStatus(3);
