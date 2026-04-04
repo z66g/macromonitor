@@ -1,0 +1,24 @@
+{
+  "name": "MacroMonitor",
+  "short_name": "MacroMonitor",
+  "description": "거시경제 · 유동성 · 실물경제 · 글로벌 · 온체인 통합 모니터링",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D1117",
+  "theme_color": "#0D1117",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
