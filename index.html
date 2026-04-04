@@ -1598,7 +1598,21 @@ body{
     <div style="margin-bottom:20px;">
       <div style="font-size:11px;font-weight:600;color:#8B949E;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px;">
         ① Net Liquidity Momentum
-        <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:260px;">연준 총자산(WALCL)에서 재무부 TGA와 ON RRP를 차감한 실질 시장 공급 유동성. 이 값이 4주 평균보다 높으면(Score +) 시장에 돈이 풀리는 국면, 낮으면(Score −) 유동성이 회수되는 국면입니다. 매크로 퀀트 펀드들의 위험 자산 노출도 결정에 핵심 입력값으로 활용됩니다.</span></span>
+        <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:320px;">
+<b style="color:#E6EDF3;">① Net Liquidity Momentum 섹션</b><br>
+<span style="color:#8B949E;font-size:9px;">중앙은행 유동성 공급 구조 분석</span>
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">📌 섹션 의의</b><br>
+연준이 시장에 실제로 공급 중인 유동성 규모와 방향성을 추적합니다. 주가·채권·원자재 등 모든 위험자산의 방향성을 결정하는 <b>거시 유동성의 핵심 스위치</b>입니다.
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">📊 포함 지표</b><br>
+<span style="color:#3FB950;">■</span> <b>NLM 카드</b> — 순유동성 절댓값 + 4주 모멘텀 Score<br>
+<span style="color:#3FB950;">■</span> <b>시장 괴리 추적기</b> — NLM Score vs S&P 500 4주 모멘텀 교차<br>
+<span style="color:#3FB950;">■</span> <b>NL 1~4주 예측</b> — 뱀파이어 모델 기반 선행 Score 시뮬레이션
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">⚠️ 활용 원칙</b><br>
+단독 신호보다 MMF 섹션, Repo 국면과 교차 확인 시 신뢰도가 높아집니다.
+</span></span>
       </div>
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;align-items:stretch;">
         <!-- NLM 메인 카드 -->
@@ -5339,7 +5353,31 @@ async function loadT1(force = false) {
       <div style="background:${nlCfg?.bg ?? '#161B22'};border:0.5px solid ${nlCfg?.border ?? '#30363D'};border-radius:8px;padding:14px 16px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
         <div style="font-size:10px;font-weight:600;color:#8B949E;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:4px;">
           중앙은행 순유동성 모멘텀 (NET LIQUIDITY MOMENTUM)
-          <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:280px;">연준 총자산(WALCL)에서 재무부 현금(TGA)과 역레포(RRP)를 차감한 실질 시장 공급 유동성. 4주 평균 대비 현재 수준의 상대적 위치를 % Score로 표현. 매크로 퀀트 펀드들의 위험자산 노출도를 결정하는 핵심 메인 스위치.</span></span>
+          <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:340px;">
+<b style="color:#E6EDF3;">중앙은행 순유동성 모멘텀 (NLM)</b><br>
+<span style="color:#8B949E;font-size:9px;">Net Liquidity Momentum</span>
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">📌 지표 의의</b><br>
+연준 대차대조표에서 재무부·역레포가 흡수한 유동성을 제거해 <b>실제 민간 시장에 공급된 순유동성</b>을 측정합니다. 매크로 퀀트 펀드의 위험자산 비중 결정에 핵심 입력값으로 활용됩니다.
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">🔢 산출 방식</b><br>
+<code style="color:#58A6FF;font-size:9px;">NL = WALCL − TGA − ON_RRP_domestic</code><br>
+<code style="color:#58A6FF;font-size:9px;">Score = (NL현재 − NL4주평균) / |NL4주평균| × 100</code><br>
+<span style="color:#8B949E;font-size:9px;">· WALCL: 연준 총자산 (주간, H.4.1)<br>
+· TGA: 재무부 일반계정 현금 (유동성 흡수)<br>
+· ON_RRP_domestic: 국내 역레포 잔고 (유동성 흡수)<br>
+· 4주 평균: 직전 4개 주간값 평균</span>
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">📖 해석 팁</b><br>
+<span style="color:#3FB950;">Score &gt; 0</span> — 유동성 팽창 → 위험자산 우호 (Risk-On)<br>
+<span style="color:#F85149;">Score &lt; 0</span> — 유동성 수축 → 방어 포지션 유효 (Risk-Off)<br>
+<span style="color:#8B949E;">|Score| 크기</span> — 클수록 신호 강도 강함
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">🎯 경계값</b><br>
+<span style="color:#3FB950;">+0.5% 초과</span> → 확실한 Risk-On<br>
+<span style="color:#8B949E;">±0.5% 이내</span> → 중립 (노이즈 구간)<br>
+<span style="color:#F85149;">−0.5% 미만</span> → 확실한 Risk-Off
+</span></span>
         </div>
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px;">
           <div style="font-size:40px;font-weight:700;font-family:'SF Mono',monospace;color:${nlCfg?.color ?? '#8B949E'};line-height:1;">${nlScoreStr}</div>
@@ -5423,7 +5461,27 @@ async function loadT1(force = false) {
       <div style="background:${dc.bg};border:0.5px solid ${dc.border};border-radius:8px;padding:12px 14px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
         <div style="font-size:10px;font-weight:600;color:#8B949E;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:4px;">
           시장 괴리 추적기
-          <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:260px;left:0;transform:none;">순유동성 Score와 S&P 500 4주 모멘텀의 방향성을 교차 비교. 둘이 엇갈릴 때(Divergence) 시장 전환점의 선행 신호가 나타남. 유동성은 주가의 선행 지표로 3~8주 선행하는 경향.</span></span>
+          <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box" style="width:320px;left:0;transform:none;">
+<b style="color:#E6EDF3;">시장 괴리 추적기 (Divergence Tracker)</b><br>
+<span style="color:#8B949E;font-size:9px;">NLM Score × S&P 500 4주 모멘텀 교차 분석</span>
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">📌 지표 의의</b><br>
+유동성(선행)과 주가(후행)의 방향이 엇갈리는 순간을 포착합니다. 괴리 발생 후 <b>3~8주 내 시장 전환점</b>이 나타나는 경향이 있어 포지션 전환 타이밍의 선행 신호로 활용됩니다.
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">🔢 산출 방식</b><br>
+<code style="color:#58A6FF;font-size:9px;">NLM Score = (NL현재 − NL4주평균) / |NL4주평균| × 100</code><br>
+<code style="color:#58A6FF;font-size:9px;">SPY 4주 모멘텀 = (SPY현재 − SPY20일전) / SPY20일전 × 100</code><br>
+<span style="color:#8B949E;font-size:9px;">두 지표의 부호(+/−)를 비교해 4가지 국면 중 하나로 판별</span>
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">📖 4가지 국면 해석</b><br>
+<span style="color:#F85149;">🚨 Bearish Div</span> — NL↓ &amp; SPY↑ · 유동성 뒷받침 없는 랠리, 급락 위험<br>
+<span style="color:#F0B429;">💡 Bullish Div</span> — NL↑ &amp; SPY↓ · 유동성 선행 유입, 매수 셋업<br>
+<span style="color:#3FB950;">🟢 정상 랠리</span> — NL↑ &amp; SPY↑ · 유동성 기반 건강한 상승<br>
+<span style="color:#8B949E;">⚫ 정상 하락</span> — NL↓ &amp; SPY↓ · 유동성 축소에 따른 조정
+<div style="margin:7px 0 4px;height:0.5px;background:#30363D;"></div>
+<b style="color:#CDD9E5;">⚠️ 한계</b><br>
+WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·CPI) 구간에서는 노이즈 발생 가능.
+</span></span>
         </div>
         <div style="font-size:13px;font-weight:700;color:${dc.color};margin-bottom:4px;">${dc.icon} ${dc.label.split('(')[0].trim()}</div>
         <div style="font-size:9px;color:#8B949E;line-height:1.6;margin-bottom:10px;">${dc.desc}</div>
