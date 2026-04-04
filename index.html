@@ -9446,6 +9446,14 @@ async function forceRefreshAll() {
 
 initAll();
 
+/* ── 화면 회전 시 레이아웃 강제 재계산 ── */
+window.addEventListener('orientationchange', function() {
+  setTimeout(function() {
+    document.body.style.minHeight = window.innerHeight + 'px';
+    window.dispatchEvent(new Event('resize'));
+  }, 300);
+});
+
 </script>
 <!-- ═══════ SCROLL TO TOP ═══════ -->
 <button id="scroll-top-btn"
@@ -9813,6 +9821,26 @@ initAll();
   .ratio-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
+
+  /* 4. Corporate Pulse 3열 유지 (모바일의 단열 스택 override) */
+  #t2-corporate {
+    display: grid !important;
+    grid-template-columns: 1fr 1.4fr 1.4fr !important;
+    flex-direction: unset !important;
+    gap: 10px !important;
+  }
+
+  /* 5. RWA 도넛+테이블 가로 배치 유지 */
+  #t4-wrapper [style*="display:flex"][style*="gap:16px"] {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+  }
+
+  /* 6. 화면 회전 시 레이아웃 깨짐 방지 */
+  #t0, #t1-wrapper, #t2-wrapper, #t3-wrapper, #t4-wrapper {
+    overflow-x: hidden !important;
+  }
+  .pipe-row { overflow: hidden !important; }
 }
 
 /* ── 소형 모바일 전용 (≤599px): gauge-grid 2열 ── */
@@ -9825,6 +9853,10 @@ initAll();
   }
   .ratio-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+  }
+  /* RWA 도넛 + 테이블: 소형에서만 세로 스택 */
+  #t4-wrapper [style*="display:flex"][style*="gap:16px"] {
+    flex-direction: column !important;
   }
 }
 
