@@ -1161,17 +1161,8 @@ body{
     </div>
   </div>
 
-  <!-- 시간 필터 -->
-  <div style="display:flex;gap:4px;padding:8px 14px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
-    <button class="np-time-btn active" onclick="newsTimeFilter('24h',this)">24h</button>
-    <button class="np-time-btn"        onclick="newsTimeFilter('3d', this)">3일</button>
-    <button class="np-time-btn"        onclick="newsTimeFilter('all',this)">7일</button>
-    <div style="flex:1;"></div>
-    <span id="news-filtered-count" style="font-size:9px;color:#484F58;align-self:center;"></span>
-  </div>
-
-  <!-- 카테고리 탭 -->
-  <div style="display:flex;border-bottom:0.5px solid #21262D;flex-shrink:0;padding:0 2px;overflow-x:auto;">
+  <!-- 카테고리 탭 + 시간 필터 통합 행 -->
+  <div style="display:flex;align-items:center;border-bottom:0.5px solid #21262D;flex-shrink:0;padding:0 2px;">
     <button class="np-tab-btn active"
       style="border:none;border-bottom:2px solid #F0B429;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
       onclick="newsTabFilter('all',this)">전체</button>
@@ -1190,6 +1181,13 @@ body{
     <button class="np-tab-btn"
       style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
       onclick="newsTabFilter('onchain',this)"><span style="width:6px;height:6px;border-radius:50%;background:#A8B2BF;flex-shrink:0;display:inline-block;"></span>온체인</button>
+    <div style="flex:1;"></div>
+    <div style="display:flex;align-items:center;gap:4px;padding-right:8px;flex-shrink:0;">
+      <button class="np-time-btn active" onclick="newsTimeFilter('24h',this)">24h</button>
+      <button class="np-time-btn"        onclick="newsTimeFilter('3d', this)">3일</button>
+      <button class="np-time-btn"        onclick="newsTimeFilter('all',this)">7일</button>
+      <span id="news-filtered-count" style="font-size:9px;color:#484F58;margin-left:2px;font-family:monospace;"></span>
+    </div>
   </div>
 
   <!-- 뉴스 리스트 -->
