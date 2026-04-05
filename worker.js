@@ -31,6 +31,7 @@ const KV_KEYS = {
   liqTower:   'liq_tower_v1',
   onchainMacro: 'onchain_macro_v1',
   h41Html:    'h41_html_v1',
+  newsCache:  'news_cache_v1',     // 뉴스 캐시
 };
 const KV_TTL = {
   liq:        7200,
@@ -43,6 +44,7 @@ const KV_TTL = {
   liqTower:   3600 * 6,    // 6h
   onchainMacro: 3600,          // 1h
   h41Html:    3600 * 6,    // 6h (H.4.1 주간 발표)
+  newsCache:  3600,        // 1h
 };
 
 const kvGet = async (env, key) => {
@@ -110,6 +112,10 @@ export default {
       if (path.startsWith('/cds-raw'))       return await cdsRaw(url);
       if (path.startsWith('/auction-debug')) return await auctionDebug();
       if (path.startsWith('/auction-html-debug')) return await auctionHtmlDebug();
+
+      // ── 뉴스 피드 ──────────────────────────────────────────
+      if (path.startsWith('/news-test')) return await newsEndpoint(env, true,  ctx); // 항상 fresh
+      if (path.startsWith('/news'))      return await newsEndpoint(env, false, ctx); // KV 캐시 사용
 
       return json({ error: 'Unknown route' }, 404);
     } catch(e) {
@@ -4174,4 +4180,184 @@ async function fetchOnchainMacro() {
     rwa,
     etf,
   };
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+//  NEWS MODULE
+//  /news-test  → 항상 fresh fetch (캐시 무시, 테스트용)
+//  /news       → KV 캐시 사용 (TTL 1시간, 실서비스용)
+// ═══════════════════════════════════════════════════════════════
+
+const NEWS_SOURCES = [
+  {
+    id: 'fed_press',
+    name: 'Federal Reserve Press',
+    url: 'https://www.federalreserve.gov/feeds/press_all.xml',
+    cat: 'fed',
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
+  },
+  {
+    id: 'us_treasury',
+    name: 'US Treasury',
+    url: 'https://home.treasury.gov/news/press-releases/rss.xml',
+    cat: 'treasury',
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+  {
+    id: 'ecb_press',
+    name: 'ECB Press',
+    url: 'https://www.ecb.europa.eu/rss/press.html',
+    cat: 'fx',
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
+  },
+  {
+    id: 'bis_research',
+    name: 'BIS Research',
+    url: 'https://www.bis.org/rss/work.xml',
+    cat: 'credit',
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+  {
+    id: 'fred_releases',
+    name: 'FRED Release Calendar',
+    url: 'https://fred.stlouisfed.org/rss/releases.xml',
+    cat: 'fed',
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+  {
+    id: 'reuters_biz',
+    name: 'Reuters Business',
+    url: 'https://feeds.reuters.com/reuters/businessNews',
+    cat: 'macro',
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)', 'Accept': 'application/rss+xml,text/xml,*/*' },
+  },
+  {
+    id: 'marketwatch_econ',
+    name: 'MarketWatch Economy',
+    url: 'https://feeds.marketwatch.com/marketwatch/economy',
+    cat: 'macro',
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+  {
+    id: 'coindesk',
+    name: 'CoinDesk',
+    url: 'https://www.coindesk.com/arc/outboundfeeds/rss/',
+    cat: 'crypto',
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+  {
+    id: 'theblock',
+    name: 'The Block',
+    url: 'https://www.theblock.co/rss.xml',
+    cat: 'crypto',
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+  {
+    id: 'ft_economy',
+    name: 'FT Global Economy',
+    url: 'https://www.ft.com/global-economy?format=rss',
+    cat: 'macro',
+    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)', 'Accept': 'application/rss+xml,text/xml,*/*' },
+  },
+];
+
+const NEWS_CLASSIFY_RULES = [
+  { cat: 'fed',      keywords: ['federal reserve','fomc','powell','rate hike','rate cut','interest rate','quantitative','balance sheet','rrp','repo','sofr','iorb','monetary policy','taper','tightening','easing'] },
+  { cat: 'treasury', keywords: ['treasury','t-bill','t-note','t-bond','yield curve','coupon','auction','issuance','tga','debt ceiling','fiscal','deficit','budget'] },
+  { cat: 'fx',       keywords: ['dollar index','dxy','yen','eur/usd','gbp/usd','jpy','cny','rmb','forex','exchange rate','carry trade','ecb','boj','boe','currency'] },
+  { cat: 'credit',   keywords: ['credit spread','oas','high yield','investment grade','cds','default','clo','mbs','abs','sloos','lending standard','delinquency','leverage loan'] },
+  { cat: 'crypto',   keywords: ['bitcoin','btc','ethereum','eth','crypto','blockchain','defi','stablecoin','usdt','usdc','rwa','tokenized','spot etf','halving','coinbase'] },
+  { cat: 'macro',    keywords: ['gdp','inflation','cpi','pce','tariff','trade war','sanction','geopolit','recession','employment','nfp','payroll','manufacturing','pmi','ism'] },
+];
+
+function newsClassify(title, summary) {
+  const text = (title + ' ' + (summary || '')).toLowerCase();
+  for (const rule of NEWS_CLASSIFY_RULES) {
+    if (rule.keywords.some(kw => text.includes(kw))) return rule.cat;
+  }
+  return 'macro';
+}
+
+function newsParseRSS(xmlText) {
+  const items = [];
+  const blockRe = /<(?:item|entry)[\s>]([\s\S]*?)<\/(?:item|entry)>/gi;
+  let match;
+  while ((match = blockRe.exec(xmlText)) !== null) {
+    const block = match[1];
+    const getTag = (tag) => {
+      const cdataM = new RegExp(`<${tag}[^>]*>\\s*<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>`, 'i').exec(block);
+      if (cdataM) return cdataM[1].trim();
+      const plainM = new RegExp(`<${tag}[^>]*>([^<]*)`, 'i').exec(block);
+      if (plainM) return plainM[1].replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#39;/g,"'").replace(/&quot;/g,'"').trim();
+      return '';
+    };
+    const getLinkAtom = () => {
+      const m = /<link[^>]+href="([^"]+)"/i.exec(block);
+      return m ? m[1] : '';
+    };
+    const title   = getTag('title');
+    const link    = getTag('link') || getLinkAtom();
+    const pubDate = getTag('pubDate') || getTag('updated') || getTag('published') || getTag('dc:date');
+    const desc    = getTag('description') || getTag('summary') || getTag('content');
+    const summary = desc.replace(/<[^>]*>/g,'').replace(/\s+/g,' ').trim().slice(0, 200);
+    if (!title && !link) continue;
+    items.push({ title, link, pubDate, summary });
+  }
+  return items;
+}
+
+async function newsFetchSource(src) {
+  const t0 = Date.now();
+  try {
+    const resp = await fetch(src.url, {
+      headers: src.headers || {},
+      signal: AbortSignal.timeout(10000),
+      cf: { cacheTtl: 300 },
+    });
+    if (!resp.ok) return { id: src.id, name: src.name, cat: src.cat, ok: false, error: `HTTP ${resp.status}`, ms: Date.now()-t0, items: [] };
+    const xml = await resp.text();
+    if (!xml || xml.length < 100) return { id: src.id, name: src.name, cat: src.cat, ok: false, error: '빈 응답', ms: Date.now()-t0, items: [] };
+    const raw = newsParseRSS(xml);
+    if (!raw.length) return { id: src.id, name: src.name, cat: src.cat, ok: false, error: 'XML 파싱 0건', ms: Date.now()-t0, items: [] };
+    const items = raw.slice(0, 20).map(item => ({
+      ...item,
+      sourceId:   src.id,
+      sourceName: src.name,
+      cat: newsClassify(item.title, item.summary),
+    }));
+    return { id: src.id, name: src.name, cat: src.cat, ok: true, count: items.length, ms: Date.now()-t0, items };
+  } catch(e) {
+    return { id: src.id, name: src.name, cat: src.cat, ok: false, error: e.message?.slice(0,80)||'오류', ms: Date.now()-t0, items: [] };
+  }
+}
+
+async function newsFetchAll() {
+  const results = await Promise.all(NEWS_SOURCES.map(newsFetchSource));
+  const allItems = [];
+  const sourceStats = [];
+  for (const r of results) {
+    sourceStats.push({ id: r.id, name: r.name, cat: r.cat, ok: r.ok, count: r.count||0, ms: r.ms, error: r.error||null });
+    if (r.ok) allItems.push(...r.items);
+  }
+  allItems.sort((a, b) => {
+    const da = a.pubDate ? new Date(a.pubDate).getTime() : 0;
+    const db = b.pubDate ? new Date(b.pubDate).getTime() : 0;
+    return db - da;
+  });
+  const catCount = {};
+  for (const item of allItems) { catCount[item.cat] = (catCount[item.cat]||0) + 1; }
+  return { fetchedAt: new Date().toISOString(), totalItems: allItems.length, sourceStats, catCount, items: allItems };
+}
+
+// isFresh=true → 캐시 무시 (/news-test), false → 캐시 사용 (/news)
+async function newsEndpoint(env, isFresh, ctx) {
+  if (!isFresh) {
+    const cached = await kvGet(env, KV_KEYS.newsCache);
+    if (cached) return new Response(JSON.stringify({ ...cached, _fromCache: true }), { headers: CORS });
+  }
+  const data = await newsFetchAll();
+  const putP = kvPut(env, KV_KEYS.newsCache, data, KV_TTL.newsCache);
+  if (ctx?.waitUntil) ctx.waitUntil(putP); else await putP;
+  return new Response(JSON.stringify(data), { headers: CORS });
 }
