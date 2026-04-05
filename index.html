@@ -1136,7 +1136,7 @@ body{
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
 
 <div id="news-panel"
-  style="position:fixed;top:0;right:0;height:100vh;width:380px;
+  style="position:fixed;top:0;right:0;height:100vh;width:420px;
          background:#161B22;border-left:0.5px solid #30363D;
          z-index:901;transform:translateX(100%);
          transition:transform .28s cubic-bezier(.4,0,.2,1);
@@ -1145,18 +1145,13 @@ body{
   <!-- 헤더 -->
   <div style="display:flex;align-items:center;justify-content:space-between;
               padding:14px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
-    <div>
-      <div style="font-size:13px;font-weight:700;color:#E6EDF3;">MacroNews</div>
-      <div style="font-size:8px;color:#484F58;margin-top:1px;">
-        <span id="news-updated">—</span>
-        &nbsp;·&nbsp;
-        <span id="news-countdown"></span>
+    <div style="font-size:13px;font-weight:700;color:#E6EDF3;">News</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="text-align:right;line-height:1.5;">
+        <span id="news-updated" style="font-size:8px;color:#484F58;">—</span>
+        <span style="font-size:8px;color:#30363D;">&nbsp;·&nbsp;</span>
+        <span id="news-countdown" style="font-size:8px;color:#484F58;font-family:monospace;"></span>
       </div>
-    </div>
-    <div style="display:flex;align-items:center;gap:6px;">
-      <span id="news-total-badge"
-        style="font-size:8px;color:#8B949E;background:#21262D;
-               padding:1px 6px;border-radius:3px;font-family:monospace;"></span>
       <button onclick="loadNews(true)" title="새로고침"
         style="background:transparent;border:none;color:#484F58;
                cursor:pointer;font-size:13px;padding:2px;" id="news-refresh-btn">↻</button>
@@ -1261,7 +1256,7 @@ body{
       <span style="font-size:9px;">캘린더</span>
       <span id="led-cal" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
     </button>
-    <button id="hdr-news-btn" onclick="toggleNewsPanel()" title="MacroNews"
+    <button id="hdr-news-btn" onclick="toggleNewsPanel()" title="News"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
              display:flex;align-items:center;gap:4px;transition:all .2s;">
@@ -10774,10 +10769,6 @@ async function loadNews(force = false) {
       const dt = new Date(data.fetchedAt);
       updEl.textContent = dt.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}) + ' 갱신';
     }
-
-    // 총 건수 배지
-    const badge = document.getElementById('news-total-badge');
-    if (badge) badge.textContent = `총 ${_allItems.length}건`;
 
     // LED 점등
     const led = document.getElementById('led-news');
