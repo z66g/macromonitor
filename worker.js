@@ -4324,67 +4324,63 @@ const NEWS_SOURCES = [
 ];
 
 const NEWS_CLASSIFY_RULES = [
-  // 1순위: Fed / 통화정책 — 가장 협소하고 명확한 키워드
+  // 1순위: Fed / 통화정책
   { cat: 'fed', keywords: [
     'federal reserve','fomc','powell','waller','jefferson','barr','kugler',
     'rate hike','rate cut','interest rate','quantitative tightening','quantitative easing',
     'balance sheet','reverse repurchase','sofr','iorb','ioer',
     'monetary policy','taper','fed tightening','fed easing',
-    'central bank speech','boe rate','boj rate','ecb rate',
+    'boe rate','boj rate','ecb rate',
     'lagarde','ueda','bailey',
   ]},
-  // 2순위: 국채 / 재정 — treasury 단독 키워드는 crypto와 충돌 없음
+  // 2순위: 국채 / 재정
   { cat: 'treasury', keywords: [
-    'u.s. treasury','us treasury','treasury department','treasury secretary',
-    't-bill','t-note','t-bond','treasury yield','yield curve',
+    'treasury','t-bill','t-note','t-bond','treasury yield','yield curve',
     'treasury auction','debt issuance','tga balance','debt ceiling',
     'fiscal policy','federal deficit','federal budget',
     'quarterly refunding','qra','bessent','yellen','mnuchin',
   ]},
-  // 3순위: 온체인 / 크립토 — macro보다 먼저 체크 (CoinDesk 기사 선점)
+  // 3순위: 온체인 / 크립토 — 반드시 crypto 전용 용어만 사용
   { cat: 'crypto', keywords: [
-    'bitcoin','btc','ethereum','eth','crypto','cryptocurrency',
+    'bitcoin','btc','ethereum','eth','cryptocurrency','crypto market',
     'blockchain','defi','decentralized finance',
     'stablecoin','usdt','usdc','tether','circle',
-    'rwa','real world asset','tokenized','tokenization',
-    'spot bitcoin etf','spot eth etf','crypto etf','halving',
+    'real world asset','rwa tokeniz','tokenized treasury','tokenized fund',
+    'spot bitcoin etf','spot eth etf','crypto etf','bitcoin halving',
     'coinbase','binance','kraken','okx','bybit',
     'blockworks','on-chain','onchain',
-    'solana','sol','xrp','ripple','cardano','ada','avalanche','avax',
-    'layer 2','layer2','lightning network',
-    'digital asset','digital currency','cbdc',
-    'nft','web3','dex','dao','airdrop',
-    'mining','miner','hash rate','mempool',
-    'crypto wallet','hot wallet','cold wallet',
+    'solana','sol','xrp','ripple','cardano','avalanche','avax',
+    'layer-2','lightning network',
+    'crypto wallet','nft','web3','dex','dao','airdrop',
+    'bitcoin mining','crypto mining','hash rate','mempool',
     'grayscale','microstrategy','strategy bitcoin',
-    'validator','proof of stake','proof of work',
-    'crypto regulation','crypto sec','crypto bill',
-    'token launch','altcoin','market cap crypto',
+    'proof of stake','proof of work',
+    'crypto regulation','crypto bill','digital asset',
+    'altcoin','crypto exchange',
   ]},
   // 4순위: 거시 / 유동성
   { cat: 'macro', keywords: [
     'gdp','inflation','cpi','pce','core inflation',
     'tariff','trade war','trade deficit','sanction',
-    'geopolit','war','conflict','recession','stagflation',
-    'employment','nfp','payroll','jobless claims','unemployment',
-    'manufacturing','pmi','ism index',
-    'dollar index','dxy','yen','fx market','carry trade',
-    'liquidity','credit market','credit spread',
-    'delinquency','fed funds rate','overnight rate',
-    'zerohedge','wall street journal','wsj market',
+    'geopolit','recession','stagflation',
+    'nfp','payroll','jobless claims','unemployment',
+    'pmi','ism index',
+    'dollar index','dxy','fx market','carry trade',
+    'liquidity','credit spread','delinquency',
+    'zerohedge','wall street journal',
   ]},
   // 5순위: 하드테크 / 인프라
   { cat: 'hardtech', keywords: [
     'semiconductor','chip','chipmaker','wafer',
-    'nvidia','tsmc','amd','intel','arm','qualcomm','broadcom','asml',
-    'ai infrastructure','ai chip','gpu cluster',
+    'nvidia','tsmc','amd','intel','arm holdings','qualcomm','broadcom','asml',
+    'ai infrastructure','ai chip','gpu cluster','ai accelerator',
     'data center','datacenter','hyperscaler',
-    'power grid','electricity demand','smr','small modular reactor','nuclear power',
-    'utility','energy storage','battery storage',
+    'power grid','electricity demand','grid operator',
+    'smr','small modular reactor','nuclear power plant',
+    'utility','energy storage','battery storage','renewable energy',
     'quantum computing','quantum computer',
     'biotech','biopharma','fda approval','fda clearance',
     'clinical trial','phase 3','drug approval','mrna','gene therapy','gene editing','crispr',
-    'semianalysis','ars technica','utility dive','fierce biotech',
   ]},
 ];
 
