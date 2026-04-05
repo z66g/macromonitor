@@ -4189,33 +4189,40 @@ async function fetchOnchainMacro() {
 //  /news       → KV 캐시 사용 (TTL 1시간, 실서비스용)
 // ═══════════════════════════════════════════════════════════════
 
+// ── 카테고리 정의 ──────────────────────────────────────────────
+// fed      : 연준·중앙은행 통화정책
+// treasury : 미 재무부·국채·재정
+// macro    : 글로벌 거시·유동성
+// hardtech : AI반도체·에너지·바이오 하드테크
+// crypto   : 온체인·RWA·기관자금이동
+
 const NEWS_SOURCES = [
+
+  // ── 1. MACRO & PLUMBING ───────────────────────────────────────
   {
     id: 'fed_press',
     name: 'Federal Reserve Press',
     url: 'https://www.federalreserve.gov/feeds/press_all.xml',
     cat: 'fed',
+    tier: 1,  // 1차 원문 소스
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
   },
   {
     id: 'us_treasury',
-    name: 'US Treasury',
-    url: 'https://home.treasury.gov/rss.xml',
+    name: 'US Treasury Press',
+    url: 'https://home.treasury.gov/news/press-releases/rss.xml',
     cat: 'treasury',
+    tier: 1,
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
-  },
-  {
-    id: 'ecb_press',
-    name: 'ECB Press',
-    url: 'https://www.ecb.europa.eu/rss/press.html',
-    cat: 'fx',
-    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
+    // 실패 시 fallback
+    fallbackUrl: 'https://home.treasury.gov/rss.xml',
   },
   {
     id: 'bis_press',
     name: 'BIS Press Releases',
     url: 'https://www.bis.org/doclist/all_pressrels.rss',
-    cat: 'credit',
+    cat: 'macro',
+    tier: 1,
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
   },
   {
@@ -4223,59 +4230,105 @@ const NEWS_SOURCES = [
     name: 'BIS Central Bank Speeches',
     url: 'https://www.bis.org/doclist/cbspeeches.rss',
     cat: 'fed',
+    tier: 1,
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
   },
   {
-    id: 'ap_economy',
-    name: 'Yahoo Finance',
-    url: 'https://finance.yahoo.com/rss/topfinstories',
+    id: 'zerohedge',
+    name: 'ZeroHedge',
+    url: 'https://feeds.feedburner.com/zerohedge/feed',
     cat: 'macro',
+    tier: 2,
+    // ⚠️ ZeroHedge는 Cloudflare 보호 → CF Worker에서 530 가능성 있음
+    // feedburner 경유로 우회 시도; 실패 시 rsshub fallback
+    fallbackUrl: 'https://rsshub.app/zerohedge/news',
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+      'Accept': 'application/rss+xml,text/xml,*/*',
+      'Referer': 'https://www.google.com/',
+    },
+  },
+  {
+    id: 'wsj_economy',
+    name: 'WSJ Economy',
+    url: 'https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml',
+    cat: 'macro',
+    tier: 2,
+    // ⚠️ WSJ 페이월 → 제목/요약만 파싱, 본문 차단됨. 타이틀 시그널만으로도 가치 있음
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)',
+      'Accept': 'application/rss+xml,text/xml,*/*',
+    },
+    fallbackUrl: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml',
+  },
+
+  // ── 2. HARD TECH & INFRA ──────────────────────────────────────
+  {
+    id: 'semianalysis',
+    name: 'SemiAnalysis',
+    url: 'https://www.semianalysis.com/feed',
+    cat: 'hardtech',
+    tier: 1,
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
   },
   {
-    id: 'cnbc_economy',
-    name: 'CNBC Economy',
-    url: 'https://www.cnbc.com/id/20910258/device/rss/rss.html',
-    cat: 'macro',
+    id: 'ars_science',
+    name: 'Ars Technica Science',
+    url: 'http://feeds.arstechnica.com/arstechnica/science',
+    cat: 'hardtech',
+    tier: 2,
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
   },
   {
-    id: 'investing_macro',
-    name: 'Investing.com Macro',
-    url: 'https://www.investing.com/rss/news.rss',
-    cat: 'macro',
-    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
+    id: 'ars_tech',
+    name: 'Ars Technica Tech-Lab',
+    url: 'http://feeds.arstechnica.com/arstechnica/technology-lab',
+    cat: 'hardtech',
+    tier: 2,
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+  {
+    id: 'utility_dive',
+    name: 'Utility Dive',
+    url: 'https://www.utilitydive.com/feeds/news/',
+    cat: 'hardtech',
+    tier: 2,
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+  {
+    id: 'fierce_biotech',
+    name: 'FierceBiotech',
+    url: 'https://www.fiercebiotech.com/rss/xml',
+    cat: 'hardtech',
+    tier: 2,
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+
+  // ── 3. ON-CHAIN & RWA ─────────────────────────────────────────
+  {
+    id: 'blockworks',
+    name: 'Blockworks',
+    url: 'https://blockworks.co/feed',
+    cat: 'crypto',
+    tier: 1,
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
   },
   {
     id: 'coindesk',
     name: 'CoinDesk',
     url: 'https://www.coindesk.com/arc/outboundfeeds/rss/',
     cat: 'crypto',
+    tier: 2,
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
-  },
-  {
-    id: 'theblock',
-    name: 'The Block',
-    url: 'https://www.theblock.co/rss.xml',
-    cat: 'crypto',
-    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
-  },
-  {
-    id: 'ft_economy',
-    name: 'FT Global Economy',
-    url: 'https://www.ft.com/global-economy?format=rss',
-    cat: 'macro',
-    headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)', 'Accept': 'application/rss+xml,text/xml,*/*' },
   },
 ];
 
 const NEWS_CLASSIFY_RULES = [
-  { cat: 'fed',      keywords: ['federal reserve','fomc','powell','rate hike','rate cut','interest rate','quantitative','balance sheet','rrp','repo','sofr','iorb','monetary policy','taper','tightening','easing'] },
-  { cat: 'treasury', keywords: ['treasury','t-bill','t-note','t-bond','yield curve','coupon','auction','issuance','tga','debt ceiling','fiscal','deficit','budget'] },
-  { cat: 'fx',       keywords: ['dollar index','dxy','yen','eur/usd','gbp/usd','jpy','cny','rmb','forex','exchange rate','carry trade','ecb','boj','boe','currency'] },
-  { cat: 'credit',   keywords: ['credit spread','oas','high yield','investment grade','cds','default','clo','mbs','abs','sloos','lending standard','delinquency','leverage loan'] },
-  { cat: 'crypto',   keywords: ['bitcoin','btc','ethereum','eth','crypto','blockchain','defi','stablecoin','usdt','usdc','rwa','tokenized','spot etf','halving','coinbase'] },
-  { cat: 'macro',    keywords: ['gdp','inflation','cpi','pce','tariff','trade war','sanction','geopolit','recession','employment','nfp','payroll','manufacturing','pmi','ism'] },
+  { cat: 'fed',      keywords: ['federal reserve','fomc','powell','waller','jefferson','rate hike','rate cut','interest rate','quantitative','balance sheet','rrp','reverse repo','sofr','iorb','monetary policy','taper','tightening','easing','central bank speech','boe','boj','ecb','lagarde','ueda'] },
+  { cat: 'treasury', keywords: ['treasury','t-bill','t-note','t-bond','yield curve','coupon','auction','issuance','tga','debt ceiling','fiscal','deficit','budget','qra','quarterly refunding','bessent','yellen'] },
+  { cat: 'macro',    keywords: ['gdp','inflation','cpi','pce','tariff','trade war','sanction','geopolit','recession','employment','nfp','payroll','manufacturing','pmi','ism','dollar','dxy','liquidity','credit','spread','delinquency','zerohedge','wsj','wall street','fed funds'] },
+  { cat: 'hardtech', keywords: ['semiconductor','chip','nvidia','tsmc','amd','intel','arm','ai infrastructure','data center','datacenter','power grid','smr','nuclear','utility','energy','quantum','biotech','fda','clinical trial','drug','mrna','gene','semianalysis','ars technica','fierce'] },
+  { cat: 'crypto',   keywords: ['bitcoin','btc','ethereum','eth','crypto','blockchain','defi','stablecoin','usdt','usdc','rwa','tokenized','spot etf','halving','coinbase','blockworks','on-chain','onchain','solana','sol','layer'] },
 ];
 
 function newsClassify(title, summary, fallbackCat = 'macro') {
@@ -4316,27 +4369,59 @@ function newsParseRSS(xmlText) {
 
 async function newsFetchSource(src) {
   const t0 = Date.now();
-  try {
-    const resp = await fetch(src.url, {
+
+  const tryFetch = async (url) => {
+    const resp = await fetch(url, {
       headers: src.headers || {},
       signal: AbortSignal.timeout(10000),
       cf: { cacheTtl: 300 },
     });
-    if (!resp.ok) return { id: src.id, name: src.name, cat: src.cat, ok: false, error: `HTTP ${resp.status}`, ms: Date.now()-t0, items: [] };
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const xml = await resp.text();
-    if (!xml || xml.length < 100) return { id: src.id, name: src.name, cat: src.cat, ok: false, error: '빈 응답', ms: Date.now()-t0, items: [] };
-    const raw = newsParseRSS(xml);
-    if (!raw.length) return { id: src.id, name: src.name, cat: src.cat, ok: false, error: 'XML 파싱 0건', ms: Date.now()-t0, items: [] };
-    const items = raw.slice(0, 20).map(item => ({
-      ...item,
-      sourceId:   src.id,
-      sourceName: src.name,
-      cat: newsClassify(item.title, item.summary, src.cat),
-    }));
-    return { id: src.id, name: src.name, cat: src.cat, ok: true, count: items.length, ms: Date.now()-t0, items };
+    if (!xml || xml.length < 100) throw new Error('빈 응답');
+    return xml;
+  };
+
+  let xml = null;
+  let usedUrl = src.url;
+  let fetchErr = null;
+
+  try {
+    xml = await tryFetch(src.url);
   } catch(e) {
-    return { id: src.id, name: src.name, cat: src.cat, ok: false, error: e.message?.slice(0,80)||'오류', ms: Date.now()-t0, items: [] };
+    fetchErr = e.message;
+    if (src.fallbackUrl) {
+      try {
+        xml = await tryFetch(src.fallbackUrl);
+        usedUrl = src.fallbackUrl;
+        fetchErr = null;
+      } catch(e2) {
+        fetchErr = `${fetchErr} / fallback: ${e2.message}`;
+      }
+    }
   }
+
+  if (!xml) {
+    return { id: src.id, name: src.name, cat: src.cat, tier: src.tier||2,
+             ok: false, error: fetchErr?.slice(0,120)||'오류', ms: Date.now()-t0, items: [] };
+  }
+
+  const raw = newsParseRSS(xml);
+  if (!raw.length) {
+    return { id: src.id, name: src.name, cat: src.cat, tier: src.tier||2,
+             ok: false, error: 'XML 파싱 0건', usedUrl, ms: Date.now()-t0, items: [] };
+  }
+
+  const items = raw.slice(0, 20).map(item => ({
+    ...item,
+    sourceId:   src.id,
+    sourceName: src.name,
+    tier:       src.tier || 2,
+    cat: newsClassify(item.title, item.summary, src.cat),
+  }));
+
+  return { id: src.id, name: src.name, cat: src.cat, tier: src.tier||2,
+           ok: true, count: items.length, usedUrl, ms: Date.now()-t0, items };
 }
 
 async function newsFetchAll() {
