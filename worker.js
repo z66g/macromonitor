@@ -4535,7 +4535,6 @@ async function newsEndpoint(env, isFresh, ctx) {
   if (!isFresh) {
     const cached = await kvGet(env, KV_KEYS.newsCache);
     if (cached) {
-      // 캐시 히트 시 최신 번역 맵 적용
       applyTransMapToItems(cached.items || [], transMap);
       return new Response(JSON.stringify({ ...cached, _fromCache: true }), { headers: CORS });
     }
@@ -4544,18 +4543,29 @@ async function newsEndpoint(env, isFresh, ctx) {
   // 1. RSS 파싱
   const data = await newsFetchAll(env);
 
-  // 2. 현재 번역 맵 즉시 적용 (캐시에 있는 것만, 나머지는 원문)
+  // 2. 신규 기사 중 최대 30건 동기 번역
+  //    응답이 5~8초 걸리지만 확실하게 KV에 저장됨
+  if (env?.ANTHROPIC_API_KEY) {
+    const uncached = data.items.filter(item => {
+      const key = newsTransKey(item);
+      return key && !transMap[key];
+    }).slice(0, 30);
+
+    if (uncached.length > 0) {
+      const success = await translateViaClaude(uncached, env, transMap);
+      if (success) {
+        // 번역 맵 즉시 저장 (await — 반드시 완료 보장)
+        await newsSaveTransMap(env, transMap, null);
+      }
+    }
+  }
+
+  // 3. 전체 기사에 번역 적용
   applyTransMapToItems(data.items, transMap);
 
-  // 3. 뉴스 캐시 저장 (번역 여부 상관없이 즉시)
+  // 4. 뉴스 캐시 저장 (번역 포함 상태로)
   const putP = kvPut(env, KV_KEYS.newsCache, data, KV_TTL.newsCache);
   if (ctx?.waitUntil) ctx.waitUntil(putP); else await putP;
-
-  // 4. 신규 기사 번역 → 백그라운드 실행 (응답 블로킹 없음)
-  //    Anthropic API = 일반 fetch → ctx.waitUntil에서 정상 작동
-  if (ctx?.waitUntil && env?.ANTHROPIC_API_KEY) {
-    ctx.waitUntil(newsTranslateBackground(data.items, transMap, env));
-  }
 
   return new Response(JSON.stringify(data), { headers: CORS });
 }
@@ -4662,9 +4672,8 @@ ${inputJson}
         await sleep(waitMs);
         continue;
       }
-      // 최대 재시도 초과 → 조용히 실패 (영문 유지)
       console.warn('[Trans] Rate limit 초과, 이번 배치 건너뜀');
-      return;
+      return false; // ← 명시적 실패 반환
     }
 
     if (!res.ok) {
@@ -4687,8 +4696,9 @@ ${inputJson}
       const key = newsTransKey(srcItem);
       if (key) transMap[key] = { titleKo: t.titleKo || '', summaryKo: t.summaryKo || '' };
     });
-    return; // 성공
+    return true; // ← 명시적 성공 반환
   }
+  return false;
 }
 
 // 번역 맵을 기사 배열에 in-place 적용
@@ -4700,51 +4710,6 @@ function applyTransMapToItems(items, transMap) {
       item.summaryKo = transMap[key].summaryKo || null;
     }
   }
-}
-
-// 백그라운드 번역 (ctx.waitUntil로 실행)
-// 완료 후 번역맵 + 뉴스캐시 모두 갱신 → 다음 캐시 히트 시 즉시 한국어
-async function newsTranslateBackground(items, transMap, env) {
-  if (!env?.ANTHROPIC_API_KEY) return;
-
-  const uncached = items.filter(item => {
-    const key = newsTransKey(item);
-    return key && !transMap[key];
-  });
-
-  if (uncached.length === 0) return;
-
-  // 30건씩 배치 처리 (Sonnet 1회 호출 = 30건)
-  const BATCH = 30;
-  let hasNew = false;
-
-  for (let i = 0; i < uncached.length; i += BATCH) {
-    const batch = uncached.slice(i, i + BATCH);
-    try {
-      await translateViaClaude(batch, env, transMap);
-      hasNew = true;
-    } catch(e) {
-      console.error(`[Trans BG] 배치 ${i} 실패:`, e.message);
-    }
-  }
-
-  if (!hasNew) return;
-
-  // 번역맵 KV 저장
-  await newsSaveTransMap(env, transMap, null);
-
-  // 기사에 번역 적용 후 뉴스캐시 갱신
-  applyTransMapToItems(items, transMap);
-  await env.MMF_KV.put(
-    KV_KEYS.newsCache,
-    JSON.stringify({
-      fetchedAt:     new Date().toISOString(),
-      totalItems:    items.length,
-      items,
-      _translatedAt: new Date().toISOString(),
-    }),
-    { expirationTtl: KV_TTL.newsCache }
-  );
 }
 
 // ── 번역 디버그 엔드포인트 (/news-trans-debug) ─────────────────
