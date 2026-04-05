@@ -4507,7 +4507,7 @@ async function newsFetchSource(src) {
            ok: true, count: items.length, usedUrl, ms: Date.now()-t0, items };
 }
 
-async function newsFetchAll(env, ctx) {
+async function newsFetchAll(env) {
   const results = await Promise.all(NEWS_SOURCES.map(newsFetchSource));
   const allItems = [];
   const sourceStats = [];
@@ -4522,12 +4522,6 @@ async function newsFetchAll(env, ctx) {
   });
   const catCount = {};
   for (const item of allItems) { catCount[item.cat] = (catCount[item.cat]||0) + 1; }
-
-  // ── 번역 적용 (env가 있을 때만) ──────────────────────────────
-  if (env) {
-    await newsApplyTranslation(allItems, env, ctx);
-  }
-
   return { fetchedAt: new Date().toISOString(), totalItems: allItems.length, sourceStats, catCount, items: allItems };
 }
 
@@ -4537,9 +4531,24 @@ async function newsEndpoint(env, isFresh, ctx) {
     const cached = await kvGet(env, KV_KEYS.newsCache);
     if (cached) return new Response(JSON.stringify({ ...cached, _fromCache: true }), { headers: CORS });
   }
-  const data = await newsFetchAll(env, ctx);
-  const putP = kvPut(env, KV_KEYS.newsCache, data, KV_TTL.newsCache);
-  if (ctx?.waitUntil) ctx.waitUntil(putP); else await putP;
+
+  // 1. RSS 파싱 (빠름)
+  const data = await newsFetchAll(env);
+
+  // 2. 기존 번역 캐시를 즉시 적용 (이미 번역된 것만 붙임)
+  const transMap = await newsLoadTransMap(env);
+  applyTransMapToItems(data.items, transMap);
+
+  // 3. 응답 저장 (번역 포함 현재 상태)
+  const putNewsP = kvPut(env, KV_KEYS.newsCache, data, KV_TTL.newsCache);
+  if (ctx?.waitUntil) ctx.waitUntil(putNewsP); else await putNewsP;
+
+  // 4. 신규 기사 번역은 백그라운드에서 실행 (응답 블로킹 없음)
+  //    완료되면 KV의 번역 캐시만 업데이트 → 다음 요청부터 반영
+  if (ctx?.waitUntil && env?.GEMINI_API_KEY) {
+    ctx.waitUntil(newsTranslateBackground(data.items, transMap, env));
+  }
+
   return new Response(JSON.stringify(data), { headers: CORS });
 }
 
@@ -4636,63 +4645,51 @@ ${inputJson}
   return JSON.parse(cleaned); // [{ id, titleKo, summaryKo }, ...]
 }
 
-// 전체 번역 파이프라인
-// 1. 캐시 로드 → 2. 신규만 배치 번역 → 3. 캐시 저장 → 4. 기사에 적용
-async function newsApplyTranslation(items, env, ctx) {
-  if (!env?.GEMINI_API_KEY) return; // API 키 없으면 스킵
-
-  // 1. 기존 번역 캐시 로드
-  const transMap = await newsLoadTransMap(env);
-
-  // 2. 캐시에 없는 신규 기사만 추출
+// 백그라운드 번역 작업 (ctx.waitUntil로 실행 — 응답 블로킹 없음)
+// 완료 후 KV 번역 캐시만 업데이트, 뉴스 캐시는 다음 갱신 시 반영
+async function newsTranslateBackground(items, transMap, env) {
   const uncached = items.filter(item => {
     const key = newsTransKey(item);
     return key && !transMap[key];
   });
 
-  if (uncached.length === 0) {
-    // 전부 캐시 히트 → 바로 적용
-    applyTransMapToItems(items, transMap);
-    return;
-  }
+  if (uncached.length === 0) return;
 
-  // 3. 15건씩 배치 처리
   const BATCH_SIZE = 15;
-  let hasNewTranslations = false;
+  let hasNew = false;
 
   for (let i = 0; i < uncached.length; i += BATCH_SIZE) {
     const batch = uncached.slice(i, i + BATCH_SIZE);
     try {
       const translated = await translateViaGemini(batch, env);
-
-      // 결과를 캐시 맵에 저장
       translated.forEach(t => {
         const srcItem = batch[parseInt(t.id, 10)];
         if (!srcItem) return;
         const key = newsTransKey(srcItem);
         if (key) {
           transMap[key] = { titleKo: t.titleKo || '', summaryKo: t.summaryKo || '' };
-          hasNewTranslations = true;
+          hasNew = true;
         }
       });
-
-      // 배치 간 Rate Limit 대응 (분당 15회 → 4초 간격이면 안전)
+      // 배치 간 간격 (Rate Limit: 15 RPM → 4초)
       if (i + BATCH_SIZE < uncached.length) {
         await new Promise(r => setTimeout(r, 4000));
       }
-
     } catch(e) {
-      console.error(`[Trans] 배치 ${i}~${i+BATCH_SIZE-1} 번역 실패:`, e.message);
-      // 실패한 배치는 원문 유지 → 계속 진행
+      console.error(`[Trans BG] 배치 ${i} 실패:`, e.message);
     }
   }
 
-  // 4. 신규 번역이 생겼으면 KV 업데이트
-  if (hasNewTranslations) {
-    await newsSaveTransMap(env, transMap, ctx);
+  // 번역 캐시만 KV 업데이트 (뉴스 캐시는 다음 30분 갱신 시 반영)
+  if (hasNew) {
+    await newsSaveTransMap(env, transMap, null);
   }
+}
 
-  // 5. 전체 기사에 번역 적용
+// 전체 번역 파이프라인 (레거시 — 현재 미사용, 참조용 유지)
+async function newsApplyTranslation(items, env, ctx) {
+  if (!env?.GEMINI_API_KEY) return;
+  const transMap = await newsLoadTransMap(env);
   applyTransMapToItems(items, transMap);
 }
 
