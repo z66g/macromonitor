@@ -4227,8 +4227,8 @@ const NEWS_SOURCES = [
   },
   {
     id: 'ap_economy',
-    name: 'AP News Economy',
-    url: 'https://feeds.apnews.com/rss/apf-economy',
+    name: 'Yahoo Finance',
+    url: 'https://finance.yahoo.com/rss/topfinstories',
     cat: 'macro',
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
   },
