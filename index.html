@@ -1176,18 +1176,24 @@ body{
   </div>
 
   <!-- 카테고리 탭 -->
-  <div style="display:flex;border-bottom:0.5px solid #21262D;flex-shrink:0;padding:0 4px;">
+  <div style="display:flex;border-bottom:0.5px solid #21262D;flex-shrink:0;padding:0 2px;overflow-x:auto;">
     <button class="np-tab-btn active"
-      style="border:none;border-bottom:2px solid #F0B429;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:5px;"
+      style="border:none;border-bottom:2px solid #F0B429;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
       onclick="newsTabFilter('all',this)">전체</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:5px;"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
+      onclick="newsTabFilter('fed',this)"><span style="width:6px;height:6px;border-radius:50%;background:#58A6FF;flex-shrink:0;display:inline-block;"></span>Fed</button>
+    <button class="np-tab-btn"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
+      onclick="newsTabFilter('treasury',this)"><span style="width:6px;height:6px;border-radius:50%;background:#3FB950;flex-shrink:0;display:inline-block;"></span>국채</button>
+    <button class="np-tab-btn"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
       onclick="newsTabFilter('macro',this)"><span style="width:6px;height:6px;border-radius:50%;background:#F0B429;flex-shrink:0;display:inline-block;"></span>거시</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:5px;"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
       onclick="newsTabFilter('tech',this)"><span style="width:6px;height:6px;border-radius:50%;background:#FF7B72;flex-shrink:0;display:inline-block;"></span>기술</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:5px;"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
       onclick="newsTabFilter('onchain',this)"><span style="width:6px;height:6px;border-radius:50%;background:#A8B2BF;flex-shrink:0;display:inline-block;"></span>온체인</button>
   </div>
 
@@ -10738,9 +10744,11 @@ function newsTabFilter(val, btn) {
     b.style.borderBottomColor = 'transparent';
   });
   btn.classList.add('active');
-  // 탭 언더라인 색상
-  const underlineColor = val === 'all' ? '#F0B429' : val === 'macro' ? '#F0B429' :
-                         val === 'tech' ? '#FF7B72' : '#A8B2BF';
+  // 탭별 언더라인 색상
+  const underlineColor = {
+    all: '#F0B429', fed: '#58A6FF', treasury: '#3FB950',
+    macro: '#F0B429', tech: '#FF7B72', onchain: '#A8B2BF'
+  }[val] || '#F0B429';
   btn.style.borderBottomColor = underlineColor;
   _expandedId = null;
   renderNews();
@@ -10793,10 +10801,12 @@ function renderNews() {
   const list = document.getElementById('news-list');
   if (!list) return;
 
-  // 1. 탭 필터
+  // 1. 탭 필터 (각 탭이 개별 카테고리에 1:1 대응)
   let items = _allItems;
   if (_tabFilter !== 'all') {
-    items = items.filter(n => (CAT[n.cat]?.tab) === _tabFilter);
+    const catMap = { fed: 'fed', treasury: 'treasury', macro: 'macro', tech: 'hardtech', onchain: 'crypto' };
+    const targetCat = catMap[_tabFilter];
+    items = items.filter(n => n.cat === targetCat);
   }
 
   // 2. 시간 필터
@@ -10822,11 +10832,8 @@ function renderNews() {
     return;
   }
 
-  // 배지 표시 조건:
-  // 전체 탭 → 모든 카테고리 배지 표시
-  // 거시 탭 → Fed/국채/거시 서브배지 표시 (세 카테고리 혼재)
-  // 기술/온체인 탭 → 단일 카테고리이므로 배지 불필요
-  const showBadge = (_tabFilter === 'all' || _tabFilter === 'macro');
+  // 전체 탭에서만 배지 표시 (개별 탭은 단일 카테고리라 불필요)
+  const showBadge = (_tabFilter === 'all');
 
   // _filteredItems 저장 (클릭 핸들러에서 인덱스로 참조)
   list._items = items;
