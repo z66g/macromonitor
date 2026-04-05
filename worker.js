@@ -116,6 +116,7 @@ export default {
       if (path.startsWith('/auction-html-debug')) return await auctionHtmlDebug();
 
       // ── 뉴스 피드 ──────────────────────────────────────────
+      if (path.startsWith('/news-trans-debug')) return await newsTransDebug(env);
       if (path.startsWith('/news-test')) return await newsEndpoint(env, true,  ctx); // 항상 fresh
       if (path.startsWith('/news'))      return await newsEndpoint(env, force, ctx); // force=1 시 캐시 무시
 
@@ -4719,4 +4720,61 @@ function applyTransMapToItems(items, transMap) {
       item.summaryKo = transMap[key].summaryKo || null;
     }
   }
+}
+
+// ── 번역 디버그 엔드포인트 (/news-trans-debug) ─────────────────
+async function newsTransDebug(env) {
+  const result = {};
+
+  // 1. API 키 확인
+  result.gemini_key_set = !!env?.GEMINI_API_KEY;
+  result.gemini_key_prefix = env?.GEMINI_API_KEY?.slice(0, 8) + '...' || 'MISSING';
+
+  // 2. 번역 캐시 현황
+  try {
+    const transMap = await newsLoadTransMap(env);
+    const keys = Object.keys(transMap);
+    result.trans_cache_count = keys.length;
+    result.trans_cache_sample = keys.slice(0, 2).map(k => ({
+      key: k.slice(0, 60),
+      titleKo: transMap[k]?.titleKo?.slice(0, 40),
+    }));
+  } catch(e) {
+    result.trans_cache_error = e.message;
+  }
+
+  // 3. 뉴스 캐시 현황
+  try {
+    const newsCache = await kvGet(env, KV_KEYS.newsCache);
+    if (newsCache) {
+      const sample = (newsCache.items || []).slice(0, 3);
+      result.news_cache_count = (newsCache.items || []).length;
+      result.news_cache_sample = sample.map(n => ({
+        title: n.title?.slice(0, 40),
+        titleKo: n.titleKo?.slice(0, 40) || '(없음)',
+        hasKo: !!n.titleKo,
+      }));
+      result.news_cache_translatedAt = newsCache._translatedAt || '없음';
+    } else {
+      result.news_cache = '없음';
+    }
+  } catch(e) {
+    result.news_cache_error = e.message;
+  }
+
+  // 4. Gemini 테스트 번역 (1건)
+  try {
+    const testBatch = [{ title: 'Federal Reserve holds interest rates steady', summary: 'The Fed kept rates unchanged at its latest meeting.' }];
+    const translated = await translateViaGemini(testBatch, env);
+    result.gemini_test = {
+      ok: true,
+      input: testBatch[0].title,
+      titleKo: translated[0]?.titleKo,
+      summaryKo: translated[0]?.summaryKo,
+    };
+  } catch(e) {
+    result.gemini_test = { ok: false, error: e.message };
+  }
+
+  return new Response(JSON.stringify(result, null, 2), { headers: CORS });
 }
