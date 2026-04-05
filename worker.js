@@ -118,6 +118,7 @@ export default {
       // ── 뉴스 피드 ──────────────────────────────────────────
       if (path.startsWith('/news-trans-debug')) return await newsTransDebug(env);
       if (path.startsWith('/news-trans-flush')) return await newsTransFlush(env);
+      if (path.startsWith('/news-translate'))   return await newsTranslateEndpoint(env);
       if (path.startsWith('/news-test')) return await newsEndpoint(env, true,  ctx); // 항상 fresh
       if (path.startsWith('/news'))      return await newsEndpoint(env, force, ctx); // force=1 시 캐시 무시
 
@@ -4529,7 +4530,7 @@ async function newsFetchAll(env) {
 
 // isFresh=true → 캐시 무시, false → 캐시 사용
 async function newsEndpoint(env, isFresh, ctx) {
-  // 번역 맵 항상 최신으로 로드
+  // 번역 맵 로드 (있는 것만 적용)
   const transMap = await newsLoadTransMap(env);
 
   if (!isFresh) {
@@ -4540,34 +4541,62 @@ async function newsEndpoint(env, isFresh, ctx) {
     }
   }
 
-  // 1. RSS 파싱
+  // RSS 파싱 후 번역 적용 (캐시에 있는 것만) → 즉시 반환
   const data = await newsFetchAll(env);
-
-  // 2. 신규 기사 중 최대 30건 동기 번역
-  //    응답이 5~8초 걸리지만 확실하게 KV에 저장됨
-  if (env?.ANTHROPIC_API_KEY) {
-    const uncached = data.items.filter(item => {
-      const key = newsTransKey(item);
-      return key && !transMap[key];
-    }).slice(0, 30);
-
-    if (uncached.length > 0) {
-      const success = await translateViaClaude(uncached, env, transMap);
-      if (success) {
-        // 번역 맵 즉시 저장 (await — 반드시 완료 보장)
-        await newsSaveTransMap(env, transMap, null);
-      }
-    }
-  }
-
-  // 3. 전체 기사에 번역 적용
   applyTransMapToItems(data.items, transMap);
 
-  // 4. 뉴스 캐시 저장 (번역 포함 상태로)
   const putP = kvPut(env, KV_KEYS.newsCache, data, KV_TTL.newsCache);
   if (ctx?.waitUntil) ctx.waitUntil(putP); else await putP;
 
   return new Response(JSON.stringify(data), { headers: CORS });
+}
+
+// 번역 전용 엔드포인트 (/news-translate)
+// 느려도 됨 — 완료 후 KV 갱신, 다음 /news 요청부터 한국어 반환
+async function newsTranslateEndpoint(env) {
+  if (!env?.ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY 없음' }), { headers: CORS });
+  }
+
+  const transMap  = await newsLoadTransMap(env);
+  const newsCache = await kvGet(env, KV_KEYS.newsCache);
+  const items     = newsCache?.items || [];
+
+  if (items.length === 0) {
+    return new Response(JSON.stringify({ error: '뉴스 캐시 없음. /news?force=1 먼저 호출' }), { headers: CORS });
+  }
+
+  const uncached = items.filter(item => {
+    const key = newsTransKey(item);
+    return key && !transMap[key];
+  }).slice(0, 30);
+
+  if (uncached.length === 0) {
+    return new Response(JSON.stringify({ ok: true, message: '신규 번역 없음 (전부 캐시)', cached: Object.keys(transMap).length }), { headers: CORS });
+  }
+
+  const success = await translateViaClaude(uncached, env, transMap);
+
+  if (!success) {
+    return new Response(JSON.stringify({ ok: false, error: 'Rate limit 또는 번역 실패' }), { headers: CORS });
+  }
+
+  // 번역맵 저장
+  await newsSaveTransMap(env, transMap, null);
+
+  // 뉴스캐시 갱신 (번역 적용)
+  applyTransMapToItems(items, transMap);
+  await env.MMF_KV.put(
+    KV_KEYS.newsCache,
+    JSON.stringify({ ...newsCache, items, _translatedAt: new Date().toISOString() }),
+    { expirationTtl: KV_TTL.newsCache }
+  );
+
+  return new Response(JSON.stringify({
+    ok: true,
+    translated: uncached.length,
+    totalCached: Object.keys(transMap).length,
+  }), { headers: CORS });
 }
 
 // ═══════════════════════════════════════════════════════════════
