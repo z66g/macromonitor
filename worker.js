@@ -117,7 +117,7 @@ export default {
 
       // ── 뉴스 피드 ──────────────────────────────────────────
       if (path.startsWith('/news-test')) return await newsEndpoint(env, true,  ctx); // 항상 fresh
-      if (path.startsWith('/news'))      return await newsEndpoint(env, false, ctx); // KV 캐시 사용
+      if (path.startsWith('/news'))      return await newsEndpoint(env, force, ctx); // force=1 시 캐시 무시
 
       return json({ error: 'Unknown route' }, 404);
     } catch(e) {
@@ -4525,28 +4525,33 @@ async function newsFetchAll(env) {
   return { fetchedAt: new Date().toISOString(), totalItems: allItems.length, sourceStats, catCount, items: allItems };
 }
 
-// isFresh=true → 캐시 무시 (/news-test), false → 캐시 사용 (/news)
+// isFresh=true → 캐시 무시, false → 캐시 사용
 async function newsEndpoint(env, isFresh, ctx) {
+  // 번역 맵은 항상 최신으로 로드 (KV 단순 읽기라 빠름)
+  const transMap = await newsLoadTransMap(env);
+
   if (!isFresh) {
     const cached = await kvGet(env, KV_KEYS.newsCache);
-    if (cached) return new Response(JSON.stringify({ ...cached, _fromCache: true }), { headers: CORS });
+    if (cached) {
+      // 캐시 히트 시에도 최신 번역 맵 적용 → 백그라운드 번역 결과 즉시 반영
+      applyTransMapToItems(cached.items || [], transMap);
+      return new Response(JSON.stringify({ ...cached, _fromCache: true }), { headers: CORS });
+    }
   }
 
-  // 1. RSS 파싱 (빠름)
+  // 1. RSS 파싱
   const data = await newsFetchAll(env);
 
-  // 2. 기존 번역 캐시를 즉시 적용 (이미 번역된 것만 붙임)
-  const transMap = await newsLoadTransMap(env);
+  // 2. 현재 번역 캐시 즉시 적용
   applyTransMapToItems(data.items, transMap);
 
-  // 3. 응답 저장 (번역 포함 현재 상태)
+  // 3. 뉴스 캐시 저장
   const putNewsP = kvPut(env, KV_KEYS.newsCache, data, KV_TTL.newsCache);
   if (ctx?.waitUntil) ctx.waitUntil(putNewsP); else await putNewsP;
 
-  // 4. 신규 기사 번역은 백그라운드에서 실행 (응답 블로킹 없음)
-  //    완료되면 KV의 번역 캐시만 업데이트 → 다음 요청부터 반영
+  // 4. 신규 기사 번역 → 백그라운드 실행
   if (ctx?.waitUntil && env?.GEMINI_API_KEY) {
-    ctx.waitUntil(newsTranslateBackground(data.items, transMap, env));
+    ctx.waitUntil(newsTranslateBackground(data.items, transMap, env, KV_KEYS.newsCache, KV_TTL.newsCache));
   }
 
   return new Response(JSON.stringify(data), { headers: CORS });
@@ -4646,8 +4651,7 @@ ${inputJson}
 }
 
 // 백그라운드 번역 작업 (ctx.waitUntil로 실행 — 응답 블로킹 없음)
-// 완료 후 KV 번역 캐시만 업데이트, 뉴스 캐시는 다음 갱신 시 반영
-async function newsTranslateBackground(items, transMap, env) {
+async function newsTranslateBackground(items, transMap, env, newsCacheKey, newsCacheTtl) {
   const uncached = items.filter(item => {
     const key = newsTransKey(item);
     return key && !transMap[key];
@@ -4671,7 +4675,6 @@ async function newsTranslateBackground(items, transMap, env) {
           hasNew = true;
         }
       });
-      // 배치 간 간격 (Rate Limit: 15 RPM → 4초)
       if (i + BATCH_SIZE < uncached.length) {
         await new Promise(r => setTimeout(r, 4000));
       }
@@ -4680,10 +4683,24 @@ async function newsTranslateBackground(items, transMap, env) {
     }
   }
 
-  // 번역 캐시만 KV 업데이트 (뉴스 캐시는 다음 30분 갱신 시 반영)
-  if (hasNew) {
-    await newsSaveTransMap(env, transMap, null);
-  }
+  if (!hasNew) return;
+
+  // 1. 번역 맵 KV 저장
+  await newsSaveTransMap(env, transMap, null);
+
+  // 2. 기사 배열에 번역 적용 후 뉴스 캐시도 갱신
+  //    → 다음 캐시 히트 즉시 한국어 반영
+  applyTransMapToItems(items, transMap);
+  await env.MMF_KV.put(
+    newsCacheKey || KV_KEYS.newsCache,
+    JSON.stringify({
+      fetchedAt:      new Date().toISOString(),
+      totalItems:     items.length,
+      items,
+      _translatedAt:  new Date().toISOString(),
+    }),
+    { expirationTtl: newsCacheTtl || KV_TTL.newsCache }
+  );
 }
 
 // 전체 번역 파이프라인 (레거시 — 현재 미사용, 참조용 유지)
