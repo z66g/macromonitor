@@ -4228,7 +4228,7 @@ const NEWS_SOURCES = [
   {
     id: 'ap_economy',
     name: 'AP News Economy',
-    url: 'https://apnews.com/rss/economy',
+    url: 'https://feeds.apnews.com/rss/apf-economy',
     cat: 'macro',
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
   },
