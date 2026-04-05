@@ -993,6 +993,198 @@ body{
 
 <!-- ═══════ SUB HEADER (비활성) ═══════ -->
 
+<!-- ═══════ 뉴스 패널 CSS ═══════ -->
+<style>
+/* ── 뉴스 패널 공통 ── */
+#news-panel { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+
+/* ── 시간/탭 버튼 공통 ── */
+.np-time-btn, .np-tab-btn {
+  background: transparent;
+  border: 0.5px solid #30363D;
+  border-radius: 3px;
+  color: #656D76;
+  font-size: 9px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.np-time-btn.active, .np-tab-btn.active {
+  background: #21262D;
+  border-color: #8B949E;
+  color: #E6EDF3;
+  font-weight: 600;
+}
+.np-time-btn:hover, .np-tab-btn:hover { color: #E6EDF3; border-color: #656D76; }
+
+/* ── 뉴스 아이템 ── */
+.np-item {
+  display: flex;
+  gap: 0;
+  border-bottom: 0.5px solid #21262D;
+  cursor: pointer;
+  transition: background .12s;
+}
+.np-item:hover { background: rgba(255,255,255,0.03); }
+.np-item:last-child { border-bottom: none; }
+
+/* 왼쪽 컬러 바 */
+.np-bar {
+  width: 3px;
+  flex-shrink: 0;
+  border-radius: 2px 0 0 2px;
+}
+
+/* 아이템 본문 */
+.np-body { flex: 1; padding: 9px 14px 9px 10px; min-width: 0; }
+
+/* 배지 */
+.np-badge {
+  display: inline-block;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 2px;
+  margin-bottom: 4px;
+  letter-spacing: .04em;
+}
+
+/* 헤드라인 */
+.np-headline {
+  font-size: 11px;
+  font-weight: 500;
+  color: #CDD9E5;
+  line-height: 1.45;
+  margin-bottom: 3px;
+}
+.np-item.np-read .np-headline { color: #484F58; }
+
+/* 메타 (출처 · 시간) */
+.np-meta {
+  font-size: 9px;
+  color: #484F58;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.np-meta-dot { width: 2px; height: 2px; border-radius: 50%; background: #30363D; }
+
+/* 확장 영역 */
+.np-expand {
+  display: none;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 0.5px solid #21262D;
+}
+.np-expand.open { display: block; }
+.np-summary {
+  font-size: 10px;
+  color: #656D76;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.np-link {
+  display: inline-block;
+  font-size: 9px;
+  color: #58A6FF;
+  text-decoration: none;
+  border: 0.5px solid #1F4E79;
+  padding: 2px 8px;
+  border-radius: 3px;
+  transition: background .12s;
+}
+.np-link:hover { background: rgba(88,166,255,.1); }
+
+/* 빈 상태 */
+.np-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  gap: 8px;
+  color: #484F58;
+  font-size: 11px;
+}
+
+/* 새로고침 카운트다운 */
+#news-countdown {
+  font-size: 8px;
+  color: #484F58;
+  font-family: monospace;
+}
+
+@media (max-width: 767px) {
+  #news-panel { width: 100vw !important; border-left: none !important; }
+}
+</style>
+
+<!-- ═══════ 뉴스 슬라이드 패널 ═══════ -->
+<div id="news-overlay" onclick="toggleNewsPanel()"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
+
+<div id="news-panel"
+  style="position:fixed;top:0;right:0;height:100vh;width:380px;
+         background:#161B22;border-left:0.5px solid #30363D;
+         z-index:901;transform:translateX(100%);
+         transition:transform .28s cubic-bezier(.4,0,.2,1);
+         display:flex;flex-direction:column;overflow:hidden;">
+
+  <!-- 헤더 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;
+              padding:14px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
+    <div>
+      <div style="font-size:13px;font-weight:700;color:#E6EDF3;">MacroNews</div>
+      <div style="font-size:8px;color:#484F58;margin-top:1px;">
+        <span id="news-updated">—</span>
+        &nbsp;·&nbsp;
+        <span id="news-countdown"></span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span id="news-total-badge"
+        style="font-size:8px;color:#8B949E;background:#21262D;
+               padding:1px 6px;border-radius:3px;font-family:monospace;"></span>
+      <button onclick="loadNews(true)" title="새로고침"
+        style="background:transparent;border:none;color:#484F58;
+               cursor:pointer;font-size:13px;padding:2px;" id="news-refresh-btn">↻</button>
+      <button onclick="toggleNewsPanel()"
+        style="background:transparent;border:none;color:#484F58;
+               cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
+    </div>
+  </div>
+
+  <!-- 시간 필터 -->
+  <div style="display:flex;gap:4px;padding:8px 14px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
+    <button class="np-time-btn active" onclick="newsTimeFilter('24h',this)">24h</button>
+    <button class="np-time-btn"        onclick="newsTimeFilter('3d', this)">3일</button>
+    <button class="np-time-btn"        onclick="newsTimeFilter('all',this)">전체</button>
+    <div style="flex:1;"></div>
+    <span id="news-filtered-count" style="font-size:9px;color:#484F58;align-self:center;"></span>
+  </div>
+
+  <!-- 카테고리 탭 -->
+  <div style="display:flex;border-bottom:0.5px solid #21262D;flex-shrink:0;padding:0 4px;">
+    <button class="np-tab-btn active"
+      style="border:none;border-bottom:2px solid #F0B429;border-radius:0;padding:7px 12px;font-size:10px;"
+      onclick="newsTabFilter('all',this)">전체</button>
+    <button class="np-tab-btn"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 12px;font-size:10px;"
+      onclick="newsTabFilter('macro',this)">거시</button>
+    <button class="np-tab-btn"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 12px;font-size:10px;"
+      onclick="newsTabFilter('tech',this)">기술</button>
+    <button class="np-tab-btn"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 12px;font-size:10px;"
+      onclick="newsTabFilter('onchain',this)">온체인</button>
+  </div>
+
+  <!-- 뉴스 리스트 -->
+  <div id="news-list" style="flex:1;overflow-y:auto;"></div>
+</div>
+
 <!-- ═══════ 캘린더 슬라이드 패널 ═══════ -->
 <div id="cal-overlay" onclick="toggleCalPanel()"
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
@@ -1052,6 +1244,14 @@ body{
       <span style="font-size:11px;">📅</span>
       <span style="font-size:9px;">캘린더</span>
       <span id="led-cal" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
+    </button>
+    <button id="hdr-news-btn" onclick="toggleNewsPanel()" title="MacroNews"
+      style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
+             color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
+             display:flex;align-items:center;gap:4px;transition:all .2s;">
+      <span style="font-size:11px;">📰</span>
+      <span style="font-size:9px;">뉴스</span>
+      <span id="led-news" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
     </button>
     <button id="hdr-tower-btn" onclick="toggleLiqTower()" title="유동성 관제탑"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
@@ -10459,5 +10659,238 @@ body, * {
   });
 })();
 </script>
-</body>
-</html>
+<!-- ═══════ NEWS PANEL SCRIPT ═══════ -->
+<script>
+(function() {
+'use strict';
+
+// ── 상수 ──────────────────────────────────────────────────────
+const WORKER = 'https://macrolens-worker.macrolens.workers.dev';
+const REFRESH_INTERVAL = 30 * 60 * 1000; // 30분
+const READ_KEY = 'np_read_v1';           // localStorage 키
+
+// 카테고리 메타
+const CAT = {
+  fed:      { label: 'Fed',   color: '#58A6FF', bg: 'rgba(88,166,255,.15)',  tab: 'macro'   },
+  treasury: { label: '국채',  color: '#3FB950', bg: 'rgba(63,185,80,.15)',   tab: 'macro'   },
+  macro:    { label: '거시',  color: '#F0B429', bg: 'rgba(240,180,41,.15)',  tab: 'macro'   },
+  hardtech: { label: '기술',  color: '#FF7B72', bg: 'rgba(255,123,114,.15)', tab: 'tech'    },
+  crypto:   { label: '온체인',color: '#A8B2BF', bg: 'rgba(168,178,191,.15)', tab: 'onchain' },
+};
+
+// ── 상태 ──────────────────────────────────────────────────────
+let _allItems    = [];     // 전체 기사 배열
+let _timeFilter  = '24h';  // 시간 필터
+let _tabFilter   = 'all';  // 탭 필터
+let _readSet     = new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]'));
+let _refreshTimer = null;
+let _countdownTimer = null;
+let _nextRefresh  = null;
+let _panelOpen    = false;
+let _expandedId   = null;  // 현재 펼쳐진 아이템 ID
+
+// ── 패널 토글 ─────────────────────────────────────────────────
+function toggleNewsPanel() {
+  const panel   = document.getElementById('news-panel');
+  const overlay = document.getElementById('news-overlay');
+  const btn     = document.getElementById('hdr-news-btn');
+  _panelOpen = !_panelOpen;
+
+  if (_panelOpen) {
+    panel.style.transform   = 'translateX(0)';
+    overlay.style.display   = 'block';
+    btn.style.borderColor   = '#58A6FF';
+    btn.style.color         = '#58A6FF';
+    if (_allItems.length === 0) loadNews(false);
+  } else {
+    panel.style.transform   = 'translateX(100%)';
+    overlay.style.display   = 'none';
+    btn.style.borderColor   = '#30363D';
+    btn.style.color         = '#8B949E';
+  }
+}
+window.toggleNewsPanel = toggleNewsPanel;
+
+// ── 시간 필터 ─────────────────────────────────────────────────
+function newsTimeFilter(val, btn) {
+  _timeFilter = val;
+  document.querySelectorAll('.np-time-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNews();
+}
+window.newsTimeFilter = newsTimeFilter;
+
+// ── 탭 필터 ──────────────────────────────────────────────────
+function newsTabFilter(val, btn) {
+  _tabFilter = val;
+  document.querySelectorAll('.np-tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.borderBottomColor = 'transparent';
+  });
+  btn.classList.add('active');
+  // 탭 언더라인 색상
+  const underlineColor = val === 'all' ? '#F0B429' : val === 'macro' ? '#F0B429' :
+                         val === 'tech' ? '#FF7B72' : '#A8B2BF';
+  btn.style.borderBottomColor = underlineColor;
+  _expandedId = null;
+  renderNews();
+}
+window.newsTabFilter = newsTabFilter;
+
+// ── 아이템 클릭 (확장/축소 + 읽음 처리) ─────────────────────
+function newsItemClick(id) {
+  // 읽음 처리
+  _readSet.add(id);
+  try { localStorage.setItem(READ_KEY, JSON.stringify([..._readSet])); } catch(e){}
+
+  // 확장 토글
+  _expandedId = (_expandedId === id) ? null : id;
+  renderNews();
+}
+window.newsItemClick = newsItemClick;
+
+// ── 데이터 로드 ───────────────────────────────────────────────
+async function loadNews(force = false) {
+  const btn = document.getElementById('news-refresh-btn');
+  if (btn) { btn.style.opacity = '0.4'; btn.style.pointerEvents = 'none'; }
+
+  try {
+    const url = force ? `${WORKER}/news?force=1` : `${WORKER}/news`;
+    const resp = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    _allItems = (data.items || []);
+
+    // 갱신 시각
+    const updEl = document.getElementById('news-updated');
+    if (updEl && data.fetchedAt) {
+      const dt = new Date(data.fetchedAt);
+      updEl.textContent = dt.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}) + ' 갱신';
+    }
+
+    // 총 건수 배지
+    const badge = document.getElementById('news-total-badge');
+    if (badge) badge.textContent = `총 ${_allItems.length}건`;
+
+    // LED 점등
+    const led = document.getElementById('led-news');
+    if (led) led.style.background = '#3FB950';
+
+    renderNews();
+    scheduleRefresh();
+
+  } catch(e) {
+    const led = document.getElementById('led-news');
+    if (led) led.style.background = '#F85149';
+    console.warn('[NewsPanel] 로드 실패:', e.message);
+  } finally {
+    if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = ''; }
+  }
+}
+window.loadNews = loadNews;
+
+// ── 렌더 ─────────────────────────────────────────────────────
+function renderNews() {
+  const list = document.getElementById('news-list');
+  if (!list) return;
+
+  // 1. 탭 필터
+  let items = _allItems;
+  if (_tabFilter !== 'all') {
+    items = items.filter(n => {
+      const tab = CAT[n.cat]?.tab;
+      return tab === _tabFilter;
+    });
+  }
+
+  // 2. 시간 필터
+  const now = Date.now();
+  if (_timeFilter !== 'all') {
+    const ms = _timeFilter === '24h' ? 86400000 : 259200000; // 24h or 3d
+    items = items.filter(n => {
+      if (!n.pubDate) return true;
+      return (now - new Date(n.pubDate).getTime()) <= ms;
+    });
+  }
+
+  // 건수 표시
+  const countEl = document.getElementById('news-filtered-count');
+  if (countEl) countEl.textContent = `${items.length}건`;
+
+  // 빈 상태
+  if (!items.length) {
+    list.innerHTML = `<div class="np-empty">
+      <div style="font-size:22px;">📭</div>
+      <div>해당 조건의 기사가 없습니다</div>
+    </div>`;
+    return;
+  }
+
+  // 렌더
+  list.innerHTML = items.map(n => {
+    const c     = CAT[n.cat] || CAT.macro;
+    const id    = n.link || (n.sourceName + n.title);
+    const isRead    = _readSet.has(id);
+    const isExpanded = (_expandedId === id);
+    const timeStr   = relTime(n.pubDate);
+    const showBadge = (_tabFilter === 'all'); // 전체 탭에서만 배지 표시
+
+    return `
+    <div class="np-item${isRead ? ' np-read' : ''}" onclick="newsItemClick(${JSON.stringify(id)})">
+      <div class="np-bar" style="background:${c.color};"></div>
+      <div class="np-body">
+        ${showBadge ? `<span class="np-badge" style="background:${c.bg};color:${c.color};">${c.label}</span>` : ''}
+        <div class="np-headline">${escHtml(n.title)}</div>
+        <div class="np-meta">
+          <span>${escHtml(n.sourceName)}</span>
+          <span class="np-meta-dot"></span>
+          <span>${timeStr}</span>
+          ${isRead ? '<span class="np-meta-dot"></span><span style="color:#30363D;">읽음</span>' : ''}
+        </div>
+        <div class="np-expand${isExpanded ? ' open' : ''}">
+          <div class="np-summary">${escHtml(n.summary || '요약 없음')}</div>
+          ${n.link ? `<a class="np-link" href="${escHtml(n.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">전체 기사 →</a>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── 자동 새로고침 + 카운트다운 ───────────────────────────────
+function scheduleRefresh() {
+  if (_refreshTimer) clearTimeout(_refreshTimer);
+  if (_countdownTimer) clearInterval(_countdownTimer);
+
+  _nextRefresh = Date.now() + REFRESH_INTERVAL;
+  _refreshTimer = setTimeout(() => loadNews(false), REFRESH_INTERVAL);
+
+  _countdownTimer = setInterval(() => {
+    const el = document.getElementById('news-countdown');
+    if (!el) return;
+    const left = Math.max(0, _nextRefresh - Date.now());
+    const m = Math.floor(left / 60000);
+    const s = Math.floor((left % 60000) / 1000);
+    el.textContent = `갱신까지 ${m}:${s.toString().padStart(2,'0')}`;
+  }, 1000);
+}
+
+// ── 유틸 ─────────────────────────────────────────────────────
+function relTime(pubDate) {
+  if (!pubDate) return '—';
+  const diff = Date.now() - new Date(pubDate).getTime();
+  if (diff < 0) return '방금';
+  if (diff < 3600000)  return `${Math.floor(diff/60000)}분 전`;
+  if (diff < 86400000) return `${Math.floor(diff/3600000)}h 전`;
+  return `${Math.floor(diff/86400000)}일 전`;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+})();
+</script>
