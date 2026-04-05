@@ -4330,8 +4330,7 @@ const NEWS_CLASSIFY_RULES = [
     'rate hike','rate cut','interest rate','quantitative tightening','quantitative easing',
     'balance sheet','reverse repurchase','sofr','iorb','ioer',
     'monetary policy','taper','fed tightening','fed easing',
-    'boe rate','boj rate','ecb rate',
-    'lagarde','ueda','bailey',
+    'boe rate','boj rate','ecb rate','lagarde','ueda','bailey',
   ]},
   // 2순위: 국채 / 재정
   { cat: 'treasury', keywords: [
@@ -4340,25 +4339,55 @@ const NEWS_CLASSIFY_RULES = [
     'fiscal policy','federal deficit','federal budget',
     'quarterly refunding','qra','bessent','yellen','mnuchin',
   ]},
-  // 3순위: 온체인 / 크립토 — 반드시 crypto 전용 용어만 사용
+  // 3순위: 온체인 / 크립토 — 짧은 티커는 word 배열로 분리 관리
   { cat: 'crypto', keywords: [
-    'bitcoin','btc','ethereum','eth','cryptocurrency','crypto market',
+    'bitcoin','cryptocurrency','crypto market','crypto exchange',
     'blockchain','defi','decentralized finance',
     'stablecoin','usdt','usdc','tether','circle',
     'real world asset','rwa tokeniz','tokenized treasury','tokenized fund',
-    'spot bitcoin etf','spot eth etf','crypto etf','bitcoin halving',
-    'coinbase','binance','kraken','okx','bybit',
+    'spot bitcoin etf','spot ethereum etf','crypto etf','bitcoin halving',
+    'coinbase','binance','kraken','bybit',
     'blockworks','on-chain','onchain',
-    'solana','sol','xrp','ripple','cardano','avalanche','avax',
-    'layer-2','lightning network',
-    'crypto wallet','nft','web3','dex','dao','airdrop',
+    'solana network','ripple','cardano','avalanche avax',
+    'layer-2 blockchain','lightning network',
+    'crypto wallet','nft marketplace','web3','decentralized exchange','dao governance','airdrop',
     'bitcoin mining','crypto mining','hash rate','mempool',
     'grayscale','microstrategy','strategy bitcoin',
     'proof of stake','proof of work',
     'crypto regulation','crypto bill','digital asset',
-    'altcoin','crypto exchange',
+    'altcoin','crypto token',
+  ],
+  // 짧은 티커: 단어 경계 필요 (word 키로 분리)
+  word: ['btc','eth','xrp','sol','ada','bnb','avax'],
+  },
+  // 4순위: 하드테크 / 인프라 — macro보다 먼저 (Utility Dive 선점)
+  { cat: 'hardtech', keywords: [
+    // 반도체·AI
+    'semiconductor','chipmaker','wafer fabrication',
+    'nvidia','tsmc','amd','intel','arm holdings','qualcomm','broadcom','asml',
+    'ai infrastructure','ai chip','gpu cluster','ai accelerator','hpc cluster',
+    // 데이터센터
+    'data center','datacenter','hyperscaler','colocation',
+    // 전력·에너지 (Utility Dive 핵심)
+    'power grid','electricity demand','grid operator','grid modernization',
+    'ferc','pjm','miso','caiso','ercot','iso-ne','nyiso',
+    'solar','wind power','offshore wind','onshore wind',
+    'megawatt','gigawatt','kilowatt','mwh','gwh','kwh',
+    'transmission line','distribution grid','interconnection',
+    'battery storage','energy storage','long duration',
+    'renewable energy','clean energy','decarbonization',
+    'natural gas plant','coal plant','power plant retirement',
+    'capacity market','demand response','net metering',
+    'electric vehicle charging','ev charging','microgrid','smart grid',
+    'smr','small modular reactor','nuclear energy',
+    'doe loan','ira credit','clean energy tax',
+    // 바이오·헬스
+    'biotech','biopharma','fda approval','fda clearance',
+    'clinical trial','phase 3','drug approval','mrna','gene therapy','gene editing','crispr',
+    // 양자
+    'quantum computing','quantum computer',
   ]},
-  // 4순위: 거시 / 유동성
+  // 5순위: 거시 / 유동성
   { cat: 'macro', keywords: [
     'gdp','inflation','cpi','pce','core inflation',
     'tariff','trade war','trade deficit','sanction',
@@ -4369,25 +4398,24 @@ const NEWS_CLASSIFY_RULES = [
     'liquidity','credit spread','delinquency',
     'zerohedge','wall street journal',
   ]},
-  // 5순위: 하드테크 / 인프라
-  { cat: 'hardtech', keywords: [
-    'semiconductor','chip','chipmaker','wafer',
-    'nvidia','tsmc','amd','intel','arm holdings','qualcomm','broadcom','asml',
-    'ai infrastructure','ai chip','gpu cluster','ai accelerator',
-    'data center','datacenter','hyperscaler',
-    'power grid','electricity demand','grid operator',
-    'smr','small modular reactor','nuclear power plant',
-    'utility','energy storage','battery storage','renewable energy',
-    'quantum computing','quantum computer',
-    'biotech','biopharma','fda approval','fda clearance',
-    'clinical trial','phase 3','drug approval','mrna','gene therapy','gene editing','crispr',
-  ]},
 ];
 
 function newsClassify(title, summary, fallbackCat = 'macro') {
-  const text = (title + ' ' + (summary || '')).toLowerCase();
+  const text = (' ' + (title + ' ' + (summary || '')).toLowerCase() + ' ');
+
   for (const rule of NEWS_CLASSIFY_RULES) {
-    if (rule.keywords.some(kw => text.includes(kw))) return rule.cat;
+    // 일반 키워드: substring 포함 여부
+    const phraseHit = (rule.keywords || []).some(kw => text.includes(kw));
+    if (phraseHit) return rule.cat;
+
+    // 단어 경계 키워드 (짧은 티커 등)
+    if (rule.word) {
+      const wordHit = rule.word.some(kw => {
+        const re = new RegExp('(?<![a-z])' + kw + '(?![a-z])', 'i');
+        return re.test(text);
+      });
+      if (wordHit) return rule.cat;
+    }
   }
   return fallbackCat;
 }
