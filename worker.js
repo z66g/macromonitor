@@ -4551,7 +4551,7 @@ async function newsEndpoint(env, isFresh, ctx) {
   if (ctx?.waitUntil) ctx.waitUntil(putNewsP); else await putNewsP;
 
   // 4. 신규 기사 번역 → 백그라운드 실행
-  if (ctx?.waitUntil && env?.GEMINI_API_KEY) {
+  if (ctx?.waitUntil && env?.AI) {
     ctx.waitUntil(newsTranslateBackground(data.items, transMap, env, KV_KEYS.newsCache, KV_TTL.newsCache));
   }
 
@@ -4597,62 +4597,24 @@ async function newsSaveTransMap(env, map, ctx) {
 // Gemini 배치 번역 (15건씩)
 // input:  [{ id, title, summary }, ...]
 // output: [{ id, titleKo, summaryKo }, ...]
-async function translateViaGemini(batch, env) {
-  const apiKey = env?.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY 없음');
-
-  const inputJson = JSON.stringify(
-    batch.map((item, i) => ({ id: String(i), title: item.title || '', summary: item.summary || '' }))
-  );
-
-  const prompt = `너는 월가 수석 퀀트 애널리스트다.
-아래 JSON 배열의 영문 title과 summary를 한국어로 번역하라.
-TGA, RRP, SMR, FOMC, QRA, OIS, SOFR, HY, IG, CDS, ETF, NFP 같은 금융·매크로 전문 용어는 원문 약어를 괄호로 병기하거나 그대로 유지해도 된다.
-자연스럽고 전문적인 금융 한국어로 의역하라.
-반드시 아래와 동일한 JSON 배열 구조로만 응답하고, 마크다운 코드블록이나 다른 텍스트는 절대 포함하지 마라.
-
-입력:
-${inputJson}
-
-출력 형식 (반드시 이 구조만):
-[{"id":"0","titleKo":"번역된 제목","summaryKo":"번역된 요약"},...]`;
-
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      signal: AbortSignal.timeout(30000),
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.1,      // 번역은 낮은 temperature
-          responseMimeType: 'application/json',
-        },
-      }),
-    }
-  );
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Gemini HTTP ${res.status}: ${err.slice(0, 100)}`);
-  }
-
-  const data = await res.json();
-  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
-  // 마크다운 코드블록 방어 파싱
-  const cleaned = rawText
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/\s*```$/i, '')
-    .trim();
-
-  return JSON.parse(cleaned); // [{ id, titleKo, summaryKo }, ...]
+// ── CF Workers AI 단건 번역 ────────────────────────────────────
+// 모델: @cf/meta/m2m100-1.2b (지역 제한 없음, 무료)
+async function translateViaCfAI(text, env) {
+  if (!env?.AI) throw new Error('AI binding 없음 (wrangler.toml에 [ai] 추가 필요)');
+  if (!text || !text.trim()) return '';
+  const result = await env.AI.run('@cf/meta/m2m100-1.2b', {
+    text: text.slice(0, 500), // 모델 최대 입력 제한
+    source_lang: 'english',
+    target_lang: 'korean',
+  });
+  return result?.translated_text || text;
 }
 
 // 백그라운드 번역 작업 (ctx.waitUntil로 실행 — 응답 블로킹 없음)
+// 기사당 title + summary 병렬 번역, 기사는 순차 처리
 async function newsTranslateBackground(items, transMap, env, newsCacheKey, newsCacheTtl) {
+  if (!env?.AI) return;
+
   const uncached = items.filter(item => {
     const key = newsTransKey(item);
     return key && !transMap[key];
@@ -4660,27 +4622,21 @@ async function newsTranslateBackground(items, transMap, env, newsCacheKey, newsC
 
   if (uncached.length === 0) return;
 
-  const BATCH_SIZE = 15;
   let hasNew = false;
 
-  for (let i = 0; i < uncached.length; i += BATCH_SIZE) {
-    const batch = uncached.slice(i, i + BATCH_SIZE);
+  for (const item of uncached) {
+    const key = newsTransKey(item);
+    if (!key) continue;
     try {
-      const translated = await translateViaGemini(batch, env);
-      translated.forEach(t => {
-        const srcItem = batch[parseInt(t.id, 10)];
-        if (!srcItem) return;
-        const key = newsTransKey(srcItem);
-        if (key) {
-          transMap[key] = { titleKo: t.titleKo || '', summaryKo: t.summaryKo || '' };
-          hasNew = true;
-        }
-      });
-      if (i + BATCH_SIZE < uncached.length) {
-        await new Promise(r => setTimeout(r, 4000));
-      }
+      // title + summary 동시 번역 (병렬)
+      const [titleKo, summaryKo] = await Promise.all([
+        item.title   ? translateViaCfAI(item.title,   env) : Promise.resolve(''),
+        item.summary ? translateViaCfAI(item.summary,  env) : Promise.resolve(''),
+      ]);
+      transMap[key] = { titleKo: titleKo || '', summaryKo: summaryKo || '' };
+      hasNew = true;
     } catch(e) {
-      console.error(`[Trans BG] 배치 ${i} 실패:`, e.message);
+      console.error('[Trans BG CF]', key.slice(0, 40), e.message);
     }
   }
 
@@ -4690,25 +4646,17 @@ async function newsTranslateBackground(items, transMap, env, newsCacheKey, newsC
   await newsSaveTransMap(env, transMap, null);
 
   // 2. 기사 배열에 번역 적용 후 뉴스 캐시도 갱신
-  //    → 다음 캐시 히트 즉시 한국어 반영
   applyTransMapToItems(items, transMap);
   await env.MMF_KV.put(
     newsCacheKey || KV_KEYS.newsCache,
     JSON.stringify({
-      fetchedAt:      new Date().toISOString(),
-      totalItems:     items.length,
+      fetchedAt:     new Date().toISOString(),
+      totalItems:    items.length,
       items,
-      _translatedAt:  new Date().toISOString(),
+      _translatedAt: new Date().toISOString(),
     }),
     { expirationTtl: newsCacheTtl || KV_TTL.newsCache }
   );
-}
-
-// 전체 번역 파이프라인 (레거시 — 현재 미사용, 참조용 유지)
-async function newsApplyTranslation(items, env, ctx) {
-  if (!env?.GEMINI_API_KEY) return;
-  const transMap = await newsLoadTransMap(env);
-  applyTransMapToItems(items, transMap);
 }
 
 // 번역 맵을 기사 배열에 in-place 적용
@@ -4726,9 +4674,8 @@ function applyTransMapToItems(items, transMap) {
 async function newsTransDebug(env) {
   const result = {};
 
-  // 1. API 키 확인
-  result.gemini_key_set = !!env?.GEMINI_API_KEY;
-  result.gemini_key_prefix = env?.GEMINI_API_KEY?.slice(0, 8) + '...' || 'MISSING';
+  // 1. CF AI 바인딩 확인
+  result.cf_ai_binding = !!env?.AI;
 
   // 2. 번역 캐시 현황
   try {
@@ -4750,9 +4697,9 @@ async function newsTransDebug(env) {
       const sample = (newsCache.items || []).slice(0, 3);
       result.news_cache_count = (newsCache.items || []).length;
       result.news_cache_sample = sample.map(n => ({
-        title: n.title?.slice(0, 40),
+        title:   n.title?.slice(0, 40),
         titleKo: n.titleKo?.slice(0, 40) || '(없음)',
-        hasKo: !!n.titleKo,
+        hasKo:   !!n.titleKo,
       }));
       result.news_cache_translatedAt = newsCache._translatedAt || '없음';
     } else {
@@ -4762,18 +4709,12 @@ async function newsTransDebug(env) {
     result.news_cache_error = e.message;
   }
 
-  // 4. Gemini 테스트 번역 (1건)
+  // 4. CF AI 테스트 번역 (1건)
   try {
-    const testBatch = [{ title: 'Federal Reserve holds interest rates steady', summary: 'The Fed kept rates unchanged at its latest meeting.' }];
-    const translated = await translateViaGemini(testBatch, env);
-    result.gemini_test = {
-      ok: true,
-      input: testBatch[0].title,
-      titleKo: translated[0]?.titleKo,
-      summaryKo: translated[0]?.summaryKo,
-    };
+    const titleKo = await translateViaCfAI('Federal Reserve holds interest rates steady', env);
+    result.cf_ai_test = { ok: true, titleKo };
   } catch(e) {
-    result.gemini_test = { ok: false, error: e.message };
+    result.cf_ai_test = { ok: false, error: e.message };
   }
 
   return new Response(JSON.stringify(result, null, 2), { headers: CORS });
