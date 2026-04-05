@@ -1030,15 +1030,25 @@ body{
 .np-item:hover { background: rgba(255,255,255,0.03); }
 .np-item:last-child { border-bottom: none; }
 
-/* 왼쪽 컬러 바 */
-.np-bar {
-  width: 3px;
-  flex-shrink: 0;
-  border-radius: 2px 0 0 2px;
+/* 아이템 본문 */
+.np-body { flex: 1; padding: 9px 14px; min-width: 0; }
+
+/* 헤드라인 행 (닷 + 텍스트) */
+.np-headline-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-bottom: 3px;
 }
 
-/* 아이템 본문 */
-.np-body { flex: 1; padding: 9px 14px 9px 10px; min-width: 0; }
+/* 컬러 닷 */
+.np-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
 
 /* 배지 */
 .np-badge {
@@ -1168,17 +1178,17 @@ body{
   <!-- 카테고리 탭 -->
   <div style="display:flex;border-bottom:0.5px solid #21262D;flex-shrink:0;padding:0 4px;">
     <button class="np-tab-btn active"
-      style="border:none;border-bottom:2px solid #F0B429;border-radius:0;padding:7px 12px;font-size:10px;"
+      style="border:none;border-bottom:2px solid #F0B429;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:5px;"
       onclick="newsTabFilter('all',this)">전체</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 12px;font-size:10px;"
-      onclick="newsTabFilter('macro',this)">거시</button>
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:5px;"
+      onclick="newsTabFilter('macro',this)"><span style="width:6px;height:6px;border-radius:50%;background:#F0B429;flex-shrink:0;display:inline-block;"></span>거시</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 12px;font-size:10px;"
-      onclick="newsTabFilter('tech',this)">기술</button>
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:5px;"
+      onclick="newsTabFilter('tech',this)"><span style="width:6px;height:6px;border-radius:50%;background:#FF7B72;flex-shrink:0;display:inline-block;"></span>기술</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 12px;font-size:10px;"
-      onclick="newsTabFilter('onchain',this)">온체인</button>
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:5px;"
+      onclick="newsTabFilter('onchain',this)"><span style="width:6px;height:6px;border-radius:50%;background:#A8B2BF;flex-shrink:0;display:inline-block;"></span>온체인</button>
   </div>
 
   <!-- 뉴스 리스트 -->
@@ -10737,18 +10747,6 @@ function newsTabFilter(val, btn) {
 }
 window.newsTabFilter = newsTabFilter;
 
-// ── 아이템 클릭 (확장/축소 + 읽음 처리) ─────────────────────
-function newsItemClick(id) {
-  // 읽음 처리
-  _readSet.add(id);
-  try { localStorage.setItem(READ_KEY, JSON.stringify([..._readSet])); } catch(e){}
-
-  // 확장 토글
-  _expandedId = (_expandedId === id) ? null : id;
-  renderNews();
-}
-window.newsItemClick = newsItemClick;
-
 // ── 데이터 로드 ───────────────────────────────────────────────
 async function loadNews(force = false) {
   const btn = document.getElementById('news-refresh-btn');
@@ -10798,16 +10796,13 @@ function renderNews() {
   // 1. 탭 필터
   let items = _allItems;
   if (_tabFilter !== 'all') {
-    items = items.filter(n => {
-      const tab = CAT[n.cat]?.tab;
-      return tab === _tabFilter;
-    });
+    items = items.filter(n => (CAT[n.cat]?.tab) === _tabFilter);
   }
 
   // 2. 시간 필터
   const now = Date.now();
   if (_timeFilter !== 'all') {
-    const ms = _timeFilter === '24h' ? 86400000 : 259200000; // 24h or 3d
+    const ms = _timeFilter === '24h' ? 86400000 : 259200000;
     items = items.filter(n => {
       if (!n.pubDate) return true;
       return (now - new Date(n.pubDate).getTime()) <= ms;
@@ -10827,21 +10822,29 @@ function renderNews() {
     return;
   }
 
-  // 렌더
-  list.innerHTML = items.map(n => {
-    const c     = CAT[n.cat] || CAT.macro;
-    const id    = n.link || (n.sourceName + n.title);
-    const isRead    = _readSet.has(id);
-    const isExpanded = (_expandedId === id);
-    const timeStr   = relTime(n.pubDate);
-    const showBadge = (_tabFilter === 'all'); // 전체 탭에서만 배지 표시
+  // 배지 표시 조건:
+  // 전체 탭 → 모든 카테고리 배지 표시
+  // 거시 탭 → Fed/국채/거시 서브배지 표시 (세 카테고리 혼재)
+  // 기술/온체인 탭 → 단일 카테고리이므로 배지 불필요
+  const showBadge = (_tabFilter === 'all' || _tabFilter === 'macro');
+
+  // _filteredItems 저장 (클릭 핸들러에서 인덱스로 참조)
+  list._items = items;
+
+  list.innerHTML = items.map((n, idx) => {
+    const c          = CAT[n.cat] || CAT.macro;
+    const isRead     = _readSet.has(idx + '_' + n.title);
+    const isExpanded = (_expandedId === idx);
+    const timeStr    = relTime(n.pubDate);
 
     return `
-    <div class="np-item${isRead ? ' np-read' : ''}" onclick="newsItemClick(${JSON.stringify(id)})">
-      <div class="np-bar" style="background:${c.color};"></div>
+    <div class="np-item${isRead ? ' np-read' : ''}" data-idx="${idx}">
       <div class="np-body">
         ${showBadge ? `<span class="np-badge" style="background:${c.bg};color:${c.color};">${c.label}</span>` : ''}
-        <div class="np-headline">${escHtml(n.title)}</div>
+        <div class="np-headline-row">
+          <span class="np-dot" style="background:${c.color};"></span>
+          <div class="np-headline">${escHtml(n.title)}</div>
+        </div>
         <div class="np-meta">
           <span>${escHtml(n.sourceName)}</span>
           <span class="np-meta-dot"></span>
@@ -10850,12 +10853,44 @@ function renderNews() {
         </div>
         <div class="np-expand${isExpanded ? ' open' : ''}">
           <div class="np-summary">${escHtml(n.summary || '요약 없음')}</div>
-          ${n.link ? `<a class="np-link" href="${escHtml(n.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">전체 기사 →</a>` : ''}
+          ${n.link ? `<a class="np-link" href="${escHtml(n.link)}" target="_blank" rel="noopener">전체 기사 →</a>` : ''}
         </div>
       </div>
     </div>`;
   }).join('');
 }
+
+// ── 이벤트 위임 (클릭 버그 수정 핵심) ───────────────────────
+// inline onclick 대신 리스트 컨테이너에 단일 리스너 등록
+// JSON.stringify + 따옴표 충돌 문제 완전 해소
+document.addEventListener('DOMContentLoaded', function() {
+  const list = document.getElementById('news-list');
+  if (!list) return;
+
+  list.addEventListener('click', function(e) {
+    // 외부 링크 클릭은 무시
+    if (e.target.closest('.np-link')) return;
+
+    const item = e.target.closest('.np-item');
+    if (!item) return;
+
+    const idx = parseInt(item.dataset.idx, 10);
+    if (isNaN(idx)) return;
+
+    const items = list._items || [];
+    const n = items[idx];
+    if (!n) return;
+
+    // 읽음 처리
+    const readKey = idx + '_' + n.title;
+    _readSet.add(readKey);
+    try { localStorage.setItem(READ_KEY, JSON.stringify([..._readSet])); } catch(err){}
+
+    // 확장 토글
+    _expandedId = (_expandedId === idx) ? null : idx;
+    renderNews();
+  });
+});
 
 // ── 자동 새로고침 + 카운트다운 ───────────────────────────────
 function scheduleRefresh() {
