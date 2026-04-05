@@ -32,6 +32,7 @@ const KV_KEYS = {
   onchainMacro: 'onchain_macro_v1',
   h41Html:    'h41_html_v1',
   newsCache:  'news_cache_v1',     // 뉴스 캐시
+  newsTransMap: 'news_trans_map_v1', // 번역 캐시 (제목+요약, 30일)
 };
 const KV_TTL = {
   liq:        7200,
@@ -45,6 +46,7 @@ const KV_TTL = {
   onchainMacro: 3600,          // 1h
   h41Html:    3600 * 6,    // 6h (H.4.1 주간 발표)
   newsCache:  3600,        // 1h
+  newsTransMap: 2592000,   // 30일 (번역 결과 장기 캐시)
 };
 
 const kvGet = async (env, key) => {
@@ -4505,7 +4507,7 @@ async function newsFetchSource(src) {
            ok: true, count: items.length, usedUrl, ms: Date.now()-t0, items };
 }
 
-async function newsFetchAll() {
+async function newsFetchAll(env, ctx) {
   const results = await Promise.all(NEWS_SOURCES.map(newsFetchSource));
   const allItems = [];
   const sourceStats = [];
@@ -4520,6 +4522,12 @@ async function newsFetchAll() {
   });
   const catCount = {};
   for (const item of allItems) { catCount[item.cat] = (catCount[item.cat]||0) + 1; }
+
+  // ── 번역 적용 (env가 있을 때만) ──────────────────────────────
+  if (env) {
+    await newsApplyTranslation(allItems, env, ctx);
+  }
+
   return { fetchedAt: new Date().toISOString(), totalItems: allItems.length, sourceStats, catCount, items: allItems };
 }
 
@@ -4529,8 +4537,172 @@ async function newsEndpoint(env, isFresh, ctx) {
     const cached = await kvGet(env, KV_KEYS.newsCache);
     if (cached) return new Response(JSON.stringify({ ...cached, _fromCache: true }), { headers: CORS });
   }
-  const data = await newsFetchAll();
+  const data = await newsFetchAll(env, ctx);
   const putP = kvPut(env, KV_KEYS.newsCache, data, KV_TTL.newsCache);
   if (ctx?.waitUntil) ctx.waitUntil(putP); else await putP;
   return new Response(JSON.stringify(data), { headers: CORS });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  TRANSLATION MODULE — Gemini 2.5 Flash 배치 번역
+//  - 신규 기사만 번역 (캐시 키: item.link || item.title)
+//  - 번역 결과 KV에 30일 저장 → 같은 기사 재번역 없음
+//  - 15건씩 배치 → Rate Limit(15 RPM) 안전
+// ═══════════════════════════════════════════════════════════════
+
+// 캐시 키: link가 있으면 link, 없으면 title (최대 200자)
+function newsTransKey(item) {
+  return (item.link || item.title || '').slice(0, 200);
+}
+
+// 번역 캐시 맵 로드 (KV → JS 객체)
+async function newsLoadTransMap(env) {
+  try {
+    const raw = await env.MMF_KV.get(KV_KEYS.newsTransMap, { type: 'text' });
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) {
+    return {};
+  }
+}
+
+// 번역 캐시 맵 저장
+async function newsSaveTransMap(env, map, ctx) {
+  try {
+    const putP = env.MMF_KV.put(
+      KV_KEYS.newsTransMap,
+      JSON.stringify(map),
+      { expirationTtl: KV_TTL.newsTransMap }
+    );
+    if (ctx?.waitUntil) ctx.waitUntil(putP); else await putP;
+  } catch(e) {
+    console.error('[Trans] KV 저장 실패:', e.message);
+  }
+}
+
+// Gemini 배치 번역 (15건씩)
+// input:  [{ id, title, summary }, ...]
+// output: [{ id, titleKo, summaryKo }, ...]
+async function translateViaGemini(batch, env) {
+  const apiKey = env?.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('GEMINI_API_KEY 없음');
+
+  const inputJson = JSON.stringify(
+    batch.map((item, i) => ({ id: String(i), title: item.title || '', summary: item.summary || '' }))
+  );
+
+  const prompt = `너는 월가 수석 퀀트 애널리스트다.
+아래 JSON 배열의 영문 title과 summary를 한국어로 번역하라.
+TGA, RRP, SMR, FOMC, QRA, OIS, SOFR, HY, IG, CDS, ETF, NFP 같은 금융·매크로 전문 용어는 원문 약어를 괄호로 병기하거나 그대로 유지해도 된다.
+자연스럽고 전문적인 금융 한국어로 의역하라.
+반드시 아래와 동일한 JSON 배열 구조로만 응답하고, 마크다운 코드블록이나 다른 텍스트는 절대 포함하지 마라.
+
+입력:
+${inputJson}
+
+출력 형식 (반드시 이 구조만):
+[{"id":"0","titleKo":"번역된 제목","summaryKo":"번역된 요약"},...]`;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(30000),
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.1,      // 번역은 낮은 temperature
+          responseMimeType: 'application/json',
+        },
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Gemini HTTP ${res.status}: ${err.slice(0, 100)}`);
+  }
+
+  const data = await res.json();
+  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+  // 마크다운 코드블록 방어 파싱
+  const cleaned = rawText
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
+
+  return JSON.parse(cleaned); // [{ id, titleKo, summaryKo }, ...]
+}
+
+// 전체 번역 파이프라인
+// 1. 캐시 로드 → 2. 신규만 배치 번역 → 3. 캐시 저장 → 4. 기사에 적용
+async function newsApplyTranslation(items, env, ctx) {
+  if (!env?.GEMINI_API_KEY) return; // API 키 없으면 스킵
+
+  // 1. 기존 번역 캐시 로드
+  const transMap = await newsLoadTransMap(env);
+
+  // 2. 캐시에 없는 신규 기사만 추출
+  const uncached = items.filter(item => {
+    const key = newsTransKey(item);
+    return key && !transMap[key];
+  });
+
+  if (uncached.length === 0) {
+    // 전부 캐시 히트 → 바로 적용
+    applyTransMapToItems(items, transMap);
+    return;
+  }
+
+  // 3. 15건씩 배치 처리
+  const BATCH_SIZE = 15;
+  let hasNewTranslations = false;
+
+  for (let i = 0; i < uncached.length; i += BATCH_SIZE) {
+    const batch = uncached.slice(i, i + BATCH_SIZE);
+    try {
+      const translated = await translateViaGemini(batch, env);
+
+      // 결과를 캐시 맵에 저장
+      translated.forEach(t => {
+        const srcItem = batch[parseInt(t.id, 10)];
+        if (!srcItem) return;
+        const key = newsTransKey(srcItem);
+        if (key) {
+          transMap[key] = { titleKo: t.titleKo || '', summaryKo: t.summaryKo || '' };
+          hasNewTranslations = true;
+        }
+      });
+
+      // 배치 간 Rate Limit 대응 (분당 15회 → 4초 간격이면 안전)
+      if (i + BATCH_SIZE < uncached.length) {
+        await new Promise(r => setTimeout(r, 4000));
+      }
+
+    } catch(e) {
+      console.error(`[Trans] 배치 ${i}~${i+BATCH_SIZE-1} 번역 실패:`, e.message);
+      // 실패한 배치는 원문 유지 → 계속 진행
+    }
+  }
+
+  // 4. 신규 번역이 생겼으면 KV 업데이트
+  if (hasNewTranslations) {
+    await newsSaveTransMap(env, transMap, ctx);
+  }
+
+  // 5. 전체 기사에 번역 적용
+  applyTransMapToItems(items, transMap);
+}
+
+// 번역 맵을 기사 배열에 in-place 적용
+function applyTransMapToItems(items, transMap) {
+  for (const item of items) {
+    const key = newsTransKey(item);
+    if (key && transMap[key]) {
+      item.titleKo   = transMap[key].titleKo   || null;
+      item.summaryKo = transMap[key].summaryKo || null;
+    }
+  }
 }

@@ -10840,7 +10840,7 @@ function renderNews() {
         ${showBadge ? `<span class="np-badge" style="background:${c.bg};color:${c.color};">${c.label}</span>` : ''}
         <div class="np-headline-row">
           <span class="np-dot" style="background:${c.color};"></span>
-          <div class="np-headline">${escHtml(n.title)}</div>
+          <div class="np-headline">${escHtml(n.titleKo || n.title)}</div>
         </div>
         <div class="np-meta">
           <span>${escHtml(n.sourceName)}</span>
@@ -10849,7 +10849,7 @@ function renderNews() {
           ${isRead ? '<span class="np-meta-dot"></span><span style="color:#30363D;">읽음</span>' : ''}
         </div>
         <div class="np-expand${isExpanded ? ' open' : ''}">
-          <div class="np-summary">${escHtml(n.summary || '요약 없음')}</div>
+          <div class="np-summary">${escHtml(n.summaryKo || n.summary || '요약 없음')}</div>
           ${n.link ? `<a class="np-link" href="${escHtml(n.link)}" target="_blank" rel="noopener">전체 기사 →</a>` : ''}
         </div>
       </div>
