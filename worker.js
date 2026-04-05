@@ -4594,11 +4594,8 @@ async function newsSaveTransMap(env, map, ctx) {
   }
 }
 
-// Gemini 배치 번역 (15건씩)
-// input:  [{ id, title, summary }, ...]
-// output: [{ id, titleKo, summaryKo }, ...]
-// ── CF Workers AI 단건 번역 ────────────────────────────────────
-// 모델: @cf/meta/m2m100-1.2b (지역 제한 없음, 무료)
+// ── CF Workers AI 번역 ─────────────────────────────────────────
+// 모델: @cf/meta/m2m100-1.2b (지역 제한 없음, 무료, 내장 바인딩)
 async function translateViaCfAI(text, env) {
   if (!env?.AI) throw new Error('AI binding 없음 (wrangler.toml에 [ai] 추가 필요)');
   if (!text || !text.trim()) return '';
@@ -4623,21 +4620,24 @@ async function newsTranslateBackground(items, transMap, env, newsCacheKey, newsC
   if (uncached.length === 0) return;
 
   let hasNew = false;
+  const BATCH = 10; // 10건씩 병렬 처리
 
-  for (const item of uncached) {
-    const key = newsTransKey(item);
-    if (!key) continue;
-    try {
-      // title + summary 동시 번역 (병렬)
-      const [titleKo, summaryKo] = await Promise.all([
-        item.title   ? translateViaCfAI(item.title,   env) : Promise.resolve(''),
-        item.summary ? translateViaCfAI(item.summary,  env) : Promise.resolve(''),
-      ]);
-      transMap[key] = { titleKo: titleKo || '', summaryKo: summaryKo || '' };
-      hasNew = true;
-    } catch(e) {
-      console.error('[Trans BG CF]', key.slice(0, 40), e.message);
-    }
+  for (let i = 0; i < uncached.length; i += BATCH) {
+    const batch = uncached.slice(i, i + BATCH);
+    await Promise.all(batch.map(async item => {
+      const key = newsTransKey(item);
+      if (!key) return;
+      try {
+        const [titleKo, summaryKo] = await Promise.all([
+          item.title   ? translateViaCfAI(item.title,   env) : Promise.resolve(''),
+          item.summary ? translateViaCfAI(item.summary,  env) : Promise.resolve(''),
+        ]);
+        transMap[key] = { titleKo: titleKo || '', summaryKo: summaryKo || '' };
+        hasNew = true;
+      } catch(e) {
+        console.error('[Trans BG CF]', key.slice(0, 40), e.message);
+      }
+    }));
   }
 
   if (!hasNew) return;
