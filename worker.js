@@ -4324,11 +4324,68 @@ const NEWS_SOURCES = [
 ];
 
 const NEWS_CLASSIFY_RULES = [
-  { cat: 'fed',      keywords: ['federal reserve','fomc','powell','waller','jefferson','rate hike','rate cut','interest rate','quantitative','balance sheet','rrp','reverse repo','sofr','iorb','monetary policy','taper','tightening','easing','central bank speech','boe','boj','ecb','lagarde','ueda'] },
-  { cat: 'treasury', keywords: ['treasury','t-bill','t-note','t-bond','yield curve','coupon','auction','issuance','tga','debt ceiling','fiscal','deficit','budget','qra','quarterly refunding','bessent','yellen'] },
-  { cat: 'macro',    keywords: ['gdp','inflation','cpi','pce','tariff','trade war','sanction','geopolit','recession','employment','nfp','payroll','manufacturing','pmi','ism','dollar','dxy','liquidity','credit','spread','delinquency','zerohedge','wsj','wall street','fed funds'] },
-  { cat: 'hardtech', keywords: ['semiconductor','chip','nvidia','tsmc','amd','intel','arm','ai infrastructure','data center','datacenter','power grid','smr','nuclear','utility','energy','quantum','biotech','fda','clinical trial','drug','mrna','gene','semianalysis','ars technica','fierce'] },
-  { cat: 'crypto',   keywords: ['bitcoin','btc','ethereum','eth','crypto','blockchain','defi','stablecoin','usdt','usdc','rwa','tokenized','spot etf','halving','coinbase','blockworks','on-chain','onchain','solana','sol','layer'] },
+  // 1순위: Fed / 통화정책 — 가장 협소하고 명확한 키워드
+  { cat: 'fed', keywords: [
+    'federal reserve','fomc','powell','waller','jefferson','barr','kugler',
+    'rate hike','rate cut','interest rate','quantitative tightening','quantitative easing',
+    'balance sheet','reverse repurchase','sofr','iorb','ioer',
+    'monetary policy','taper','fed tightening','fed easing',
+    'central bank speech','boe rate','boj rate','ecb rate',
+    'lagarde','ueda','bailey',
+  ]},
+  // 2순위: 국채 / 재정 — treasury 단독 키워드는 crypto와 충돌 없음
+  { cat: 'treasury', keywords: [
+    'u.s. treasury','us treasury','treasury department','treasury secretary',
+    't-bill','t-note','t-bond','treasury yield','yield curve',
+    'treasury auction','debt issuance','tga balance','debt ceiling',
+    'fiscal policy','federal deficit','federal budget',
+    'quarterly refunding','qra','bessent','yellen','mnuchin',
+  ]},
+  // 3순위: 온체인 / 크립토 — macro보다 먼저 체크 (CoinDesk 기사 선점)
+  { cat: 'crypto', keywords: [
+    'bitcoin','btc','ethereum','eth','crypto','cryptocurrency',
+    'blockchain','defi','decentralized finance',
+    'stablecoin','usdt','usdc','tether','circle',
+    'rwa','real world asset','tokenized','tokenization',
+    'spot bitcoin etf','spot eth etf','crypto etf','halving',
+    'coinbase','binance','kraken','okx','bybit',
+    'blockworks','on-chain','onchain',
+    'solana','sol','xrp','ripple','cardano','ada','avalanche','avax',
+    'layer 2','layer2','lightning network',
+    'digital asset','digital currency','cbdc',
+    'nft','web3','dex','dao','airdrop',
+    'mining','miner','hash rate','mempool',
+    'crypto wallet','hot wallet','cold wallet',
+    'grayscale','microstrategy','strategy bitcoin',
+    'validator','proof of stake','proof of work',
+    'crypto regulation','crypto sec','crypto bill',
+    'token launch','altcoin','market cap crypto',
+  ]},
+  // 4순위: 거시 / 유동성
+  { cat: 'macro', keywords: [
+    'gdp','inflation','cpi','pce','core inflation',
+    'tariff','trade war','trade deficit','sanction',
+    'geopolit','war','conflict','recession','stagflation',
+    'employment','nfp','payroll','jobless claims','unemployment',
+    'manufacturing','pmi','ism index',
+    'dollar index','dxy','yen','fx market','carry trade',
+    'liquidity','credit market','credit spread',
+    'delinquency','fed funds rate','overnight rate',
+    'zerohedge','wall street journal','wsj market',
+  ]},
+  // 5순위: 하드테크 / 인프라
+  { cat: 'hardtech', keywords: [
+    'semiconductor','chip','chipmaker','wafer',
+    'nvidia','tsmc','amd','intel','arm','qualcomm','broadcom','asml',
+    'ai infrastructure','ai chip','gpu cluster',
+    'data center','datacenter','hyperscaler',
+    'power grid','electricity demand','smr','small modular reactor','nuclear power',
+    'utility','energy storage','battery storage',
+    'quantum computing','quantum computer',
+    'biotech','biopharma','fda approval','fda clearance',
+    'clinical trial','phase 3','drug approval','mrna','gene therapy','gene editing','crispr',
+    'semianalysis','ars technica','utility dive','fierce biotech',
+  ]},
 ];
 
 function newsClassify(title, summary, fallbackCat = 'macro') {
