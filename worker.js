@@ -4543,34 +4543,22 @@ async function newsEndpoint(env, isFresh, ctx) {
   // 1. RSS 파싱
   const data = await newsFetchAll(env);
 
-  // 2. 신규 기사 번역 (동기, 최대 30건 — 타임아웃 방지)
-  //    items는 최신순 정렬이므로 최근 기사부터 번역됨
-  if (env?.AI) {
+  // 2. 신규 기사 번역 (최대 30건, Claude 1회 배치 호출)
+  if (env?.ANTHROPIC_API_KEY) {
     const uncached = data.items.filter(item => {
       const key = newsTransKey(item);
       return key && !transMap[key];
-    }).slice(0, 30); // 요청당 최대 30건
+    }).slice(0, 30);
 
     if (uncached.length > 0) {
-      const BATCH = 10;
-      for (let i = 0; i < uncached.length; i += BATCH) {
-        const batch = uncached.slice(i, i + BATCH);
-        await Promise.all(batch.map(async item => {
-          const key = newsTransKey(item);
-          try {
-            const [titleKo, summaryKo] = await Promise.all([
-              item.title   ? translateViaCfAI(item.title,   env) : Promise.resolve(''),
-              item.summary ? translateViaCfAI(item.summary, env) : Promise.resolve(''),
-            ]);
-            transMap[key] = { titleKo: titleKo || '', summaryKo: summaryKo || '' };
-          } catch(e) {
-            console.error('[Trans]', key.slice(0, 40), e.message);
-          }
-        }));
+      try {
+        await translateViaClaude(uncached, env, transMap);
+        // 번역 맵 KV 저장 (비동기, 응답 블로킹 없음)
+        const saveP = newsSaveTransMap(env, transMap, null);
+        if (ctx?.waitUntil) ctx.waitUntil(saveP); else await saveP;
+      } catch(e) {
+        console.error('[Trans Claude]', e.message);
       }
-      // 번역 맵 저장
-      const saveP = newsSaveTransMap(env, transMap, null);
-      if (ctx?.waitUntil) ctx.waitUntil(saveP); else await saveP;
     }
   }
 
@@ -4620,69 +4608,73 @@ async function newsSaveTransMap(env, map, ctx) {
   }
 }
 
-// ── CF Workers AI 번역 ─────────────────────────────────────────
-// 모델: @cf/meta/m2m100-1.2b (지역 제한 없음, 무료, 내장 바인딩)
-async function translateViaCfAI(text, env) {
-  if (!env?.AI) throw new Error('AI binding 없음 (wrangler.toml에 [ai] 추가 필요)');
-  if (!text || !text.trim()) return '';
-  const result = await env.AI.run('@cf/meta/m2m100-1.2b', {
-    text: text.slice(0, 500), // 모델 최대 입력 제한
-    source_lang: 'english',
-    target_lang: 'korean',
+// ── Claude API 배치 번역 ────────────────────────────────────────
+// 모델: claude-haiku-4-5 (금융 맥락 번역, 30건 1회 호출)
+// input:  [{ title, summary }, ...]  (최대 30건)
+// output: transMap에 직접 저장
+async function translateViaClaude(batch, env, transMap) {
+  const apiKey = env?.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY 없음');
+
+  const inputJson = JSON.stringify(
+    batch.map((item, i) => ({
+      id: String(i),
+      title:   (item.title   || '').slice(0, 300),
+      summary: (item.summary || '').slice(0, 500),
+    }))
+  );
+
+  const prompt = `You are a senior Wall Street quant analyst fluent in Korean.
+Translate the following JSON array of English financial news headlines and summaries into Korean.
+Rules:
+- Keep financial/macro abbreviations as-is or add Korean in parentheses: TGA, RRP, FOMC, QRA, SOFR, NFP, HY, IG, CDS, ETF, SMR, Fed, ECB, BOJ
+- Use natural, professional Korean financial language
+- Respond ONLY with the JSON array, no markdown, no explanation
+
+${inputJson}
+
+Respond ONLY with JSON array in this exact format:
+[{"id":"0","titleKo":"...","summaryKo":"..."},...]`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    signal: AbortSignal.timeout(30000),
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: prompt }],
+    }),
   });
-  return result?.translated_text || text;
-}
 
-// 백그라운드 번역 작업 (ctx.waitUntil로 실행 — 응답 블로킹 없음)
-// 기사당 title + summary 병렬 번역, 기사는 순차 처리
-async function newsTranslateBackground(items, transMap, env, newsCacheKey, newsCacheTtl) {
-  if (!env?.AI) return;
-
-  const uncached = items.filter(item => {
-    const key = newsTransKey(item);
-    return key && !transMap[key];
-  });
-
-  if (uncached.length === 0) return;
-
-  let hasNew = false;
-  const BATCH = 10; // 10건씩 병렬 처리
-
-  for (let i = 0; i < uncached.length; i += BATCH) {
-    const batch = uncached.slice(i, i + BATCH);
-    await Promise.all(batch.map(async item => {
-      const key = newsTransKey(item);
-      if (!key) return;
-      try {
-        const [titleKo, summaryKo] = await Promise.all([
-          item.title   ? translateViaCfAI(item.title,   env) : Promise.resolve(''),
-          item.summary ? translateViaCfAI(item.summary,  env) : Promise.resolve(''),
-        ]);
-        transMap[key] = { titleKo: titleKo || '', summaryKo: summaryKo || '' };
-        hasNew = true;
-      } catch(e) {
-        console.error('[Trans BG CF]', key.slice(0, 40), e.message);
-      }
-    }));
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Claude API HTTP ${res.status}: ${err.slice(0, 150)}`);
   }
 
-  if (!hasNew) return;
+  const data = await res.json();
+  const rawText = data.content?.[0]?.text || '';
 
-  // 1. 번역 맵 KV 저장
-  await newsSaveTransMap(env, transMap, null);
+  // 마크다운 코드블록 방어 파싱
+  const cleaned = rawText
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/\s*```$/i, '')
+    .trim();
 
-  // 2. 기사 배열에 번역 적용 후 뉴스 캐시도 갱신
-  applyTransMapToItems(items, transMap);
-  await env.MMF_KV.put(
-    newsCacheKey || KV_KEYS.newsCache,
-    JSON.stringify({
-      fetchedAt:     new Date().toISOString(),
-      totalItems:    items.length,
-      items,
-      _translatedAt: new Date().toISOString(),
-    }),
-    { expirationTtl: newsCacheTtl || KV_TTL.newsCache }
-  );
+  const translated = JSON.parse(cleaned);
+
+  // transMap에 직접 저장
+  translated.forEach(t => {
+    const srcItem = batch[parseInt(t.id, 10)];
+    if (!srcItem) return;
+    const key = newsTransKey(srcItem);
+    if (key) transMap[key] = { titleKo: t.titleKo || '', summaryKo: t.summaryKo || '' };
+  });
 }
 
 // 번역 맵을 기사 배열에 in-place 적용
@@ -4700,17 +4692,18 @@ function applyTransMapToItems(items, transMap) {
 async function newsTransDebug(env) {
   const result = {};
 
-  // 1. CF AI 바인딩 확인
-  result.cf_ai_binding = !!env?.AI;
+  // 1. API 키 확인
+  result.anthropic_key_set    = !!env?.ANTHROPIC_API_KEY;
+  result.anthropic_key_prefix = env?.ANTHROPIC_API_KEY?.slice(0, 12) + '...' || 'MISSING';
 
   // 2. 번역 캐시 현황
   try {
     const transMap = await newsLoadTransMap(env);
     const keys = Object.keys(transMap);
-    result.trans_cache_count = keys.length;
+    result.trans_cache_count  = keys.length;
     result.trans_cache_sample = keys.slice(0, 2).map(k => ({
-      key: k.slice(0, 60),
-      titleKo: transMap[k]?.titleKo?.slice(0, 40),
+      key:     k.slice(0, 60),
+      titleKo: transMap[k]?.titleKo?.slice(0, 50),
     }));
   } catch(e) {
     result.trans_cache_error = e.message;
@@ -4724,10 +4717,9 @@ async function newsTransDebug(env) {
       result.news_cache_count = (newsCache.items || []).length;
       result.news_cache_sample = sample.map(n => ({
         title:   n.title?.slice(0, 40),
-        titleKo: n.titleKo?.slice(0, 40) || '(없음)',
+        titleKo: n.titleKo?.slice(0, 50) || '(없음)',
         hasKo:   !!n.titleKo,
       }));
-      result.news_cache_translatedAt = newsCache._translatedAt || '없음';
     } else {
       result.news_cache = '없음';
     }
@@ -4735,12 +4727,18 @@ async function newsTransDebug(env) {
     result.news_cache_error = e.message;
   }
 
-  // 4. CF AI 테스트 번역 (1건)
+  // 4. Claude 테스트 번역 (1건)
   try {
-    const titleKo = await translateViaCfAI('Federal Reserve holds interest rates steady', env);
-    result.cf_ai_test = { ok: true, titleKo };
+    const testBatch = [{
+      title:   'Federal Reserve holds interest rates steady amid inflation concerns',
+      summary: 'The Fed kept rates unchanged at its latest FOMC meeting, citing persistent inflation.',
+    }];
+    const testMap = {};
+    await translateViaClaude(testBatch, env, testMap);
+    const testKey = newsTransKey(testBatch[0]);
+    result.claude_test = { ok: true, ...testMap[testKey] };
   } catch(e) {
-    result.cf_ai_test = { ok: false, error: e.message };
+    result.claude_test = { ok: false, error: e.message };
   }
 
   return new Response(JSON.stringify(result, null, 2), { headers: CORS });
