@@ -4278,12 +4278,12 @@ const NEWS_CLASSIFY_RULES = [
   { cat: 'macro',    keywords: ['gdp','inflation','cpi','pce','tariff','trade war','sanction','geopolit','recession','employment','nfp','payroll','manufacturing','pmi','ism'] },
 ];
 
-function newsClassify(title, summary) {
+function newsClassify(title, summary, fallbackCat = 'macro') {
   const text = (title + ' ' + (summary || '')).toLowerCase();
   for (const rule of NEWS_CLASSIFY_RULES) {
     if (rule.keywords.some(kw => text.includes(kw))) return rule.cat;
   }
-  return 'macro';
+  return fallbackCat;
 }
 
 function newsParseRSS(xmlText) {
@@ -4331,7 +4331,7 @@ async function newsFetchSource(src) {
       ...item,
       sourceId:   src.id,
       sourceName: src.name,
-      cat: newsClassify(item.title, item.summary),
+      cat: newsClassify(item.title, item.summary, src.cat),
     }));
     return { id: src.id, name: src.name, cat: src.cat, ok: true, count: items.length, ms: Date.now()-t0, items };
   } catch(e) {
