@@ -4598,8 +4598,6 @@ async function newsSaveTransMap(env, map, ctx) {
 
 // ── Claude API 배치 번역 ────────────────────────────────────────
 // 모델: claude-haiku-4-5-20251001 (빠른 배치 번역, 30건 1회 호출)
-// input:  [{ title, summary }, ...]  (최대 30건)
-// output: transMap에 직접 저장
 async function translateViaClaude(batch, env, transMap) {
   const apiKey = env?.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error('ANTHROPIC_API_KEY 없음');
@@ -4633,44 +4631,64 @@ ${inputJson}
 출력 형식 (이 구조만):
 [{"id":"0","titleKo":"번역된 헤드라인","summaryKo":"번역된 요약"},...]`;
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    signal: AbortSignal.timeout(30000),
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }],
-    }),
+  const body = JSON.stringify({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 4096,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }],
   });
 
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`Claude API HTTP ${res.status}: ${err.slice(0, 150)}`);
+  // 429/403 재시도 (최대 3회, 지수 백오프)
+  const MAX_RETRIES = 3;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      signal: AbortSignal.timeout(30000),
+      body,
+    });
+
+    // Rate Limit / 일시 차단 → 대기 후 재시도
+    if (res.status === 429 || res.status === 403) {
+      if (attempt < MAX_RETRIES - 1) {
+        const waitMs = Math.pow(2, attempt + 1) * 2000; // 2s, 4s, 8s
+        console.warn(`[Trans] ${res.status} → ${waitMs}ms 후 재시도 (${attempt + 1}/${MAX_RETRIES})`);
+        await sleep(waitMs);
+        continue;
+      }
+      // 최대 재시도 초과 → 조용히 실패 (영문 유지)
+      console.warn('[Trans] Rate limit 초과, 이번 배치 건너뜀');
+      return;
+    }
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Claude API HTTP ${res.status}: ${err.slice(0, 150)}`);
+    }
+
+    const data = await res.json();
+    const rawText = data.content?.[0]?.text || '';
+    const cleaned = rawText
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+
+    const translated = JSON.parse(cleaned);
+    translated.forEach(t => {
+      const srcItem = batch[parseInt(t.id, 10)];
+      if (!srcItem) return;
+      const key = newsTransKey(srcItem);
+      if (key) transMap[key] = { titleKo: t.titleKo || '', summaryKo: t.summaryKo || '' };
+    });
+    return; // 성공
   }
-
-  const data = await res.json();
-  const rawText = data.content?.[0]?.text || '';
-
-  const cleaned = rawText
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/\s*```$/i, '')
-    .trim();
-
-  const translated = JSON.parse(cleaned);
-
-  translated.forEach(t => {
-    const srcItem = batch[parseInt(t.id, 10)];
-    if (!srcItem) return;
-    const key = newsTransKey(srcItem);
-    if (key) transMap[key] = { titleKo: t.titleKo || '', summaryKo: t.summaryKo || '' };
-  });
 }
 
 // 번역 맵을 기사 배열에 in-place 적용
@@ -4768,19 +4786,9 @@ async function newsTransDebug(env) {
     result.news_cache_error = e.message;
   }
 
-  // 4. Claude 테스트 번역 (1건)
-  try {
-    const testBatch = [{
-      title:   'Federal Reserve holds interest rates steady amid inflation concerns',
-      summary: 'The Fed kept rates unchanged at its latest FOMC meeting, citing persistent inflation.',
-    }];
-    const testMap = {};
-    await translateViaClaude(testBatch, env, testMap);
-    const testKey = newsTransKey(testBatch[0]);
-    result.claude_test = { ok: true, ...testMap[testKey] };
-  } catch(e) {
-    result.claude_test = { ok: false, error: e.message };
-  }
+  // 4. API 키 유효성 (라이브 호출 없음 — Rate Limit 절약)
+  //    실제 번역 테스트는 /news?force=1 으로 확인
+  result.claude_note = '번역 테스트는 뉴스 패널 강제새로고침으로 확인 (API 호출 절약)';
 
   return new Response(JSON.stringify(result, null, 2), { headers: CORS });
 }
