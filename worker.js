@@ -4597,7 +4597,7 @@ async function newsSaveTransMap(env, map, ctx) {
 }
 
 // ── Claude API 배치 번역 ────────────────────────────────────────
-// 모델: claude-sonnet-4-6 (고품질 금융 헤드라인 번역, 30건 1회 호출)
+// 모델: claude-haiku-4-5-20251001 (빠른 배치 번역, 30건 1회 호출)
 // input:  [{ title, summary }, ...]  (최대 30건)
 // output: transMap에 직접 저장
 async function translateViaClaude(batch, env, transMap) {
@@ -4640,10 +4640,10 @@ ${inputJson}
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
     },
-    signal: AbortSignal.timeout(45000),  // Sonnet은 응답이 약간 느림
+    signal: AbortSignal.timeout(30000),
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 8192,
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 4096,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     }),
@@ -4657,7 +4657,6 @@ ${inputJson}
   const data = await res.json();
   const rawText = data.content?.[0]?.text || '';
 
-  // 마크다운 코드블록 방어 파싱
   const cleaned = rawText
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
@@ -4666,7 +4665,6 @@ ${inputJson}
 
   const translated = JSON.parse(cleaned);
 
-  // transMap에 직접 저장
   translated.forEach(t => {
     const srcItem = batch[parseInt(t.id, 10)];
     if (!srcItem) return;
