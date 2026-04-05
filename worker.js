@@ -117,6 +117,7 @@ export default {
 
       // ── 뉴스 피드 ──────────────────────────────────────────
       if (path.startsWith('/news-trans-debug')) return await newsTransDebug(env);
+      if (path.startsWith('/news-trans-flush')) return await newsTransFlush(env);
       if (path.startsWith('/news-test')) return await newsEndpoint(env, true,  ctx); // 항상 fresh
       if (path.startsWith('/news'))      return await newsEndpoint(env, force, ctx); // force=1 시 캐시 무시
 
@@ -4609,7 +4610,7 @@ async function newsSaveTransMap(env, map, ctx) {
 }
 
 // ── Claude API 배치 번역 ────────────────────────────────────────
-// 모델: claude-haiku-4-5 (금융 맥락 번역, 30건 1회 호출)
+// 모델: claude-sonnet-4-6 (고품질 금융 헤드라인 번역, 30건 1회 호출)
 // input:  [{ title, summary }, ...]  (최대 30건)
 // output: transMap에 직접 저장
 async function translateViaClaude(batch, env, transMap) {
@@ -4618,23 +4619,32 @@ async function translateViaClaude(batch, env, transMap) {
 
   const inputJson = JSON.stringify(
     batch.map((item, i) => ({
-      id: String(i),
+      id:      String(i),
       title:   (item.title   || '').slice(0, 300),
       summary: (item.summary || '').slice(0, 500),
     }))
   );
 
-  const prompt = `You are a senior Wall Street quant analyst fluent in Korean.
-Translate the following JSON array of English financial news headlines and summaries into Korean.
-Rules:
-- Keep financial/macro abbreviations as-is or add Korean in parentheses: TGA, RRP, FOMC, QRA, SOFR, NFP, HY, IG, CDS, ETF, SMR, Fed, ECB, BOJ
-- Use natural, professional Korean financial language
-- Respond ONLY with the JSON array, no markdown, no explanation
+  const systemPrompt = `당신은 한국 주요 경제지(한국경제, 매일경제)에서 20년 경력을 쌓은 수석 금융 편집장이자 월가 출신 퀀트 애널리스트입니다.
+영문 금융·매크로 뉴스를 한국 독자에게 최적화된 전문 한국어로 번역합니다.
+
+번역 원칙:
+1. 헤드라인(titleKo)은 한국 경제지 스타일의 명사구로 작성 — 동사 종결어미(-합니다, -한다) 사용 금지
+   예시: "Fed raises rates" → "연준, 기준금리 인상 단행" (O) / "연준이 금리를 올렸습니다" (X)
+2. 요약(summaryKo)은 간결한 2~3문장, 핵심 수치와 맥락 포함
+3. 전문 용어 처리:
+   - 주요 약어는 한국어+원문 병기 (첫 등장 시): 연준(Fed), 재무부(Treasury), 국채(Treasury Bond)
+   - 금융 약어는 원문 유지: TGA, RRP, FOMC, QRA, SOFR, NFP, HY, IG, CDS, ETF, SMR, ECB, BOJ, BIS
+   - 수치는 한국식 단위로 변환: $1 trillion → 1조 달러, $100 billion → 1,000억 달러
+4. 비금융 기사(지정학, 기술, 바이오)도 동일 원칙 적용, 업계 전문 용어 살려서 번역
+5. 응답은 반드시 JSON 배열만 — 마크다운, 설명 텍스트 절대 금지`;
+
+  const userPrompt = `아래 JSON 배열을 번역하라. 반드시 동일한 구조의 JSON 배열로만 응답하라.
 
 ${inputJson}
 
-Respond ONLY with JSON array in this exact format:
-[{"id":"0","titleKo":"...","summaryKo":"..."},...]`;
+출력 형식 (이 구조만):
+[{"id":"0","titleKo":"번역된 헤드라인","summaryKo":"번역된 요약"},...]`;
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -4643,11 +4653,12 @@ Respond ONLY with JSON array in this exact format:
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01',
     },
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(45000),  // Sonnet은 응답이 약간 느림
     body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4096,
-      messages: [{ role: 'user', content: prompt }],
+      model: 'claude-sonnet-4-6',
+      max_tokens: 8192,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
     }),
   });
 
@@ -4742,4 +4753,19 @@ async function newsTransDebug(env) {
   }
 
   return new Response(JSON.stringify(result, null, 2), { headers: CORS });
+}
+
+// ── 번역 캐시 초기화 (/news-trans-flush) ───────────────────────
+// 기존 번역 캐시 삭제 → 다음 /news?force=1 시 Sonnet으로 재번역
+async function newsTransFlush(env) {
+  try {
+    await env.MMF_KV.delete(KV_KEYS.newsTransMap);
+    await env.MMF_KV.delete(KV_KEYS.newsCache);
+    return new Response(JSON.stringify({
+      ok: true,
+      message: '번역 캐시 + 뉴스 캐시 초기화 완료. /news?force=1 호출 시 Sonnet으로 재번역됩니다.'
+    }), { headers: CORS });
+  } catch(e) {
+    return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: CORS });
+  }
 }
