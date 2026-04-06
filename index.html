@@ -10823,7 +10823,7 @@ function renderNews() {
   }
 
   // 전체 탭에서만 배지 표시 (개별 탭은 단일 카테고리라 불필요)
-  const showBadge = (_tabFilter === 'all');
+  const showBadge = false; // 닷 색상으로만 구분, 배지 제거
 
   // _filteredItems 저장 (클릭 핸들러에서 인덱스로 참조)
   list._items = items;
