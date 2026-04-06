@@ -1126,7 +1126,12 @@ body{
   font-family: monospace;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 599px) {
+  #news-panel, #cal-panel, #tower-panel {
+    width: 100vw !important;
+    border-left: none !important;
+  }
+}
 </style>
 
 <!-- ═══════ 뉴스 슬라이드 패널 ═══════ -->
@@ -2506,9 +2511,6 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
          display:flex;flex-direction:column;overflow:hidden;
          overscroll-behavior:contain;touch-action:pan-y;">
 <style>
-@media (max-width: 767px) {
-  #tower-panel { width: 100vw !important; border-left: none !important; }
-}
 </style>
 
   <!-- 패널 헤더 -->
