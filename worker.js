@@ -3592,7 +3592,6 @@ async function pipe3CreditRisk(env, ctx) {
     fetchFred('DRTSCILM',          2),  // ① SLOOS (분기)
     fetchSloosReleaseDate(),            // ① SLOOS 실제 발표일
     fetchFred('BAMLC0A0CM',        2),  // ② IG OAS (일별)
-    fetchFred('BAMLC0A0CM',        2),  // ② IG OAS (일별)
     fetchFred('DRCRELEXFACBS',     2),  // ③ CRE 연체율 (분기)
     fetchFred('BAMLH0A3HYC',       2),  // ④ CCC HY (일별)
     fetchFred('BAMLEMHBHYCRPIOAS', 2),  // ⑤ EM HY 백업 (일별)
