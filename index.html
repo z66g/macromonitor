@@ -1031,7 +1031,7 @@ body{
 .np-item:last-child { border-bottom: none; }
 
 /* 아이템 본문 */
-.np-body { flex: 1; padding: 9px 14px; min-width: 0; }
+.np-body { flex: 1; padding: 7px 14px; min-width: 0; }
 
 /* 헤드라인 행 (닷 + 텍스트) */
 .np-headline-row {
@@ -1067,7 +1067,7 @@ body{
   font-weight: 500;
   color: #CDD9E5;
   line-height: 1.45;
-  margin-bottom: 3px;
+  margin-bottom: 0;
 }
 .np-item.np-read .np-headline { color: #484F58; }
 
@@ -1136,7 +1136,7 @@ body{
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
 
 <div id="news-panel"
-  style="position:fixed;top:0;right:0;height:100vh;width:420px;
+  style="position:fixed;top:0;right:0;height:100vh;width:630px;
          background:#161B22;border-left:0.5px solid #30363D;
          z-index:901;transform:translateX(100%);
          transition:transform .28s cubic-bezier(.4,0,.2,1);
@@ -1171,7 +1171,7 @@ body{
       onclick="newsTabFilter('fed',this)"><span style="width:6px;height:6px;border-radius:50%;background:#58A6FF;flex-shrink:0;display:inline-block;"></span>Fed</button>
     <button class="np-tab-btn"
       style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
-      onclick="newsTabFilter('treasury',this)"><span style="width:6px;height:6px;border-radius:50%;background:#3FB950;flex-shrink:0;display:inline-block;"></span>국채</button>
+      onclick="newsTabFilter('treasury',this)"><span style="width:6px;height:6px;border-radius:50%;background:#3FB950;flex-shrink:0;display:inline-block;"></span>채권·재정</button>
     <button class="np-tab-btn"
       style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
       onclick="newsTabFilter('macro',this)"><span style="width:6px;height:6px;border-radius:50%;background:#F0B429;flex-shrink:0;display:inline-block;"></span>거시</button>
@@ -10835,22 +10835,22 @@ function renderNews() {
   const showBadge = false; // 닷 색상으로만 구분, 배지 제거
 
   // _filteredItems 저장 (클릭 핸들러에서 인덱스로 참조)
-  // 탭별 고정 색상 (sourceId 기반 필터링 탭은 탭 색상으로 통일)
-  const TAB_COLOR = {
-    all:      null,          // 전체 탭은 n.cat 기준
-    fed:      '#58A6FF',     // 파랑
-    treasury: '#3FB950',     // 초록
-    macro:    '#F0B429',     // 앰버
-    tech:     '#FF7B72',     // 레드
-    onchain:  '#A8B2BF',     // 실버
+  // 소스ID → 탭 색상 매핑 (전체탭 포함 모든 탭에서 sourceId 기준 색상)
+  const SOURCE_COLOR_MAP = {
+    fed_press:      '#58A6FF', bis_speeches:   '#58A6FF',
+    us_treasury:    '#3FB950', bis_press:      '#3FB950',
+    wsj_markets:    '#3FB950', ecb_press:      '#3FB950',
+    zerohedge:      '#F0B429', wsj_economy:    '#F0B429',
+    semianalysis:   '#FF7B72', ars_science:    '#FF7B72',
+    ars_tech:       '#FF7B72', utility_dive:   '#FF7B72',
+    fierce_biotech: '#FF7B72',
+    blockworks:     '#A8B2BF', coindesk:       '#A8B2BF',
   };
-  const fixedColor = TAB_COLOR[_tabFilter]; // null이면 n.cat 사용
 
   list._items = items;
 
   list.innerHTML = items.map((n, idx) => {
-    const c          = CAT[n.cat] || CAT.macro;
-    const dotColor   = fixedColor || c.color; // 개별탭: 탭색상 고정, 전체탭: n.cat
+    const dotColor   = SOURCE_COLOR_MAP[n.sourceId] || (CAT[n.cat]?.color) || '#8B949E';
     const isRead     = _readSet.has(idx + '_' + n.title);
     const isExpanded = (_expandedId === idx);
     const timeStr    = relTime(n.pubDate);
@@ -10858,16 +10858,17 @@ function renderNews() {
     return `
     <div class="np-item${isRead ? ' np-read' : ''}" data-idx="${idx}">
       <div class="np-body">
-        ${showBadge ? `<span class="np-badge" style="background:${c.bg};color:${c.color};">${c.label}</span>` : ''}
         <div class="np-headline-row">
           <span class="np-dot" style="background:${dotColor};"></span>
-          <div class="np-headline">${escHtml(n.titleKo || n.title)}</div>
-        </div>
-        <div class="np-meta">
-          <span>${escHtml(n.sourceName)}</span>
-          <span class="np-meta-dot"></span>
-          <span>${timeStr}</span>
-          ${isRead ? '<span class="np-meta-dot"></span><span style="color:#30363D;">읽음</span>' : ''}
+          <div>
+            <div class="np-headline">${escHtml(n.titleKo || n.title)}</div>
+            <div class="np-meta">
+              <span>${escHtml(n.sourceName)}</span>
+              <span class="np-meta-dot"></span>
+              <span>${timeStr}</span>
+              ${isRead ? '<span class="np-meta-dot"></span><span style="color:#30363D;">읽음</span>' : ''}
+            </div>
+          </div>
         </div>
         <div class="np-expand${isExpanded ? ' open' : ''}">
           <div class="np-summary">${escHtml(n.summaryKo || n.summary || '요약 없음')}</div>
