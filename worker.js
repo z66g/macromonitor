@@ -536,15 +536,21 @@ function buildMarketEvents(fromDate, toDate, fomcDates = []) {
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  // ⑨ SLOOS (대출기준 설문) — 1/4/7/10월 첫째 주 월요일경 (추정)
-  for (const { year, month } of months) {
-    if (![1, 4, 7, 10].includes(month)) continue;
-    const sloosDate = nthWeekdayOfMonth(year, month, 1, 1); // 첫째 월요일
+  // ⑨ SLOOS (대출기준 설문) — FOMC 회의 직후 월요일 (1/4/7/10월)
+  for (const fomcDate of fomcDates) {
+    const fm = new Date(fomcDate);
+    const fomcMonth = fm.getMonth() + 1;
+    // FOMC 이후 월요일 = SLOOS 발표일 (1/4/7/10월 FOMC만 해당)
+    if (![1, 4, 7, 10].includes(fomcMonth)) continue;
+    const nextMonday = new Date(fm);
+    nextMonday.setDate(fm.getDate() + 1);
+    while (nextMonday.getDay() !== 1) nextMonday.setDate(nextMonday.getDate() + 1);
+    const sloosDate = nextMonday.toISOString().slice(0, 10);
     if (sloosDate >= fromDate && sloosDate <= toDate) {
       events.push({
         date: sloosDate, dday: null,
-        name: 'SLOOS 대출기준 설문 발표 (분기)',
-        imp: 'high', tag: '신용', category: 'macro', weight: 2, estimated: true,
+        name: 'SLOOS 대출기준 설문 발표 (FOMC 후 월요일)',
+        imp: 'high', tag: '신용', category: 'macro', weight: 2, estimated: false,
       });
     }
   }
