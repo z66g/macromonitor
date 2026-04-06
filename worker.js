@@ -1820,8 +1820,20 @@ async function h41HistoryFetcher(url) {
         }
         return null;
       };
+      // fima_repo는 평상시 $0 → 행이 있어도 0일 수 있으므로 별도 처리
+      const getValOrZero = (rows, pat) => {
+        if (!rows) return 0;
+        for (const r of rows) {
+          const lc = r[0].toLowerCase().replace(/\s+\d+$/,'').trim();
+          if (lc.includes(pat) && r.length > 1) {
+            const v = parseFloat((r[1]||'').replace(/[^0-9.]/g,''));
+            return isNaN(v) ? 0 : v;
+          }
+        }
+        return 0;
+      };
 
-      let tAssets=null, tLiabDet=null, tLiabSum=null, tMbs=null, tMat=null;
+      let tAssets=null, tLiabDet=null, tLiabSum=null, tMbs=null, tMat=null, tMemo=null;
       for (const t of tables) {
         const rows = extractRows(t);
         if (!tAssets   && hasDataRow(rows,'reserve bank credit',5000000))       tAssets   = rows;
@@ -1831,6 +1843,8 @@ async function h41HistoryFetcher(url) {
                        && rows.some(r=>r.length>=14))                           tLiabDet = rows;
         if (!tMbs      && hasDataRow(rows,'mortgage-backed securities held outright',1000000)) tMbs = rows;
         if (!tMat      && rows.some(r => r[0].toLowerCase().includes('remaining maturity') && r.length >= 8)) tMat = rows;
+        // Memorandum: securities held in custody > $2T
+        if (!tMemo     && hasDataRow(rows,'securities held in custody',2000000)) tMemo = rows;
       }
 
       // ── 만기별 파싱 (Table[6] 매트릭스) ──
@@ -1879,6 +1893,9 @@ async function h41HistoryFetcher(url) {
         tga:              getVal(tLiabDet, 'u.s. treasury, general account'),
         fed_notes_net:    getVal(tLiabDet, 'federal reserve notes, net'),
         mbs_total:        getVal(tMbs,     'mortgage-backed securities held outright'),
+        // Custody & FIMA
+        custody_treasury: getVal(tMemo,    'marketable u.s. treasury'),
+        fima_repo:        getValOrZero(tAssets, 'foreign official'),
         maturity:         matResult,
       };
     } catch(e) {
