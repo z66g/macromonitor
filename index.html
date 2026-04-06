@@ -6799,31 +6799,12 @@ let calViewYear  = new Date().getFullYear();
 let calViewMonth = new Date().getMonth(); // 0-based
 let calSelectedDate = new Date().toISOString().slice(0, 10); // 선택된 날짜
 
-// ── 슬라이드 패널 body 스크롤 차단 ──────────────────────────────
-// iOS Safari는 overscroll-behavior 미지원 → body overflow:hidden 이 유일한 확실한 방법
-let _bodyScrollY = 0;
-function lockBodyScroll() {
-  _bodyScrollY = window.scrollY;
-  document.body.style.overflow = 'hidden';
-  document.body.style.position = 'fixed';
-  document.body.style.top = `-${_bodyScrollY}px`;
-  document.body.style.width = '100%';
-}
-function unlockBodyScroll() {
-  document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.top = '';
-  document.body.style.width = '';
-  window.scrollTo(0, _bodyScrollY);
-}
-
 function toggleCalPanel() {
   calPanelOpen = !calPanelOpen;
   const panel   = document.getElementById('cal-panel');
   const overlay = document.getElementById('cal-overlay');
   const btn     = document.getElementById('hdr-cal-btn');
   if (calPanelOpen) {
-    lockBodyScroll();
     overlay.style.display = 'block';
     panel.style.transform = 'translateX(0)';
     btn.style.borderColor = '#0969DA';
@@ -6831,13 +6812,23 @@ function toggleCalPanel() {
     if (calData.length === 0) loadCalendar(false);
     else { renderCalMini(); renderCalWeek(); }
   } else {
-    unlockBodyScroll();
     overlay.style.display = 'none';
     panel.style.transform = 'translateX(100%)';
     btn.style.borderColor = '#30363D';
     btn.style.color = '#8B949E';
   }
 }
+
+// cal-mini 영역은 스크롤이 없는 고정 그리드라 터치 스와이프가 body로 전파됨
+// → touchmove를 직접 차단해서 본문 스크롤 방지
+document.addEventListener('DOMContentLoaded', function() {
+  const calMini = document.getElementById('cal-mini');
+  if (calMini) {
+    calMini.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+  }
+});
 
 async function loadCalendar(force = false) {
   const listEl = document.getElementById('cal-list');
@@ -8956,14 +8947,12 @@ function toggleLiqTower() {
   const overlay = document.getElementById('tower-overlay');
   const btn     = document.getElementById('hdr-tower-btn');
   if (towerOpen) {
-    lockBodyScroll();
     overlay.style.display = 'block';
     panel.style.transform = 'translateX(0)';
     if (btn) { btn.style.borderColor='#0969DA'; btn.style.color='#58A6FF'; }
     if (!towerLoaded) { towerLoaded = true; loadLiqTower(false); }
     checkQraStatus();
   } else {
-    unlockBodyScroll();
     overlay.style.display = 'none';
     panel.style.transform = 'translateX(100%)';
     if (btn) { btn.style.borderColor='#30363D'; btn.style.color='#8B949E'; }
@@ -10939,14 +10928,12 @@ function toggleNewsPanel() {
   _panelOpen = !_panelOpen;
 
   if (_panelOpen) {
-    lockBodyScroll();
     panel.style.transform   = 'translateX(0)';
     overlay.style.display   = 'block';
     btn.style.borderColor   = '#58A6FF';
     btn.style.color         = '#58A6FF';
     if (_allItems.length === 0) loadNews(false);
   } else {
-    unlockBodyScroll();
     panel.style.transform   = 'translateX(100%)';
     overlay.style.display   = 'none';
     btn.style.borderColor   = '#30363D';
