@@ -1127,7 +1127,8 @@ body{
 }
 
 @media (max-width: 767px) {
-  #news-panel { width: 100vw !important; border-left: none !important; }
+  #news-panel   { width: 100vw !important; border-left: none !important; }
+  #report-panel { width: 100vw !important; border-left: none !important; }
 }
 </style>
 
@@ -1198,6 +1199,41 @@ body{
   <div id="news-list" style="flex:1;overflow-y:auto;overscroll-behavior:contain;"></div>
 </div>
 
+<!-- ═══════ 데일리 리포트 슬라이드 패널 ═══════ -->
+<div id="report-overlay" onclick="toggleReportPanel()"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
+<div id="report-panel"
+  style="position:fixed;top:0;right:0;height:100vh;width:380px;
+         background:#161B22;border-left:0.5px solid #30363D;
+         z-index:901;transform:translateX(100%);
+         transition:transform .28s cubic-bezier(.4,0,.2,1);
+         display:flex;flex-direction:column;overflow:hidden;
+         overscroll-behavior:contain;touch-action:pan-y;">
+  <!-- 헤더 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;
+              padding:14px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:13px;font-weight:700;color:#E6EDF3;">데일리 리포트</span>
+      <span id="report-type-badge" style="font-size:8px;padding:1px 6px;border-radius:3px;
+            background:#1A3448;color:#58A6FF;border:0.5px solid #0969DA;display:none;"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="report-generated-at" style="font-size:8px;color:#484F58;"></span>
+      <button onclick="toggleReportPanel()"
+        style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
+    </div>
+  </div>
+  <!-- 리포트 탭 (장마감/장시작 + 날짜 선택) -->
+  <div id="report-tab-bar"
+    style="display:flex;align-items:center;gap:0;border-bottom:0.5px solid #21262D;
+           flex-shrink:0;overflow-x:auto;scrollbar-width:none;">
+  </div>
+  <!-- 리포트 본문 -->
+  <div id="report-body" style="flex:1;overflow-y:auto;overscroll-behavior:contain;padding:16px 18px;">
+    <div style="color:#484F58;font-size:11px;text-align:center;padding:40px 0;">로딩 중...</div>
+  </div>
+</div>
+
 <!-- ═══════ 캘린더 슬라이드 패널 ═══════ -->
 <div id="cal-overlay" onclick="toggleCalPanel()"
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
@@ -1259,7 +1295,17 @@ body{
 <!-- ═══════ CONTROLS BAR (탭과 무관, 항상 표시) ═══════ -->
 <div id="controls-bar">
   <div id="controls-bar-inner">
-    <button id="hdr-cal-btn" onclick="toggleCalPanel()" title="이벤트 캘린더"
+    <button id="hdr-report-btn" onclick="toggleReportPanel()" title="데일리 리포트"
+      style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
+             color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
+             display:flex;align-items:center;gap:4px;transition:all .2s;position:relative;">
+      <span style="font-size:11px;">📊</span>
+      <span style="font-size:9px;">리포트</span>
+      <span id="report-badge" style="display:none;position:absolute;top:-4px;right:-4px;
+            min-width:14px;height:14px;border-radius:7px;background:#CF222B;
+            color:#fff;font-size:7px;font-weight:700;
+            display:none;align-items:center;justify-content:center;padding:0 3px;"></span>
+    </button>
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
              display:flex;align-items:center;gap:4px;transition:all .2s;">
@@ -6799,6 +6845,175 @@ let calViewYear  = new Date().getFullYear();
 let calViewMonth = new Date().getMonth(); // 0-based
 let calSelectedDate = new Date().toISOString().slice(0, 10); // 선택된 날짜
 
+// ══════════════════════════════
+// 데일리 리포트 패널
+// ══════════════════════════════
+let reportPanelOpen  = false;
+let reportData       = [];   // 로드된 리포트 배열
+let reportActiveIdx  = 0;    // 현재 보고 있는 인덱스
+let reportSeenIds    = new Set(JSON.parse(localStorage.getItem('reportSeenIds') || '[]'));
+
+function toggleReportPanel() {
+  reportPanelOpen = !reportPanelOpen;
+  const panel   = document.getElementById('report-panel');
+  const overlay = document.getElementById('report-overlay');
+  const btn     = document.getElementById('hdr-report-btn');
+  if (reportPanelOpen) {
+    const h = (window.visualViewport?.height || window.innerHeight) + 'px';
+    panel.style.height = h;
+    overlay.style.display = 'block';
+    panel.style.transform = 'translateX(0)';
+    if (btn) { btn.style.borderColor = '#0969DA'; btn.style.color = '#58A6FF'; }
+    if (reportData.length === 0) loadReportData();
+    else renderReport();
+  } else {
+    overlay.style.display = 'none';
+    panel.style.transform = 'translateX(100%)';
+    if (btn) { btn.style.borderColor = '#30363D'; btn.style.color = '#8B949E'; }
+  }
+}
+
+async function loadReportData() {
+  const bodyEl = document.getElementById('report-body');
+  bodyEl.innerHTML = '<div style="color:#484F58;font-size:11px;text-align:center;padding:40px 0;">로딩 중...</div>';
+  try {
+    const r = await fetchWithTimeout(`${WORKER}/daily-report`, 10000);
+    const d = await r.json();
+    reportData = d.reports || [];
+    reportActiveIdx = 0;
+    renderReportTabs();
+    renderReport();
+    updateReportBadge();
+  } catch(e) {
+    bodyEl.innerHTML = `<div style="color:#F85149;font-size:11px;text-align:center;padding:40px 0;">로딩 실패: ${e.message}</div>`;
+  }
+}
+
+function renderReportTabs() {
+  const bar = document.getElementById('report-tab-bar');
+  if (!bar) return;
+  if (reportData.length === 0) { bar.innerHTML = ''; return; }
+
+  bar.innerHTML = reportData.map((r, i) => {
+    const dt   = new Date(r.generatedAt);
+    const mm   = String(dt.getMonth()+1).padStart(2,'0');
+    const dd   = String(dt.getDate()).padStart(2,'0');
+    const label = r.label || (r.type === 'close' ? '장마감' : '장시작');
+    const isActive = i === reportActiveIdx;
+    const isNew    = !reportSeenIds.has(r.id);
+    return `<button onclick="selectReport(${i})"
+      style="flex-shrink:0;padding:8px 12px;border:none;cursor:pointer;
+             font-size:9px;border-bottom:2px solid ${isActive ? '#0969DA' : 'transparent'};
+             background:transparent;color:${isActive ? '#58A6FF' : '#656D76'};
+             white-space:nowrap;display:flex;align-items:center;gap:4px;">
+      ${mm}/${dd} ${label}
+      ${isNew ? '<span style="width:5px;height:5px;border-radius:50%;background:#CF222B;flex-shrink:0;"></span>' : ''}
+    </button>`;
+  }).join('');
+}
+
+function selectReport(idx) {
+  reportActiveIdx = idx;
+  renderReportTabs();
+  renderReport();
+}
+
+function renderReport() {
+  if (reportData.length === 0) {
+    document.getElementById('report-body').innerHTML =
+      '<div style="color:#484F58;font-size:11px;text-align:center;padding:60px 0;line-height:1.8;">' +
+      '아직 생성된 리포트가 없습니다.<br>평일 장마감(UTC 22:30) / 장시작(UTC 13:00) 이후 생성됩니다.</div>';
+    return;
+  }
+
+  const r = reportData[reportActiveIdx];
+  if (!r) return;
+
+  // 읽음 처리
+  reportSeenIds.add(r.id);
+  localStorage.setItem('reportSeenIds', JSON.stringify([...reportSeenIds]));
+  updateReportBadge();
+  renderReportTabs();
+
+  // 타입 배지
+  const typeBadge = document.getElementById('report-type-badge');
+  if (typeBadge) {
+    typeBadge.textContent = r.label || '—';
+    typeBadge.style.display = 'inline-block';
+  }
+  // 생성 시각
+  const genEl = document.getElementById('report-generated-at');
+  if (genEl && r.generatedAt) {
+    const dt = new Date(r.generatedAt);
+    genEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} KST`;
+  }
+
+  const signalColor = (r.meta?.drainWeek1 ?? 0) < -20 ? '#3FB950' :
+                      (r.meta?.drainWeek1 ?? 0) > 20  ? '#F85149' : '#F0B429';
+
+  const newsHtml = (r.newsDigest || []).map((n, i) =>
+    `<div style="display:flex;gap:8px;padding:6px 0;border-bottom:0.5px solid #21262D;">
+      <span style="font-size:9px;font-weight:700;color:#CF222B;flex-shrink:0;">${i+1}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;color:#CDD9E5;font-weight:600;margin-bottom:2px;
+                    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n.headline || '—'}</div>
+        <div style="font-size:8px;color:#8B949E;line-height:1.4;">${n.impact || '—'}</div>
+      </div>
+    </div>`
+  ).join('');
+
+  document.getElementById('report-body').innerHTML = `
+    <!-- 한 문장 요약 -->
+    <div style="background:#111827;border:0.5px solid #30363D;border-radius:6px;
+                padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:8px;color:#484F58;margin-bottom:6px;letter-spacing:0.05em;">LIQUIDITY REGIME</div>
+      <div style="font-size:11px;font-weight:600;color:#E6EDF3;line-height:1.5;">${r.oneLiner || '—'}</div>
+    </div>
+
+    <!-- 핵심 파이프 -->
+    <div style="background:#1C1106;border:0.5px solid #9A6700;border-radius:6px;
+                padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:8px;color:#9A6700;margin-bottom:6px;letter-spacing:0.05em;">⚡ KEY PIPE</div>
+      <div style="font-size:10px;font-weight:700;color:#F0B429;margin-bottom:6px;">${r.keyPipe || '—'}</div>
+      <div style="font-size:9px;color:#CDD9E5;line-height:1.6;">${r.pipeImpact || '—'}</div>
+    </div>
+
+    <!-- 3개 섹션 -->
+    ${[
+      { key: 'liquidityDirection', label: '유동성 방향', color: '#1A7F5A', bg: '#0D1F16', border: '#1A7F5A' },
+      { key: 'riskTriggers',      label: '리스크 트리거', color: '#CF222B', bg: '#160404', border: '#B91C1C' },
+      { key: 'positioning',       label: '포지셔닝 시사점', color: '#0969DA', bg: '#0A1628', border: '#0969DA' },
+    ].map(s => `
+      <div style="background:${s.bg};border:0.5px solid ${s.border};border-radius:6px;
+                  padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:8px;color:${s.color};font-weight:700;margin-bottom:6px;letter-spacing:0.05em;">${s.label.toUpperCase()}</div>
+        <div style="font-size:9px;color:#CDD9E5;line-height:1.7;">${(r.sections?.[s.key] || '—')}</div>
+      </div>`
+    ).join('')}
+
+    <!-- 뉴스 트리거 TOP3 -->
+    <div style="margin-top:4px;">
+      <div style="font-size:8px;color:#656D76;font-weight:700;letter-spacing:0.05em;
+                  margin-bottom:8px;padding-bottom:4px;border-bottom:0.5px solid #21262D;">
+        📡 시장 배관 트리거 TOP 3
+      </div>
+      ${newsHtml || '<div style="font-size:9px;color:#484F58;">뉴스 데이터 없음</div>'}
+    </div>
+  `;
+}
+
+function updateReportBadge() {
+  const badge = document.getElementById('report-badge');
+  if (!badge) return;
+  const unread = reportData.filter(r => !reportSeenIds.has(r.id)).length;
+  if (unread > 0) {
+    badge.textContent = unread;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
 function toggleCalPanel() {
   calPanelOpen = !calPanelOpen;
   const panel   = document.getElementById('cal-panel');
@@ -6839,15 +7054,33 @@ document.addEventListener('DOMContentLoaded', function() {
       const deltaY   = e.touches[0].clientY - _touchStartY;
       const atTop    = list.scrollTop <= 0;
       const atBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 1;
-      // 경계에서 더 진행하려는 경우만 차단
       if ((deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) {
         e.preventDefault();
       }
-      return; // 그 외엔 내부 스크롤 허용
+      return;
     }
-    // cal-list 밖(cal-mini, 헤더 등) → 무조건 차단
     e.preventDefault();
   }, { passive: false });
+
+  // report-panel 동일 패턴 적용
+  const reportPanel = document.getElementById('report-panel');
+  if (reportPanel) {
+    let _repTouchStartY = 0;
+    reportPanel.addEventListener('touchstart', e => {
+      _repTouchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    reportPanel.addEventListener('touchmove', function(e) {
+      const list = document.getElementById('report-body');
+      if (list && list.contains(e.target)) {
+        const deltaY   = e.touches[0].clientY - _repTouchStartY;
+        const atTop    = list.scrollTop <= 0;
+        const atBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 1;
+        if ((deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) e.preventDefault();
+        return;
+      }
+      e.preventDefault();
+    }, { passive: false });
+  }
 });
 
 async function loadCalendar(force = false) {
@@ -9825,14 +10058,14 @@ window.addEventListener('load', () => {
 let _fixPanelTimer = null;
 function fixPanelHeight() {
   // 패널이 모두 닫혀있으면 스킵 (스크롤 끊김 원인 제거)
-  const anyOpen = calPanelOpen || _panelOpen || towerOpen;
+  const anyOpen = calPanelOpen || _panelOpen || towerOpen || reportPanelOpen;
   if (!anyOpen) return;
 
   if (_fixPanelTimer) return; // 이미 예약됨
   _fixPanelTimer = requestAnimationFrame(() => {
     _fixPanelTimer = null;
     const h = (window.visualViewport?.height || window.innerHeight) + 'px';
-    ['news-panel', 'cal-panel', 'tower-panel'].forEach(id => {
+    ['news-panel', 'cal-panel', 'tower-panel', 'report-panel'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.height = h;
     });
@@ -9841,7 +10074,7 @@ function fixPanelHeight() {
 // 초기 1회 실행 (패널 열릴 때도 호출하므로 여기선 직접 설정)
 ;(function() {
   const h = (window.visualViewport?.height || window.innerHeight) + 'px';
-  ['news-panel', 'cal-panel', 'tower-panel'].forEach(id => {
+  ['news-panel', 'cal-panel', 'tower-panel', 'report-panel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.height = h;
   });

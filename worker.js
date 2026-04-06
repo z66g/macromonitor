@@ -31,8 +31,9 @@ const KV_KEYS = {
   liqTower:   'liq_tower_v1',
   onchainMacro: 'onchain_macro_v1',
   h41Html:    'h41_html_v1',
-  newsCache:  'news_cache_v1',     // 뉴스 캐시
-  newsTransMap: 'news_trans_map_v1', // 번역 캐시 (제목+요약, 30일)
+  newsCache:  'news_cache_v1',
+  newsTransMap: 'news_trans_map_v1',
+  dailyReports: 'daily_reports_v1',  // 데일리 리포트 (최신 7개)
 };
 const KV_TTL = {
   liq:        7200,
@@ -40,13 +41,14 @@ const KV_TTL = {
   calendar:   21600,
   t2:         7200,
   t3:         7200,
-  qraActive:  86400 * 95,  // 95일 (분기+여유)
-  qraPending: 86400 * 30,  // 30일
-  liqTower:   3600 * 6,    // 6h
-  onchainMacro: 3600,          // 1h
-  h41Html:    3600 * 6,    // 6h (H.4.1 주간 발표)
-  newsCache:  3600,        // 1h
-  newsTransMap: 2592000,   // 30일 (번역 결과 장기 캐시)
+  qraActive:  86400 * 95,
+  qraPending: 86400 * 30,
+  liqTower:   3600 * 6,
+  onchainMacro: 3600,
+  h41Html:    3600 * 6,
+  newsCache:  3600,
+  newsTransMap: 2592000,
+  dailyReports: 86400 * 7,  // 7일
 };
 
 const kvGet = async (env, key) => {
@@ -115,6 +117,10 @@ export default {
       if (path.startsWith('/auction-debug')) return await auctionDebug();
       if (path.startsWith('/auction-html-debug')) return await auctionHtmlDebug();
 
+      // ── 데일리 리포트 ─────────────────────────────────────
+      if (path.startsWith('/daily-report-generate')) return await dailyReportGenerate(request, env);
+      if (path.startsWith('/daily-report'))           return await dailyReportEndpoint(env);
+
       // ── 뉴스 피드 ──────────────────────────────────────────
       if (path.startsWith('/news-trans-debug')) return await newsTransDebug(env);
       if (path.startsWith('/news-trans-flush')) return await newsTransFlush(env);
@@ -136,6 +142,13 @@ export default {
       return;
     }
 
+    // ── 데일리 리포트: 장마감(UTC 22:30) + 장시작(UTC 13:00) ──
+    if (event.cron === '30 22 * * 1-5' || event.cron === '0 13 * * 1-5') {
+      const reportType = event.cron === '30 22 * * 1-5' ? 'close' : 'open';
+      ctx.waitUntil(generateDailyReport(env, reportType));
+      return;
+    }
+
     // ── 매일 새벽 1시: 일반 데이터 갱신 ──────────────────
     ctx.waitUntil(Promise.all([
       refreshLiq(env),
@@ -145,7 +158,6 @@ export default {
       fetchCalendar(env).then(data => kvPut(env, KV_KEYS.calendar, data, KV_TTL.calendar)),
       refreshLiqTower(env),
     ]));
-    // 수요일에만 QRA 자동 감지
     const isWednesday = new Date().getUTCDay() === 3;
     if (isWednesday) {
       ctx.waitUntil(checkNewQra(env));
@@ -4638,6 +4650,208 @@ async function fetchOnchainMacro() {
 //  RSS 파싱 → 신규 기사 감지 → 번역 → KV 저장
 //  사용자 요청 없이 백그라운드에서 자동 실행
 // ═══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+// 데일리 리포트 생성 (Sonnet 분석)
+// ══════════════════════════════════════════════════════════
+
+async function dailyReportEndpoint(env) {
+  const reports = await kvGet(env, KV_KEYS.dailyReports) || [];
+  return json({ reports, count: reports.length });
+}
+
+async function dailyReportGenerate(request, env) {
+  // 수동 트리거 (관리용) — POST body에 type 지정 가능
+  let reportType = 'close';
+  try {
+    const body = await request.json();
+    if (body.type === 'open') reportType = 'open';
+  } catch(e) {}
+  const result = await generateDailyReport(env, reportType);
+  return json(result);
+}
+
+async function generateDailyReport(env, reportType = 'close') {
+  const apiKey = env?.ANTHROPIC_API_KEY;
+  if (!apiKey) return { error: 'ANTHROPIC_API_KEY 없음' };
+
+  try {
+    // ── 1. 데이터 수집 ──────────────────────────────────────
+    const [liqData, towerData, newsData, calData, liqHistData] = await Promise.all([
+      kvGet(env, KV_KEYS.liq),
+      kvGet(env, KV_KEYS.liqTower),
+      kvGet(env, KV_KEYS.newsCache),
+      kvGet(env, KV_KEYS.calendar),
+      kvGet(env, KV_KEYS.yieldsHist),
+    ]);
+
+    // ── 2. 데이터 요약 패키지 구성 ─────────────────────────
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+
+    // 유동성 핵심 수치
+    const liq = liqData || {};
+    const liqSummary = {
+      walcl:    liq.walcl    ?? null,  // 연준 총자산 $B
+      walclWoW: liq.walclWoW ?? null,  // WoW Δ
+      rrp:      liq.rrp      ?? null,  // ON RRP
+      tga:      liq.tga      ?? null,  // TGA
+      nlScore:  liq.nlMomentum?.score  ?? null,  // NL 모멘텀 점수
+      nlZscore: liq.nlMomentum?.zscore ?? null,  // Z-score
+      sofr:     liq.sofr     ?? null,
+      iorb:     liq.iorb     ?? null,
+    };
+
+    // 드레인 4주 예측
+    const drainWeeks = (towerData?.vampire?.weeks || []).map(w => ({
+      label:    w.label,
+      netDrain: w.netDrain,
+    }));
+
+    // 수익률 곡선
+    const yields = liqHistData || {};
+    const yieldSummary = {
+      y2:      yields.y2current  ?? null,
+      y10:     yields.y10current ?? null,
+      spread:  yields.spreadCurrent ?? null,
+      vix:     yields.vixCurrent ?? null,
+      move:    yields.moveCurrent ?? null,
+    };
+
+    // 뉴스 헤드라인 (번역된 것 우선, 최근 24h, 카테고리별 상위 3건)
+    const newsItems = (newsData?.items || [])
+      .filter(n => {
+        const age = (Date.now() - new Date(n.pubDate || 0).getTime()) / 3600000;
+        return age < 24;
+      })
+      .slice(0, 20)
+      .map(n => ({
+        title: n.titleKo || n.title,
+        source: n.sourceId,
+        tab: n.tab,
+      }));
+
+    // 캘린더 — 오늘 + 향후 3일
+    const upcomingEvents = (calData?.events || [])
+      .filter(e => {
+        const diff = Math.round((new Date(e.date) - now) / 86400000);
+        return diff >= 0 && diff <= 3 && e.imp === 'high';
+      })
+      .map(e => ({ name: e.name, date: e.date, dday: e.dday }));
+
+    // ── 3. Sonnet 프롬프트 구성 ────────────────────────────
+    const reportLabel = reportType === 'close' ? '장마감' : '장시작';
+    const dataPackage = JSON.stringify({
+      reportType: reportLabel,
+      generatedAt: now.toISOString(),
+      liquidity: liqSummary,
+      drainForecast: drainWeeks,
+      yields: yieldSummary,
+      upcomingEvents,
+      recentNews: newsItems,
+    }, null, 0);
+
+    const systemPrompt = `당신은 MacroMonitor의 수석 거시경제 분석 엔진입니다.
+설계 철학: 스마트머니(기관·설계자) 관점에서 연준 유동성 배관(Financial Plumbing)을 분석합니다.
+핵심 지표 해석 원칙:
+- WALCL WoW Δ: 양수=QE 방향(공급), 음수=QT(흡수)
+- RRP 감소=시중 유동성 증가, TGA 증가=시중 유동성 감소
+- NL Z-score 극단값(±2 이상)=구조적 전환 신호
+- VIX>25=위험 회피 구간, MOVE>130=채권 변동성 위험
+- 드레인 예측 양수=흡수 지속, 음수=공급 전환
+문체: 차갑고 드라이한 한국어, 금융 용어/약자는 영어 혼용
+출력: 반드시 아래 JSON 형식만 반환 (마크다운 코드블록, 설명 없이)`;
+
+    const userPrompt = `다음 데이터를 분석하고 ${reportLabel} 리포트를 생성하세요.
+
+데이터:
+${dataPackage}
+
+분석 지침:
+1. Z-score 극단치 또는 추세 급변 파이프 1~2개를 발췌해 핵심 파이프로 지정
+2. 해당 파이프의 시장 파급력을 2~3문장으로 설명
+3. 현재 유동성 환경을 매우 차갑고 분석적인 한 문장으로 요약
+4. [유동성 방향]: 현재 유동성 흐름과 4주 드레인 예측 기반 방향성
+5. [리스크 트리거]: 수치 기반 즉각적 위험 요소 (Z-score, 스프레드, 이벤트)
+6. [포지셔닝 시사점]: 기관 관점 포지셔닝 시사점 (과도한 확신 배제)
+7. 뉴스 중 오늘 시장 배관을 가장 크게 흔들 치명적 트리거 3건 선별, 1줄 요약
+8. 데이터 없으면 해당 항목 "—" 처리
+
+반환 JSON 형식 (다른 텍스트 없이 JSON만):
+{
+  "oneLiner": "현재 유동성 환경 한 문장 요약",
+  "keyPipe": "핵심 파이프명과 수치 (예: RRP $280B, WoW -$32B)",
+  "pipeImpact": "해당 파이프의 시장 파급력 설명",
+  "liquidityDirection": "[유동성 방향] 내용",
+  "riskTriggers": "[리스크 트리거] 내용",
+  "positioning": "[포지셔닝 시사점] 내용",
+  "newsDigest": [
+    {"rank": 1, "headline": "원문 헤드라인", "impact": "한 줄 파급력 요약"},
+    {"rank": 2, "headline": "...", "impact": "..."},
+    {"rank": 3, "headline": "...", "impact": "..."}
+  ]
+}`;
+
+    // ── 4. Sonnet API 호출 ─────────────────────────────────
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1500,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    });
+
+    if (!resp.ok) throw new Error(`Sonnet API ${resp.status}`);
+    const sonnetData = await resp.json();
+    const rawText = sonnetData.content?.[0]?.text || '';
+
+    // JSON 파싱 (코드블록 제거)
+    const cleaned = rawText.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '').trim();
+    let analysis;
+    try {
+      analysis = JSON.parse(cleaned);
+    } catch(e) {
+      throw new Error(`JSON 파싱 실패: ${rawText.slice(0, 100)}`);
+    }
+
+    // ── 5. 리포트 객체 구성 ────────────────────────────────
+    const report = {
+      id:          `${todayStr}-${reportType}-${Date.now()}`,
+      type:        reportType,       // 'close' | 'open'
+      label:       reportLabel,      // '장마감' | '장시작'
+      generatedAt: now.toISOString(),
+      oneLiner:    analysis.oneLiner    || '—',
+      keyPipe:     analysis.keyPipe     || '—',
+      pipeImpact:  analysis.pipeImpact  || '—',
+      sections: {
+        liquidityDirection: analysis.liquidityDirection || '—',
+        riskTriggers:       analysis.riskTriggers       || '—',
+        positioning:        analysis.positioning         || '—',
+      },
+      newsDigest: analysis.newsDigest || [],
+      meta: { liqScore: liqSummary.nlZscore, drainWeek1: drainWeeks[0]?.netDrain ?? null },
+    };
+
+    // ── 6. KV 저장 (최신 7개 유지) ────────────────────────
+    const existing = await kvGet(env, KV_KEYS.dailyReports) || [];
+    const updated  = [report, ...existing].slice(0, 7);
+    await kvPut(env, KV_KEYS.dailyReports, updated, KV_TTL.dailyReports);
+
+    console.log(`[DAILY REPORT] ${reportLabel} 생성 완료: ${report.id}`);
+    return { ok: true, reportId: report.id };
+
+  } catch(e) {
+    console.error('[DAILY REPORT ERROR]', e.message);
+    return { error: e.message };
+  }
+}
+
 async function newsScheduledRefresh(env) {
   try {
     // 1. RSS 파싱
