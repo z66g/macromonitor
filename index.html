@@ -1161,33 +1161,36 @@ body{
     </div>
   </div>
 
-  <!-- 카테고리 탭 + 시간 필터 통합 행 -->
-  <div style="display:flex;align-items:center;border-bottom:0.5px solid #21262D;flex-shrink:0;padding:0 2px;">
+  <!-- 카테고리 탭 행 (가로 스크롤) -->
+  <div style="display:flex;align-items:center;border-bottom:0.5px solid #21262D;flex-shrink:0;
+              overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;">
     <button class="np-tab-btn active"
-      style="border:none;border-bottom:2px solid #F0B429;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
+      style="border:none;border-bottom:2px solid #F0B429;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
       onclick="newsTabFilter('all',this)">전체</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
       onclick="newsTabFilter('fed',this)"><span style="width:6px;height:6px;border-radius:50%;background:#58A6FF;flex-shrink:0;display:inline-block;"></span>Fed</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
       onclick="newsTabFilter('treasury',this)"><span style="width:6px;height:6px;border-radius:50%;background:#3FB950;flex-shrink:0;display:inline-block;"></span>채권·재정</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
       onclick="newsTabFilter('macro',this)"><span style="width:6px;height:6px;border-radius:50%;background:#F0B429;flex-shrink:0;display:inline-block;"></span>글로벌</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
       onclick="newsTabFilter('tech',this)"><span style="width:6px;height:6px;border-radius:50%;background:#FF7B72;flex-shrink:0;display:inline-block;"></span>기술·인프라</button>
     <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 9px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;"
+      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
       onclick="newsTabFilter('onchain',this)"><span style="width:6px;height:6px;border-radius:50%;background:#A8B2BF;flex-shrink:0;display:inline-block;"></span>온체인</button>
-    <div style="flex:1;"></div>
-    <div style="display:flex;align-items:center;gap:4px;padding-right:8px;flex-shrink:0;">
-      <button class="np-time-btn active" onclick="newsTimeFilter('24h',this)">24h</button>
-      <button class="np-time-btn"        onclick="newsTimeFilter('3d', this)">3일</button>
-      <button class="np-time-btn"        onclick="newsTimeFilter('all',this)">7일</button>
-      <span id="news-filtered-count" style="font-size:9px;color:#484F58;margin-left:2px;font-family:monospace;"></span>
-    </div>
+  </div>
+
+  <!-- 시간필터 행 (별도 행으로 분리) -->
+  <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;
+              padding:5px 12px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
+    <button class="np-time-btn active" onclick="newsTimeFilter('24h',this)">24h</button>
+    <button class="np-time-btn"        onclick="newsTimeFilter('3d', this)">3일</button>
+    <button class="np-time-btn"        onclick="newsTimeFilter('all',this)">7일</button>
+    <span id="news-filtered-count" style="font-size:9px;color:#484F58;margin-left:2px;font-family:monospace;"></span>
   </div>
 
   <!-- 뉴스 리스트 -->
