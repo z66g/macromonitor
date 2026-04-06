@@ -130,6 +130,13 @@ export default {
 
   // Cron 트리거 — FRED 데이터 주기적 갱신
   async scheduled(event, env, ctx) {
+    // ── 30분마다: 뉴스 갱신 + 자동 번역 ──────────────────
+    if (event.cron === '*/30 * * * *') {
+      ctx.waitUntil(newsScheduledRefresh(env));
+      return;
+    }
+
+    // ── 매일 새벽 1시: 일반 데이터 갱신 ──────────────────
     ctx.waitUntil(Promise.all([
       refreshLiq(env),
       refreshYieldsHist(env),
@@ -4187,6 +4194,58 @@ async function fetchOnchainMacro() {
   };
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+//  NEWS SCHEDULED REFRESH (30분 cron)
+//  RSS 파싱 → 신규 기사 감지 → 번역 → KV 저장
+//  사용자 요청 없이 백그라운드에서 자동 실행
+// ═══════════════════════════════════════════════════════════════
+async function newsScheduledRefresh(env) {
+  try {
+    // 1. RSS 파싱
+    const data = await newsFetchAll(env);
+
+    // 2. 번역맵 로드
+    const transMap = await newsLoadTransMap(env);
+
+    // 3. 신규(미번역) 기사 추출
+    const uncached = data.items.filter(item => {
+      const key = newsTransKey(item);
+      return key && !transMap[key];
+    });
+
+    // 4. 신규 기사 번역 (30분마다 보통 5~15건 → 1~2배치)
+    if (uncached.length > 0 && env?.ANTHROPIC_API_KEY) {
+      const BATCH = 10;
+      for (let i = 0; i < uncached.length; i += BATCH) {
+        const batch = uncached.slice(i, i + BATCH);
+        const ok = await translateViaClaude(batch, env, transMap);
+        if (ok) {
+          await newsSaveTransMap(env, transMap, null);
+        } else {
+          // Rate limit 시 진행분만 저장하고 중단 (다음 30분에 이어서)
+          break;
+        }
+        // 배치 간 3초 대기
+        if (i + BATCH < uncached.length) {
+          await new Promise(r => setTimeout(r, 3000));
+        }
+      }
+    }
+
+    // 5. 번역 적용 후 뉴스캐시 갱신
+    applyTransMapToItems(data.items, transMap);
+    await env.MMF_KV.put(
+      KV_KEYS.newsCache,
+      JSON.stringify({ ...data, _translatedAt: new Date().toISOString() }),
+      { expirationTtl: KV_TTL.newsCache }
+    );
+
+    console.log(`[News Cron] 완료: 전체 ${data.items.length}건, 신규 번역 ${uncached.length}건`);
+  } catch(e) {
+    console.error('[News Cron] 실패:', e.message);
+  }
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  NEWS MODULE
