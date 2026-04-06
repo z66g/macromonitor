@@ -296,7 +296,7 @@ async function fetchCalendar(env) {
     // ── 파생상품/재무부/기타 이벤트 병합 ──────────────────────────
     const toStr = fmt(end);
     // FOMC 날짜 동적 fetch (연준 공식 사이트 파싱, 실패 시 폴백)
-    const fomcDates     = await fetchFomcDates();
+    const fomcDates      = fetchFomcDates();
     const marketEvents  = buildMarketEvents(todayStr, toStr, fomcDates);
     const blackoutEvents = buildFomcBlackout(todayStr, toStr, fomcDates);
 
@@ -324,69 +324,18 @@ async function fetchCalendar(env) {
 // 연준 공식 FOMC 캘린더 파싱
 // federalreserve.gov/monetarypolicy/fomccalendars.htm
 // 형태: "Jan. 28-29" 또는 "Apr. 29*" (단일) 등
-async function fetchFomcDates() {
-  // 연준 공식 FOMC 일정 하드코딩 폴백 (연 1회 1월에 업데이트)
-  const FALLBACK = [
+// FOMC 실제 회의 날짜 (성명서 발표일 = 두 번째 날 기준)
+// 연준 공식 일정: federalreserve.gov/monetarypolicy/fomccalendars.htm
+// ※ JS 렌더링 사이트라 동적 파싱 불가 → 매년 1월 수동 업데이트
+function fetchFomcDates() {
+  return [
+    // 2025
     '2025-01-29','2025-03-19','2025-05-07','2025-06-18',
     '2025-07-30','2025-09-17','2025-10-29','2025-12-10',
+    // 2026
     '2026-01-28','2026-03-18','2026-04-29','2026-06-17',
     '2026-07-29','2026-09-16','2026-10-28','2026-12-09',
   ];
-
-  try {
-    const res = await fetch(
-      'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm',
-      { headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' }, signal: AbortSignal.timeout(10000) }
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const html = await res.text();
-
-    const dates = [];
-    const currentYear = new Date().getFullYear();
-
-    const MONTHS = {
-      'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,
-      'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12,
-    };
-
-    for (const year of [currentYear, currentYear + 1]) {
-      const yearIdx = html.indexOf(`${year}`);
-      if (yearIdx < 0) continue;
-      const nextYearIdx = html.indexOf(`${year + 1}`, yearIdx + 4);
-      const block = html.slice(yearIdx, nextYearIdx > 0 ? nextYearIdx : yearIdx + 60000);
-
-      // 패턴 1: "Jan. 28-29" / "Apr. 28–29" (em dash 포함)
-      const pat1 = /([A-Z][a-z]{2})\.\s*(\d+)\s*[-–—]\s*(\d+)/g;
-      let m;
-      while ((m = pat1.exec(block)) !== null) {
-        const mon = MONTHS[m[1]];
-        const day = parseInt(m[3], 10); // 두 번째 날 = 성명서 발표일
-        if (!mon || !day) continue;
-        const dateStr = `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        if (!dates.includes(dateStr)) dates.push(dateStr);
-      }
-
-      // 패턴 2: "Oct. 28*" (하루짜리 회의)
-      const pat2 = /([A-Z][a-z]{2})\.\s*(\d+)\s*\*/g;
-      while ((m = pat2.exec(block)) !== null) {
-        const mon = MONTHS[m[1]];
-        const day = parseInt(m[2], 10);
-        if (!mon || !day) continue;
-        const dateStr = `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        if (!dates.includes(dateStr)) dates.push(dateStr);
-      }
-    }
-
-    // 파싱 결과 없으면 폴백 사용
-    if (dates.length === 0) {
-      console.warn('[FOMC] HTML 파싱 매칭 없음, 폴백 사용');
-      return FALLBACK;
-    }
-    return dates.sort();
-  } catch(e) {
-    console.error('[FOMC FETCH ERROR]', e.message);
-    return FALLBACK;
-  }
 }
 function usMarketHolidays(year) {
   // 고정 공휴일
