@@ -6805,6 +6805,8 @@ function toggleCalPanel() {
   const overlay = document.getElementById('cal-overlay');
   const btn     = document.getElementById('hdr-cal-btn');
   if (calPanelOpen) {
+    const h = (window.visualViewport?.height || window.innerHeight) + 'px';
+    panel.style.height = h;
     overlay.style.display = 'block';
     panel.style.transform = 'translateX(0)';
     btn.style.borderColor = '#0969DA';
@@ -8965,6 +8967,8 @@ function toggleLiqTower() {
   const overlay = document.getElementById('tower-overlay');
   const btn     = document.getElementById('hdr-tower-btn');
   if (towerOpen) {
+    const h = (window.visualViewport?.height || window.innerHeight) + 'px';
+    panel.style.height = h;
     overlay.style.display = 'block';
     panel.style.transform = 'translateX(0)';
     if (btn) { btn.style.borderColor='#0969DA'; btn.style.color='#58A6FF'; }
@@ -9817,14 +9821,31 @@ window.addEventListener('load', () => {
 
 // ── 슬라이드 패널 높이 보정 (모바일 주소창 이슈) ──────────────────
 // 100vh는 모바일 브라우저 주소창 포함 → visualViewport 실제 높이로 덮어씀
+// 디바운스 처리: 스크롤 시 visualViewport resize 연속 발생 → 레이아웃 리플로우 방지
+let _fixPanelTimer = null;
 function fixPanelHeight() {
+  // 패널이 모두 닫혀있으면 스킵 (스크롤 끊김 원인 제거)
+  const anyOpen = calPanelOpen || _panelOpen || towerOpen;
+  if (!anyOpen) return;
+
+  if (_fixPanelTimer) return; // 이미 예약됨
+  _fixPanelTimer = requestAnimationFrame(() => {
+    _fixPanelTimer = null;
+    const h = (window.visualViewport?.height || window.innerHeight) + 'px';
+    ['news-panel', 'cal-panel', 'tower-panel'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.height = h;
+    });
+  });
+}
+// 초기 1회 실행 (패널 열릴 때도 호출하므로 여기선 직접 설정)
+;(function() {
   const h = (window.visualViewport?.height || window.innerHeight) + 'px';
   ['news-panel', 'cal-panel', 'tower-panel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.height = h;
   });
-}
-fixPanelHeight();
+})();
 window.addEventListener('resize', fixPanelHeight);
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', fixPanelHeight);
@@ -10946,6 +10967,8 @@ function toggleNewsPanel() {
   _panelOpen = !_panelOpen;
 
   if (_panelOpen) {
+    const h = (window.visualViewport?.height || window.innerHeight) + 'px';
+    panel.style.height = h;
     panel.style.transform   = 'translateX(0)';
     overlay.style.display   = 'block';
     btn.style.borderColor   = '#58A6FF';
