@@ -197,20 +197,25 @@ async function fetchCalendar(env) {
 
   // 주요 릴리즈 ID 및 메타 (high/medium만 표시)
   const RELEASES = {
-    21:  { nameKo: '소비자물가 (CPI)',        imp: 'high',   tag: '인플레', series:'CPIAUCSL',  fmt:'yoy'  },
-    6:   { nameKo: '생산자물가 (PPI)',        imp: 'high',   tag: '인플레', series:'PPIACO',    fmt:'yoy'  },
-    46:  { nameKo: '개인소비지출 (PCE)',      imp: 'high',   tag: '인플레', series:'PCEPI',     fmt:'yoy'  },
-    10:  { nameKo: '고용보고서 (NFP)',        imp: 'high',   tag: '고용',   series:'PAYEMS',    fmt:'mom'  },
-    22:  { nameKo: '신규실업수당',            imp: 'medium', tag: '고용',   series:'ICSA',      fmt:'val'  },
-    138: { nameKo: '구인이직보고서 (JOLTS)',  imp: 'medium', tag: '고용',   series:'JTSJOL',    fmt:'val'  },
-    31:  { nameKo: 'GDP 성장률',              imp: 'high',   tag: '성장',   series:'A191RL1Q225SBEA', fmt:'val' },
-    56:  { nameKo: '소매판매',               imp: 'medium', tag: '성장',   series:'RSAFS',     fmt:'mom'  },
-    175: { nameKo: 'FOMC 의사록',            imp: 'high',   tag: '연준',   series:null,        fmt:null   },
-    33:  { nameKo: 'ISM 제조업 PMI',         imp: 'medium', tag: '경기',   series:'NAPM',      fmt:'val'  },
-    57:  { nameKo: 'ISM 서비스업 PMI',       imp: 'medium', tag: '경기',   series:'NMFCI',     fmt:'val'  },
-    237: { nameKo: '주택착공',               imp: 'medium', tag: '주택',   series:'HOUST',     fmt:'val'  },
-    82:  { nameKo: '소비자심리 (미시간)',     imp: 'medium', tag: '경기',   series:'UMCSENT',   fmt:'val'  },
-    113: { nameKo: '내구재 주문',            imp: 'medium', tag: '성장',   series:'DGORDER',   fmt:'mom'  },
+    21:  { nameKo: '소비자물가 (CPI)',              imp: 'high',   tag: '인플레', series:'CPIAUCSL',        fmt:'yoy'  },
+    6:   { nameKo: '생산자물가 (PPI)',              imp: 'high',   tag: '인플레', series:'PPIACO',          fmt:'yoy'  },
+    46:  { nameKo: '개인소비지출 (PCE · Core PCE)', imp: 'high',   tag: '인플레', series:'PCEPILFE',        fmt:'yoy'  },
+    10:  { nameKo: '고용보고서 (NFP · 실업률)',      imp: 'high',   tag: '고용',   series:'UNRATE',          fmt:'val'  },
+    22:  { nameKo: '실업수당 (신규 · 연속)',         imp: 'medium', tag: '고용',   series:'ICSA',            fmt:'val'  },
+    138: { nameKo: '구인이직보고서 (JOLTS)',         imp: 'medium', tag: '고용',   series:'JTSJOL',          fmt:'val'  },
+    31:  { nameKo: 'GDP 성장률',                    imp: 'high',   tag: '성장',   series:'A191RL1Q225SBEA', fmt:'val'  },
+    56:  { nameKo: '소매판매',                      imp: 'medium', tag: '성장',   series:'RSAFS',           fmt:'mom'  },
+    175: { nameKo: 'FOMC 의사록',                  imp: 'high',   tag: '연준',   series:null,              fmt:null   },
+    33:  { nameKo: 'ISM 제조업 PMI',               imp: 'medium', tag: '경기',   series:'NAPM',            fmt:'val'  },
+    57:  { nameKo: 'ISM 서비스업 PMI',             imp: 'medium', tag: '경기',   series:'NMFCI',           fmt:'val'  },
+    237: { nameKo: '주택착공',                      imp: 'medium', tag: '주택',   series:'HOUST',           fmt:'val'  },
+    82:  { nameKo: '소비자심리 (미시간)',            imp: 'medium', tag: '경기',   series:'UMCSENT',         fmt:'val'  },
+    113: { nameKo: '내구재 주문',                   imp: 'medium', tag: '성장',   series:'DGORDER',         fmt:'mom'  },
+    // ── 신규 추가 ─────────────────────────────────────────────────
+    74:  { nameKo: 'SLOOS (대출기준 설문)',          imp: 'high',   tag: '신용',   series:'DRTSCILM',        fmt:'val'  },
+    201: { nameKo: '시카고 NFCI (금융여건)',         imp: 'medium', tag: '신용',   series:'NFCI',            fmt:'val'  },
+    313: { nameKo: '세인트루이스 FSI',               imp: 'medium', tag: '신용',   series:'STLFSI4',         fmt:'val'  },
+    84:  { nameKo: '저축률 (PSAVERT)',              imp: 'medium', tag: '성장',   series:'PSAVERT',         fmt:'val'  },
   };
 
   // 발표 데이터 fetch 헬퍼 (D-DAY 이벤트용)
@@ -554,6 +559,25 @@ function buildMarketEvents(fromDate, toDate, fomcDates = []) {
         estimated: true,
       });
     }
+  }
+
+  // ⑦ H.4.1 연준 자산 주간 발표 — 매주 목요일 (4:30pm ET)
+  const cursor = new Date(fromDate);
+  while (cursor.toISOString().slice(0, 10) <= toDate) {
+    if (cursor.getDay() === 4) { // 목요일
+      const dateStr = cursor.toISOString().slice(0, 10);
+      events.push({
+        date:      dateStr,
+        dday:      null,
+        name:      'H.4.1 연준 자산 주간 발표 (WALCL·RRP·TGA)',
+        imp:       'low',
+        tag:       '연준',
+        category:  'fed',
+        weight:    1,
+        estimated: false,
+      });
+    }
+    cursor.setDate(cursor.getDate() + 1);
   }
 
   // ⑥ FOMC 실제 회의일 추가
