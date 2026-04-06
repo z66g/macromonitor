@@ -10653,14 +10653,45 @@ window.addEventListener('orientationchange', function() {
 <script>
 // ── 데이터 신선도 기준 (일 단위) ──────────────────
 const FRESHNESS = {
-  daily:     { warn: 3,   label: '일간'  },
-  weekly:    { warn: 10,  label: '주간'  },
-  monthly:   { warn: 45,  label: '월간'  },
-  quarterly: { warn: 100, label: '분기'  },
-  event:     { warn: 95,  label: '이벤트' },
+  daily:       { warn: 3,   label: '일간'   },
+  market:      { warn: 1,   label: '시장일간' }, // 영업일 기준 체크
+  weekly:      { warn: 10,  label: '주간'   },
+  monthly:     { warn: 45,  label: '월간'   },
+  quarterly:   { warn: 100, label: '분기'   },
+  event:       { warn: 95,  label: '이벤트' },
 };
 
-// 탭별 지표 정의
+// 전일 영업일 계산 (오늘 제외, 주말 건너뜀)
+// ETF 데이터는 T+1 발표 → 어제 영업일 데이터가 최신
+function prevBusinessDay() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - 1); // 어제부터 시작
+  while (d.getDay() === 0 || d.getDay() === 6) {
+    d.setDate(d.getDate() - 1); // 주말 건너뜀
+  }
+  return d;
+}
+
+// ── 신선도 판단 ───────────────────────────────────
+function dsFreshness(key, freq) {
+  const s = _dataStatus[key];
+  if (!s) return null;           // 아직 로드 전
+  if (!s.ok || !s.asOf) return 'error';
+
+  if (freq === 'market') {
+    // 영업일 기준: 전일 영업일 이후 데이터면 정상
+    // 예) 월요일 조회 → 전일 영업일 = 금요일 → 금요일 데이터 = 정상
+    const asOfDate = new Date(s.asOf);
+    asOfDate.setHours(0, 0, 0, 0);
+    const pbd = prevBusinessDay();
+    return asOfDate >= pbd ? 'ok' : 'warn';
+  }
+
+  const threshold = FRESHNESS[freq]?.warn ?? 10;
+  const days = (Date.now() - new Date(s.asOf).getTime()) / 86400000;
+  return days > threshold ? 'warn' : 'ok';
+}
 const TAB_INDICATORS = {
   0: [ // T0: 거시경제 모니터
     { key:'h41_hist',   label:'H.4.1 (연준 H.4.1 52주)', freq:'weekly'    },
@@ -10693,9 +10724,9 @@ const TAB_INDICATORS = {
     { key:'t3_demand',  label:'EUR/USD·FEZ',              freq:'daily'     },
   ],
   4: [ // T4: 온체인 매크로
-    { key:'oc_stable',  label:'스테이블코인 시총',        freq:'daily'     },
-    { key:'oc_rwa',     label:'RWA TVL',                  freq:'daily'     },
-    { key:'oc_etf',     label:'BTC ETF 플로우',           freq:'daily'     },
+    { key:'oc_stable',  label:'스테이블코인 시총',        freq:'market'    },
+    { key:'oc_rwa',     label:'RWA TVL',                  freq:'market'    },
+    { key:'oc_etf',     label:'BTC ETF 플로우',           freq:'market'    },
   ],
 };
 
