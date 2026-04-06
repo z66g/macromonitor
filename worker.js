@@ -293,8 +293,10 @@ async function fetchCalendar(env) {
 
     // ── 파생상품/재무부/기타 이벤트 병합 ──────────────────────────
     const toStr = fmt(end);
-    const marketEvents   = buildMarketEvents(todayStr, toStr);
-    const blackoutEvents = buildFomcBlackout(events, todayStr, toStr);
+    // FOMC 날짜 동적 fetch (연준 공식 사이트 파싱, 실패 시 폴백)
+    const fomcDates     = await fetchFomcDates();
+    const marketEvents  = buildMarketEvents(todayStr, toStr, fomcDates);
+    const blackoutEvents = buildFomcBlackout(todayStr, toStr, fomcDates);
 
     // D-day 계산 적용
     const allEvents = [...events, ...marketEvents, ...blackoutEvents].map(e => {
@@ -317,7 +319,68 @@ async function fetchCalendar(env) {
 
 // ── 캘린더 보조 함수 ────────────────────────────────────────────
 
-// 미국 시장 공휴일 (NYSE 기준, 고정일 + 변동일)
+// 연준 공식 FOMC 캘린더 파싱
+// federalreserve.gov/monetarypolicy/fomccalendars.htm
+// 형태: "Jan. 28-29" 또는 "Apr. 29*" (단일) 등
+async function fetchFomcDates() {
+  try {
+    const res = await fetch(
+      'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm',
+      { headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' }, signal: AbortSignal.timeout(10000) }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+
+    const dates = [];
+    const currentYear = new Date().getFullYear();
+
+    // 연도별 섹션 파싱 (현재~내년)
+    for (const year of [currentYear, currentYear + 1]) {
+      // 월 약어 → 번호 매핑
+      const MONTHS = {
+        'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+        'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
+      };
+
+      // 패턴: "Jan. 27-28, 2026" 또는 "Apr. 28-29" 형태를 찾음
+      // 두 번째 날(성명서 발표일)을 회의 날짜로 사용
+      const pattern = /([A-Z][a-z]{2})\.\s+(\d+)[-–](\d+)[,\s]/g;
+      let m;
+      // 해당 연도 블록 내에서만 찾기
+      const yearIdx = html.indexOf(`>${year}<`);
+      if (yearIdx < 0) continue;
+      const nextYearIdx = html.indexOf(`>${year + 1}<`, yearIdx);
+      const block = html.slice(yearIdx, nextYearIdx > 0 ? nextYearIdx : yearIdx + 50000);
+
+      while ((m = pattern.exec(block)) !== null) {
+        const mon = MONTHS[m[1]];
+        const day = parseInt(m[3], 10); // 두 번째 날(성명서 발표일)
+        if (!mon || !day) continue;
+        const dateStr = `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        if (!dates.includes(dateStr)) dates.push(dateStr);
+      }
+
+      // 단일 날짜 패턴: "Oct. 28*" (하루짜리 회의)
+      const singlePattern = /([A-Z][a-z]{2})\.\s+(\d+)\*/g;
+      while ((m = singlePattern.exec(block)) !== null) {
+        const mon = MONTHS[m[1]];
+        const day = parseInt(m[2], 10);
+        if (!mon || !day) continue;
+        const dateStr = `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        if (!dates.includes(dateStr)) dates.push(dateStr);
+      }
+    }
+
+    return dates.sort();
+  } catch(e) {
+    console.error('[FOMC FETCH ERROR]', e.message);
+    // 파싱 실패 시 폴백: 알려진 일정 (연 1회 업데이트면 충분)
+    return [
+      '2026-04-29', '2026-06-17', '2026-07-29',
+      '2026-09-16', '2026-10-28', '2026-12-09',
+    ];
+  }
+}
 function usMarketHolidays(year) {
   // 고정 공휴일
   const fixed = [
@@ -381,7 +444,7 @@ function nextBusinessDay(dateStr, holidays) {
 }
 
 // 파생상품 + 재무부 + 기타 이벤트 생성 (향후 90일)
-function buildMarketEvents(fromDate, toDate) {
+function buildMarketEvents(fromDate, toDate, fomcDates = []) {
   const events = [];
   const from = new Date(fromDate);
   const to   = new Date(toDate);
@@ -493,35 +556,49 @@ function buildMarketEvents(fromDate, toDate) {
     }
   }
 
+  // ⑥ FOMC 실제 회의일 추가
+  for (const dateStr of fomcDates) {
+    if (dateStr >= fromDate && dateStr <= toDate) {
+      events.push({
+        date:      dateStr,
+        dday:      null,
+        name:      'FOMC 회의 (금리 결정)',
+        imp:       'high',
+        tag:       '연준',
+        category:  'fed',
+        weight:    3,
+        estimated: false,
+      });
+    }
+  }
+
   return events;
 }
 
-// FOMC 블랙아웃 기간 생성 (FOMC 날짜 기준 -10일 ~ FOMC 당일)
-function buildFomcBlackout(events, fromDate, toDate) {
+// FOMC 블랙아웃 기간 생성 (FOMC 회의일 기준 -10 캘린더일 ~ 회의 당일)
+function buildFomcBlackout(fromDate, toDate, fomcDates = []) {
   const blackouts = [];
-  const fomcEvents = events.filter(e => e.name === 'FOMC 의사록' || e.tag === '연준');
 
-  // FRED 캘린더에서 FOMC 날짜 감지 (FOMC 의사록 발표 ≈ FOMC 회의 +3주)
-  // 대신 이미 있는 events 중 imp=high && tag=연준인 날짜 기준으로 추정
-  // 실제로는 프론트에서 시각화용으로만 사용
-  for (const e of fomcEvents) {
-    const fomcDate = new Date(e.date);
-    // 블랙아웃 시작: FOMC -10 영업일 (캘린더일 기준 -14일 근사치)
+  for (const fomcDateStr of fomcDates) {
+    const fomcDate = new Date(fomcDateStr);
+
+    // 블랙아웃 시작: 회의일 -10 캘린더일
     const start = new Date(fomcDate);
-    start.setDate(start.getDate() - 14);
+    start.setDate(start.getDate() - 10);
     const startStr = start.toISOString().slice(0, 10);
-    const endStr   = e.date;
 
-    if (endStr >= fromDate && startStr <= toDate) {
+    // 범위 내 블랙아웃만 추가
+    if (fomcDateStr >= fromDate && startStr <= toDate) {
       blackouts.push({
         date:      startStr,
-        endDate:   endStr,
-        name:      'FOMC 블랙아웃 기간 (연준 위원 발언 금지)',
+        endDate:   fomcDateStr,
+        dday:      null,
+        name:      `FOMC 블랙아웃 기간 (~${fomcDateStr.slice(5)} 회의)`,
         imp:       'low',
         tag:       '연준',
         category:  'fed_blackout',
         weight:    1,
-        estimated: true,
+        estimated: false,
         isRange:   true,
       });
     }
@@ -4082,6 +4159,10 @@ async function checkNewQra(env) {
       }, KV_TTL.qraPending);
       // liqTower 캐시 무효화
       try { await env.MMF_KV.delete(KV_KEYS.liqTower); } catch(e) {}
+      // 캘린더 QRA 추정일 → 실제 발표일로 교체
+      if (result.announced_date) {
+        await updateCalendarQraDate(env, result.announced_date);
+      }
       console.log('[QRA AUTO APPLIED]', result.target_quarter);
     } else {
       // MEDIUM/LOW → pending 저장, 사용자 검토 요청
@@ -4094,6 +4175,51 @@ async function checkNewQra(env) {
     }
   } catch(e) {
     console.error('[checkNewQra ERROR]', e.message);
+  }
+}
+
+// QRA 실제 발표일을 캘린더 KV에 반영 (추정일 → 실제일 교체)
+async function updateCalendarQraDate(env, actualDate) {
+  try {
+    const cal = await kvGet(env, KV_KEYS.calendar);
+    if (!cal?.events) return;
+
+    let changed = false;
+    const updatedEvents = cal.events.map(e => {
+      // QRA 추정 이벤트를 찾아서 실제 날짜로 교체
+      if (e.category === 'treasury' && e.estimated && e.name.includes('QRA')) {
+        // 실제 발표일과 같은 분기의 추정일이면 교체
+        const eDate  = new Date(e.date);
+        const aDate  = new Date(actualDate);
+        const sameQ  = eDate.getFullYear() === aDate.getFullYear() &&
+                       Math.floor(eDate.getMonth() / 3) === Math.floor(aDate.getMonth() / 3);
+        if (sameQ) {
+          changed = true;
+          const diff = Math.round((aDate - new Date()) / 86400000);
+          return {
+            ...e,
+            date:      actualDate,
+            estimated: false,
+            dday:      diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`,
+            name:      'QRA 발표 (분기 자금조달 계획)',
+          };
+        }
+      }
+      return e;
+    });
+
+    if (changed) {
+      // 날짜 재정렬
+      updatedEvents.sort((a, b) => a.date.localeCompare(b.date));
+      await kvPut(env, KV_KEYS.calendar, {
+        ...cal,
+        events: updatedEvents,
+        _qraUpdatedAt: new Date().toISOString(),
+      }, KV_TTL.calendar);
+      console.log('[CAL] QRA 실제 발표일 반영:', actualDate);
+    }
+  } catch(e) {
+    console.error('[CAL QRA UPDATE ERROR]', e.message);
   }
 }
 
