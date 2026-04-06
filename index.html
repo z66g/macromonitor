@@ -1196,12 +1196,8 @@ body{
   <div id="news-digest-block" style="display:none;flex-shrink:0;
        border-bottom:0.5px solid #21262D;padding:10px 14px;background:#0D1117;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-      <div style="display:flex;align-items:center;gap:6px;">
-        <span style="font-size:9px;font-weight:700;color:#F0B429;letter-spacing:0.05em;">⚡ 핵심 뉴스</span>
-        <span id="news-digest-label" style="font-size:7px;padding:1px 5px;border-radius:2px;
-              background:#1A1400;color:#9A6700;border:0.5px solid #9A6700;"></span>
-      </div>
-      <span id="news-digest-time" style="font-size:7px;color:#484F58;"></span>
+      <span style="font-size:11px;font-weight:700;color:#F0B429;letter-spacing:0.05em;">⚡ 핵심 뉴스</span>
+      <span id="news-digest-time" style="font-size:8px;color:#484F58;"></span>
     </div>
     <div id="news-digest-items"></div>
   </div>
@@ -11029,32 +11025,29 @@ function newsTabFilter(val, btn) {
 window.newsTabFilter = newsTabFilter;
 // ── 핵심 뉴스 다이제스트 렌더 ────────────────────────────────
 function renderNewsDigest(digest) {
-  const block = document.getElementById('news-digest-block');
+  const block  = document.getElementById('news-digest-block');
   const itemsEl = document.getElementById('news-digest-items');
-  const labelEl = document.getElementById('news-digest-label');
   const timeEl  = document.getElementById('news-digest-time');
   if (!block || !itemsEl) return;
 
   if (!digest?.items?.length) { block.style.display = 'none'; return; }
 
-  if (labelEl) labelEl.textContent = digest.label || '';
   if (timeEl && digest.generatedAt) {
     const dt = new Date(digest.generatedAt);
     timeEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} KST 기준`;
   }
 
   itemsEl.innerHTML = digest.items.map((item, i) =>
-    `<div style="display:flex;gap:8px;${i > 0 ? 'padding-top:6px;border-top:0.5px solid #21262D;margin-top:6px;' : ''}">
-      <span style="font-size:9px;font-weight:700;color:#CF222B;flex-shrink:0;margin-top:1px;">${item.rank}</span>
+    `<div style="display:flex;gap:8px;${i > 0 ? 'padding-top:7px;border-top:0.5px solid #21262D;margin-top:7px;' : ''}">
+      <span style="font-size:11px;font-weight:700;color:#CF222B;flex-shrink:0;margin-top:1px;">${item.rank}</span>
       <div>
-        <div style="font-size:9px;font-weight:600;color:#CDD9E5;line-height:1.4;margin-bottom:2px;">${item.title || ''}</div>
-        <div style="font-size:8px;color:#8B949E;line-height:1.4;">${item.summary || ''}</div>
+        <div style="font-size:11px;font-weight:600;color:#CDD9E5;line-height:1.4;margin-bottom:3px;">${item.title || ''}</div>
+        <div style="font-size:10px;color:#8B949E;line-height:1.4;">${item.summary || ''}</div>
       </div>
     </div>`
   ).join('');
 
   block.dataset.loaded = '1';
-  // '전체' 탭일 때만 표시
   block.style.display = (_tabFilter === 'all') ? 'block' : 'none';
 }
 

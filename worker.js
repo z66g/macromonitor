@@ -142,10 +142,9 @@ export default {
       return;
     }
 
-    // ── 뉴스 다이제스트: 장마감(UTC 22:30) + 장시작(UTC 13:00) ──
-    if (event.cron === '30 22 * * 1-5' || event.cron === '0 13 * * 1-5') {
-      const digestType = event.cron === '30 22 * * 1-5' ? 'close' : 'open';
-      ctx.waitUntil(generateNewsDigest(env, digestType));
+    // ── 뉴스 다이제스트: 3시간 간격 (하루 8회) ──────────────
+    if (event.cron === '0 */3 * * *') {
+      ctx.waitUntil(generateNewsDigest(env));
       return;
     }
 
@@ -4664,13 +4663,11 @@ async function newsDigestEndpoint(env) {
 }
 
 async function newsDigestGenerate(request, env) {
-  let digestType = 'close';
-  try { const b = await request.json(); if (b.type === 'open') digestType = 'open'; } catch(e) {}
-  const result = await generateNewsDigest(env, digestType);
+  const result = await generateNewsDigest(env);
   return json(result);
 }
 
-async function generateNewsDigest(env, digestType = 'close') {
+async function generateNewsDigest(env) {
   const apiKey = env?.ANTHROPIC_API_KEY;
   if (!apiKey) return { error: 'ANTHROPIC_API_KEY 없음' };
 
@@ -4688,8 +4685,6 @@ async function generateNewsDigest(env, digestType = 'close') {
       .map((n, i) => `[${i+1}] ${n.titleKo || n.title} (${n.sourceId})`);
 
     if (items.length === 0) return { error: '뉴스 없음' };
-
-    const typeLabel = digestType === 'close' ? '장마감' : '장시작';
 
     const systemPrompt = `당신은 MacroMonitor의 거시경제 뉴스 편집 엔진입니다.
 
@@ -4711,7 +4706,7 @@ async function generateNewsDigest(env, digestType = 'close') {
 - 한국어 한 줄 요약: 명사구 종결, 수치 포함 권장
 - 선별 불가 시 빈 배열 반환`;
 
-    const userPrompt = `다음 ${items.length}건의 뉴스에서 오늘 ${typeLabel} 시점 기준 시장 배관(유동성·금리·신용·지정학)에 가장 큰 파급력이 있는 3건을 선별하고 한 줄로 요약하세요.
+    const userPrompt = `다음 ${items.length}건의 뉴스에서 시장 배관(유동성·금리·신용·지정학)에 가장 큰 파급력이 있는 3건을 선별하고 한 줄로 요약하세요.
 
 ${items.join('\n')}
 
@@ -4740,13 +4735,11 @@ ${items.join('\n')}
 
     const digest = {
       items:       parsed.items || [],
-      type:        digestType,
-      label:       typeLabel,
       generatedAt: now.toISOString(),
     };
 
     await kvPut(env, KV_KEYS.newsDigest, digest, KV_TTL.newsDigest);
-    console.log(`[NEWS DIGEST] ${typeLabel} 생성: ${digest.items.length}건`);
+    console.log(`[NEWS DIGEST] 생성: ${digest.items.length}건`);
     return { ok: true, digest };
 
   } catch(e) {
