@@ -6880,7 +6880,9 @@ async function loadReportData() {
   try {
     const r = await fetchWithTimeout(`${WORKER}/daily-report`, 10000);
     const d = await r.json();
-    reportData = d.reports || [];
+    // 방어 처리: reports가 배열인지 확인
+    const raw = d?.reports ?? d;
+    reportData = Array.isArray(raw) ? raw : [];
     reportActiveIdx = 0;
     renderReportTabs();
     renderReport();
