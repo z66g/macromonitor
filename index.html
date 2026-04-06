@@ -10835,10 +10835,22 @@ function renderNews() {
   const showBadge = false; // 닷 색상으로만 구분, 배지 제거
 
   // _filteredItems 저장 (클릭 핸들러에서 인덱스로 참조)
+  // 탭별 고정 색상 (sourceId 기반 필터링 탭은 탭 색상으로 통일)
+  const TAB_COLOR = {
+    all:      null,          // 전체 탭은 n.cat 기준
+    fed:      '#58A6FF',     // 파랑
+    treasury: '#3FB950',     // 초록
+    macro:    '#F0B429',     // 앰버
+    tech:     '#FF7B72',     // 레드
+    onchain:  '#A8B2BF',     // 실버
+  };
+  const fixedColor = TAB_COLOR[_tabFilter]; // null이면 n.cat 사용
+
   list._items = items;
 
   list.innerHTML = items.map((n, idx) => {
     const c          = CAT[n.cat] || CAT.macro;
+    const dotColor   = fixedColor || c.color; // 개별탭: 탭색상 고정, 전체탭: n.cat
     const isRead     = _readSet.has(idx + '_' + n.title);
     const isExpanded = (_expandedId === idx);
     const timeStr    = relTime(n.pubDate);
@@ -10848,7 +10860,7 @@ function renderNews() {
       <div class="np-body">
         ${showBadge ? `<span class="np-badge" style="background:${c.bg};color:${c.color};">${c.label}</span>` : ''}
         <div class="np-headline-row">
-          <span class="np-dot" style="background:${c.color};"></span>
+          <span class="np-dot" style="background:${dotColor};"></span>
           <div class="np-headline">${escHtml(n.titleKo || n.title)}</div>
         </div>
         <div class="np-meta">
