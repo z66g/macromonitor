@@ -3315,23 +3315,24 @@ async function loadS1(force = false) {
   try {
     const FRED_IDS = ['IORB','DTWEXBGS','WRMFNS'];
 
-    // FRED + Yahoo + H.4.1 병렬 (타임아웃 10초)
-    const [yahooResp, vixHistResp, moveHistResp, h41HistResp, ...fredResps] = await Promise.all([
+    // FRED + Yahoo + H.4.1 병렬 (타임아웃 10초) — allSettled로 일부 실패 허용
+    const [yahooRes, vixHistRes, moveHistRes, h41HistRes, ...fredRes] = await Promise.allSettled([
       fetchWithTimeout(`${WORKER}/yahoo?tickers=%5EVIX,%5EMOVE`),
       fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EVIX&range=3mo`),
       fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EMOVE&range=3mo`),
-      fetchWithTimeout(`${WORKER}/h41-history?weeks=52${force ? '?force=1' : ''}`, 90000),
+      fetchWithTimeout(`${WORKER}/h41-history?weeks=52${force ? '&force=1' : ''}`, 90000),
       ...FRED_IDS.map(id =>
         fetchWithTimeout(`${WORKER}/fred?series_id=${id}&limit=2&sort_order=desc`)
       )
     ]);
 
-    const yahooJson    = await yahooResp.json();
-    const vixHistJson  = await vixHistResp.json();
-    const moveHistJson = await moveHistResp.json();
+    const _j = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
+    const yahooJson    = await _j(yahooRes);
+    const vixHistJson  = await _j(vixHistRes);
+    const moveHistJson = await _j(moveHistRes);
     const h41HtmlJson  = null;  // h41-html 사용 중단 — h41-history series[0]으로 대체
-    const h41HistJson  = await h41HistResp.json().catch(() => null);
-    const fredRaws     = await Promise.all(fredResps.map(r => r.json()));
+    const h41HistJson  = await _j(h41HistRes);
+    const fredRaws     = await Promise.all(fredRes.map(r => _j(r)));
 
     // ICI는 별도로 실행 — 실패해도 나머지는 표시
     let iciJson = null;
@@ -3398,10 +3399,10 @@ async function loadS1(force = false) {
       };
     });
 
-    const vixQ  = yahooJson.quotes?.['^VIX'];
-    const moveQ = yahooJson.quotes?.['^MOVE'];
-    if (!vixQ?.price)  throw new Error(`VIX 수신 실패: ${vixQ?.error || '—'}`);
-    if (!moveQ?.price) throw new Error(`MOVE 수신 실패: ${moveQ?.error || '—'}`);
+    const vixQ  = yahooJson?.quotes?.['^VIX'];
+    const moveQ = yahooJson?.quotes?.['^MOVE'];
+    if (!vixQ?.price)  console.warn(`VIX 수신 실패: ${vixQ?.error || '—'}`);
+    if (!moveQ?.price) console.warn(`MOVE 수신 실패: ${moveQ?.error || '—'}`);
 
     renderPipe(fs, iciJson, h41HtmlJson, h41HistJson, sofrJson, rrpJson, srfJson, nypdJson, ofrMmfJson, dxyJson, jpyJson, fsiJson, pipe3Json);
     // ── T0 데이터 상태 기록 ──
@@ -3426,7 +3427,9 @@ async function loadS1(force = false) {
     renderDataStatus(0);
     renderVIX(vixQ);
     renderMOVE(moveQ);
-    renderZScore(vixQ.price, moveQ.price, vixHistJson, moveHistJson);
+    if (vixQ?.price && moveQ?.price) {
+      renderZScore(vixQ.price, moveQ.price, vixHistJson, moveHistJson);
+    }
     showContent();
 
   } catch(e) {
@@ -4548,21 +4551,22 @@ async function loadS2(force = false) {
   showLoading2();
   try {
     const yahooTickers = 'SPY,TLT,QQQ,DIA,GC%3DF,HG%3DF';
-    const [yahooResp, btcResp, tipsResp, iciResp, mmfRetailResp, mmfInstResp] = await Promise.all([
+    const [yahooRes, btcRes, tipsRes, iciRes, mmfRetailRes, mmfInstRes] = await Promise.allSettled([
       fetchT(`${WORKER}/yahoo?tickers=${yahooTickers}`),
       fetchT('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true'),
       fetchT(`${WORKER}/fred?series_id=DFII10&limit=60&sort_order=desc`),
       fetchT(`${WORKER}/ici`, 15000),
-      fetchT(`${WORKER}/fred?series_id=WRMFNS&limit=60&sort_order=desc`),  // 소매 MMF
-      fetchT(`${WORKER}/fred?series_id=WRMFSL&limit=60&sort_order=desc`),  // 기관 MMF
+      fetchT(`${WORKER}/fred?series_id=WRMFNS&limit=60&sort_order=desc`),
+      fetchT(`${WORKER}/fred?series_id=WRMFSL&limit=60&sort_order=desc`),
     ]);
 
-    const yahooJson    = await yahooResp.json();
-    const btcJson      = await btcResp.json();
-    const tipsJson     = await tipsResp.json();
-    const iciJson      = await iciResp.json();
-    const mmfRetailJson = await mmfRetailResp.json();
-    const mmfInstJson   = await mmfInstResp.json();
+    const _sj2 = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
+    const yahooJson     = await _sj2(yahooRes);
+    const btcJson       = await _sj2(btcRes);
+    const tipsJson      = await _sj2(tipsRes);
+    const iciJson       = await _sj2(iciRes);
+    const mmfRetailJson = await _sj2(mmfRetailRes);
+    const mmfInstJson   = await _sj2(mmfInstRes);
 
     const q = yahooJson.quotes || {};
 
@@ -5072,14 +5076,15 @@ async function loadS3(force = false) {
     const sectorTickerStr    = SECTORS.map(s => encodeURIComponent(s.ticker)).join(',');
     const leverageTickerStr  = 'TQQQ,SQQQ,UVXY';
 
-    const [quoteResp, leverageQuoteResp] = await Promise.all([
+    const [quoteRes, leverageQuoteRes] = await Promise.allSettled([
       fetchT(`${WORKER}/yahoo?tickers=${sectorTickerStr}`),
       fetchT(`${WORKER}/yahoo?tickers=${leverageTickerStr}`),
     ]);
-    const quoteJson        = await quoteResp.json();
-    const leverageQuoteJson = await leverageQuoteResp.json();
-    const quotes        = quoteJson.quotes        || {};
-    const leverageQuotes = leverageQuoteJson.quotes || {};
+    const _sj3 = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
+    const quoteJson         = await _sj3(quoteRes);
+    const leverageQuoteJson = await _sj3(leverageQuoteRes);
+    const quotes         = quoteJson?.quotes        || {};
+    const leverageQuotes = leverageQuoteJson?.quotes || {};
 
     // 차트 데이터 파싱 — dates/closes/volumes 배열 → history 객체 배열
     const chartMap = {};
