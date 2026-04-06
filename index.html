@@ -10790,12 +10790,21 @@ function renderNews() {
   const list = document.getElementById('news-list');
   if (!list) return;
 
-  // 1. 탭 필터 (각 탭이 개별 카테고리에 1:1 대응)
+  // 1. 탭 필터 — Fed/국채는 공식 소스 ID 기준, 나머지는 cat 기준
+  const SOURCE_TAB_MAP = {
+    fed:      ['fed_press', 'bis_speeches'],          // 공식 연준·중앙은행 소스만
+    treasury: ['us_treasury'],                         // 공식 재무부 소스만
+    macro:    ['bis_press', 'zerohedge', 'wsj_economy'], // 거시 분석 소스
+    tech:     ['semianalysis', 'ars_science', 'ars_tech', 'utility_dive', 'fierce_biotech'],
+    onchain:  ['blockworks', 'coindesk'],
+  };
+
   let items = _allItems;
   if (_tabFilter !== 'all') {
-    const catMap = { fed: 'fed', treasury: 'treasury', macro: 'macro', tech: 'hardtech', onchain: 'crypto' };
-    const targetCat = catMap[_tabFilter];
-    items = items.filter(n => n.cat === targetCat);
+    const allowedSources = SOURCE_TAB_MAP[_tabFilter];
+    if (allowedSources) {
+      items = items.filter(n => allowedSources.includes(n.sourceId));
+    }
   }
 
   // 2. 시간 필터
