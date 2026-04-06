@@ -9783,6 +9783,22 @@ window.addEventListener('load', () => {
   setTimeout(checkQraStatus, 3000);
 });
 
+// ── 슬라이드 패널 높이 보정 (모바일 주소창 이슈) ──────────────────
+// 100vh는 모바일 브라우저 주소창 포함 → visualViewport 실제 높이로 덮어씀
+function fixPanelHeight() {
+  const h = (window.visualViewport?.height || window.innerHeight) + 'px';
+  ['news-panel', 'cal-panel', 'tower-panel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.height = h;
+  });
+}
+fixPanelHeight();
+window.addEventListener('resize', fixPanelHeight);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', fixPanelHeight);
+  window.visualViewport.addEventListener('scroll', fixPanelHeight);
+}
+
 // ── 맨 위로 버튼 ──────────────────────────────────────────
 window.addEventListener('scroll', () => {
   const btn = document.getElementById('scroll-top-btn');
