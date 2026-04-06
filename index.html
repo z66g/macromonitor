@@ -1267,14 +1267,6 @@ body{
 <!-- ═══════ CONTROLS BAR (탭과 무관, 항상 표시) ═══════ -->
 <div id="controls-bar">
   <div id="controls-bar-inner">
-    <button id="hdr-cal-btn" onclick="toggleCalPanel()" title="이벤트 캘린더"
-      style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
-             color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
-             display:flex;align-items:center;gap:4px;transition:all .2s;">
-      <span style="font-size:11px;">📅</span>
-      <span style="font-size:9px;">캘린더</span>
-      <span id="led-cal" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
-    </button>
     <button id="hdr-news-btn" onclick="toggleNewsPanel()" title="News"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
@@ -1283,12 +1275,20 @@ body{
       <span style="font-size:9px;">뉴스</span>
       <span id="led-news" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
     </button>
+    <button id="hdr-cal-btn" onclick="toggleCalPanel()" title="이벤트 캘린더"
+      style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
+             color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
+             display:flex;align-items:center;gap:4px;transition:all .2s;">
+      <span style="font-size:11px;">📅</span>
+      <span style="font-size:9px;">캘린더</span>
+      <span id="led-cal" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
+    </button>
     <button id="hdr-tower-btn" onclick="toggleLiqTower()" title="유동성 관제탑"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
              display:flex;align-items:center;gap:4px;transition:all .2s;">
       <span style="font-size:11px;">🏛️</span>
-      <span style="font-size:9px;">Plumbing</span>
+      <span style="font-size:9px;">배관 예측모델</span>
       <span id="led-tower" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
     </button>
     <div class="hdr-clock" id="clock">—</div>
