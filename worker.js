@@ -200,20 +200,17 @@ async function fetchCalendar(env) {
     21:  { nameKo: '소비자물가 (CPI)',              imp: 'high',   tag: '인플레', series:'CPIAUCSL',        fmt:'yoy'  },
     6:   { nameKo: '생산자물가 (PPI)',              imp: 'high',   tag: '인플레', series:'PPIACO',          fmt:'yoy'  },
     46:  { nameKo: '개인소비지출 (PCE · Core PCE)', imp: 'high',   tag: '인플레', series:'PCEPILFE',        fmt:'yoy'  },
-    10:  { nameKo: '고용보고서 (NFP · 실업률)',      imp: 'high',   tag: '고용',   series:'UNRATE',          fmt:'val'  },
-    // 22: 실업수당 — FRED가 금요일에 업데이트하나 실제 발표는 목요일
-    //     buildMarketEvents의 목요일 고정 이벤트로 처리
+    // 10: NFP → 매월 첫째 금요일 수학 계산 (buildMarketEvents)
+    // 33: ISM 제조업 → 매월 첫 영업일 수학 계산 (buildMarketEvents)
+    // 57: ISM 서비스 → 매월 셋째 영업일 수학 계산 (buildMarketEvents)
     138: { nameKo: '구인이직보고서 (JOLTS)',         imp: 'medium', tag: '고용',   series:'JTSJOL',          fmt:'val'  },
     31:  { nameKo: 'GDP 성장률',                    imp: 'high',   tag: '성장',   series:'A191RL1Q225SBEA', fmt:'val'  },
     56:  { nameKo: '소매판매',                      imp: 'medium', tag: '성장',   series:'RSAFS',           fmt:'mom'  },
-    175: { nameKo: 'FOMC 의사록',                  imp: 'high',   tag: '연준',   series:null,              fmt:null   },
-    33:  { nameKo: 'ISM 제조업 PMI',               imp: 'medium', tag: '경기',   series:'NAPM',            fmt:'val'  },
-    57:  { nameKo: 'ISM 서비스업 PMI',             imp: 'medium', tag: '경기',   series:'NMFCI',           fmt:'val'  },
+    175: { nameKo: 'FOMC 의사록',                   imp: 'high',   tag: '연준',   series:null,              fmt:null   },
     237: { nameKo: '주택착공',                      imp: 'medium', tag: '주택',   series:'HOUST',           fmt:'val'  },
     82:  { nameKo: '소비자심리 (미시간)',            imp: 'medium', tag: '경기',   series:'UMCSENT',         fmt:'val'  },
     113: { nameKo: '내구재 주문',                   imp: 'medium', tag: '성장',   series:'DGORDER',         fmt:'mom'  },
-    // ── 신규 추가 ─────────────────────────────────────────────────
-    313: { nameKo: '세인트루이스 FSI',   imp: 'medium', tag: '신용', series:'STLFSI4', fmt:'val' },
+    313: { nameKo: '세인트루이스 FSI',               imp: 'medium', tag: '신용',   series:'STLFSI4',         fmt:'val'  },
   };
 
   // 발표 데이터 fetch 헬퍼 (D-DAY 이벤트용)
@@ -285,25 +282,15 @@ async function fetchCalendar(env) {
       )
       .sort((a, b) => a.date.localeCompare(b.date));
 
-    // D-DAY 이벤트에 발표 데이터 병렬 fetch
-    const todayEvents = events.filter(e => e.date === todayStr && e.seriesFmt);
-    if (todayEvents.length > 0) {
-      const results = await Promise.all(
-        todayEvents.map(e => fetchLatest(e.series, e.seriesFmt))
-      );
-      todayEvents.forEach((e, i) => { e.released = results[i]; });
-    }
-
     // ── 파생상품/재무부/기타 이벤트 병합 ──────────────────────────
     const toStr = fmt(end);
-    // FOMC 날짜 동적 fetch (연준 공식 사이트 파싱, 실패 시 폴백)
     const fomcDates      = fetchFomcDates();
-    const marketEvents  = buildMarketEvents(todayStr, toStr, fomcDates);
+    const marketEvents   = buildMarketEvents(todayStr, toStr, fomcDates);
     const blackoutEvents = buildFomcBlackout(todayStr, toStr, fomcDates);
 
-    // D-day 계산 적용
+    // D-day 계산 적용 (전체 병합 후)
     const allEvents = [...events, ...marketEvents, ...blackoutEvents].map(e => {
-      if (e.dday !== null && e.dday !== undefined) return e; // 이미 계산된 것
+      if (e.dday !== null && e.dday !== undefined) return e;
       const diff = Math.round((new Date(e.date) - today) / 86400000);
       return {
         ...e,
@@ -313,6 +300,15 @@ async function fetchCalendar(env) {
 
     // 날짜순 정렬
     allEvents.sort((a, b) => a.date.localeCompare(b.date));
+
+    // D-DAY 이벤트 수치 fetch (FRED + buildMarketEvents 모두 포함)
+    const todayEvents = allEvents.filter(e => e.date === todayStr && e.seriesFmt);
+    if (todayEvents.length > 0) {
+      const results = await Promise.all(
+        todayEvents.map(e => fetchLatest(e.series, e.seriesFmt))
+      );
+      todayEvents.forEach((e, i) => { e.released = results[i]; });
+    }
 
     return { events: allEvents, fetchedAt: fmt(today), _savedAt: new Date().toISOString() };
   } catch(e) {
@@ -549,7 +545,64 @@ function buildMarketEvents(fromDate, toDate, fomcDates = []) {
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  // ⑨ SLOOS (대출기준 설문) — FOMC 회의 직후 월요일 (1/4/7/10월)
+  // ⑩ NFP + 실업률 — 매월 첫째 금요일
+  // ⑪ ISM 제조업 — 매월 첫 영업일
+  // ⑫ ISM 서비스 — 매월 셋째 영업일
+  for (const { year, month } of months) {
+    const holidays = usMarketHolidays(year);
+
+    // 첫째 금요일 계산
+    const nfpDate = nthWeekdayOfMonth(year, month, 5, 1);
+    if (nfpDate >= fromDate && nfpDate <= toDate) {
+      events.push({
+        date: nfpDate, dday: null,
+        name: '고용보고서 (NFP · 실업률)',
+        imp: 'high', tag: '고용', category: 'macro', weight: 3,
+        estimated: false, series: 'PAYEMS', seriesFmt: 'mom',
+      });
+      // 실업률은 같은 날 별도 표시
+      events.push({
+        date: nfpDate, dday: null,
+        name: '실업률 (UNRATE)',
+        imp: 'high', tag: '고용', category: 'macro', weight: 3,
+        estimated: false, series: 'UNRATE', seriesFmt: 'val',
+      });
+    }
+
+    // 첫 영업일 계산 (주말/공휴일 건너뜀)
+    const d1 = new Date(year, month - 1, 1);
+    while (d1.getDay() === 0 || d1.getDay() === 6 || holidays.includes(d1.toISOString().slice(0,10))) {
+      d1.setDate(d1.getDate() + 1);
+    }
+    const ismMfgDate = d1.toISOString().slice(0, 10);
+    if (ismMfgDate >= fromDate && ismMfgDate <= toDate) {
+      events.push({
+        date: ismMfgDate, dday: null,
+        name: 'ISM 제조업 PMI',
+        imp: 'medium', tag: '경기', category: 'macro', weight: 2,
+        estimated: false, series: null, seriesFmt: null,
+      });
+    }
+
+    // 셋째 영업일 계산
+    const d3 = new Date(year, month - 1, 1);
+    let bizCount = 0;
+    while (bizCount < 3) {
+      if (d3.getDay() !== 0 && d3.getDay() !== 6 && !holidays.includes(d3.toISOString().slice(0,10))) {
+        bizCount++;
+      }
+      if (bizCount < 3) d3.setDate(d3.getDate() + 1);
+    }
+    const ismSvcDate = d3.toISOString().slice(0, 10);
+    if (ismSvcDate >= fromDate && ismSvcDate <= toDate) {
+      events.push({
+        date: ismSvcDate, dday: null,
+        name: 'ISM 서비스업 PMI',
+        imp: 'medium', tag: '경기', category: 'macro', weight: 2,
+        estimated: false, series: null, seriesFmt: null,
+      });
+    }
+  }
   for (const fomcDate of fomcDates) {
     const fm = new Date(fomcDate);
     const fomcMonth = fm.getMonth() + 1;
