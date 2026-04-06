@@ -9505,7 +9505,7 @@ function renderTowerS4(d) {
       alertEl.innerHTML = danger.map(w =>
         '<div style="background:rgba(248,81,73,0.08);border:0.5px solid #B91C1C;' +
         'border-radius:4px;padding:7px 10px;margin-bottom:6px;font-size:9px;color:#F85149;">' +
-        '🚨 ' + w.label + ' (' + w.dateRange + '): 순 유동성 증발 $' + w.netDrain + 'B' +
+        '🚨 ' + w.label + ' (' + w.dateRange + '): 순 유동성 흡수 $' + w.netDrain + 'B' +
         '</div>'
       ).join('');
     }
@@ -9515,8 +9515,8 @@ function renderTowerS4(d) {
   if (!ctx || !weeks.length) return;
   if (_vampireChart) { _vampireChart.destroy(); _vampireChart = null; }
 
-  const netData    = weeks.map(w => w.netDrain);
-  const ptColors   = weeks.map(w => w.isDangerZone ? '#F85149' : (w.netDrain < 0 ? '#3FB950' : '#FFFFFF'));
+  const netData    = weeks.map(w => -w.netDrain);  // 부호 반전: 흡수=음수, 공급=양수
+  const ptColors   = weeks.map(w => w.isDangerZone ? '#F85149' : (-w.netDrain >= 0 ? '#3FB950' : '#F85149'));
 
   _vampireChart = new Chart(ctx, {
     type: 'bar',
@@ -9524,19 +9524,19 @@ function renderTowerS4(d) {
       labels: weeks.map(w => w.label),
       datasets: [
         { label:'QT 롤오프',   type:'bar',
-          data: weeks.map(w => w.breakdown.qtDrain),
+          data: weeks.map(w => -w.breakdown.qtDrain),
           backgroundColor:'rgba(185,28,28,0.75)', stack:'s', order:2,
           barPercentage: 0.5, categoryPercentage: 0.6 },
         { label:'장기채 결제', type:'bar',
-          data: weeks.map(w => w.breakdown.couponDrain),
+          data: weeks.map(w => -w.breakdown.couponDrain),
           backgroundColor:'rgba(234,88,12,0.75)',  stack:'s', order:2,
           barPercentage: 0.5, categoryPercentage: 0.6 },
         { label:'T-Bill 흡수', type:'bar',
-          data: weeks.map(w => w.breakdown.billAbsorb),
+          data: weeks.map(w => -w.breakdown.billAbsorb),
           backgroundColor:'rgba(202,138,4,0.75)',  stack:'s', order:2,
           barPercentage: 0.5, categoryPercentage: 0.6 },
         { label:'정부 지출',   type:'bar',
-          data: weeks.map(w => w.breakdown.govOutflow),
+          data: weeks.map(w => -w.breakdown.govOutflow),
           backgroundColor:'rgba(22,163,74,0.75)',  stack:'s', order:2,
           barPercentage: 0.5, categoryPercentage: 0.6 },
         { label:'Net Drain',   type:'line',
@@ -9556,12 +9556,12 @@ function renderTowerS4(d) {
             display: true,
             color: function(ctx2) {
               const v = netData[ctx2.dataIndex];
-              return v > 0 ? '#F85149' : '#3FB950';
+              return v >= 0 ? '#3FB950' : '#F85149';  // 양수=초록(공급), 음수=빨강(흡수)
             },
             font: { size: 9, weight: 'bold',
               family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' },
             formatter: function(v) {
-              return (v > 0 ? '+' : '') + '$' + v.toFixed(0) + 'B';
+              return (v >= 0 ? '+' : '') + '$' + v.toFixed(0) + 'B';
             },
             anchor: function(ctx2) { return netData[ctx2.dataIndex] >= 0 ? 'end' : 'start'; },
             align:  function(ctx2) { return netData[ctx2.dataIndex] >= 0 ? 'top' : 'bottom'; },
@@ -9596,13 +9596,14 @@ function renderTowerS4(d) {
               const wi = items[0] && items[0].dataIndex;
               if (wi == null) return [];
               const w = weeks[wi];
-              const sign = w.netDrain > 0 ? '+' : '';
-              const icon = w.netDrain > 0 ? '🔴' : '🟢';
-              return [icon + ' 순 유동성 증발: ' + sign + '$' + w.netDrain + 'B', '────────────────'];
+              const net = -w.netDrain;  // 부호 반전
+              const sign = net >= 0 ? '+' : '';
+              const icon = net >= 0 ? '🟢' : '🔴';
+              return [icon + ' 순 유동성 변화: ' + sign + '$' + net.toFixed(0) + 'B', '────────────────'];
             },
             label: function(item) {
               if (item.dataset.label === 'Net Drain') return undefined;
-              const sign = item.parsed.y > 0 ? '+' : '';
+              const sign = item.parsed.y >= 0 ? '+' : '';
               return '  ' + item.dataset.label + ': ' + sign + '$' + item.parsed.y.toFixed(1) + 'B';
             },
             afterBody: function(items) {
