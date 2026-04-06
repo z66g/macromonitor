@@ -4302,14 +4302,13 @@ const NEWS_SOURCES = [
     },
   },
   {
-    // Treasury Market Announcements — URL 파라미터 필터 시도 (작동 여부 Worker에서 검증)
-    id: 'treasury_market',
-    name: 'Treasury Market Announcements',
-    url: 'https://home.treasury.gov/news/press-releases/rss.xml?type=market-announcements',
+    // ECB Press — 유럽중앙은행 공식 발표 (국채/채권 시장 영향)
+    id: 'ecb_press',
+    name: 'ECB Press Releases',
+    url: 'https://www.ecb.europa.eu/rss/press.html',
     cat: 'treasury',
     tier: 1,
-    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
-    fallbackUrl: 'https://home.treasury.gov/news/press-releases/rss.xml', // 필터 실패 시 기본 URL
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
   },
   {
     id: 'bis_speeches',
