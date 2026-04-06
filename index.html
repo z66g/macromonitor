@@ -26,9 +26,10 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  font-size:13px;min-height:100vh;
+  font-size:13px;min-height:100vh;min-height:100svh;
   background:var(--bg);color:var(--txt);
   transition:background .2s,color .2s;
+  overscroll-behavior-y: none;
 }
 
 /* ═══════════════════════════
@@ -183,7 +184,7 @@ body{
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:#0D1117;color:#E6EDF3;font-size:13px;
-  min-height:100vh;padding:24px;
+  min-height:100svh;padding:24px;
 }
 .dev-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:0.5px solid #30363D;}
 .dev-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;background:#2D1F00;color:#F0B429;letter-spacing:.06em;}
@@ -544,7 +545,7 @@ body{
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:#0D1117;color:#E6EDF3;font-size:13px;
-  min-height:100vh;padding:24px;
+  min-height:100svh;padding:24px;
 }
 
 /* ── 개발 헤더 ── */
@@ -728,7 +729,7 @@ body{
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:#0D1117;color:#E6EDF3;font-size:13px;
-  min-height:100vh;padding:24px;
+  min-height:100svh;padding:24px;
 }
 
 .dev-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:0.5px solid #30363D;}
@@ -9849,7 +9850,7 @@ function fixPanelHeight() {
 window.addEventListener('resize', fixPanelHeight);
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', fixPanelHeight);
-  window.visualViewport.addEventListener('scroll', fixPanelHeight);
+  // scroll 이벤트는 하단 스크롤 시 연속 발화 → 레이아웃 요동 원인이므로 제거
 }
 
 // ── 맨 위로 버튼 ──────────────────────────────────────────
