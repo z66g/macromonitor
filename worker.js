@@ -212,10 +212,7 @@ async function fetchCalendar(env) {
     82:  { nameKo: '소비자심리 (미시간)',            imp: 'medium', tag: '경기',   series:'UMCSENT',         fmt:'val'  },
     113: { nameKo: '내구재 주문',                   imp: 'medium', tag: '성장',   series:'DGORDER',         fmt:'mom'  },
     // ── 신규 추가 ─────────────────────────────────────────────────
-    74:  { nameKo: 'SLOOS (대출기준 설문)',          imp: 'high',   tag: '신용',   series:'DRTSCILM',        fmt:'val'  },
-    201: { nameKo: '시카고 NFCI (금융여건)',         imp: 'medium', tag: '신용',   series:'NFCI',            fmt:'val'  },
-    313: { nameKo: '세인트루이스 FSI',               imp: 'medium', tag: '신용',   series:'STLFSI4',         fmt:'val'  },
-    84:  { nameKo: '저축률 (PSAVERT)',              imp: 'medium', tag: '성장',   series:'PSAVERT',         fmt:'val'  },
+    313: { nameKo: '세인트루이스 FSI',   imp: 'medium', tag: '신용', series:'STLFSI4', fmt:'val' },
   };
 
   // 발표 데이터 fetch 헬퍼 (D-DAY 이벤트용)
@@ -328,6 +325,14 @@ async function fetchCalendar(env) {
 // federalreserve.gov/monetarypolicy/fomccalendars.htm
 // 형태: "Jan. 28-29" 또는 "Apr. 29*" (단일) 등
 async function fetchFomcDates() {
+  // 연준 공식 FOMC 일정 하드코딩 폴백 (연 1회 1월에 업데이트)
+  const FALLBACK = [
+    '2025-01-29','2025-03-19','2025-05-07','2025-06-18',
+    '2025-07-30','2025-09-17','2025-10-29','2025-12-10',
+    '2026-01-28','2026-03-18','2026-04-29','2026-06-17',
+    '2026-07-29','2026-09-16','2026-10-28','2026-12-09',
+  ];
+
   try {
     const res = await fetch(
       'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm',
@@ -339,35 +344,31 @@ async function fetchFomcDates() {
     const dates = [];
     const currentYear = new Date().getFullYear();
 
-    // 연도별 섹션 파싱 (현재~내년)
+    const MONTHS = {
+      'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,
+      'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12,
+    };
+
     for (const year of [currentYear, currentYear + 1]) {
-      // 월 약어 → 번호 매핑
-      const MONTHS = {
-        'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
-        'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12,
-      };
-
-      // 패턴: "Jan. 27-28, 2026" 또는 "Apr. 28-29" 형태를 찾음
-      // 두 번째 날(성명서 발표일)을 회의 날짜로 사용
-      const pattern = /([A-Z][a-z]{2})\.\s+(\d+)[-–](\d+)[,\s]/g;
-      let m;
-      // 해당 연도 블록 내에서만 찾기
-      const yearIdx = html.indexOf(`>${year}<`);
+      const yearIdx = html.indexOf(`${year}`);
       if (yearIdx < 0) continue;
-      const nextYearIdx = html.indexOf(`>${year + 1}<`, yearIdx);
-      const block = html.slice(yearIdx, nextYearIdx > 0 ? nextYearIdx : yearIdx + 50000);
+      const nextYearIdx = html.indexOf(`${year + 1}`, yearIdx + 4);
+      const block = html.slice(yearIdx, nextYearIdx > 0 ? nextYearIdx : yearIdx + 60000);
 
-      while ((m = pattern.exec(block)) !== null) {
+      // 패턴 1: "Jan. 28-29" / "Apr. 28–29" (em dash 포함)
+      const pat1 = /([A-Z][a-z]{2})\.\s*(\d+)\s*[-–—]\s*(\d+)/g;
+      let m;
+      while ((m = pat1.exec(block)) !== null) {
         const mon = MONTHS[m[1]];
-        const day = parseInt(m[3], 10); // 두 번째 날(성명서 발표일)
+        const day = parseInt(m[3], 10); // 두 번째 날 = 성명서 발표일
         if (!mon || !day) continue;
         const dateStr = `${year}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
         if (!dates.includes(dateStr)) dates.push(dateStr);
       }
 
-      // 단일 날짜 패턴: "Oct. 28*" (하루짜리 회의)
-      const singlePattern = /([A-Z][a-z]{2})\.\s+(\d+)\*/g;
-      while ((m = singlePattern.exec(block)) !== null) {
+      // 패턴 2: "Oct. 28*" (하루짜리 회의)
+      const pat2 = /([A-Z][a-z]{2})\.\s*(\d+)\s*\*/g;
+      while ((m = pat2.exec(block)) !== null) {
         const mon = MONTHS[m[1]];
         const day = parseInt(m[2], 10);
         if (!mon || !day) continue;
@@ -376,14 +377,15 @@ async function fetchFomcDates() {
       }
     }
 
+    // 파싱 결과 없으면 폴백 사용
+    if (dates.length === 0) {
+      console.warn('[FOMC] HTML 파싱 매칭 없음, 폴백 사용');
+      return FALLBACK;
+    }
     return dates.sort();
   } catch(e) {
     console.error('[FOMC FETCH ERROR]', e.message);
-    // 파싱 실패 시 폴백: 알려진 일정 (연 1회 업데이트면 충분)
-    return [
-      '2026-04-29', '2026-06-17', '2026-07-29',
-      '2026-09-16', '2026-10-28', '2026-12-09',
-    ];
+    return FALLBACK;
   }
 }
 function usMarketHolidays(year) {
@@ -562,22 +564,40 @@ function buildMarketEvents(fromDate, toDate, fomcDates = []) {
   }
 
   // ⑦ H.4.1 연준 자산 주간 발표 — 매주 목요일 (4:30pm ET)
+  // ⑧ 시카고 NFCI — 매주 금요일
   const cursor = new Date(fromDate);
   while (cursor.toISOString().slice(0, 10) <= toDate) {
-    if (cursor.getDay() === 4) { // 목요일
-      const dateStr = cursor.toISOString().slice(0, 10);
+    const dow = cursor.getDay();
+    const dateStr = cursor.toISOString().slice(0, 10);
+
+    if (dow === 4) { // 목요일 — H.4.1
       events.push({
-        date:      dateStr,
-        dday:      null,
-        name:      'H.4.1 연준 자산 주간 발표 (WALCL·RRP·TGA)',
-        imp:       'low',
-        tag:       '연준',
-        category:  'fed',
-        weight:    1,
-        estimated: false,
+        date: dateStr, dday: null,
+        name: 'H.4.1 연준 자산 주간 발표 (WALCL·RRP·TGA)',
+        imp: 'low', tag: '연준', category: 'fed', weight: 1, estimated: false,
+      });
+    }
+    if (dow === 5) { // 금요일 — NFCI
+      events.push({
+        date: dateStr, dday: null,
+        name: '시카고 NFCI (금융여건지수) 주간 발표',
+        imp: 'low', tag: '신용', category: 'macro', weight: 1, estimated: false,
       });
     }
     cursor.setDate(cursor.getDate() + 1);
+  }
+
+  // ⑨ SLOOS (대출기준 설문) — 1/4/7/10월 첫째 주 월요일경 (추정)
+  for (const { year, month } of months) {
+    if (![1, 4, 7, 10].includes(month)) continue;
+    const sloosDate = nthWeekdayOfMonth(year, month, 1, 1); // 첫째 월요일
+    if (sloosDate >= fromDate && sloosDate <= toDate) {
+      events.push({
+        date: sloosDate, dday: null,
+        name: 'SLOOS 대출기준 설문 발표 (분기)',
+        imp: 'high', tag: '신용', category: 'macro', weight: 2, estimated: true,
+      });
+    }
   }
 
   // ⑥ FOMC 실제 회의일 추가
