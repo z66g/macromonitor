@@ -1205,7 +1205,7 @@ body{
          display:flex;flex-direction:column;overflow:hidden;">
   <!-- 패널 헤더 -->
   <div style="display:flex;align-items:center;justify-content:space-between;
-              padding:16px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
+              padding:14px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
     <div style="font-size:13px;font-weight:700;color:#E6EDF3;">이벤트 캘린더</div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span id="cal-updated" style="font-size:8px;color:#484F58;"></span>
@@ -1215,23 +1215,35 @@ body{
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
     </div>
   </div>
-  <!-- 필터 탭 -->
-  <div id="cal-filter" style="display:flex;gap:4px;padding:10px 18px;flex-wrap:wrap;flex-shrink:0;border-bottom:0.5px solid #21262D;">
-    <button onclick="calFilter('all',this)" class="cal-tag-btn active"
-      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:#30363D;color:#E6EDF3;border:none;">전체</button>
-    <button onclick="calFilter('인플레',this)" class="cal-tag-btn"
-      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">인플레</button>
-    <button onclick="calFilter('고용',this)" class="cal-tag-btn"
-      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">고용</button>
-    <button onclick="calFilter('연준',this)" class="cal-tag-btn"
-      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">연준</button>
-    <button onclick="calFilter('성장',this)" class="cal-tag-btn"
-      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">성장</button>
-    <button onclick="calFilter('경기',this)" class="cal-tag-btn"
-      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">경기</button>
+  <!-- 미니 달력 -->
+  <div id="cal-mini" style="flex-shrink:0;padding:12px 18px;border-bottom:0.5px solid #21262D;">
+    <!-- 월 네비게이션 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <button onclick="calMonthMove(-1)"
+        style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">‹</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="cal-month-label" style="font-size:11px;font-weight:700;color:#E6EDF3;"></span>
+        <button onclick="calGoToday()"
+          style="font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;
+                 background:#1A3448;color:#58A6FF;border:0.5px solid #0969DA;">오늘</button>
+      </div>
+      <button onclick="calMonthMove(1)"
+        style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">›</button>
+    </div>
+    <!-- 요일 헤더 -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px;">
+      ${['일','월','화','수','목','금','토'].map((d,i)=>`
+        <div style="font-size:8px;color:${i===0?'#F85149':i===6?'#58A6FF':'#656D76'};padding:2px 0;">${d}</div>
+      `).join('')}
+    </div>
+    <!-- 날짜 그리드 -->
+    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;"></div>
   </div>
+  <!-- 선택된 주 레이블 -->
+  <div id="cal-week-label"
+    style="padding:8px 18px;font-size:9px;color:#656D76;border-bottom:0.5px solid #21262D;flex-shrink:0;"></div>
   <!-- 이벤트 리스트 -->
-  <div id="cal-list" style="flex:1;overflow-y:auto;overscroll-behavior:contain;padding:12px 18px;"></div>
+  <div id="cal-list" style="flex:1;overflow-y:auto;overscroll-behavior:contain;padding:8px 18px;"></div>
 </div>
 
 <!-- ═══════ TAB NAV ═══════ -->
@@ -6781,6 +6793,9 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
 let calData = [];
 let calActiveFilter = 'all';
 let calPanelOpen = false;
+let calViewYear  = new Date().getFullYear();
+let calViewMonth = new Date().getMonth(); // 0-based
+let calSelectedDate = new Date().toISOString().slice(0, 10); // 선택된 날짜
 
 function toggleCalPanel() {
   calPanelOpen = !calPanelOpen;
@@ -6793,6 +6808,7 @@ function toggleCalPanel() {
     btn.style.borderColor = '#0969DA';
     btn.style.color = '#58A6FF';
     if (calData.length === 0) loadCalendar(false);
+    else { renderCalMini(); renderCalWeek(); }
   } else {
     overlay.style.display = 'none';
     panel.style.transform = 'translateX(100%)';
@@ -6813,8 +6829,8 @@ async function loadCalendar(force = false) {
       const dt = new Date(d._savedAt);
       updEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} 기준`;
     }
-    renderCalendar();
-    // LED 갱신
+    renderCalMini();
+    renderCalWeek();
     const ledCal = document.getElementById('led-cal');
     if (ledCal) {
       ledCal.style.background = '#3FB950';
@@ -6827,61 +6843,163 @@ async function loadCalendar(force = false) {
   }
 }
 
-function calFilter(tag, btn) {
-  calActiveFilter = tag;
-  document.querySelectorAll('.cal-tag-btn').forEach(b => {
-    b.style.background = 'transparent';
-    b.style.color = '#656D76';
-    b.style.border = '0.5px solid #30363D';
-  });
-  btn.style.background = '#30363D';
-  btn.style.color = '#E6EDF3';
-  btn.style.border = 'none';
-  renderCalendar();
+// 월 이동
+function calMonthMove(delta) {
+  calViewMonth += delta;
+  if (calViewMonth < 0)  { calViewMonth = 11; calViewYear--; }
+  if (calViewMonth > 11) { calViewMonth = 0;  calViewYear++; }
+  renderCalMini();
 }
 
-function renderCalendar() {
-  const listEl = document.getElementById('cal-list');
-  if (!listEl) return;
-  const filtered = calActiveFilter === 'all'
-    ? calData
-    : calData.filter(e => e.tag === calActiveFilter);
+// 오늘로 리셋
+function calGoToday() {
+  const today = new Date();
+  calViewYear  = today.getFullYear();
+  calViewMonth = today.getMonth();
+  calSelectedDate = today.toISOString().slice(0, 10);
+  renderCalMini();
+  renderCalWeek();
+}
 
-  if (filtered.length === 0) {
-    listEl.innerHTML = '<div style="color:#484F58;font-size:11px;padding:20px 0;text-align:center;">이벤트 없음</div>';
+// 날짜 클릭
+function calSelectDate(dateStr) {
+  calSelectedDate = dateStr;
+  const d = new Date(dateStr);
+  calViewYear  = d.getFullYear();
+  calViewMonth = d.getMonth();
+  renderCalMini();
+  renderCalWeek();
+}
+
+// 이벤트 있는 날짜 Set 반환
+function calEventDates() {
+  const set = new Set();
+  calData.forEach(e => set.add(e.date));
+  return set;
+}
+
+// 이벤트 중요도 색상 (점 색상용)
+function calDotColor(dateStr) {
+  const events = calData.filter(e => e.date === dateStr);
+  if (!events.length) return null;
+  if (events.some(e => e.imp === 'high')) return '#F0B429';
+  if (events.some(e => e.imp === 'medium')) return '#8B949E';
+  return '#484F58';
+}
+
+// 미니 달력 렌더링
+function renderCalMini() {
+  const grid = document.getElementById('cal-grid');
+  const label = document.getElementById('cal-month-label');
+  if (!grid || !label) return;
+
+  const today = new Date().toISOString().slice(0, 10);
+  label.textContent = `${calViewYear}년 ${calViewMonth + 1}월`;
+
+  // 이번 달 1일의 요일
+  const firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
+  const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+
+  // 선택된 날의 주 범위 계산
+  const selD = new Date(calSelectedDate + 'T00:00:00');
+  const selWeekStart = new Date(selD);
+  selWeekStart.setDate(selD.getDate() - selD.getDay());
+  const selWeekEnd = new Date(selWeekStart);
+  selWeekEnd.setDate(selWeekStart.getDate() + 6);
+
+  let html = '';
+  // 빈 칸 채우기
+  for (let i = 0; i < firstDay; i++) html += '<div></div>';
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday    = dateStr === today;
+    const isSelected = dateStr === calSelectedDate;
+    const dotColor   = calDotColor(dateStr);
+    const d = new Date(dateStr + 'T00:00:00');
+    const dow = d.getDay();
+    const inSelWeek = d >= selWeekStart && d <= selWeekEnd;
+
+    const textColor = isToday ? '#FFFFFF' :
+                      dow === 0 ? '#F85149' :
+                      dow === 6 ? '#58A6FF' : '#CDD9E5';
+    const bg = isSelected ? '#0969DA' :
+               isToday    ? '#1A3448' :
+               inSelWeek  ? '#1C2128' : 'transparent';
+    const border = isToday && !isSelected ? '0.5px solid #0969DA' : 'none';
+
+    html += `<div onclick="calSelectDate('${dateStr}')"
+      style="display:flex;flex-direction:column;align-items:center;
+             padding:3px 0;cursor:pointer;border-radius:4px;
+             background:${bg};border:${border};">
+      <div style="font-size:10px;font-weight:${isToday||isSelected?'700':'400'};
+                  color:${isSelected?'#FFFFFF':textColor};line-height:1.4;">${day}</div>
+      ${dotColor ? `<div style="width:3px;height:3px;border-radius:50%;background:${dotColor};margin-top:1px;"></div>` : '<div style="height:4px;"></div>'}
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+// 해당 주 이벤트 렌더링
+function renderCalWeek() {
+  const listEl  = document.getElementById('cal-list');
+  const labelEl = document.getElementById('cal-week-label');
+  if (!listEl) return;
+
+  // 선택된 날 기준 주 범위 (일~토)
+  const selD = new Date(calSelectedDate + 'T00:00:00');
+  const weekStart = new Date(selD);
+  weekStart.setDate(selD.getDate() - selD.getDay());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+
+  const wsStr = weekStart.toISOString().slice(0, 10);
+  const weStr = weekEnd.toISOString().slice(0, 10);
+
+  // 주 레이블
+  if (labelEl) {
+    const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
+    const today = new Date().toISOString().slice(0, 10);
+    const isThisWeek = today >= wsStr && today <= weStr;
+    labelEl.textContent = isThisWeek
+      ? `이번 주 (${fmt(weekStart)} ~ ${fmt(weekEnd)})`
+      : `${fmt(weekStart)} ~ ${fmt(weekEnd)} 주간`;
+  }
+
+  // 해당 주 이벤트 필터
+  const weekEvents = calData.filter(e => e.date >= wsStr && e.date <= weStr);
+
+  if (weekEvents.length === 0) {
+    listEl.innerHTML = '<div style="color:#484F58;font-size:11px;padding:20px 0;text-align:center;">이번 주 예정 이벤트 없음</div>';
     return;
   }
 
   // 날짜별 그룹핑
   const groups = {};
-  filtered.forEach(e => {
+  weekEvents.forEach(e => {
     if (!groups[e.date]) groups[e.date] = [];
     groups[e.date].push(e);
   });
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today   = new Date().toISOString().slice(0, 10);
   const IMP_COLOR = { high: '#F0B429', medium: '#8B949E', low: '#484F58' };
   const TAG_COLOR = {
     '인플레': '#CF222B', '고용': '#1A7F5A', '연준': '#0969DA',
     '성장': '#9A6700',   '경기': '#6E40C9', '금리': '#0969DA',
-    '주택': '#1A7F5A',
-    // 신규 카테고리
-    '파생/청산': '#F85149', '재무부': '#3FB950', '수급': '#8B949E',
+    '주택': '#1A7F5A',   '파생/청산': '#F85149', '재무부': '#3FB950',
+    '수급': '#8B949E',   '신용': '#9A6700',
   };
-  // 카테고리 아이콘
   const CAT_ICON = {
-    'fed':         '🏛️',
-    'treasury':    '💧',
-    'derivatives': '🚨',
-    'rebalancing': '🔄',
-    'fed_blackout': '🔇',
+    'fed': '🏛️', 'treasury': '💧', 'derivatives': '🚨',
+    'rebalancing': '🔄', 'fed_blackout': '🔇',
   };
+  const DAY_NAMES = ['일','월','화','수','목','금','토'];
 
-  listEl.innerHTML = Object.entries(groups).map(([date, events]) => {
-    const isToday = date === today;
+  listEl.innerHTML = Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).map(([date, events]) => {
+    const isToday    = date === today;
+    const isSelected = date === calSelectedDate;
     const dt = new Date(date + 'T00:00:00');
-    const dayNames = ['일','월','화','수','목','금','토'];
-    const dayLabel = `${dt.getMonth()+1}월 ${dt.getDate()}일 (${dayNames[dt.getDay()]})`;
+    const dayLabel = `${dt.getMonth()+1}월 ${dt.getDate()}일 (${DAY_NAMES[dt.getDay()]})`;
 
     const evHtml = events.map(e => {
       const impColor  = IMP_COLOR[e.imp] || '#484F58';
@@ -6891,8 +7009,8 @@ function renderCalendar() {
       const estBadge  = e.estimated
         ? `<span style="font-size:7px;color:#9A6700;background:#1A1400;border:0.5px solid #9A6700;border-radius:3px;padding:0 3px;margin-left:4px;">추정</span>`
         : '';
-      return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #21262D;">
-        <div style="width:2px;height:28px;border-radius:1px;background:${impColor};flex-shrink:0;"></div>
+      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #21262D;">
+        <div style="width:2px;height:26px;border-radius:1px;background:${impColor};flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:10px;font-weight:600;color:#E6EDF3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
             ${icon ? `<span style="margin-right:3px;">${icon}</span>` : ''}${e.name}${estBadge}
@@ -6906,15 +7024,21 @@ function renderCalendar() {
       </div>`;
     }).join('');
 
-    return `<div style="margin-bottom:14px;">
-      <div style="font-size:9px;font-weight:600;color:${isToday ? '#58A6FF' : '#656D76'};
-                  margin-bottom:4px;padding-bottom:4px;border-bottom:0.5px solid #30363D;">
+    const headerBg    = isSelected ? '#1A3448' : isToday ? '#111827' : 'transparent';
+    const headerColor = isToday ? '#58A6FF' : isSelected ? '#58A6FF' : '#656D76';
+    return `<div style="margin-bottom:10px;">
+      <div style="font-size:9px;font-weight:600;color:${headerColor};
+                  margin-bottom:3px;padding:4px 6px;border-radius:3px;
+                  background:${headerBg};border-bottom:0.5px solid #30363D;">
         ${isToday ? '🔵 ' : ''}${dayLabel}
       </div>
       ${evHtml}
     </div>`;
   }).join('');
 }
+
+// 하위 호환 (기존 calFilter 호출 제거됨)
+function renderCalendar() { renderCalWeek(); }
 
 
 // ══════════════════════════════
