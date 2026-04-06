@@ -4285,9 +4285,31 @@ const NEWS_SOURCES = [
     id: 'bis_press',
     name: 'BIS Press Releases',
     url: 'https://www.bis.org/doclist/all_pressrels.rss',
-    cat: 'macro',
+    cat: 'treasury',  // 국채 탭으로 이동 (국제결제은행 시장 분석)
     tier: 1,
     headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+  },
+  {
+    // WSJ Markets — 국채/채권 시장 전문 피드 (WSJ Economy와 같은 도메인, 검증됨)
+    id: 'wsj_markets',
+    name: 'WSJ Markets',
+    url: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml',
+    cat: 'treasury',
+    tier: 2,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)',
+      'Accept': 'application/rss+xml,text/xml,*/*',
+    },
+  },
+  {
+    // Treasury Market Announcements — URL 파라미터 필터 시도 (작동 여부 Worker에서 검증)
+    id: 'treasury_market',
+    name: 'Treasury Market Announcements',
+    url: 'https://home.treasury.gov/news/press-releases/rss.xml?type=market-announcements',
+    cat: 'treasury',
+    tier: 1,
+    headers: { 'User-Agent': 'Mozilla/5.0 MacroMonitor/1.0' },
+    fallbackUrl: 'https://home.treasury.gov/news/press-releases/rss.xml', // 필터 실패 시 기본 URL
   },
   {
     id: 'bis_speeches',
@@ -4318,12 +4340,10 @@ const NEWS_SOURCES = [
     url: 'https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml',
     cat: 'macro',
     tier: 2,
-    // ⚠️ WSJ 페이월 → 제목/요약만 파싱, 본문 차단됨. 타이틀 시그널만으로도 가치 있음
     headers: {
       'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)',
       'Accept': 'application/rss+xml,text/xml,*/*',
     },
-    fallbackUrl: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml',
   },
 
   // ── 2. HARD TECH & INFRA ──────────────────────────────────────

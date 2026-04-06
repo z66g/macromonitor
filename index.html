@@ -10792,9 +10792,9 @@ function renderNews() {
 
   // 1. 탭 필터 — Fed/국채는 공식 소스 ID 기준, 나머지는 cat 기준
   const SOURCE_TAB_MAP = {
-    fed:      ['fed_press', 'bis_speeches'],          // 공식 연준·중앙은행 소스만
-    treasury: ['us_treasury'],                         // 공식 재무부 소스만
-    macro:    ['bis_press', 'zerohedge', 'wsj_economy'], // 거시 분석 소스
+    fed:      ['fed_press', 'bis_speeches'],
+    treasury: ['us_treasury', 'bis_press', 'wsj_markets', 'treasury_market'],
+    macro:    ['zerohedge', 'wsj_economy'],
     tech:     ['semianalysis', 'ars_science', 'ars_tech', 'utility_dive', 'fierce_biotech'],
     onchain:  ['blockworks', 'coindesk'],
   };
