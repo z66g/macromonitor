@@ -1231,11 +1231,7 @@ body{
         style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">›</button>
     </div>
     <!-- 요일 헤더 -->
-    <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px;">
-      ${['일','월','화','수','목','금','토'].map((d,i)=>`
-        <div style="font-size:8px;color:${i===0?'#F85149':i===6?'#58A6FF':'#656D76'};padding:2px 0;">${d}</div>
-      `).join('')}
-    </div>
+    <div id="cal-dow-header" style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px;"></div>
     <!-- 날짜 그리드 -->
     <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;"></div>
   </div>
@@ -6889,9 +6885,17 @@ function calDotColor(dateStr) {
 
 // 미니 달력 렌더링
 function renderCalMini() {
-  const grid = document.getElementById('cal-grid');
-  const label = document.getElementById('cal-month-label');
+  const grid   = document.getElementById('cal-grid');
+  const label  = document.getElementById('cal-month-label');
+  const dowHdr = document.getElementById('cal-dow-header');
   if (!grid || !label) return;
+
+  // 요일 헤더 렌더링
+  if (dowHdr) {
+    dowHdr.innerHTML = ['일','월','화','수','목','금','토'].map((d, i) =>
+      `<div style="font-size:8px;color:${i===0?'#F85149':i===6?'#58A6FF':'#656D76'};padding:2px 0;text-align:center;">${d}</div>`
+    ).join('');
+  }
 
   const today = new Date().toISOString().slice(0, 10);
   label.textContent = `${calViewYear}년 ${calViewMonth + 1}월`;
