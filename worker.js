@@ -4552,7 +4552,8 @@ async function newsEndpoint(env, isFresh, ctx) {
 }
 
 // 번역 전용 엔드포인트 (/news-translate)
-// 느려도 됨 — 완료 후 KV 갱신, 다음 /news 요청부터 한국어 반환
+// 1회 호출 = 최대 2배치(20건) — TPM 한도 보호
+// 배치마다 즉시 KV 저장 — 중간 실패해도 진행분 보존
 async function newsTranslateEndpoint(env) {
   if (!env?.ANTHROPIC_API_KEY) {
     return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY 없음' }), { headers: CORS });
@@ -4569,33 +4570,65 @@ async function newsTranslateEndpoint(env) {
   const uncached = items.filter(item => {
     const key = newsTransKey(item);
     return key && !transMap[key];
-  }).slice(0, 30);
+  });
 
   if (uncached.length === 0) {
-    return new Response(JSON.stringify({ ok: true, message: '신규 번역 없음 (전부 캐시)', cached: Object.keys(transMap).length }), { headers: CORS });
+    return new Response(JSON.stringify({
+      ok: true, message: '모두 번역 완료',
+      totalCached: Object.keys(transMap).length
+    }), { headers: CORS });
   }
 
-  const success = await translateViaClaude(uncached, env, transMap);
+  const BATCH_SIZE    = 10;  // TPM 보호: 10건 = 출력 ~500토큰/배치
+  const MAX_BATCHES   = 2;   // 1회 호출 최대 2배치 (20건)
+  const BATCH_DELAY   = 3000; // 배치 간 3초 대기
 
-  if (!success) {
-    return new Response(JSON.stringify({ ok: false, error: 'Rate limit 또는 번역 실패' }), { headers: CORS });
+  let translated = 0;
+  let rateLimited = false;
+
+  for (let b = 0; b < MAX_BATCHES; b++) {
+    const start = b * BATCH_SIZE;
+    const batch = uncached.slice(start, start + BATCH_SIZE);
+    if (batch.length === 0) break;
+
+    const success = await translateViaClaude(batch, env, transMap);
+
+    if (!success) {
+      rateLimited = true;
+      break;
+    }
+
+    translated += batch.length;
+
+    // 배치마다 즉시 KV 저장 (중간 실패해도 진행분 보존)
+    await newsSaveTransMap(env, transMap, null);
+
+    // 마지막 배치가 아니면 대기
+    if (b < MAX_BATCHES - 1 && start + BATCH_SIZE < uncached.length) {
+      await new Promise(r => setTimeout(r, BATCH_DELAY));
+    }
   }
 
-  // 번역맵 저장
-  await newsSaveTransMap(env, transMap, null);
+  // 번역된 기사가 있으면 뉴스캐시 갱신
+  if (translated > 0) {
+    applyTransMapToItems(items, transMap);
+    await env.MMF_KV.put(
+      KV_KEYS.newsCache,
+      JSON.stringify({ ...newsCache, items, _translatedAt: new Date().toISOString() }),
+      { expirationTtl: KV_TTL.newsCache }
+    );
+  }
 
-  // 뉴스캐시 갱신 (번역 적용)
-  applyTransMapToItems(items, transMap);
-  await env.MMF_KV.put(
-    KV_KEYS.newsCache,
-    JSON.stringify({ ...newsCache, items, _translatedAt: new Date().toISOString() }),
-    { expirationTtl: KV_TTL.newsCache }
-  );
+  const remaining = uncached.length - translated;
 
   return new Response(JSON.stringify({
-    ok: true,
-    translated: uncached.length,
+    ok: !rateLimited,
+    translated,
+    remaining,          // 아직 번역 안 된 기사 수
     totalCached: Object.keys(transMap).length,
+    rateLimited,
+    // remaining > 0 이면 /news-translate 다시 호출하세요
+    next: remaining > 0 ? '잠시 후 /news-translate 다시 호출하면 이어서 번역' : '완료',
   }), { headers: CORS });
 }
 
@@ -4693,16 +4726,19 @@ ${inputJson}
       body,
     });
 
-    // Rate Limit / 일시 차단 → 대기 후 재시도
+    // Rate Limit → retry-after 헤더 읽어서 정확한 대기
     if (res.status === 429 || res.status === 403) {
       if (attempt < MAX_RETRIES - 1) {
-        const waitMs = Math.pow(2, attempt + 1) * 2000; // 2s, 4s, 8s
+        const retryAfter = parseInt(res.headers.get('retry-after') || '0', 10);
+        const waitMs = retryAfter > 0
+          ? retryAfter * 1000               // API가 알려준 대기 시간 우선
+          : Math.pow(2, attempt + 1) * 2000; // 없으면 2s, 4s, 8s
         console.warn(`[Trans] ${res.status} → ${waitMs}ms 후 재시도 (${attempt + 1}/${MAX_RETRIES})`);
         await sleep(waitMs);
         continue;
       }
       console.warn('[Trans] Rate limit 초과, 이번 배치 건너뜀');
-      return false; // ← 명시적 실패 반환
+      return false;
     }
 
     if (!res.ok) {
