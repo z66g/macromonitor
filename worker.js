@@ -201,7 +201,8 @@ async function fetchCalendar(env) {
     6:   { nameKo: '생산자물가 (PPI)',              imp: 'high',   tag: '인플레', series:'PPIACO',          fmt:'yoy'  },
     46:  { nameKo: '개인소비지출 (PCE · Core PCE)', imp: 'high',   tag: '인플레', series:'PCEPILFE',        fmt:'yoy'  },
     10:  { nameKo: '고용보고서 (NFP · 실업률)',      imp: 'high',   tag: '고용',   series:'UNRATE',          fmt:'val'  },
-    22:  { nameKo: '실업수당 (신규 · 연속)',         imp: 'medium', tag: '고용',   series:'ICSA',            fmt:'val'  },
+    // 22: 실업수당 — FRED가 금요일에 업데이트하나 실제 발표는 목요일
+    //     buildMarketEvents의 목요일 고정 이벤트로 처리
     138: { nameKo: '구인이직보고서 (JOLTS)',         imp: 'medium', tag: '고용',   series:'JTSJOL',          fmt:'val'  },
     31:  { nameKo: 'GDP 성장률',                    imp: 'high',   tag: '성장',   series:'A191RL1Q225SBEA', fmt:'val'  },
     56:  { nameKo: '소매판매',                      imp: 'medium', tag: '성장',   series:'RSAFS',           fmt:'mom'  },
@@ -513,22 +514,34 @@ function buildMarketEvents(fromDate, toDate, fomcDates = []) {
   }
 
   // ⑦ H.4.1 연준 자산 주간 발표 — 매주 목요일 (4:30pm ET)
-  // ⑧ 시카고 NFCI — 매주 금요일
+  // ⑧ 시카고 NFCI — 매주 수요일 8:30am ET (공휴일 시 목요일)
   const cursor = new Date(fromDate);
+  const holidays = usMarketHolidays(new Date(fromDate).getFullYear());
   while (cursor.toISOString().slice(0, 10) <= toDate) {
     const dow = cursor.getDay();
     const dateStr = cursor.toISOString().slice(0, 10);
 
-    if (dow === 4) { // 목요일 — H.4.1
+    if (dow === 4) { // 목요일 — H.4.1 + 실업수당
       events.push({
         date: dateStr, dday: null,
         name: 'H.4.1 연준 자산 주간 발표 (WALCL·RRP·TGA)',
         imp: 'low', tag: '연준', category: 'fed', weight: 1, estimated: false,
       });
-    }
-    if (dow === 5) { // 금요일 — NFCI
       events.push({
         date: dateStr, dday: null,
+        name: '실업수당 청구 (신규·연속) 주간 발표',
+        imp: 'medium', tag: '고용', category: 'macro', weight: 1, estimated: false,
+      });
+    }
+    if (dow === 3) { // 수요일 — NFCI (공휴일이면 목요일로 자동 밀림)
+      let nfciDate = dateStr;
+      if (holidays.includes(nfciDate)) {
+        const next = new Date(cursor);
+        next.setDate(next.getDate() + 1);
+        nfciDate = next.toISOString().slice(0, 10);
+      }
+      events.push({
+        date: nfciDate, dday: null,
         name: '시카고 NFCI (금융여건지수) 주간 발표',
         imp: 'low', tag: '신용', category: 'macro', weight: 1, estimated: false,
       });
