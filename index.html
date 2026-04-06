@@ -6819,15 +6819,33 @@ function toggleCalPanel() {
   }
 }
 
-// cal-mini 영역은 스크롤이 없는 고정 그리드라 터치 스와이프가 body로 전파됨
-// → touchmove를 직접 차단해서 본문 스크롤 방지
+// cal-panel 터치 스크롤 전파 차단
+// cal-list 내부: 스크롤 경계에서만 차단 / 그 외 영역: 항상 차단
 document.addEventListener('DOMContentLoaded', function() {
-  const calMini = document.getElementById('cal-mini');
-  if (calMini) {
-    calMini.addEventListener('touchmove', function(e) {
-      e.preventDefault();
-    }, { passive: false });
-  }
+  const calPanel = document.getElementById('cal-panel');
+  if (!calPanel) return;
+
+  let _touchStartY = 0;
+
+  calPanel.addEventListener('touchstart', function(e) {
+    _touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+
+  calPanel.addEventListener('touchmove', function(e) {
+    const list = document.getElementById('cal-list');
+    if (list && list.contains(e.target)) {
+      const deltaY   = e.touches[0].clientY - _touchStartY;
+      const atTop    = list.scrollTop <= 0;
+      const atBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 1;
+      // 경계에서 더 진행하려는 경우만 차단
+      if ((deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) {
+        e.preventDefault();
+      }
+      return; // 그 외엔 내부 스크롤 허용
+    }
+    // cal-list 밖(cal-mini, 헤더 등) → 무조건 차단
+    e.preventDefault();
+  }, { passive: false });
 });
 
 async function loadCalendar(force = false) {
