@@ -4075,24 +4075,18 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   const freqLabel = { '일별':'일간', '주간':'주간', '월간':'월간', '분기':'분기별' };
   const fmtAsOf = (d, freq) => d ? `(${d.replace(/-/g,'.')}, ${freqLabel[freq]??freq})` : '';
 
-  // SLOOS 날짜(분기 시작일) → "Q1 2026, 발표: 2026.2.3" 형식
-  // FRED는 분기 시작일(1/1, 4/1, 7/1, 10/1)로 저장
-  // 발표일 = 해당 분기 시작 다음 FOMC 직후 월요일 (약 4~5주 후)
-  const fmtSloosDate = (dateStr) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
+  // SLOOS 날짜: FRED 실제 발표일 우선, 없으면 분기 표시만
+  const fmtSloosDate = (dataDateStr, releaseDate) => {
+    if (!dataDateStr) return '';
+    const d = new Date(dataDateStr);
     const year = d.getFullYear();
-    const month = d.getMonth() + 1; // 1,4,7,10
-    const quarter = Math.ceil(month / 3);
-    // 발표일 추정: 분기 시작 후 약 4~5주 후 월요일
-    // (정확한 발표일은 연준 공식 발표 기준이므로 ±1일 오차 허용)
-    const releaseApprox = new Date(d);
-    releaseApprox.setDate(releaseApprox.getDate() + 28); // FOMC 다음 월요일 근사치
-    while (releaseApprox.getDay() !== 1) releaseApprox.setDate(releaseApprox.getDate() + 1);
-    const rm = releaseApprox.getMonth() + 1;
-    const rd = releaseApprox.getDate();
-    const ry = releaseApprox.getFullYear();
-    return `(Q${quarter} ${year}, 발표: ${ry}.${rm}.${rd})`;
+    const quarter = Math.ceil((d.getMonth() + 1) / 3);
+    if (releaseDate) {
+      // FRED 실제 발표일 사용
+      const rd = new Date(releaseDate);
+      return `(Q${quarter} ${year}, 발표: ${rd.getFullYear()}.${rd.getMonth()+1}.${rd.getDate()})`;
+    }
+    return `(Q${quarter} ${year})`;
   };
 
   pipeDetails[3] = {
@@ -4102,7 +4096,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
         name: 'SLOOS C&I 대출 기준 (DRTSCILM)',
         tip: '은행 대출담당자 서베이 — 기업 대출 기준 강화 순비율(%). 양수=문턱 높임. 20% 초과 시 신용 창출 본격 위축, 실물 경기 4~6개월 선행 지표.',
         val: sloosVal != null
-          ? `SLOOS ${sloosVal.toFixed(1)}%  ${fmtSloosDate(sloosOf)}`
+          ? `SLOOS ${sloosVal.toFixed(1)}%  ${fmtSloosDate(sloosOf, p3sloos?.releaseDate)}`
           : '분기 데이터 로딩 중',
         sig: sigSloos, badgeText: lblSloos,
         formula:

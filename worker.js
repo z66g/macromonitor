@@ -3534,6 +3534,20 @@ async function pipe3CreditRisk(env, ctx) {
     } catch(e) { return null; }
   };
 
+  // SLOOS 실제 발표일 fetch (release_id=74)
+  const fetchSloosReleaseDate = async () => {
+    try {
+      const url = `https://api.stlouisfed.org/fred/release/dates`
+        + `?release_id=74&api_key=${apiKey}&file_type=json`
+        + `&sort_order=desc&limit=4&include_release_dates_with_no_data=false`;
+      const r = await fetch(url, { cf: { cacheTtl: 86400 } });
+      if (!r.ok) return null;
+      const d = await r.json();
+      // 가장 최근 발표일 반환
+      return d.release_dates?.[0]?.date || null;
+    } catch(e) { return null; }
+  };
+
   // ── 한국 CDS 스크래핑 (Track 1) ──
   const fetchKoreaCds = async () => {
     try {
@@ -3574,8 +3588,10 @@ async function pipe3CreditRisk(env, ctx) {
   };
 
   // 5개 병렬 실행
-  const [sloos, igOas, creDelin, cccHy, emHy, koreaCds] = await Promise.all([
+  const [sloos, sloosReleaseDate, igOas, creDelin, cccHy, emHy, koreaCds] = await Promise.all([
     fetchFred('DRTSCILM',          2),  // ① SLOOS (분기)
+    fetchSloosReleaseDate(),            // ① SLOOS 실제 발표일
+    fetchFred('BAMLC0A0CM',        2),  // ② IG OAS (일별)
     fetchFred('BAMLC0A0CM',        2),  // ② IG OAS (일별)
     fetchFred('DRCRELEXFACBS',     2),  // ③ CRE 연체율 (분기)
     fetchFred('BAMLH0A3HYC',       2),  // ④ CCC HY (일별)
@@ -3591,7 +3607,7 @@ async function pipe3CreditRisk(env, ctx) {
     source:   'FRED API + worldgovernmentbonds.com (CDS 스크래핑)',
     asOf:     new Date().toISOString().slice(0, 10),
     // ① SLOOS
-    sloos: sloos ? { ...sloos, label: '실물 자금 밸브 (SLOOS · DRTSCILM)', freq: '분기' } : null,
+    sloos: sloos ? { ...sloos, label: '실물 자금 밸브 (SLOOS · DRTSCILM)', freq: '분기', releaseDate: sloosReleaseDate } : null,
     // ② IG OAS (메인 신호) + CRE 연체율 (보조)
     igOas: igOas ? { ...igOas, label: 'IG 회사채 OAS (BAMLC0A0CM)', freq: '일별' } : null,
     creDelinquency: creDelin ? { ...creDelin, label: 'CRE 대출 연체율 (DRCRELEXFACBS)', freq: '분기', unit: '%' } : null,
