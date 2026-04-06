@@ -291,10 +291,242 @@ async function fetchCalendar(env) {
       todayEvents.forEach((e, i) => { e.released = results[i]; });
     }
 
-    return { events, fetchedAt: fmt(today), _savedAt: new Date().toISOString() };
+    // ── 파생상품/재무부/기타 이벤트 병합 ──────────────────────────
+    const toStr = fmt(end);
+    const marketEvents   = buildMarketEvents(todayStr, toStr);
+    const blackoutEvents = buildFomcBlackout(events, todayStr, toStr);
+
+    // D-day 계산 적용
+    const allEvents = [...events, ...marketEvents, ...blackoutEvents].map(e => {
+      if (e.dday !== null && e.dday !== undefined) return e; // 이미 계산된 것
+      const diff = Math.round((new Date(e.date) - today) / 86400000);
+      return {
+        ...e,
+        dday: diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`,
+      };
+    });
+
+    // 날짜순 정렬
+    allEvents.sort((a, b) => a.date.localeCompare(b.date));
+
+    return { events: allEvents, fetchedAt: fmt(today), _savedAt: new Date().toISOString() };
   } catch(e) {
     return { error: e.message, events: [] };
   }
+}
+
+// ── 캘린더 보조 함수 ────────────────────────────────────────────
+
+// 미국 시장 공휴일 (NYSE 기준, 고정일 + 변동일)
+function usMarketHolidays(year) {
+  // 고정 공휴일
+  const fixed = [
+    `${year}-01-01`, // 신년
+    `${year}-06-19`, // 준틴스
+    `${year}-07-04`, // 독립기념일
+    `${year}-12-25`, // 크리스마스
+  ];
+  // 변동 공휴일 (N번째 요일)
+  const nthWeekday = (y, m, weekday, n) => {
+    const d = new Date(y, m - 1, 1);
+    let count = 0;
+    while (true) {
+      if (d.getDay() === weekday) { count++; if (count === n) break; }
+      d.setDate(d.getDate() + 1);
+    }
+    return d.toISOString().slice(0, 10);
+  };
+  const variable = [
+    nthWeekday(year, 1, 1, 3),  // MLK Day: 1월 셋째 월
+    nthWeekday(year, 2, 1, 3),  // Presidents Day: 2월 셋째 월
+    nthWeekday(year, 5, 1, 4),  // Memorial Day: 5월 마지막 월 (근사치)
+    nthWeekday(year, 9, 1, 1),  // Labor Day: 9월 첫째 월
+    nthWeekday(year, 11, 4, 4), // Thanksgiving: 11월 넷째 목
+  ];
+  // 주말 보정 (토→금, 일→월)
+  return [...fixed, ...variable].map(dateStr => {
+    const d = new Date(dateStr);
+    if (d.getDay() === 6) { d.setDate(d.getDate() - 1); }
+    if (d.getDay() === 0) { d.setDate(d.getDate() + 1); }
+    return d.toISOString().slice(0, 10);
+  });
+}
+
+// N번째 특정 요일 계산 (1=월 ... 5=금, 0=일)
+function nthWeekdayOfMonth(year, month, weekday, n) {
+  const d = new Date(year, month - 1, 1);
+  let count = 0;
+  while (true) {
+    if (d.getDay() === weekday) { count++; if (count === n) break; }
+    d.setDate(d.getDate() + 1);
+  }
+  return d.toISOString().slice(0, 10);
+}
+
+// 마지막 특정 요일 계산
+function lastWeekdayOfMonth(year, month, weekday) {
+  const d = new Date(year, month, 0); // 해당 월 마지막 날
+  while (d.getDay() !== weekday) d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+// 다음 영업일 (공휴일/주말 건너뜀)
+function nextBusinessDay(dateStr, holidays) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + 1);
+  while (d.getDay() === 0 || d.getDay() === 6 || holidays.includes(d.toISOString().slice(0,10))) {
+    d.setDate(d.getDate() + 1);
+  }
+  return d.toISOString().slice(0, 10);
+}
+
+// 파생상품 + 재무부 + 기타 이벤트 생성 (향후 90일)
+function buildMarketEvents(fromDate, toDate) {
+  const events = [];
+  const from = new Date(fromDate);
+  const to   = new Date(toDate);
+
+  // 대상 연월 범위 계산
+  const months = [];
+  const cur = new Date(from.getFullYear(), from.getMonth(), 1);
+  while (cur <= to) {
+    months.push({ year: cur.getFullYear(), month: cur.getMonth() + 1 });
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  for (const { year, month } of months) {
+    const holidays = usMarketHolidays(year);
+
+    // ① OpEx — 매월 셋째 주 금요일
+    let opexDate = nthWeekdayOfMonth(year, month, 5, 3);
+    // 공휴일이면 전일(목요일)로 당김
+    if (holidays.includes(opexDate)) {
+      const d = new Date(opexDate);
+      d.setDate(d.getDate() - 1);
+      opexDate = d.toISOString().slice(0, 10);
+    }
+
+    // ② 네 마녀의 날 — 3/6/9/12월 셋째 주 금요일
+    const isQW = [3, 6, 9, 12].includes(month);
+
+    if (opexDate >= fromDate && opexDate <= toDate) {
+      if (isQW) {
+        events.push({
+          date:      opexDate,
+          dday:      null,
+          name:      '네 마녀의 날 (파생상품 동시 만기)',
+          imp:       'high',
+          tag:       '파생/청산',
+          category:  'derivatives',
+          weight:    3,
+          estimated: false,
+        });
+      } else {
+        events.push({
+          date:      opexDate,
+          dday:      null,
+          name:      '옵션 만기일 (OpEx)',
+          imp:       'medium',
+          tag:       '파생/청산',
+          category:  'derivatives',
+          weight:    2,
+          estimated: false,
+        });
+      }
+    }
+
+    // ③ 세금 납부일 — 4월 15일 (주말/공휴일 시 다음 영업일)
+    if (month === 4) {
+      let taxDate = `${year}-04-15`;
+      const td = new Date(taxDate);
+      if (td.getDay() === 6) taxDate = `${year}-04-17`; // 토→월
+      if (td.getDay() === 0) taxDate = `${year}-04-16`; // 일→월
+      if (holidays.includes(taxDate)) taxDate = nextBusinessDay(taxDate, holidays);
+      if (taxDate >= fromDate && taxDate <= toDate) {
+        events.push({
+          date:      taxDate,
+          dday:      null,
+          name:      '미 세금 납부일 (TGA 흡수 최대)',
+          imp:       'high',
+          tag:       '재무부',
+          category:  'treasury',
+          weight:    3,
+          estimated: false,
+        });
+      }
+    }
+
+    // ④ QRA 추정일 — 1/4/7/10월 마지막 주 수요일 (±3일 불확실)
+    if ([1, 4, 7, 10].includes(month)) {
+      const qraDate = lastWeekdayOfMonth(year, month, 3); // 3=수요일
+      if (qraDate >= fromDate && qraDate <= toDate) {
+        events.push({
+          date:      qraDate,
+          dday:      null,
+          name:      'QRA 발표 추정일 (분기 자금조달 계획)',
+          imp:       'high',
+          tag:       '재무부',
+          category:  'treasury',
+          weight:    3,
+          estimated: true, // ±3일 불확실
+        });
+      }
+    }
+
+    // ⑤ 월말 리밸런싱 구간 — 매월 마지막 영업일 기준 -2일 ~ +1일
+    const lastDay = new Date(year, month, 0);
+    while (lastDay.getDay() === 0 || lastDay.getDay() === 6 || usMarketHolidays(year).includes(lastDay.toISOString().slice(0,10))) {
+      lastDay.setDate(lastDay.getDate() - 1);
+    }
+    const rebalDate = lastDay.toISOString().slice(0, 10);
+    if (rebalDate >= fromDate && rebalDate <= toDate) {
+      events.push({
+        date:      rebalDate,
+        dday:      null,
+        name:      '월말 기관 리밸런싱 구간',
+        imp:       'medium',
+        tag:       '수급',
+        category:  'rebalancing',
+        weight:    1,
+        estimated: true,
+      });
+    }
+  }
+
+  return events;
+}
+
+// FOMC 블랙아웃 기간 생성 (FOMC 날짜 기준 -10일 ~ FOMC 당일)
+function buildFomcBlackout(events, fromDate, toDate) {
+  const blackouts = [];
+  const fomcEvents = events.filter(e => e.name === 'FOMC 의사록' || e.tag === '연준');
+
+  // FRED 캘린더에서 FOMC 날짜 감지 (FOMC 의사록 발표 ≈ FOMC 회의 +3주)
+  // 대신 이미 있는 events 중 imp=high && tag=연준인 날짜 기준으로 추정
+  // 실제로는 프론트에서 시각화용으로만 사용
+  for (const e of fomcEvents) {
+    const fomcDate = new Date(e.date);
+    // 블랙아웃 시작: FOMC -10 영업일 (캘린더일 기준 -14일 근사치)
+    const start = new Date(fomcDate);
+    start.setDate(start.getDate() - 14);
+    const startStr = start.toISOString().slice(0, 10);
+    const endStr   = e.date;
+
+    if (endStr >= fromDate && startStr <= toDate) {
+      blackouts.push({
+        date:      startStr,
+        endDate:   endStr,
+        name:      'FOMC 블랙아웃 기간 (연준 위원 발언 금지)',
+        imp:       'low',
+        tag:       '연준',
+        category:  'fed_blackout',
+        weight:    1,
+        estimated: true,
+        isRange:   true,
+      });
+    }
+  }
+  return blackouts;
 }
 
 async function t2Cached(env, force = false, ctx) {

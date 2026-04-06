@@ -6851,6 +6851,16 @@ function renderCalendar() {
     '인플레': '#CF222B', '고용': '#1A7F5A', '연준': '#0969DA',
     '성장': '#9A6700',   '경기': '#6E40C9', '금리': '#0969DA',
     '주택': '#1A7F5A',
+    // 신규 카테고리
+    '파생/청산': '#F85149', '재무부': '#3FB950', '수급': '#8B949E',
+  };
+  // 카테고리 아이콘
+  const CAT_ICON = {
+    'fed':         '🏛️',
+    'treasury':    '💧',
+    'derivatives': '🚨',
+    'rebalancing': '🔄',
+    'fed_blackout': '🔇',
   };
 
   listEl.innerHTML = Object.entries(groups).map(([date, events]) => {
@@ -6862,15 +6872,21 @@ function renderCalendar() {
     const evHtml = events.map(e => {
       const impColor  = IMP_COLOR[e.imp] || '#484F58';
       const tagColor  = TAG_COLOR[e.tag] || '#656D76';
-      const ddayColor = e.dday === 'D-DAY' ? '#F85149' : e.dday.startsWith('D-') ? '#F0B429' : '#484F58';
+      const ddayColor = e.dday === 'D-DAY' ? '#F85149' : e.dday?.startsWith('D-') ? '#F0B429' : '#484F58';
+      const icon      = CAT_ICON[e.category] || '';
+      const estBadge  = e.estimated
+        ? `<span style="font-size:7px;color:#9A6700;background:#1A1400;border:0.5px solid #9A6700;border-radius:3px;padding:0 3px;margin-left:4px;">추정</span>`
+        : '';
       return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #21262D;">
         <div style="width:2px;height:28px;border-radius:1px;background:${impColor};flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:10px;font-weight:600;color:#E6EDF3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
+          <div style="font-size:10px;font-weight:600;color:#E6EDF3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            ${icon ? `<span style="margin-right:3px;">${icon}</span>` : ''}${e.name}${estBadge}
+          </div>
           <div style="font-size:8px;color:${tagColor};margin-top:1px;">${e.tag}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:9px;font-weight:700;color:${ddayColor};">${e.dday}</div>
+          <div style="font-size:9px;font-weight:700;color:${ddayColor};">${e.dday || ''}</div>
           ${e.released ? `<div style="font-size:9px;font-weight:600;color:${e.released.val > 0 ? '#F85149' : '#3FB950'};margin-top:1px;">${e.released.label}</div>` : ''}
         </div>
       </div>`;
@@ -6878,8 +6894,7 @@ function renderCalendar() {
 
     return `<div style="margin-bottom:14px;">
       <div style="font-size:9px;font-weight:600;color:${isToday ? '#58A6FF' : '#656D76'};
-                  margin-bottom:4px;padding-bottom:4px;border-bottom:0.5px solid #30363D;
-                  ${isToday ? 'color:#58A6FF;' : ''}">
+                  margin-bottom:4px;padding-bottom:4px;border-bottom:0.5px solid #30363D;">
         ${isToday ? '🔵 ' : ''}${dayLabel}
       </div>
       ${evHtml}
