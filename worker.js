@@ -1896,6 +1896,7 @@ async function h41HistoryFetcher(url) {
       tga:              valid.map(r => B(r.tga)),
       buffer:           valid.map(r => (r.reserve_balances&&r.rrp) ? B(r.reserve_balances+r.rrp) : null),
       loans:            valid.map(r => B(r.loans)),                    // ← 긴급대출 시계열 추가
+      currency_circ:    valid.map(r => B(r.fed_notes_net)),             // 화폐 유통량 proxy
       // ── 자산 ──
       reserve_credit:      valid.map(r => B(r.reserve_credit)),   // 총자산 프록시 (B)
       treasury_total:      valid.map(r => B(r.treasury_total)),
@@ -3922,7 +3923,7 @@ async function fetchH41HtmlData() {
   // h41HistoryFetcher(weeks=2)로 H.4.1 HTML 파싱 데이터 전체 활용
   // reserve_balances / rrp / tga / loans / currency / treasury_total 모두 포함
   try {
-    const fakeUrl = new URL('https://dummy/h41-history?weeks=2');
+    const fakeUrl = new URL('https://dummy/h41-history?weeks=3');  // prev/delta 확보
     const resp = await h41HistoryFetcher(fakeUrl);
     const data = await resp.json();
     const s    = data?.series;
@@ -3962,9 +3963,8 @@ async function fetchH41HtmlData() {
     } : null;
 
     // 화폐 유통량 (Currency in circulation, Table1 최상단)
-    const rawCur   = data?.raw?.[0];
-    const currency = data?.currency_circ?.valueB
-      ?? (rawCur?.fed_notes_net != null ? +(rawCur.fed_notes_net / 1000).toFixed(1) : null);
+    // currency: series.currency_circ[0] (fed_notes_net, Billions)
+    const currency = s.currency_circ?.[0] ?? null;
 
     // 연준 보유 국채 WoW (순발행 프록시)
     const treasury_total = toKv2(s.treasury_total, s.labels);
