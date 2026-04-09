@@ -3832,7 +3832,7 @@ async function fetchH41ForTower(env) {
   if (!apiKey) return null;
 
   const IDS_STD = {
-    WRESBAL:   { key: 'reserve_balances',  unitM: false },  // H.4.1 주간, 단위: Billions
+    WRESBAL:   { key: 'reserve_balances',  unitM: true  },  // H.4.1 주간, 단위: Millions → ÷1000 = Billions
     RRPONTSYD: { key: 'rrp',              unitM: false },
     WTREGEN:   { key: 'tga',              unitM: true  },
     WDTGAL:    { key: 'other_draining',   unitM: true  },
@@ -5543,6 +5543,12 @@ async function liqTowerDebug(env) {
       h41_reserve: data.fed?.h41?.reserve_balances ?? null,
       h41_rrp:     data.fed?.h41?.rrp ?? null,
       h41_tga:     data.fed?.h41?.tga ?? null,
+      h41_other_draining: data.fed?.h41?.other_draining ?? null,
+      h41_buffer:  data.fed?.h41?.buffer ?? null,
+      h41_liabilities: data.fed?.h41?.liabilities ?? null,
+      h41_loans:   data.fed?.h41?.loans ?? null,
+      h41_maturity: data.fed?.h41?.maturity ? 'exists' : null,
+      h41_data_date: data.fed?.h41?.data_date ?? null,
     },
     auctions_count: data.auctions?.length ?? 0,
     auctions_sample: data.auctions?.slice(0, 3) ?? [],
