@@ -210,9 +210,9 @@ async function fetchCalendar(env) {
 
   // 주요 릴리즈 ID 및 메타 (high/medium만 표시)
   const RELEASES = {
-    21:  { nameKo: '소비자물가 (CPI)',              imp: 'high',   tag: '인플레', series:'CPIAUCSL',        fmt:'yoy'  },
-    6:   { nameKo: '생산자물가 (PPI)',              imp: 'high',   tag: '인플레', series:'PPIACO',          fmt:'yoy'  },
-    46:  { nameKo: '개인소비지출 (PCE · Core PCE)', imp: 'high',   tag: '인플레', series:'PCEPILFE',        fmt:'yoy'  },
+    10:  { nameKo: '소비자물가 (CPI)',              imp: 'high',   tag: '인플레', series:'CPIAUCSL',        fmt:'yoy'  },
+    46:  { nameKo: '생산자물가 (PPI)',              imp: 'high',   tag: '인플레', series:'PPIACO',          fmt:'yoy'  },
+    54:  { nameKo: '개인소비지출 (PCE · Core PCE)', imp: 'high',   tag: '인플레', series:'PCEPILFE',        fmt:'yoy'  },
     // 10: NFP → 매월 첫째 금요일 수학 계산 (buildMarketEvents)
     // 33: ISM 제조업 → 매월 첫 영업일 수학 계산 (buildMarketEvents)
     // 57: ISM 서비스 → 매월 셋째 영업일 수학 계산 (buildMarketEvents)
