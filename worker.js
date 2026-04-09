@@ -284,14 +284,22 @@ async function fetchCalendar(env) {
     const d = await r.json();
 
     const todayStr = fmt(todayKST);
+    // 날짜 문자열 기반 diff: 타임스탬프 비교 대신 날짜 문자열로 통일
+    const dateDiff = (dateStr) => {
+      const e = new Date(dateStr + 'T12:00:00Z');
+      const t = new Date(todayStr  + 'T12:00:00Z');
+      return Math.round((e - t) / 86400000);
+    };
+    const toDday = (diff) => diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`;
+
     const events = (d.release_dates || [])
       .filter(e => RELEASES[e.release_id])
       .map(e => {
         const meta = RELEASES[e.release_id];
-        const diff = Math.round((new Date(e.date) - todayKST) / 86400000);
+        const diff = dateDiff(e.date);
         return {
           date:      e.date,
-          dday:      diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`,
+          dday:      toDday(diff),
           name:      meta.nameKo,
           imp:       meta.imp,
           tag:       meta.tag,
@@ -312,14 +320,10 @@ async function fetchCalendar(env) {
     const marketEvents   = buildMarketEvents(todayStr, toStr, fomcDates);
     const blackoutEvents = buildFomcBlackout(todayStr, toStr, fomcDates);
 
-    // D-day 계산 적용 (전체 병합 후)
+    // D-day 계산 적용 (전체 병합 후) — 날짜 문자열 기반으로 통일
     const allEvents = [...events, ...marketEvents, ...blackoutEvents].map(e => {
       if (e.dday !== null && e.dday !== undefined) return e;
-      const diff = Math.round((new Date(e.date) - today) / 86400000);
-      return {
-        ...e,
-        dday: diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`,
-      };
+      return { ...e, dday: toDday(dateDiff(e.date)) };
     });
 
     // 날짜순 정렬
