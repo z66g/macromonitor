@@ -3802,7 +3802,7 @@ async function fetchLiqTowerData(env) {
   else if (rrpBn > 100) { billWeight = 0.5; billWeightLabel = '0.5 (마찰적 흡수 시작)'; }
   else                  { billWeight = 1.0; billWeightLabel = '1.0 (RRP 소진, 장기채 동등 충격)'; }
 
-  const h41Tower = await fetchH41ForTower(env);
+  const h41Tower = await fetchH41ForTower(env, { rrpSeries, walclSeries, tgaSeries });
   const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive, h41Tower?.maturity ?? null);
 
   return {
@@ -3827,16 +3827,14 @@ async function fetchLiqTowerData(env) {
 }
 
 // ── H.4.1 관제탑용 KPI + 부채구조 + WALCL 이상징후 ─────────
-async function fetchH41ForTower(env) {
+async function fetchH41ForTower(env, preloadedSeries = {}) {
   const apiKey = env?.FRED_API_KEY;
   if (!apiKey) return null;
 
   const IDS_STD = {
-    WRESBAL:   { key: 'reserve_balances',  unitM: true  },  // H.4.1 주간, 단위: Millions → ÷1000 = Billions
-    RRPONTSYD: { key: 'rrp',              unitM: false },
-    WTREGEN:   { key: 'tga',              unitM: true  },
-    WDTGAL:    { key: 'other_draining',   unitM: true  },
-    WLCFLL:    { key: 'currency_in_circ_unused', unitM: true }, // 미사용, fed_notes_net 대체
+    WRESBAL:   { key: 'reserve_balances',  unitM: true  },  // H.4.1 주간, Millions → ÷1000 = Billions
+    WDTGAL:    { key: 'other_draining',   unitM: true  },   // H.4.1 주간, Millions
+    WCURRNS:   { key: 'currency',         unitM: false },   // 화폐 유통량 Billions (주간)
   };
 
   const fetchFredObs = async (id, limit, unitM) => {
@@ -3859,6 +3857,11 @@ async function fetchH41ForTower(env) {
     return { cur, prev, delta: prev != null ? +(cur-prev).toFixed(1) : null, date: obs[0].date };
   };
 
+  // preloadedSeries: 이미 fetchLiqTowerData에서 가져온 52주 시계열 재사용
+  const rrpSeriesP   = preloadedSeries.rrpSeries   || [];  // Billions, desc→reversed
+  const walclSeriesP = preloadedSeries.walclSeries  || [];  // Billions, reversed
+  const tgaSeriesP   = preloadedSeries.tgaSeries    || [];  // Millions, reversed
+
   const [stdResults, walclObs, h41HtmlResult] = await Promise.all([
     Promise.all(Object.entries(IDS_STD).map(async ([id, {key, unitM}]) =>
       [key, toKv(await fetchFredObs(id, 3, unitM))]
@@ -3868,6 +3871,22 @@ async function fetchH41ForTower(env) {
   ]);
 
   const kv = Object.fromEntries(stdResults.filter(([,v]) => v));
+
+  // RRP: preloaded 52주 시계열에서 직접 추출 (RRPONTSYD — Billions)
+  const rrpDesc = [...rrpSeriesP].sort((a,b) => b.date.localeCompare(a.date));
+  if (rrpDesc.length >= 1) {
+    const rrpCur  = rrpDesc[0].value;
+    const rrpPrev = rrpDesc[1]?.value ?? null;
+    kv['rrp'] = { cur: rrpCur, prev: rrpPrev, delta: rrpPrev != null ? +(rrpCur - rrpPrev).toFixed(2) : null, date: rrpDesc[0].date };
+  }
+
+  // TGA: preloaded 시계열에서 추출 (WTREGEN — Millions → ÷1000 = Billions)
+  const tgaDesc = [...tgaSeriesP].sort((a,b) => b.date.localeCompare(a.date));
+  if (tgaDesc.length >= 1) {
+    const tgaCur  = +(tgaDesc[0].value / 1000).toFixed(1);
+    const tgaPrev = tgaDesc[1] ? +(tgaDesc[1].value / 1000).toFixed(1) : null;
+    kv['tga'] = { cur: tgaCur, prev: tgaPrev, delta: tgaPrev != null ? +(tgaCur - tgaPrev).toFixed(1) : null, date: tgaDesc[0].date };
+  }
 
   // WALCL 13주 국면 인식
   let walcl_anomaly = { status:'NORMAL', regime:'QT', avg_13w_delta:null, threshold:10, walcl_delta:null, loans_delta:null, walcl_cur:null, loans_cur:null };
@@ -3892,7 +3911,7 @@ async function fetchH41ForTower(env) {
   const res   = kv.reserve_balances?.cur ?? 0;
   const rrpV  = kv.rrp?.cur              ?? 0;
   const tgaV  = kv.tga?.cur             ?? 0;
-  const curr  = h41HtmlResult?.currency  ?? 0;
+  const curr  = currency ?? h41HtmlResult?.currency ?? 0;  // WCURRNS → HTML fallback → 0
   const otherV= kv.other_draining?.cur   ?? 0;
   const totL  = +(res + rrpV + tgaV + curr + otherV).toFixed(1);
   const bufCur = +(res + rrpV).toFixed(1);
@@ -3938,8 +3957,10 @@ async function fetchH41HtmlData() {
     } : null;
 
     const rawCur = data?.raw?.[0];
-    const currency = rawCur?.fed_notes_net != null
-      ? +(rawCur.fed_notes_net / 1000).toFixed(1) : null;
+    // currency: FRED WCURRNS(화폐유통량) 우선, HTML fallback
+    const fredCurr = kv['currency']?.cur ?? null;
+    const currency = fredCurr ?? (rawCur?.fed_notes_net != null
+      ? +(rawCur.fed_notes_net / 1000).toFixed(1) : null);
 
     // treasury_total WoW delta (H.4.1 → 연준 보유 국채 변화 = 순발행 프록시)
     const ttCur  = s.treasury_total?.[0] ?? null;
