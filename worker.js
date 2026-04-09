@@ -260,10 +260,8 @@ async function fetchCalendar(env) {
   };
 
   // KST(UTC+9) 기준 오늘 날짜 사용
-  const fmt = d => {
-    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-    return kst.toISOString().slice(0, 10);
-  };
+  // todayKST/past/end는 이미 +9h 적용됐으므로 fmt는 그대로 slice만
+  const fmt = d => d.toISOString().slice(0, 10);
   const today = new Date();
   const todayKST = new Date(today.getTime() + 9 * 60 * 60 * 1000);
   const end = new Date(todayKST);
