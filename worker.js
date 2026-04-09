@@ -783,48 +783,34 @@ async function t2DataEndpoint(env, force = false) {
     } catch(rssErr) {
       _dbg.rssErr = rssErr.message;
 
-      // ── FRED GDPNOW (vintage 파라미터 없이 단순 조회 → 항상 최신값) ──
+      // ── FRED GDPNOW: vintage 파라미터로 모든 수정본 조회, realtime_start 최신순 정렬 ──
       try {
-        // 1차: vintage 없이 단순 최신 2개 조회 (항상 현재 추정값 반환)
-        const today = new Date().toISOString().slice(0,10);
         const fredUrl = `https://api.stlouisfed.org/fred/series/observations`
           + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
-          + `&sort_order=desc&limit=2`
-          + `&observation_end=${today}`
+          + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
+          + `&sort_order=desc&limit=20`
           + `&_cb=${Date.now()}`;
         const r = await fetch(fredUrl, {
-          cf: { cacheKey: `gdpnow-simple-${Date.now()}`, cacheEverything: false },
+          cf: { cacheKey: `gdpnow-vint-${Date.now()}`, cacheEverything: false },
         });
         if (!r.ok) throw new Error(`FRED HTTP ${r.status}`);
         const d = await r.json();
         const obs = (d.observations || []).filter(o => o.value !== '.');
         if (!obs.length) throw new Error('FRED no obs');
 
-        // obs[0] = 가장 최근 분기 추정값 (현재 분기)
+        // realtime_start 내림차순 정렬 → obs[0] = 가장 최근 수정본
+        obs.sort((a, b) => (b.realtime_start || '').localeCompare(a.realtime_start || ''));
         const current   = parseFloat(obs[0].value);
         const qtrDate   = obs[0].date;
-        // asOf: FRED series 메타에서 마지막 갱신일 별도 조회
-        // 간단히 today 사용 (정확한 날짜는 Atlanta Fed 페이지 참조 안내)
-        const asOfUrl   = `https://api.stlouisfed.org/fred/series`
-          + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
-          + `&_cb=${Date.now()}`;
-        let asOf = qtrDate;
-        try {
-          const mr = await fetch(asOfUrl, {
-            cf: { cacheKey: `gdpnow-meta-${Date.now()}`, cacheEverything: false },
-          });
-          if (mr.ok) {
-            const md = await mr.json();
-            asOf = md.seriess?.[0]?.last_updated?.slice(0,10) ?? qtrDate;
-          }
-        } catch(_) {}
+        const asOf      = obs[0].realtime_start?.slice(0, 10) ?? null;
 
-        // delta: 이번 분기 vs 직전 분기 (없으면 null)
-        const prevQtr = obs[1] ? parseFloat(obs[1].value) : null;
-        const delta   = prevQtr != null ? +(current - prevQtr).toFixed(2) : null;
+        // 같은 분기 내 직전 수정본 → delta (분기 간 비교 방지)
+        const sameQtr = obs.filter(o => o.date === qtrDate);
+        const prevEst = sameQtr[1] ? parseFloat(sameQtr[1].value) : null;
+        const delta   = prevEst != null ? +(current - prevEst).toFixed(2) : null;
 
         return {
-          current, prevEst: prevQtr, delta,
+          current, prevEst, delta,
           asOf, qtrDate,
           components: null, qualityWarning: false, warningReason: null,
           source: 'fred_fallback',
