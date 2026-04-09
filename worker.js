@@ -99,6 +99,7 @@ export default {
       if (path.startsWith('/liq-tower'))     return await liqTowerCached(env, force, ctx);
       if (path.startsWith('/liq'))           return await liqCached(env, force, ctx);
       if (path.startsWith('/yields-hist'))   return await yieldsHistCached(env, force, ctx);
+      if (path.startsWith('/calendar-debug'))  return await calendarDebug(env);
       if (path.startsWith('/calendar'))      return await calendarEndpoint(env, force, ctx);
       if (path.startsWith('/t2'))            return await t2Cached(env, force, ctx);
       if (path.startsWith('/t3'))            return await t3Cached(env, force, ctx);
@@ -111,7 +112,6 @@ export default {
       if (path.startsWith('/qra-apply'))     return await qraApply(request, env);
       if (path.startsWith('/qra-dismiss'))   return await qraDismiss(env);
       if (path.startsWith('/gdpnow-test'))     return await gdpNowTest(env);
-      if (path.startsWith('/calendar-debug'))  return await calendarDebug(env);
       if (path.startsWith('/srf'))           return await srfProxy();
       if (path.startsWith('/cds-api-test'))  return await cdsApiTest();
       if (path.startsWith('/cds-live'))      return await cdsLive();
