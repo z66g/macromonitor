@@ -269,20 +269,23 @@ async function fetchCalendar(env) {
   end.setDate(end.getDate() + 45);
 
   try {
-    // 과거 7일 ~ 미래 45일 (이번주 포함)
+    // realtime_start=1776-07-04: FRED에 언제 등록됐든 모두 가져옴
+    // 날짜 필터(과거 7일~미래 45일)는 코드에서 처리
     const past = new Date(todayKST);
     past.setDate(past.getDate() - 7);
+    const pastStr = fmt(past);
+    const endStr  = fmt(end);
     const u = `https://api.stlouisfed.org/fred/releases/dates`
       + `?api_key=${apiKey}&file_type=json`
-      + `&realtime_start=${fmt(past)}&realtime_end=${fmt(end)}`
-      + `&sort_order=asc&limit=500&include_release_dates_with_no_data=true`;
+      + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
+      + `&sort_order=asc&limit=1000&include_release_dates_with_no_data=true`;
     const r = await fetch(u, { cf: { cacheTtl: 3600 } });
     if (!r.ok) return { error: `FRED ${r.status}`, events: [] };
     const d = await r.json();
 
     const todayStr = fmt(todayKST);
     const events = (d.release_dates || [])
-      .filter(e => RELEASES[e.release_id])
+      .filter(e => RELEASES[e.release_id] && e.date >= pastStr && e.date <= endStr)
       .map(e => {
         const meta = RELEASES[e.release_id];
         const diff = Math.round((new Date(e.date) - todayKST) / 86400000);
