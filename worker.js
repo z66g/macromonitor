@@ -5549,37 +5549,44 @@ async function calendarDebug(env) {
 
 async function liqTowerDebug(env) {
   const data = await fetchLiqTowerData(env);
+  const h41  = data.fed?.h41 ?? {};
   const summary = {
     _savedAt: data._savedAt,
-    fed: {
-      walcl:       data.fed?.walcl,
-      rrp:         data.fed?.rrp,
-      tga_latest:  data.fed?.tgaSeries?.at(-1) ?? null,
-      walcl_series_count: data.fed?.walclSeries?.length ?? 0,
-      rrp_series_count:   data.fed?.rrpSeries?.length ?? 0,
-      tga_series_count:   data.fed?.tgaSeries?.length ?? 0,
-      h41_keys:    data.fed?.h41 ? Object.keys(data.fed.h41) : [],
-      h41_walcl_anomaly: data.fed?.h41?.walcl_anomaly ?? null,
-      h41_reserve: data.fed?.h41?.reserve_balances ?? null,
-      h41_rrp:     data.fed?.h41?.rrp ?? null,
-      h41_tga:     data.fed?.h41?.tga ?? null,
-      h41_other_draining: data.fed?.h41?.other_draining ?? null,
-      h41_buffer:  data.fed?.h41?.buffer ?? null,
-      h41_liabilities: data.fed?.h41?.liabilities ?? null,
-      h41_loans:   data.fed?.h41?.loans ?? null,
-      h41_maturity: data.fed?.h41?.maturity ? 'exists' : null,
-      h41_data_date: data.fed?.h41?.data_date ?? null,
+    // ── FRED 직접 조회값 ──
+    walcl:     data.fed?.walcl,
+    rrp_spot:  data.fed?.rrp,
+    tga_spot:  data.fed?.tgaSeries?.at(-1) ?? null,
+    // ── H.4.1 히스토리 파싱값 (핵심) ──
+    h41: {
+      data_date:        h41.data_date ?? null,
+      reserve_balances: h41.reserve_balances ?? null,   // 지급준비금 (Table1 최하단)
+      rrp:              h41.rrp ?? null,                 // ON RRP domestic
+      tga:              h41.tga ?? null,                 // TGA (General Account)
+      other_draining:   h41.other_draining ?? null,     // WDTGAL
+      buffer:           h41.buffer ?? null,              // 지준금+RRP
+      liabilities:      h41.liabilities ?? null,        // 전체 부채 구조
+      currency:         h41.liabilities?.curr ?? null,  // 화폐 유통량
+      loans:            h41.loans ?? null,               // 긴급대출
+      treasury_total:   h41.treasury_total ?? null,     // 연준 보유 국채 (순발행 프록시)
+      walcl_anomaly:    h41.walcl_anomaly ?? null,
+      maturity:         h41.maturity ? 'exists' : null,
     },
+    // ── 진단 ──
+    checks: {
+      reserve_ok:  h41.reserve_balances?.cur != null,
+      rrp_ok:      h41.rrp?.cur != null,
+      tga_ok:      h41.tga?.cur != null,
+      buffer_ok:   h41.buffer?.cur != null,
+      currency_ok: (h41.liabilities?.curr ?? 0) > 0,
+      treasury_ok: h41.treasury_total?.delta != null,
+      maturity_ok: !!h41.maturity,
+      loans_ok:    h41.loans?.cur != null,
+    },
+    // ── 경매/뱀파이어 ──
     auctions_count: data.auctions?.length ?? 0,
-    auctions_sample: data.auctions?.slice(0, 3) ?? [],
-    vampire: {
-      billWeight:      data.vampire?.billWeight,
-      billWeightLabel: data.vampire?.billWeightLabel,
-      rrpBn:           data.vampire?.rrpBn,
-      weeks_count:     data.vampire?.weeks?.length ?? 0,
-      weeks_sample:    data.vampire?.weeks?.slice(0, 3) ?? [],
-    },
-    qraActive: data.qraActive ? { exists: true, keys: Object.keys(data.qraActive) } : null,
+    vampire_weeks:  data.vampire?.weeks?.length ?? 0,
+    vampire_w1:     data.vampire?.weeks?.[0] ?? null,
+    qra_exists:     !!data.qraActive,
   };
   return new Response(JSON.stringify(summary, null, 2), { headers: { ...CORS } });
 }
