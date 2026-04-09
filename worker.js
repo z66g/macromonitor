@@ -269,13 +269,12 @@ async function fetchCalendar(env) {
   end.setDate(end.getDate() + 45);
 
   try {
-    // release_start/end: 발표 날짜 범위 (realtime_start/end와 다름)
-    // 과거 7일 ~ 미래 45일 범위로 조회 (이번주 포함)
+    // 과거 7일 ~ 미래 45일 (이번주 포함)
     const past = new Date(todayKST);
     past.setDate(past.getDate() - 7);
     const u = `https://api.stlouisfed.org/fred/releases/dates`
       + `?api_key=${apiKey}&file_type=json`
-      + `&release_start=${fmt(past)}&release_end=${fmt(end)}`
+      + `&realtime_start=${fmt(past)}&realtime_end=${fmt(end)}`
       + `&sort_order=asc&limit=500&include_release_dates_with_no_data=true`;
     const r = await fetch(u, { cf: { cacheTtl: 3600 } });
     if (!r.ok) return { error: `FRED ${r.status}`, events: [] };
