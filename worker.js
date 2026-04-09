@@ -785,15 +785,14 @@ async function t2DataEndpoint(env, force = false) {
 
       // ── FRED GDPNOW (Atlanta Fed RSS 403 차단으로 항상 이 경로 사용) ──
       try {
+        // GDPNOW는 하루 수회 업데이트 → CF 엣지 캐시 항상 우회
         const fredUrl = `https://api.stlouisfed.org/fred/series/observations`
           + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
           + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
           + `&sort_order=desc&limit=20`
-          + (force ? `&_cb=${Date.now()}` : '');
+          + `&_cb=${Date.now()}`;
         const r = await fetch(fredUrl, {
-          cf: force
-            ? { cacheKey: `gdpnow-fred-${Date.now()}`, cacheEverything: false }
-            : { cacheTtl: 1800 },
+          cf: { cacheKey: `gdpnow-${Date.now()}`, cacheEverything: false },
         });
         if (!r.ok) throw new Error(`FRED HTTP ${r.status}`);
         const d = await r.json();
