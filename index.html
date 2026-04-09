@@ -2919,12 +2919,17 @@ function fetchT(url, ms=12000) {
 }
 function fetchWithTimeout(url, ms=10000) { return fetchT(url, ms); }
 
-// 시계
+// ── KST 공통 헬퍼 ──────────────────────────────────────
+// 브라우저 타임존 무관하게 항상 UTC+9 기준 반환
+function nowKST()        { return new Date(Date.now() + 9 * 3600000); }
+function todayKSTStr()   { return nowKST().toISOString().slice(0, 10); }
+
+// 시계 (KST 명시)
 function tick() {
-  const n = new Date(), p = v => String(v).padStart(2,'0');
+  const n = nowKST(), p = v => String(v).padStart(2,'0');
   const el = document.getElementById('clock');
   if (el) el.textContent =
-    `${n.getFullYear()}.${p(n.getMonth()+1)}.${p(n.getDate())} · ${p(n.getHours())}:${p(n.getMinutes())} KST`;
+    `${n.getUTCFullYear()}.${p(n.getUTCMonth()+1)}.${p(n.getUTCDate())} · ${p(n.getUTCHours())}:${p(n.getUTCMinutes())} KST`;
 }
 tick(); setInterval(tick, 1000);
 
@@ -6810,9 +6815,9 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
 let calData = [];
 let calActiveFilter = 'all';
 let calPanelOpen = false;
-let calViewYear  = new Date().getFullYear();
-let calViewMonth = new Date().getMonth(); // 0-based
-let calSelectedDate = new Date().toISOString().slice(0, 10); // 선택된 날짜
+let calViewYear  = nowKST().getUTCFullYear();
+let calViewMonth = nowKST().getUTCMonth(); // 0-based
+let calSelectedDate = todayKSTStr(); // KST 기준 오늘
 
 // ══════════════════════════════
 // 데일리 리포트 패널
@@ -6904,10 +6909,10 @@ function calMonthMove(delta) {
 
 // 오늘로 리셋
 function calGoToday() {
-  const _now = new Date(new Date().getTime() + 9*60*60*1000);
-  calViewYear  = parseInt(_now.toISOString().slice(0,4));
-  calViewMonth = parseInt(_now.toISOString().slice(5,7)) - 1;
-  calSelectedDate = window._calTodayStr || _now.toISOString().slice(0,10);
+  const _now = nowKST();
+  calViewYear  = _now.getUTCFullYear();
+  calViewMonth = _now.getUTCMonth();
+  calSelectedDate = window._calTodayStr || todayKSTStr();
   renderCalMini();
   renderCalWeek();
 }
@@ -6952,7 +6957,7 @@ function renderCalMini() {
     ).join('');
   }
 
-  const today = window._calTodayStr || new Date(new Date().getTime()+9*3600000).toISOString().slice(0,10);
+  const today = window._calTodayStr || todayKSTStr();
   label.textContent = `${calViewYear}년 ${calViewMonth + 1}월`;
 
   // 이번 달 1일의 요일
@@ -7018,7 +7023,7 @@ function renderCalWeek() {
   // 주 레이블
   if (labelEl) {
     const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
-    const today = window._calTodayStr || new Date(new Date().getTime()+9*3600000).toISOString().slice(0,10);
+    const today = window._calTodayStr || todayKSTStr();
     const isThisWeek = today >= wsStr && today <= weStr;
     labelEl.textContent = isThisWeek
       ? `이번 주 (${fmt(weekStart)} ~ ${fmt(weekEnd)})`
@@ -7040,7 +7045,7 @@ function renderCalWeek() {
     groups[e.date].push(e);
   });
 
-  const today   = window._calTodayStr || new Date(new Date().getTime()+9*3600000).toISOString().slice(0,10);
+  const today   = window._calTodayStr || todayKSTStr();
   const IMP_COLOR = { high: '#F0B429', medium: '#8B949E', low: '#484F58' };
   const TAG_COLOR = {
     '인플레': '#CF222B', '고용': '#1A7F5A', '연준': '#0969DA',
@@ -10730,11 +10735,11 @@ const FRESHNESS = {
 // 전일 영업일 계산 (오늘 제외, 주말 건너뜀)
 // ETF 데이터는 T+1 발표 → 어제 영업일 데이터가 최신
 function prevBusinessDay() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - 1); // 어제부터 시작
-  while (d.getDay() === 0 || d.getDay() === 6) {
-    d.setDate(d.getDate() - 1); // 주말 건너뜀
+  // KST 기준 전영업일
+  const d = nowKST();
+  d.setUTCDate(d.getUTCDate() - 1);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6) {
+    d.setUTCDate(d.getUTCDate() - 1);
   }
   return d;
 }
