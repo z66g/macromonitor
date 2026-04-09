@@ -96,6 +96,7 @@ export default {
       if (path.startsWith('/ici'))           return await iciMMF(env, ctx);
       if (path.startsWith('/pipe3'))         return await pipe3CreditRisk(env, ctx);
       // ⚠️ 더 구체적인 경로를 반드시 먼저 — /liq-tower가 /liq보다 앞에
+      if (path.startsWith('/liq-tower-debug')) return await liqTowerDebug(env);
       if (path.startsWith('/liq-tower'))     return await liqTowerCached(env, force, ctx);
       if (path.startsWith('/liq'))           return await liqCached(env, force, ctx);
       if (path.startsWith('/yields-hist'))   return await yieldsHistCached(env, force, ctx);
@@ -5524,4 +5525,35 @@ async function calendarDebug(env) {
     range: `${pastStr} ~ ${endStr}`,
     status: r.status,
   }, null, 2), { headers: { ...CORS } });
+}
+
+async function liqTowerDebug(env) {
+  const data = await fetchLiqTowerData(env);
+  const summary = {
+    _savedAt: data._savedAt,
+    fed: {
+      walcl:       data.fed?.walcl,
+      rrp:         data.fed?.rrp,
+      tga_latest:  data.fed?.tgaSeries?.at(-1) ?? null,
+      walcl_series_count: data.fed?.walclSeries?.length ?? 0,
+      rrp_series_count:   data.fed?.rrpSeries?.length ?? 0,
+      tga_series_count:   data.fed?.tgaSeries?.length ?? 0,
+      h41_keys:    data.fed?.h41 ? Object.keys(data.fed.h41) : [],
+      h41_walcl_anomaly: data.fed?.h41?.walcl_anomaly ?? null,
+      h41_reserve: data.fed?.h41?.reserve_balances ?? null,
+      h41_rrp:     data.fed?.h41?.rrp ?? null,
+      h41_tga:     data.fed?.h41?.tga ?? null,
+    },
+    auctions_count: data.auctions?.length ?? 0,
+    auctions_sample: data.auctions?.slice(0, 3) ?? [],
+    vampire: {
+      billWeight:      data.vampire?.billWeight,
+      billWeightLabel: data.vampire?.billWeightLabel,
+      rrpBn:           data.vampire?.rrpBn,
+      weeks_count:     data.vampire?.weeks?.length ?? 0,
+      weeks_sample:    data.vampire?.weeks?.slice(0, 3) ?? [],
+    },
+    qraActive: data.qraActive ? { exists: true, keys: Object.keys(data.qraActive) } : null,
+  };
+  return new Response(JSON.stringify(summary, null, 2), { headers: { ...CORS } });
 }
