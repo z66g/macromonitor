@@ -3834,7 +3834,6 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
   const IDS_STD = {
     WRESBAL:   { key: 'reserve_balances',  unitM: true  },  // H.4.1 주간, Millions → ÷1000 = Billions
     WDTGAL:    { key: 'other_draining',   unitM: true  },   // H.4.1 주간, Millions
-    WCURRNS:   { key: 'currency',         unitM: false },   // 화폐 유통량 Billions (주간)
   };
 
   const fetchFredObs = async (id, limit, unitM) => {
@@ -3911,7 +3910,7 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
   const res   = kv.reserve_balances?.cur ?? 0;
   const rrpV  = kv.rrp?.cur              ?? 0;
   const tgaV  = kv.tga?.cur             ?? 0;
-  const curr  = currency ?? h41HtmlResult?.currency ?? 0;  // WCURRNS → HTML fallback → 0
+  const curr  = h41HtmlResult?.currency ?? 0;  // H.4.1 currency_circ (Currency in circulation)
   const otherV= kv.other_draining?.cur   ?? 0;
   const totL  = +(res + rrpV + tgaV + curr + otherV).toFixed(1);
   const bufCur = +(res + rrpV).toFixed(1);
@@ -3957,9 +3956,8 @@ async function fetchH41HtmlData() {
     } : null;
 
     const rawCur = data?.raw?.[0];
-    // currency: FRED WCURRNS(화폐유통량) 우선, HTML fallback
-    const fredCurr = kv['currency']?.cur ?? null;
-    const currency = fredCurr ?? (rawCur?.fed_notes_net != null
+    // currency: H.4.1 HTML currency_circ (Currency in circulation, Table1 최상단 항목)
+    const currency = data?.currency_circ?.valueB ?? (rawCur?.fed_notes_net != null
       ? +(rawCur.fed_notes_net / 1000).toFixed(1) : null);
 
     // treasury_total WoW delta (H.4.1 → 연준 보유 국채 변화 = 순발행 프록시)
