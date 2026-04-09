@@ -7188,9 +7188,7 @@ async function loadT2(force = false) {
           </div>` : ''}
       </div>` : '';
 
-    const gnSourceBadge = gn?.source === 'fred_fallback'
-      ? '<span style="font-size:7px;color:#F0B429;margin-left:4px;">(FRED fallback)</span>'
-      : '<span style="font-size:7px;color:#484F58;margin-left:4px;">Atlanta Fed</span>';
+    const gnSourceBadge = '<span style="font-size:7px;color:#484F58;margin-left:4px;">Atlanta Fed</span>';
 
     // 지역 연준 카드 툴팁 — 실제 수신된 시리즈 이름 기반으로 동적 생성
     const mfgLabelStr = (corp.mfg.labels||[]).join('·') || 'NY·Philly·Dallas';
