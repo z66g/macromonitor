@@ -10726,6 +10726,7 @@ window.addEventListener('orientationchange', function() {
 const FRESHNESS = {
   daily:       { warn: 3,   label: '일간'   },
   market:      { warn: 1,   label: '시장일간' }, // 영업일 기준 체크
+  etf_flow:    { warn: 4,   label: 'ETF플로우' }, // 주중 3일·주말 4일 지연 허용
   weekly:      { warn: 10,  label: '주간'   },
   monthly:     { warn: 45,  label: '월간'   },
   quarterly:   { warn: 100, label: '분기'   },
@@ -10797,7 +10798,7 @@ const TAB_INDICATORS = {
   4: [ // T4: 온체인 매크로
     { key:'oc_stable',  label:'스테이블코인 시총',        freq:'market'    },
     { key:'oc_rwa',     label:'RWA TVL',                  freq:'market'    },
-    { key:'oc_etf',     label:'BTC ETF 플로우',           freq:'market'    },
+    { key:'oc_etf',     label:'BTC ETF 플로우',           freq:'etf_flow'  },  // 3~4일 지연 정상
   ],
 };
 
