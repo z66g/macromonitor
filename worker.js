@@ -718,40 +718,51 @@ async function t2DataEndpoint(env, force = false) {
 
   // Atlanta Fed GDPNow 파싱 (HTML 스크래핑 → FRED fallback)
   const gdpNowFetch = async (force = false) => {
-    // ── 1순위: Atlanta Fed RSS 피드 (가장 빠른 업데이트) ──
+    const _dbg = { rssErr: null, fredErr: null, rssStatus: null, parsedCount: 0 };
+
+    // ── 1순위: Atlanta Fed RSS ──
     try {
-      const rss = await fetch('https://www.atlantafed.org/rss/GDPNow', {
-        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/rss+xml,text/xml' },
-        cf: force ? { cacheTtl: 0, cacheEverything: false } : { cacheTtl: 1800 },
+      // force=true: 캐시 키를 타임스탬프로 교체 → CF 엣지 캐시 완전 우회
+      const rssUrl = force
+        ? `https://www.atlantafed.org/rss/GDPNow?_cb=${Date.now()}`
+        : 'https://www.atlantafed.org/rss/GDPNow';
+      const rss = await fetch(rssUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/rss+xml,text/xml,*/*' },
+        cf: force
+          ? { cacheKey: `gdpnow-${Date.now()}`, cacheEverything: false }
+          : { cacheTtl: 1800 },
       });
-      if (!rss.ok) throw new Error(`RSS ${rss.status}`);
+      _dbg.rssStatus = rss.status;
+      if (!rss.ok) throw new Error(`RSS HTTP ${rss.status}`);
       const xml = await rss.text();
 
-      // 최신 아이템의 description에서 % 추출
-      // "is X.X percent on Month DD" 패턴
       const items = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
       if (!items.length) throw new Error('RSS no items');
 
-      // pubDate로 정렬 후 최신 선택
       const parsed = items.map(m => {
-        const desc = m[1].match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? '';
-        const link = m[1].match(/<link>(.*?)<\/link>/)?.[1] ?? '';
+        // CDATA 제거 후 파싱
+        const rawDesc = m[1].match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? '';
+        const desc = rawDesc.replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+        const link = m[1].match(/<link[^>]*>(.*?)<\/link>/)?.[1] ?? '';
         const pub  = m[1].match(/<pubDate>(.*?)<\/pubDate>/)?.[1] ?? '';
-        // "is X.X percent on Month DD" 패턴
-        const valM = desc.match(/is\s+(-?[\d.]+)\s+percent\s+on\s+(\w+\s+\d+)/i);
-        // URL에서 날짜 추출: /updates/2026/04/01
+        const valM = desc.match(/is\s+(-?[\d.]+)\s+percent\s+on\s+([\w]+\s+\d+)/i);
         const dateM = link.match(/updates\/(\d{4})\/(\d{2})\/(\d{2})/);
+        // pubDate 기반 날짜도 fallback으로 추출
+        const pubDateM = pub ? new Date(pub) : null;
+        const pubIso = pubDateM && !isNaN(pubDateM)
+          ? pubDateM.toISOString().slice(0,10) : null;
         return {
           current:  valM ? parseFloat(valM[1]) : null,
           dateStr:  valM ? valM[2] : null,
-          isoDate:  dateM ? `${dateM[1]}-${dateM[2]}-${dateM[3]}` : null,
+          isoDate:  dateM ? `${dateM[1]}-${dateM[2]}-${dateM[3]}` : pubIso,
           pubDate:  pub,
           desc,
         };
       }).filter(i => i.current !== null && i.isoDate !== null)
         .sort((a, b) => b.isoDate.localeCompare(a.isoDate));
 
-      if (!parsed.length) throw new Error('RSS parse failed');
+      _dbg.parsedCount = parsed.length;
+      if (!parsed.length) throw new Error(`RSS parse failed (items=${items.length}, desc_sample=${items[0]?.[1]?.slice(0,100)})`);
 
       const latest = parsed[0];
       const prev   = parsed[1] ?? null;
@@ -767,34 +778,44 @@ async function t2DataEndpoint(env, force = false) {
         qualityWarning: false,
         warningReason:  null,
         source: 'atlanta_rss',
+        _debug: _dbg,
       };
     } catch(rssErr) {
-      // ── 2순위: FRED GDPNOW (지연 있음) ──
+      _dbg.rssErr = rssErr.message;
+
+      // ── 2순위: FRED GDPNOW ──
       try {
-        const u = `https://api.stlouisfed.org/fred/series/observations`
+        const fredUrl = `https://api.stlouisfed.org/fred/series/observations`
           + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
           + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
-          + `&sort_order=desc&limit=10`;
-        const r = await fetch(u, { cf: force ? { cacheTtl: 0, cacheEverything: false } : { cacheTtl: 1800 } });
-        if (!r.ok) throw new Error(`FRED ${r.status}`);
+          + `&sort_order=desc&limit=10`
+          + (force ? `&_cb=${Date.now()}` : '');
+        const r = await fetch(fredUrl, {
+          cf: force
+            ? { cacheKey: `gdpnow-fred-${Date.now()}`, cacheEverything: false }
+            : { cacheTtl: 1800 },
+        });
+        if (!r.ok) throw new Error(`FRED HTTP ${r.status}`);
         const d = await r.json();
         const obs = (d.observations || []).filter(o => o.value !== '.');
-        if (!obs.length) throw new Error('no obs');
-        const latestDate = obs[0].date;
-        const sameQtr = obs
-          .filter(o => o.date === latestDate)
-          .sort((a, b) => (b.realtime_start || '').localeCompare(a.realtime_start || ''));
-        const current = parseFloat(sameQtr[0].value);
-        const prevEst = sameQtr[1] ? parseFloat(sameQtr[1].value) : null;
+        if (!obs.length) throw new Error('FRED no obs');
+        // sort_order=desc → obs[0]이 realtime_start 최신
+        // 같은 분기 내에서 realtime_start 최신 순으로 재정렬
+        obs.sort((a, b) => (b.realtime_start || '').localeCompare(a.realtime_start || ''));
+        const current = parseFloat(obs[0].value);
+        const prevEst = obs[1] ? parseFloat(obs[1].value) : null;
         const delta   = prevEst != null ? +(current - prevEst).toFixed(2) : null;
         return {
           current, prevEst, delta,
-          asOf:    sameQtr[0]?.realtime_start?.slice(0, 10) ?? null,
-          qtrDate: latestDate,
+          asOf:    obs[0]?.realtime_start?.slice(0, 10) ?? null,
+          qtrDate: obs[0]?.date ?? null,
           components: null, qualityWarning: false, warningReason: null,
           source: 'fred_fallback',
+          _debug: _dbg,
         };
       } catch(e) {
+        _dbg.fredErr = e.message;
+        console.error('GDPNow all failed:', JSON.stringify(_dbg));
         return null;
       }
     }
