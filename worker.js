@@ -258,10 +258,15 @@ async function fetchCalendar(env) {
     } catch(e) { return null; }
   };
 
+  // KST(UTC+9) 기준 오늘 날짜 사용
+  const fmt = d => {
+    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+    return kst.toISOString().slice(0, 10);
+  };
   const today = new Date();
-  const end   = new Date(today);
+  const todayKST = new Date(today.getTime() + 9 * 60 * 60 * 1000);
+  const end = new Date(todayKST);
   end.setDate(end.getDate() + 45);
-  const fmt = d => d.toISOString().slice(0, 10);
 
   try {
     const u = `https://api.stlouisfed.org/fred/releases/dates`
@@ -272,12 +277,12 @@ async function fetchCalendar(env) {
     if (!r.ok) return { error: `FRED ${r.status}`, events: [] };
     const d = await r.json();
 
-    const todayStr = fmt(today);
+    const todayStr = fmt(todayKST);
     const events = (d.release_dates || [])
       .filter(e => RELEASES[e.release_id])
       .map(e => {
         const meta = RELEASES[e.release_id];
-        const diff = Math.round((new Date(e.date) - today) / 86400000);
+        const diff = Math.round((new Date(e.date) - todayKST) / 86400000);
         return {
           date:      e.date,
           dday:      diff === 0 ? 'D-DAY' : diff > 0 ? `D-${diff}` : `D+${Math.abs(diff)}`,
@@ -323,7 +328,7 @@ async function fetchCalendar(env) {
       todayEvents.forEach((e, i) => { e.released = results[i]; });
     }
 
-    return { events: allEvents, fetchedAt: fmt(today), _savedAt: new Date().toISOString() };
+    return { events: allEvents, fetchedAt: fmt(todayKST), _savedAt: new Date().toISOString() };
   } catch(e) {
     return { error: e.message, events: [] };
   }
