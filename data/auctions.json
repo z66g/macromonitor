@@ -1,14 +1,6 @@
 {
-  "updated": "2026-04-09T16:48:39.119841Z",
+  "updated": "2026-04-09T22:01:15.635288Z",
   "upcoming": [
-    {
-      "type": "Bond",
-      "term": "29-Year 10-Month",
-      "auctionDate": "2026-04-09",
-      "issueDate": "2026-04-15",
-      "offeringAmt": 22000000000.0,
-      "cusip": "912810UR7"
-    },
     {
       "type": "Bill",
       "term": "13-Week",
@@ -60,6 +52,15 @@
       "offeringAmt": 75000000000.0,
       "cusip": "912797TZ0",
       "highRate": ""
+    },
+    {
+      "type": "Bond",
+      "term": "29-Year 10-Month",
+      "auctionDate": "2026-04-09",
+      "issueDate": "2026-04-15",
+      "offeringAmt": 22000000000.0,
+      "cusip": "912810UR7",
+      "highRate": "4.8760"
     },
     {
       "type": "Bill",
@@ -159,15 +160,6 @@
       "offeringAmt": 13000000000.0,
       "cusip": "912810UT3",
       "highRate": "4.8170"
-    },
-    {
-      "type": "Bond",
-      "term": "29-Year 11-Month",
-      "auctionDate": "2026-03-12",
-      "issueDate": "2026-03-16",
-      "offeringAmt": 22000000000.0,
-      "cusip": "912810UR7",
-      "highRate": "4.8710"
     }
   ]
 }
