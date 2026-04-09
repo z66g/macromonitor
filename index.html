@@ -26,7 +26,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  font-size:13px;min-height:100vh;min-height:100svh;
+  font-size:13px;min-height:100vh;
   background:var(--bg);color:var(--txt);
   transition:background .2s,color .2s;
 }
@@ -183,7 +183,7 @@ body{
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:#0D1117;color:#E6EDF3;font-size:13px;
-  min-height:100svh;padding:24px;
+  min-height:100vh;padding:24px;
 }
 .dev-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:0.5px solid #30363D;}
 .dev-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:3px;background:#2D1F00;color:#F0B429;letter-spacing:.06em;}
@@ -544,7 +544,7 @@ body{
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:#0D1117;color:#E6EDF3;font-size:13px;
-  min-height:100svh;padding:24px;
+  min-height:100vh;padding:24px;
 }
 
 /* ── 개발 헤더 ── */
@@ -728,7 +728,7 @@ body{
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   background:#0D1117;color:#E6EDF3;font-size:13px;
-  min-height:100svh;padding:24px;
+  min-height:100vh;padding:24px;
 }
 
 .dev-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:12px;border-bottom:0.5px solid #30363D;}
@@ -993,237 +993,18 @@ body{
 
 <!-- ═══════ SUB HEADER (비활성) ═══════ -->
 
-<!-- ═══════ 뉴스 패널 CSS ═══════ -->
-<style>
-/* ── 뉴스 패널 공통 ── */
-#news-panel { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-
-/* ── 시간/탭 버튼 공통 ── */
-.np-time-btn, .np-tab-btn {
-  background: transparent;
-  border: 0.5px solid #30363D;
-  border-radius: 3px;
-  color: #656D76;
-  font-size: 9px;
-  padding: 2px 8px;
-  cursor: pointer;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  transition: all .15s;
-  white-space: nowrap;
-}
-.np-time-btn.active, .np-tab-btn.active {
-  background: #21262D;
-  border-color: #8B949E;
-  color: #E6EDF3;
-  font-weight: 600;
-}
-.np-time-btn:hover, .np-tab-btn:hover { color: #E6EDF3; border-color: #656D76; }
-
-/* ── 뉴스 아이템 ── */
-.np-item {
-  display: flex;
-  gap: 0;
-  border-bottom: 0.5px solid #21262D;
-  cursor: pointer;
-  transition: background .12s;
-}
-.np-item:hover { background: rgba(255,255,255,0.03); }
-.np-item:last-child { border-bottom: none; }
-
-/* 아이템 본문 */
-.np-body { flex: 1; padding: 7px 14px; min-width: 0; }
-
-/* 헤드라인 행 (닷 + 텍스트) */
-.np-headline-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  margin-bottom: 3px;
-}
-
-/* 컬러 닷 */
-.np-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 3px;
-}
-
-/* 배지 */
-.np-badge {
-  display: inline-block;
-  font-size: 8px;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 2px;
-  margin-bottom: 4px;
-  letter-spacing: .04em;
-}
-
-/* 헤드라인 */
-.np-headline {
-  font-size: 11px;
-  font-weight: 500;
-  color: #CDD9E5;
-  line-height: 1.45;
-  margin-bottom: 0;
-}
-.np-item.np-read .np-headline { color: #484F58; }
-
-/* 메타 (출처 · 시간) */
-.np-meta {
-  font-size: 9px;
-  color: #484F58;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.np-meta-dot { width: 2px; height: 2px; border-radius: 50%; background: #30363D; }
-
-/* 확장 영역 */
-.np-expand {
-  display: none;
-  margin-top: 7px;
-  padding-top: 7px;
-  border-top: 0.5px solid #21262D;
-}
-.np-expand.open { display: block; }
-.np-summary {
-  font-size: 10px;
-  color: #656D76;
-  line-height: 1.6;
-  margin-bottom: 8px;
-}
-.np-link {
-  display: inline-block;
-  font-size: 9px;
-  color: #58A6FF;
-  text-decoration: none;
-  border: 0.5px solid #1F4E79;
-  padding: 2px 8px;
-  border-radius: 3px;
-  transition: background .12s;
-}
-.np-link:hover { background: rgba(88,166,255,.1); }
-
-/* 빈 상태 */
-.np-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  gap: 8px;
-  color: #484F58;
-  font-size: 11px;
-}
-
-/* 새로고침 카운트다운 */
-#news-countdown {
-  font-size: 8px;
-  color: #484F58;
-  font-family: monospace;
-}
-
-@media (max-width: 599px) {
-  #news-panel, #cal-panel, #tower-panel {
-    width: 100vw !important;
-    border-left: none !important;
-  }
-}
-</style>
-
-<!-- ═══════ 뉴스 슬라이드 패널 ═══════ -->
-<div id="news-overlay" onclick="toggleNewsPanel()"
-  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
-
-<div id="news-panel"
-  style="position:fixed;top:0;right:0;height:100vh;width:630px;
-         background:#161B22;border-left:0.5px solid #30363D;
-         z-index:901;transform:translateX(100%);
-         transition:transform .28s cubic-bezier(.4,0,.2,1);
-         display:flex;flex-direction:column;overflow:hidden;
-         overscroll-behavior:contain;touch-action:pan-y;">
-
-  <!-- 헤더 -->
-  <div style="display:flex;align-items:center;justify-content:space-between;
-              padding:14px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
-    <div style="font-size:13px;font-weight:700;color:#E6EDF3;">News</div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <div style="text-align:right;line-height:1.5;">
-        <span id="news-updated" style="font-size:8px;color:#484F58;">—</span>
-        <span style="font-size:8px;color:#30363D;">&nbsp;·&nbsp;</span>
-        <span id="news-countdown" style="font-size:8px;color:#484F58;font-family:monospace;"></span>
-      </div>
-      <button onclick="loadNews(true)" title="새로고침"
-        style="background:transparent;border:none;color:#484F58;
-               cursor:pointer;font-size:13px;padding:2px;" id="news-refresh-btn">↻</button>
-      <button onclick="toggleNewsPanel()"
-        style="background:transparent;border:none;color:#484F58;
-               cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
-    </div>
-  </div>
-
-  <!-- 카테고리 탭 행 (가로 스크롤) -->
-  <div style="display:flex;align-items:center;border-bottom:0.5px solid #21262D;flex-shrink:0;
-              overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;">
-    <button class="np-tab-btn active"
-      style="border:none;border-bottom:2px solid #F0B429;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
-      onclick="newsTabFilter('all',this)">전체</button>
-    <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
-      onclick="newsTabFilter('fed',this)"><span style="width:6px;height:6px;border-radius:50%;background:#58A6FF;flex-shrink:0;display:inline-block;"></span>Fed</button>
-    <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
-      onclick="newsTabFilter('treasury',this)"><span style="width:6px;height:6px;border-radius:50%;background:#3FB950;flex-shrink:0;display:inline-block;"></span>채권·재정</button>
-    <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
-      onclick="newsTabFilter('macro',this)"><span style="width:6px;height:6px;border-radius:50%;background:#F0B429;flex-shrink:0;display:inline-block;"></span>글로벌</button>
-    <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
-      onclick="newsTabFilter('tech',this)"><span style="width:6px;height:6px;border-radius:50%;background:#FF7B72;flex-shrink:0;display:inline-block;"></span>기술·인프라</button>
-    <button class="np-tab-btn"
-      style="border:none;border-bottom:2px solid transparent;border-radius:0;padding:7px 10px;font-size:10px;display:flex;align-items:center;gap:4px;white-space:nowrap;flex-shrink:0;"
-      onclick="newsTabFilter('onchain',this)"><span style="width:6px;height:6px;border-radius:50%;background:#A8B2BF;flex-shrink:0;display:inline-block;"></span>온체인</button>
-  </div>
-
-  <!-- 시간필터 행 (별도 행으로 분리) -->
-  <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;
-              padding:5px 12px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
-    <button class="np-time-btn active" onclick="newsTimeFilter('24h',this)">24h</button>
-    <button class="np-time-btn"        onclick="newsTimeFilter('3d', this)">3일</button>
-    <button class="np-time-btn"        onclick="newsTimeFilter('all',this)">7일</button>
-    <span id="news-filtered-count" style="font-size:9px;color:#484F58;margin-left:2px;font-family:monospace;"></span>
-  </div>
-
-  <!-- 핵심 뉴스 다이제스트 (전체 탭일 때만 표시) -->
-  <div id="news-digest-block" style="display:none;flex-shrink:0;
-       border-bottom:0.5px solid #21262D;padding:10px 14px;background:#0D1117;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-      <span style="font-size:11px;font-weight:700;color:#F0B429;letter-spacing:0.05em;">⚡ 핵심 뉴스</span>
-      <span id="news-digest-time" style="font-size:8px;color:#484F58;"></span>
-    </div>
-    <div id="news-digest-items"></div>
-  </div>
-
-  <!-- 뉴스 리스트 -->
-  <div id="news-list" style="flex:1;overflow-y:auto;overscroll-behavior:contain;"></div>
-</div>
-
 <!-- ═══════ 캘린더 슬라이드 패널 ═══════ -->
 <div id="cal-overlay" onclick="toggleCalPanel()"
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
 <div id="cal-panel"
-  style="position:fixed;top:0;right:0;height:100vh;width:360px;
+  style="position:fixed;top:0;right:0;height:100vh;width:340px;
          background:#161B22;border-left:0.5px solid #30363D;
          z-index:901;transform:translateX(100%);
          transition:transform .28s cubic-bezier(.4,0,.2,1);
-         display:flex;flex-direction:column;overflow:hidden;
-         overscroll-behavior:contain;touch-action:pan-y;">
+         display:flex;flex-direction:column;overflow:hidden;">
   <!-- 패널 헤더 -->
   <div style="display:flex;align-items:center;justify-content:space-between;
-              padding:14px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
+              padding:16px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
     <div style="font-size:13px;font-weight:700;color:#E6EDF3;">이벤트 캘린더</div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span id="cal-updated" style="font-size:8px;color:#484F58;"></span>
@@ -1233,31 +1014,23 @@ body{
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
     </div>
   </div>
-  <!-- 미니 달력 -->
-  <div id="cal-mini" style="flex-shrink:0;padding:12px 18px;border-bottom:0.5px solid #21262D;">
-    <!-- 월 네비게이션 -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <button onclick="calMonthMove(-1)"
-        style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">‹</button>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span id="cal-month-label" style="font-size:11px;font-weight:700;color:#E6EDF3;"></span>
-        <button onclick="calGoToday()"
-          style="font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;
-                 background:#1A3448;color:#58A6FF;border:0.5px solid #0969DA;">오늘</button>
-      </div>
-      <button onclick="calMonthMove(1)"
-        style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">›</button>
-    </div>
-    <!-- 요일 헤더 -->
-    <div id="cal-dow-header" style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px;"></div>
-    <!-- 날짜 그리드 -->
-    <div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;"></div>
+  <!-- 필터 탭 -->
+  <div id="cal-filter" style="display:flex;gap:4px;padding:10px 18px;flex-wrap:wrap;flex-shrink:0;border-bottom:0.5px solid #21262D;">
+    <button onclick="calFilter('all',this)" class="cal-tag-btn active"
+      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:#30363D;color:#E6EDF3;border:none;">전체</button>
+    <button onclick="calFilter('인플레',this)" class="cal-tag-btn"
+      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">인플레</button>
+    <button onclick="calFilter('고용',this)" class="cal-tag-btn"
+      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">고용</button>
+    <button onclick="calFilter('연준',this)" class="cal-tag-btn"
+      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">연준</button>
+    <button onclick="calFilter('성장',this)" class="cal-tag-btn"
+      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">성장</button>
+    <button onclick="calFilter('경기',this)" class="cal-tag-btn"
+      style="font-size:9px;padding:2px 8px;border-radius:3px;cursor:pointer;background:transparent;color:#656D76;border:0.5px solid #30363D;">경기</button>
   </div>
-  <!-- 선택된 주 레이블 -->
-  <div id="cal-week-label"
-    style="padding:8px 18px;font-size:9px;color:#656D76;border-bottom:0.5px solid #21262D;flex-shrink:0;"></div>
   <!-- 이벤트 리스트 -->
-  <div id="cal-list" style="flex:1;overflow-y:auto;overscroll-behavior:contain;padding:8px 18px;"></div>
+  <div id="cal-list" style="flex:1;overflow-y:auto;padding:12px 18px;"></div>
 </div>
 
 <!-- ═══════ TAB NAV ═══════ -->
@@ -1272,14 +1045,6 @@ body{
 <!-- ═══════ CONTROLS BAR (탭과 무관, 항상 표시) ═══════ -->
 <div id="controls-bar">
   <div id="controls-bar-inner">
-    <button id="hdr-news-btn" onclick="toggleNewsPanel()" title="News"
-      style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
-             color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
-             display:flex;align-items:center;gap:4px;transition:all .2s;">
-      <span style="font-size:11px;">📰</span>
-      <span style="font-size:9px;">뉴스</span>
-      <span id="led-news" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
-    </button>
     <button id="hdr-cal-btn" onclick="toggleCalPanel()" title="이벤트 캘린더"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
@@ -1293,7 +1058,7 @@ body{
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
              display:flex;align-items:center;gap:4px;transition:all .2s;">
       <span style="font-size:11px;">🏛️</span>
-      <span style="font-size:9px;">유동성 예측모델</span>
+      <span style="font-size:9px;">Plumbing</span>
       <span id="led-tower" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
     </button>
     <div class="hdr-clock" id="clock">—</div>
@@ -2508,9 +2273,11 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
          background:#0D1117;border-left:0.5px solid #30363D;
          z-index:901;transform:translateX(100%);
          transition:transform .28s cubic-bezier(.4,0,.2,1);
-         display:flex;flex-direction:column;overflow:hidden;
-         overscroll-behavior:contain;touch-action:pan-y;">
+         display:flex;flex-direction:column;overflow:hidden;">
 <style>
+@media (max-width: 767px) {
+  #tower-panel { width: 100vw !important; border-left: none !important; }
+}
 </style>
 
   <!-- 패널 헤더 -->
@@ -2529,7 +2296,7 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
   </div>
 
   <!-- 스크롤 영역 -->
-  <div id="tower-body" style="flex:1;overflow-y:auto;overscroll-behavior:contain;padding:0 0 40px;">
+  <div id="tower-body" style="flex:1;overflow-y:auto;padding:0 0 40px;">
     <div id="tower-loading" style="color:#484F58;font-size:11px;padding:30px;text-align:center;">⟳ 로딩 중...</div>
 
     <!-- ── S1: H.4.1 연준 상태 ── -->
@@ -3315,24 +3082,23 @@ async function loadS1(force = false) {
   try {
     const FRED_IDS = ['IORB','DTWEXBGS','WRMFNS'];
 
-    // FRED + Yahoo + H.4.1 병렬 (타임아웃 10초) — allSettled로 일부 실패 허용
-    const [yahooRes, vixHistRes, moveHistRes, h41HistRes, ...fredRes] = await Promise.allSettled([
+    // FRED + Yahoo + H.4.1 병렬 (타임아웃 10초)
+    const [yahooResp, vixHistResp, moveHistResp, h41HistResp, ...fredResps] = await Promise.all([
       fetchWithTimeout(`${WORKER}/yahoo?tickers=%5EVIX,%5EMOVE`),
       fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EVIX&range=3mo`),
       fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EMOVE&range=3mo`),
-      fetchWithTimeout(`${WORKER}/h41-history?weeks=52${force ? '&force=1' : ''}`, 90000),
+      fetchWithTimeout(`${WORKER}/h41-history?weeks=52${force ? '?force=1' : ''}`, 90000),
       ...FRED_IDS.map(id =>
         fetchWithTimeout(`${WORKER}/fred?series_id=${id}&limit=2&sort_order=desc`)
       )
     ]);
 
-    const _j = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
-    const yahooJson    = await _j(yahooRes);
-    const vixHistJson  = await _j(vixHistRes);
-    const moveHistJson = await _j(moveHistRes);
+    const yahooJson    = await yahooResp.json();
+    const vixHistJson  = await vixHistResp.json();
+    const moveHistJson = await moveHistResp.json();
     const h41HtmlJson  = null;  // h41-html 사용 중단 — h41-history series[0]으로 대체
-    const h41HistJson  = await _j(h41HistRes);
-    const fredRaws     = await Promise.all(fredRes.map(r => _j(r)));
+    const h41HistJson  = await h41HistResp.json().catch(() => null);
+    const fredRaws     = await Promise.all(fredResps.map(r => r.json()));
 
     // ICI는 별도로 실행 — 실패해도 나머지는 표시
     let iciJson = null;
@@ -3399,10 +3165,10 @@ async function loadS1(force = false) {
       };
     });
 
-    const vixQ  = yahooJson?.quotes?.['^VIX'];
-    const moveQ = yahooJson?.quotes?.['^MOVE'];
-    if (!vixQ?.price)  console.warn(`VIX 수신 실패: ${vixQ?.error || '—'}`);
-    if (!moveQ?.price) console.warn(`MOVE 수신 실패: ${moveQ?.error || '—'}`);
+    const vixQ  = yahooJson.quotes?.['^VIX'];
+    const moveQ = yahooJson.quotes?.['^MOVE'];
+    if (!vixQ?.price)  throw new Error(`VIX 수신 실패: ${vixQ?.error || '—'}`);
+    if (!moveQ?.price) throw new Error(`MOVE 수신 실패: ${moveQ?.error || '—'}`);
 
     renderPipe(fs, iciJson, h41HtmlJson, h41HistJson, sofrJson, rrpJson, srfJson, nypdJson, ofrMmfJson, dxyJson, jpyJson, fsiJson, pipe3Json);
     // ── T0 데이터 상태 기록 ──
@@ -3427,9 +3193,7 @@ async function loadS1(force = false) {
     renderDataStatus(0);
     renderVIX(vixQ);
     renderMOVE(moveQ);
-    if (vixQ?.price && moveQ?.price) {
-      renderZScore(vixQ.price, moveQ.price, vixHistJson, moveHistJson);
-    }
+    renderZScore(vixQ.price, moveQ.price, vixHistJson, moveHistJson);
     showContent();
 
   } catch(e) {
@@ -4102,20 +3866,6 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   const freqLabel = { '일별':'일간', '주간':'주간', '월간':'월간', '분기':'분기별' };
   const fmtAsOf = (d, freq) => d ? `(${d.replace(/-/g,'.')}, ${freqLabel[freq]??freq})` : '';
 
-  // SLOOS 날짜: FRED 실제 발표일 우선, 없으면 분기 표시만
-  const fmtSloosDate = (dataDateStr, releaseDate) => {
-    if (!dataDateStr) return '';
-    const d = new Date(dataDateStr);
-    const year = d.getFullYear();
-    const quarter = Math.ceil((d.getMonth() + 1) / 3);
-    if (releaseDate) {
-      // FRED 실제 발표일 사용
-      const rd = new Date(releaseDate);
-      return `(Q${quarter} ${year}, 발표: ${rd.getFullYear()}.${rd.getMonth()+1}.${rd.getDate()})`;
-    }
-    return `(Q${quarter} ${year})`;
-  };
-
   pipeDetails[3] = {
     rows: [
       // ① SLOOS
@@ -4123,7 +3873,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
         name: 'SLOOS C&I 대출 기준 (DRTSCILM)',
         tip: '은행 대출담당자 서베이 — 기업 대출 기준 강화 순비율(%). 양수=문턱 높임. 20% 초과 시 신용 창출 본격 위축, 실물 경기 4~6개월 선행 지표.',
         val: sloosVal != null
-          ? `SLOOS ${sloosVal.toFixed(1)}%  ${fmtSloosDate(sloosOf, p3sloos?.releaseDate)}`
+          ? `SLOOS ${sloosVal.toFixed(1)}%  ${fmtAsOf(sloosOf, '분기')}`
           : '분기 데이터 로딩 중',
         sig: sigSloos, badgeText: lblSloos,
         formula:
@@ -4551,22 +4301,21 @@ async function loadS2(force = false) {
   showLoading2();
   try {
     const yahooTickers = 'SPY,TLT,QQQ,DIA,GC%3DF,HG%3DF';
-    const [yahooRes, btcRes, tipsRes, iciRes, mmfRetailRes, mmfInstRes] = await Promise.allSettled([
+    const [yahooResp, btcResp, tipsResp, iciResp, mmfRetailResp, mmfInstResp] = await Promise.all([
       fetchT(`${WORKER}/yahoo?tickers=${yahooTickers}`),
       fetchT('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true'),
       fetchT(`${WORKER}/fred?series_id=DFII10&limit=60&sort_order=desc`),
       fetchT(`${WORKER}/ici`, 15000),
-      fetchT(`${WORKER}/fred?series_id=WRMFNS&limit=60&sort_order=desc`),
-      fetchT(`${WORKER}/fred?series_id=WRMFSL&limit=60&sort_order=desc`),
+      fetchT(`${WORKER}/fred?series_id=WRMFNS&limit=60&sort_order=desc`),  // 소매 MMF
+      fetchT(`${WORKER}/fred?series_id=WRMFSL&limit=60&sort_order=desc`),  // 기관 MMF
     ]);
 
-    const _sj2 = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
-    const yahooJson     = await _sj2(yahooRes);
-    const btcJson       = await _sj2(btcRes);
-    const tipsJson      = await _sj2(tipsRes);
-    const iciJson       = await _sj2(iciRes);
-    const mmfRetailJson = await _sj2(mmfRetailRes);
-    const mmfInstJson   = await _sj2(mmfInstRes);
+    const yahooJson    = await yahooResp.json();
+    const btcJson      = await btcResp.json();
+    const tipsJson     = await tipsResp.json();
+    const iciJson      = await iciResp.json();
+    const mmfRetailJson = await mmfRetailResp.json();
+    const mmfInstJson   = await mmfInstResp.json();
 
     const q = yahooJson.quotes || {};
 
@@ -5076,15 +4825,14 @@ async function loadS3(force = false) {
     const sectorTickerStr    = SECTORS.map(s => encodeURIComponent(s.ticker)).join(',');
     const leverageTickerStr  = 'TQQQ,SQQQ,UVXY';
 
-    const [quoteRes, leverageQuoteRes] = await Promise.allSettled([
+    const [quoteResp, leverageQuoteResp] = await Promise.all([
       fetchT(`${WORKER}/yahoo?tickers=${sectorTickerStr}`),
       fetchT(`${WORKER}/yahoo?tickers=${leverageTickerStr}`),
     ]);
-    const _sj3 = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
-    const quoteJson         = await _sj3(quoteRes);
-    const leverageQuoteJson = await _sj3(leverageQuoteRes);
-    const quotes         = quoteJson?.quotes        || {};
-    const leverageQuotes = leverageQuoteJson?.quotes || {};
+    const quoteJson        = await quoteResp.json();
+    const leverageQuoteJson = await leverageQuoteResp.json();
+    const quotes        = quoteJson.quotes        || {};
+    const leverageQuotes = leverageQuoteJson.quotes || {};
 
     // 차트 데이터 파싱 — dates/closes/volumes 배열 → history 객체 배열
     const chartMap = {};
@@ -6810,12 +6558,6 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
 let calData = [];
 let calActiveFilter = 'all';
 let calPanelOpen = false;
-let calViewYear  = new Date().getFullYear();
-let calViewMonth = new Date().getMonth(); // 0-based
-let calSelectedDate = new Date().toISOString().slice(0, 10); // 선택된 날짜
-
-// ══════════════════════════════
-// 데일리 리포트 패널
 
 function toggleCalPanel() {
   calPanelOpen = !calPanelOpen;
@@ -6823,14 +6565,11 @@ function toggleCalPanel() {
   const overlay = document.getElementById('cal-overlay');
   const btn     = document.getElementById('hdr-cal-btn');
   if (calPanelOpen) {
-    const h = (window.visualViewport?.height || window.innerHeight) + 'px';
-    panel.style.height = h;
     overlay.style.display = 'block';
     panel.style.transform = 'translateX(0)';
     btn.style.borderColor = '#0969DA';
     btn.style.color = '#58A6FF';
     if (calData.length === 0) loadCalendar(false);
-    else { renderCalMini(); renderCalWeek(); }
   } else {
     overlay.style.display = 'none';
     panel.style.transform = 'translateX(100%)';
@@ -6838,33 +6577,6 @@ function toggleCalPanel() {
     btn.style.color = '#8B949E';
   }
 }
-
-// cal-panel 터치 스크롤 전파 차단
-// cal-list 내부: 스크롤 경계에서만 차단 / 그 외 영역: 항상 차단
-document.addEventListener('DOMContentLoaded', function() {
-  const calPanel = document.getElementById('cal-panel');
-  if (!calPanel) return;
-
-  let _touchStartY = 0;
-
-  calPanel.addEventListener('touchstart', function(e) {
-    _touchStartY = e.touches[0].clientY;
-  }, { passive: true });
-
-  calPanel.addEventListener('touchmove', function(e) {
-    const list = document.getElementById('cal-list');
-    if (list && list.contains(e.target)) {
-      const deltaY   = e.touches[0].clientY - _touchStartY;
-      const atTop    = list.scrollTop <= 0;
-      const atBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - 1;
-      if ((deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) {
-        e.preventDefault();
-      }
-      return;
-    }
-    e.preventDefault();
-  }, { passive: false });
-});
 
 async function loadCalendar(force = false) {
   const listEl = document.getElementById('cal-list');
@@ -6878,8 +6590,8 @@ async function loadCalendar(force = false) {
       const dt = new Date(d._savedAt);
       updEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} 기준`;
     }
-    renderCalMini();
-    renderCalWeek();
+    renderCalendar();
+    // LED 갱신
     const ledCal = document.getElementById('led-cal');
     if (ledCal) {
       ledCal.style.background = '#3FB950';
@@ -6892,210 +6604,79 @@ async function loadCalendar(force = false) {
   }
 }
 
-// 월 이동
-function calMonthMove(delta) {
-  calViewMonth += delta;
-  if (calViewMonth < 0)  { calViewMonth = 11; calViewYear--; }
-  if (calViewMonth > 11) { calViewMonth = 0;  calViewYear++; }
-  renderCalMini();
+function calFilter(tag, btn) {
+  calActiveFilter = tag;
+  document.querySelectorAll('.cal-tag-btn').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = '#656D76';
+    b.style.border = '0.5px solid #30363D';
+  });
+  btn.style.background = '#30363D';
+  btn.style.color = '#E6EDF3';
+  btn.style.border = 'none';
+  renderCalendar();
 }
 
-// 오늘로 리셋
-function calGoToday() {
-  const today = new Date();
-  calViewYear  = today.getFullYear();
-  calViewMonth = today.getMonth();
-  calSelectedDate = today.toISOString().slice(0, 10);
-  renderCalMini();
-  renderCalWeek();
-}
-
-// 날짜 클릭
-function calSelectDate(dateStr) {
-  calSelectedDate = dateStr;
-  const d = new Date(dateStr);
-  calViewYear  = d.getFullYear();
-  calViewMonth = d.getMonth();
-  renderCalMini();
-  renderCalWeek();
-}
-
-// 이벤트 있는 날짜 Set 반환
-function calEventDates() {
-  const set = new Set();
-  calData.forEach(e => set.add(e.date));
-  return set;
-}
-
-// 이벤트 중요도 색상 (점 색상용)
-function calDotColor(dateStr) {
-  const events = calData.filter(e => e.date === dateStr);
-  if (!events.length) return null;
-  if (events.some(e => e.imp === 'high')) return '#F0B429';
-  if (events.some(e => e.imp === 'medium')) return '#8B949E';
-  return '#484F58';
-}
-
-// 미니 달력 렌더링
-function renderCalMini() {
-  const grid   = document.getElementById('cal-grid');
-  const label  = document.getElementById('cal-month-label');
-  const dowHdr = document.getElementById('cal-dow-header');
-  if (!grid || !label) return;
-
-  // 요일 헤더 렌더링
-  if (dowHdr) {
-    dowHdr.innerHTML = ['일','월','화','수','목','금','토'].map((d, i) =>
-      `<div style="font-size:8px;color:${i===0?'#F85149':i===6?'#58A6FF':'#656D76'};padding:2px 0;text-align:center;">${d}</div>`
-    ).join('');
-  }
-
-  const today = new Date().toISOString().slice(0, 10);
-  label.textContent = `${calViewYear}년 ${calViewMonth + 1}월`;
-
-  // 이번 달 1일의 요일
-  const firstDay = new Date(calViewYear, calViewMonth, 1).getDay();
-  const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
-
-  // 선택된 날의 주 범위 계산
-  const selD = new Date(calSelectedDate + 'T00:00:00');
-  const selWeekStart = new Date(selD);
-  selWeekStart.setDate(selD.getDate() - selD.getDay());
-  const selWeekEnd = new Date(selWeekStart);
-  selWeekEnd.setDate(selWeekStart.getDate() + 6);
-
-  let html = '';
-  // 빈 칸 채우기
-  for (let i = 0; i < firstDay; i++) html += '<div></div>';
-
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${calViewYear}-${String(calViewMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const isToday    = dateStr === today;
-    const isSelected = dateStr === calSelectedDate;
-    const dotColor   = calDotColor(dateStr);
-    const d = new Date(dateStr + 'T00:00:00');
-    const dow = d.getDay();
-    const inSelWeek = d >= selWeekStart && d <= selWeekEnd;
-
-    const textColor = isToday ? '#FFFFFF' :
-                      dow === 0 ? '#F85149' :
-                      dow === 6 ? '#58A6FF' : '#CDD9E5';
-    const bg = isSelected ? '#0969DA' :
-               isToday    ? '#1A3448' :
-               inSelWeek  ? '#1C2128' : 'transparent';
-    const border = isToday && !isSelected ? '0.5px solid #0969DA' : 'none';
-
-    html += `<div onclick="calSelectDate('${dateStr}')"
-      style="display:flex;flex-direction:column;align-items:center;
-             padding:3px 0;cursor:pointer;border-radius:4px;
-             background:${bg};border:${border};">
-      <div style="font-size:10px;font-weight:${isToday||isSelected?'700':'400'};
-                  color:${isSelected?'#FFFFFF':textColor};line-height:1.4;">${day}</div>
-      ${dotColor ? `<div style="width:3px;height:3px;border-radius:50%;background:${dotColor};margin-top:1px;"></div>` : '<div style="height:4px;"></div>'}
-    </div>`;
-  }
-  grid.innerHTML = html;
-}
-
-// 해당 주 이벤트 렌더링
-function renderCalWeek() {
-  const listEl  = document.getElementById('cal-list');
-  const labelEl = document.getElementById('cal-week-label');
+function renderCalendar() {
+  const listEl = document.getElementById('cal-list');
   if (!listEl) return;
+  const filtered = calActiveFilter === 'all'
+    ? calData
+    : calData.filter(e => e.tag === calActiveFilter);
 
-  // 선택된 날 기준 주 범위 (일~토)
-  const selD = new Date(calSelectedDate + 'T00:00:00');
-  const weekStart = new Date(selD);
-  weekStart.setDate(selD.getDate() - selD.getDay());
-  const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekStart.getDate() + 6);
-
-  const wsStr = weekStart.toISOString().slice(0, 10);
-  const weStr = weekEnd.toISOString().slice(0, 10);
-
-  // 주 레이블
-  if (labelEl) {
-    const fmt = d => `${d.getMonth()+1}/${d.getDate()}`;
-    const today = new Date().toISOString().slice(0, 10);
-    const isThisWeek = today >= wsStr && today <= weStr;
-    labelEl.textContent = isThisWeek
-      ? `이번 주 (${fmt(weekStart)} ~ ${fmt(weekEnd)})`
-      : `${fmt(weekStart)} ~ ${fmt(weekEnd)} 주간`;
-  }
-
-  // 해당 주 이벤트 필터
-  const weekEvents = calData.filter(e => e.date >= wsStr && e.date <= weStr);
-
-  if (weekEvents.length === 0) {
-    listEl.innerHTML = '<div style="color:#484F58;font-size:11px;padding:20px 0;text-align:center;">이번 주 예정 이벤트 없음</div>';
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div style="color:#484F58;font-size:11px;padding:20px 0;text-align:center;">이벤트 없음</div>';
     return;
   }
 
   // 날짜별 그룹핑
   const groups = {};
-  weekEvents.forEach(e => {
+  filtered.forEach(e => {
     if (!groups[e.date]) groups[e.date] = [];
     groups[e.date].push(e);
   });
 
-  const today   = new Date().toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
   const IMP_COLOR = { high: '#F0B429', medium: '#8B949E', low: '#484F58' };
   const TAG_COLOR = {
     '인플레': '#CF222B', '고용': '#1A7F5A', '연준': '#0969DA',
     '성장': '#9A6700',   '경기': '#6E40C9', '금리': '#0969DA',
-    '주택': '#1A7F5A',   '파생/청산': '#F85149', '재무부': '#3FB950',
-    '수급': '#8B949E',   '신용': '#9A6700',
+    '주택': '#1A7F5A',
   };
-  const CAT_ICON = {
-    'fed': '🏛️', 'treasury': '💧', 'derivatives': '🚨',
-    'rebalancing': '🔄', 'fed_blackout': '🔇',
-  };
-  const DAY_NAMES = ['일','월','화','수','목','금','토'];
 
-  listEl.innerHTML = Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)).map(([date, events]) => {
-    const isToday    = date === today;
-    const isSelected = date === calSelectedDate;
+  listEl.innerHTML = Object.entries(groups).map(([date, events]) => {
+    const isToday = date === today;
     const dt = new Date(date + 'T00:00:00');
-    const dayLabel = `${dt.getMonth()+1}월 ${dt.getDate()}일 (${DAY_NAMES[dt.getDay()]})`;
+    const dayNames = ['일','월','화','수','목','금','토'];
+    const dayLabel = `${dt.getMonth()+1}월 ${dt.getDate()}일 (${dayNames[dt.getDay()]})`;
 
     const evHtml = events.map(e => {
       const impColor  = IMP_COLOR[e.imp] || '#484F58';
       const tagColor  = TAG_COLOR[e.tag] || '#656D76';
-      const ddayColor = e.dday === 'D-DAY' ? '#F85149' : e.dday?.startsWith('D-') ? '#F0B429' : '#484F58';
-      const icon      = CAT_ICON[e.category] || '';
-      const estBadge  = e.estimated
-        ? `<span style="font-size:7px;color:#9A6700;background:#1A1400;border:0.5px solid #9A6700;border-radius:3px;padding:0 3px;margin-left:4px;">추정</span>`
-        : '';
-      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #21262D;">
-        <div style="width:2px;height:26px;border-radius:1px;background:${impColor};flex-shrink:0;"></div>
+      const ddayColor = e.dday === 'D-DAY' ? '#F85149' : e.dday.startsWith('D-') ? '#F0B429' : '#484F58';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid #21262D;">
+        <div style="width:2px;height:28px;border-radius:1px;background:${impColor};flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:10px;font-weight:600;color:#E6EDF3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            ${icon ? `<span style="margin-right:3px;">${icon}</span>` : ''}${e.name}${estBadge}
-          </div>
+          <div style="font-size:10px;font-weight:600;color:#E6EDF3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${e.name}</div>
           <div style="font-size:8px;color:${tagColor};margin-top:1px;">${e.tag}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:9px;font-weight:700;color:${ddayColor};">${e.dday || ''}</div>
+          <div style="font-size:9px;font-weight:700;color:${ddayColor};">${e.dday}</div>
           ${e.released ? `<div style="font-size:9px;font-weight:600;color:${e.released.val > 0 ? '#F85149' : '#3FB950'};margin-top:1px;">${e.released.label}</div>` : ''}
         </div>
       </div>`;
     }).join('');
 
-    const headerBg    = isSelected ? '#1A3448' : isToday ? '#111827' : 'transparent';
-    const headerColor = isToday ? '#58A6FF' : isSelected ? '#58A6FF' : '#656D76';
-    return `<div style="margin-bottom:10px;">
-      <div style="font-size:9px;font-weight:600;color:${headerColor};
-                  margin-bottom:3px;padding:4px 6px;border-radius:3px;
-                  background:${headerBg};border-bottom:0.5px solid #30363D;">
+    return `<div style="margin-bottom:14px;">
+      <div style="font-size:9px;font-weight:600;color:${isToday ? '#58A6FF' : '#656D76'};
+                  margin-bottom:4px;padding-bottom:4px;border-bottom:0.5px solid #30363D;
+                  ${isToday ? 'color:#58A6FF;' : ''}">
         ${isToday ? '🔵 ' : ''}${dayLabel}
       </div>
       ${evHtml}
     </div>`;
   }).join('');
 }
-
-// 하위 호환 (기존 calFilter 호출 제거됨)
-function renderCalendar() { renderCalWeek(); }
 
 
 // ══════════════════════════════
@@ -7226,7 +6807,11 @@ Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인�
         <div style="font-size:38px;font-weight:700;font-family:'SF Mono',monospace;color:${gnColor};margin-bottom:6px;">${gn?.current != null ? gn.current.toFixed(1)+'%' : '—'}</div>
         <div style="font-size:9px;color:#8B949E;margin-bottom:4px;">연율 환산 실질 GDP 성장률 추정</div>
         <div style="font-size:9px;color:${gnDeltaColor};margin-bottom:8px;">${gnDelta}</div>
-        <div style="font-size:8px;color:#484F58;margin-bottom:12px;">갱신: ${gn?.asOf ?? '—'}</div>
+        <div style="font-size:8px;color:#484F58;margin-bottom:12px;">
+          갱신: ${gn?.asOf ?? '—'}
+          ${gn?._debug ? `<span style="color:#F85149;margin-left:6px;">[⚠️ ${gn._debug.rssErr ? 'RSS: '+gn._debug.rssErr.slice(0,40) : ''} ${gn._debug.fredErr ? '/ FRED: '+gn._debug.fredErr.slice(0,30) : ''}]</span>` : ''}
+          ${gn?.source === 'fred_fallback' ? '<span style="color:#F0B429;margin-left:4px;">[FRED fallback]</span>' : ''}
+        </div>
         ${decompHtml}
         <!-- 해석 팁 -->
         <div style="margin-top:auto;padding-top:12px;border-top:0.5px solid #21262D;">
@@ -8983,13 +8568,11 @@ function toggleLiqTower() {
   const overlay = document.getElementById('tower-overlay');
   const btn     = document.getElementById('hdr-tower-btn');
   if (towerOpen) {
-    const h = (window.visualViewport?.height || window.innerHeight) + 'px';
-    panel.style.height = h;
     overlay.style.display = 'block';
     panel.style.transform = 'translateX(0)';
     if (btn) { btn.style.borderColor='#0969DA'; btn.style.color='#58A6FF'; }
     if (!towerLoaded) { towerLoaded = true; loadLiqTower(false); }
-    checkQraStatus();
+    checkQraStatus(); // 패널 열 때마다 QRA 상태 확인
   } else {
     overlay.style.display = 'none';
     panel.style.transform = 'translateX(100%)';
@@ -9557,7 +9140,7 @@ function renderTowerS4(d) {
       alertEl.innerHTML = danger.map(w =>
         '<div style="background:rgba(248,81,73,0.08);border:0.5px solid #B91C1C;' +
         'border-radius:4px;padding:7px 10px;margin-bottom:6px;font-size:9px;color:#F85149;">' +
-        '🚨 ' + w.label + ' (' + w.dateRange + '): 순 유동성 흡수 $' + w.netDrain + 'B' +
+        '🚨 ' + w.label + ' (' + w.dateRange + '): 순 유동성 증발 $' + w.netDrain + 'B' +
         '</div>'
       ).join('');
     }
@@ -9567,8 +9150,8 @@ function renderTowerS4(d) {
   if (!ctx || !weeks.length) return;
   if (_vampireChart) { _vampireChart.destroy(); _vampireChart = null; }
 
-  const netData    = weeks.map(w => -w.netDrain);  // 부호 반전: 흡수=음수, 공급=양수
-  const ptColors   = weeks.map(w => w.isDangerZone ? '#F85149' : (-w.netDrain >= 0 ? '#3FB950' : '#F85149'));
+  const netData    = weeks.map(w => w.netDrain);
+  const ptColors   = weeks.map(w => w.isDangerZone ? '#F85149' : (w.netDrain < 0 ? '#3FB950' : '#FFFFFF'));
 
   _vampireChart = new Chart(ctx, {
     type: 'bar',
@@ -9576,19 +9159,19 @@ function renderTowerS4(d) {
       labels: weeks.map(w => w.label),
       datasets: [
         { label:'QT 롤오프',   type:'bar',
-          data: weeks.map(w => -w.breakdown.qtDrain),
+          data: weeks.map(w => w.breakdown.qtDrain),
           backgroundColor:'rgba(185,28,28,0.75)', stack:'s', order:2,
           barPercentage: 0.5, categoryPercentage: 0.6 },
         { label:'장기채 결제', type:'bar',
-          data: weeks.map(w => -w.breakdown.couponDrain),
+          data: weeks.map(w => w.breakdown.couponDrain),
           backgroundColor:'rgba(234,88,12,0.75)',  stack:'s', order:2,
           barPercentage: 0.5, categoryPercentage: 0.6 },
         { label:'T-Bill 흡수', type:'bar',
-          data: weeks.map(w => -w.breakdown.billAbsorb),
+          data: weeks.map(w => w.breakdown.billAbsorb),
           backgroundColor:'rgba(202,138,4,0.75)',  stack:'s', order:2,
           barPercentage: 0.5, categoryPercentage: 0.6 },
         { label:'정부 지출',   type:'bar',
-          data: weeks.map(w => -w.breakdown.govOutflow),
+          data: weeks.map(w => w.breakdown.govOutflow),
           backgroundColor:'rgba(22,163,74,0.75)',  stack:'s', order:2,
           barPercentage: 0.5, categoryPercentage: 0.6 },
         { label:'Net Drain',   type:'line',
@@ -9608,12 +9191,12 @@ function renderTowerS4(d) {
             display: true,
             color: function(ctx2) {
               const v = netData[ctx2.dataIndex];
-              return v >= 0 ? '#3FB950' : '#F85149';  // 양수=초록(공급), 음수=빨강(흡수)
+              return v > 0 ? '#F85149' : '#3FB950';
             },
             font: { size: 9, weight: 'bold',
               family: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' },
             formatter: function(v) {
-              return (v >= 0 ? '+' : '') + '$' + v.toFixed(0) + 'B';
+              return (v > 0 ? '+' : '') + '$' + v.toFixed(0) + 'B';
             },
             anchor: function(ctx2) { return netData[ctx2.dataIndex] >= 0 ? 'end' : 'start'; },
             align:  function(ctx2) { return netData[ctx2.dataIndex] >= 0 ? 'top' : 'bottom'; },
@@ -9648,14 +9231,13 @@ function renderTowerS4(d) {
               const wi = items[0] && items[0].dataIndex;
               if (wi == null) return [];
               const w = weeks[wi];
-              const net = -w.netDrain;  // 부호 반전
-              const sign = net >= 0 ? '+' : '';
-              const icon = net >= 0 ? '🟢' : '🔴';
-              return [icon + ' 순 유동성 변화: ' + sign + '$' + net.toFixed(0) + 'B', '────────────────'];
+              const sign = w.netDrain > 0 ? '+' : '';
+              const icon = w.netDrain > 0 ? '🔴' : '🟢';
+              return [icon + ' 순 유동성 증발: ' + sign + '$' + w.netDrain + 'B', '────────────────'];
             },
             label: function(item) {
               if (item.dataset.label === 'Net Drain') return undefined;
-              const sign = item.parsed.y >= 0 ? '+' : '';
+              const sign = item.parsed.y > 0 ? '+' : '';
               return '  ' + item.dataset.label + ': ' + sign + '$' + item.parsed.y.toFixed(1) + 'B';
             },
             afterBody: function(items) {
@@ -9834,39 +9416,6 @@ async function applyQraData() {
 window.addEventListener('load', () => {
   setTimeout(checkQraStatus, 3000);
 });
-
-// ── 슬라이드 패널 높이 보정 (모바일 주소창 이슈) ──────────────────
-// 100vh는 모바일 브라우저 주소창 포함 → visualViewport 실제 높이로 덮어씀
-// 디바운스 처리: 스크롤 시 visualViewport resize 연속 발생 → 레이아웃 리플로우 방지
-let _fixPanelTimer = null;
-function fixPanelHeight() {
-  // 패널이 모두 닫혀있으면 스킵 (스크롤 끊김 원인 제거)
-  const anyOpen = calPanelOpen || _panelOpen || towerOpen;
-  if (!anyOpen) return;
-
-  if (_fixPanelTimer) return; // 이미 예약됨
-  _fixPanelTimer = requestAnimationFrame(() => {
-    _fixPanelTimer = null;
-    const h = (window.visualViewport?.height || window.innerHeight) + 'px';
-    ['news-panel', 'cal-panel', 'tower-panel'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.height = h;
-    });
-  });
-}
-// 초기 1회 실행 (패널 열릴 때도 호출하므로 여기선 직접 설정)
-;(function() {
-  const h = (window.visualViewport?.height || window.innerHeight) + 'px';
-  ['news-panel', 'cal-panel', 'tower-panel'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.height = h;
-  });
-})();
-window.addEventListener('resize', fixPanelHeight);
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', fixPanelHeight);
-  // scroll 이벤트는 하단 스크롤 시 연속 발화 → 레이아웃 요동 원인이므로 제거
-}
 
 // ── 맨 위로 버튼 ──────────────────────────────────────────
 window.addEventListener('scroll', () => {
@@ -10719,45 +10268,14 @@ window.addEventListener('orientationchange', function() {
 <script>
 // ── 데이터 신선도 기준 (일 단위) ──────────────────
 const FRESHNESS = {
-  daily:       { warn: 3,   label: '일간'   },
-  market:      { warn: 1,   label: '시장일간' }, // 영업일 기준 체크
-  weekly:      { warn: 10,  label: '주간'   },
-  monthly:     { warn: 45,  label: '월간'   },
-  quarterly:   { warn: 100, label: '분기'   },
-  event:       { warn: 95,  label: '이벤트' },
+  daily:     { warn: 3,   label: '일간'  },
+  weekly:    { warn: 10,  label: '주간'  },
+  monthly:   { warn: 45,  label: '월간'  },
+  quarterly: { warn: 100, label: '분기'  },
+  event:     { warn: 95,  label: '이벤트' },
 };
 
-// 전일 영업일 계산 (오늘 제외, 주말 건너뜀)
-// ETF 데이터는 T+1 발표 → 어제 영업일 데이터가 최신
-function prevBusinessDay() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - 1); // 어제부터 시작
-  while (d.getDay() === 0 || d.getDay() === 6) {
-    d.setDate(d.getDate() - 1); // 주말 건너뜀
-  }
-  return d;
-}
-
-// ── 신선도 판단 ───────────────────────────────────
-function dsFreshness(key, freq) {
-  const s = _dataStatus[key];
-  if (!s) return null;           // 아직 로드 전
-  if (!s.ok || !s.asOf) return 'error';
-
-  if (freq === 'market') {
-    // 영업일 기준: 전일 영업일 이후 데이터면 정상
-    // 예) 월요일 조회 → 전일 영업일 = 금요일 → 금요일 데이터 = 정상
-    const asOfDate = new Date(s.asOf);
-    asOfDate.setHours(0, 0, 0, 0);
-    const pbd = prevBusinessDay();
-    return asOfDate >= pbd ? 'ok' : 'warn';
-  }
-
-  const threshold = FRESHNESS[freq]?.warn ?? 10;
-  const days = (Date.now() - new Date(s.asOf).getTime()) / 86400000;
-  return days > threshold ? 'warn' : 'ok';
-}
+// 탭별 지표 정의
 const TAB_INDICATORS = {
   0: [ // T0: 거시경제 모니터
     { key:'h41_hist',   label:'H.4.1 (연준 H.4.1 52주)', freq:'weekly'    },
@@ -10790,9 +10308,9 @@ const TAB_INDICATORS = {
     { key:'t3_demand',  label:'EUR/USD·FEZ',              freq:'daily'     },
   ],
   4: [ // T4: 온체인 매크로
-    { key:'oc_stable',  label:'스테이블코인 시총',        freq:'market'    },
-    { key:'oc_rwa',     label:'RWA TVL',                  freq:'market'    },
-    { key:'oc_etf',     label:'BTC ETF 플로우',           freq:'market'    },
+    { key:'oc_stable',  label:'스테이블코인 시총',        freq:'daily'     },
+    { key:'oc_rwa',     label:'RWA TVL',                  freq:'daily'     },
+    { key:'oc_etf',     label:'BTC ETF 플로우',           freq:'daily'     },
   ],
 };
 
@@ -10945,322 +10463,5 @@ body, * {
   });
 })();
 </script>
-<!-- ═══════ NEWS PANEL SCRIPT ═══════ -->
-<script>
-(function() {
-'use strict';
-
-// ── 상수 ──────────────────────────────────────────────────────
-const WORKER = 'https://macrolens-worker.macrolens.workers.dev';
-const REFRESH_INTERVAL = 30 * 60 * 1000; // 30분
-const READ_KEY = 'np_read_v1';           // localStorage 키
-
-// 카테고리 메타
-const CAT = {
-  fed:      { label: 'Fed',   color: '#58A6FF', bg: 'rgba(88,166,255,.15)',  tab: 'macro'   },
-  treasury: { label: '국채',  color: '#3FB950', bg: 'rgba(63,185,80,.15)',   tab: 'macro'   },
-  macro:    { label: '거시',  color: '#F0B429', bg: 'rgba(240,180,41,.15)',  tab: 'macro'   },
-  hardtech: { label: '기술',  color: '#FF7B72', bg: 'rgba(255,123,114,.15)', tab: 'tech'    },
-  crypto:   { label: '온체인',color: '#A8B2BF', bg: 'rgba(168,178,191,.15)', tab: 'onchain' },
-};
-
-// ── 상태 ──────────────────────────────────────────────────────
-let _allItems    = [];     // 전체 기사 배열
-let _timeFilter  = '24h';  // 시간 필터
-let _tabFilter   = 'all';  // 탭 필터
-let _readSet     = new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]'));
-let _refreshTimer = null;
-let _countdownTimer = null;
-let _nextRefresh  = null;
-let _panelOpen    = false;
-let _expandedId   = null;  // 현재 펼쳐진 아이템 ID
-
-// ── 패널 토글 ─────────────────────────────────────────────────
-function toggleNewsPanel() {
-  const panel   = document.getElementById('news-panel');
-  const overlay = document.getElementById('news-overlay');
-  const btn     = document.getElementById('hdr-news-btn');
-  _panelOpen = !_panelOpen;
-
-  if (_panelOpen) {
-    const h = (window.visualViewport?.height || window.innerHeight) + 'px';
-    panel.style.height = h;
-    panel.style.transform   = 'translateX(0)';
-    overlay.style.display   = 'block';
-    btn.style.borderColor   = '#58A6FF';
-    btn.style.color         = '#58A6FF';
-    if (_allItems.length === 0) loadNews(false);
-  } else {
-    panel.style.transform   = 'translateX(100%)';
-    overlay.style.display   = 'none';
-    btn.style.borderColor   = '#30363D';
-    btn.style.color         = '#8B949E';
-  }
-}
-window.toggleNewsPanel = toggleNewsPanel;
-
-// ── 시간 필터 ─────────────────────────────────────────────────
-function newsTimeFilter(val, btn) {
-  _timeFilter = val;
-  document.querySelectorAll('.np-time-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderNews();
-}
-window.newsTimeFilter = newsTimeFilter;
-
-// ── 탭 필터 ──────────────────────────────────────────────────
-function newsTabFilter(val, btn) {
-  _tabFilter = val;
-  document.querySelectorAll('.np-tab-btn').forEach(b => {
-    b.classList.remove('active');
-    b.style.borderBottomColor = 'transparent';
-  });
-  btn.classList.add('active');
-  const underlineColor = {
-    all: '#F0B429', fed: '#58A6FF', treasury: '#3FB950',
-    macro: '#F0B429', tech: '#FF7B72', onchain: '#A8B2BF'
-  }[val] || '#F0B429';
-  btn.style.borderBottomColor = underlineColor;
-  _expandedId = null;
-  // '전체' 탭일 때만 핵심뉴스 블록 표시
-  const digestBlock = document.getElementById('news-digest-block');
-  if (digestBlock) {
-    digestBlock.style.display = (val === 'all' && digestBlock.dataset.loaded === '1') ? 'block' : 'none';
-  }
-  renderNews();
-}
-window.newsTabFilter = newsTabFilter;
-// ── 핵심 뉴스 다이제스트 렌더 ────────────────────────────────
-function renderNewsDigest(digest) {
-  const block  = document.getElementById('news-digest-block');
-  const itemsEl = document.getElementById('news-digest-items');
-  const timeEl  = document.getElementById('news-digest-time');
-  if (!block || !itemsEl) return;
-
-  if (!digest?.items?.length) { block.style.display = 'none'; return; }
-
-  if (timeEl && digest.generatedAt) {
-    const dt = new Date(digest.generatedAt);
-    timeEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} KST 기준`;
-  }
-
-  itemsEl.innerHTML = digest.items.map((item, i) =>
-    `<div style="display:flex;gap:8px;${i > 0 ? 'padding-top:7px;border-top:0.5px solid #21262D;margin-top:7px;' : ''}">
-      <span style="font-size:11px;font-weight:700;color:#CF222B;flex-shrink:0;margin-top:1px;">${item.rank}</span>
-      <div>
-        <div style="font-size:11px;font-weight:600;color:#CDD9E5;line-height:1.4;margin-bottom:3px;">${item.title || ''}</div>
-        <div style="font-size:10px;color:#8B949E;line-height:1.4;">${item.summary || ''}</div>
-      </div>
-    </div>`
-  ).join('');
-
-  block.dataset.loaded = '1';
-  block.style.display = (_tabFilter === 'all') ? 'block' : 'none';
-}
-
-// ── 데이터 로드 ───────────────────────────────────────────────
-async function loadNews(force = false) {
-  const btn = document.getElementById('news-refresh-btn');
-  if (btn) { btn.style.opacity = '0.4'; btn.style.pointerEvents = 'none'; }
-
-  try {
-    const url = force ? `${WORKER}/news?force=1` : `${WORKER}/news`;
-    const [resp, digestResp] = await Promise.allSettled([
-      fetch(url, { signal: AbortSignal.timeout(15000) }),
-      fetch(`${WORKER}/news-digest`, { signal: AbortSignal.timeout(10000) }),
-    ]);
-
-    if (resp.status === 'fulfilled' && resp.value.ok) {
-      const data = await resp.value.json();
-      _allItems = (data.items || []);
-      const updEl = document.getElementById('news-updated');
-      if (updEl && data.fetchedAt) {
-        const dt = new Date(data.fetchedAt);
-        updEl.textContent = dt.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}) + ' 갱신';
-      }
-      const led = document.getElementById('led-news');
-      if (led) led.style.background = '#3FB950';
-    }
-
-    // 다이제스트 렌더
-    if (digestResp.status === 'fulfilled' && digestResp.value.ok) {
-      const digest = await digestResp.value.json();
-      renderNewsDigest(digest);
-    }
-
-    renderNews();
-    scheduleRefresh();
-
-  } catch(e) {
-    const led = document.getElementById('led-news');
-    if (led) led.style.background = '#F85149';
-    console.warn('[NewsPanel] 로드 실패:', e.message);
-  } finally {
-    if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = ''; }
-  }
-}
-window.loadNews = loadNews;
-
-// ── 렌더 ─────────────────────────────────────────────────────
-function renderNews() {
-  const list = document.getElementById('news-list');
-  if (!list) return;
-
-  // 1. 탭 필터 — Fed/국채는 공식 소스 ID 기준, 나머지는 cat 기준
-  const SOURCE_TAB_MAP = {
-    fed:      ['fed_press', 'bis_speeches'],
-    treasury: ['us_treasury', 'bis_press', 'wsj_markets', 'ecb_press'],
-    macro:    ['zerohedge', 'wsj_economy'],
-    tech:     ['semianalysis', 'ars_science', 'ars_tech', 'utility_dive', 'fierce_biotech'],
-    onchain:  ['blockworks', 'coindesk'],
-  };
-
-  let items = _allItems;
-  if (_tabFilter !== 'all') {
-    const allowedSources = SOURCE_TAB_MAP[_tabFilter];
-    if (allowedSources) {
-      items = items.filter(n => allowedSources.includes(n.sourceId));
-    }
-  }
-
-  // 2. 시간 필터
-  const now = Date.now();
-  if (_timeFilter !== 'all') {
-    const ms = _timeFilter === '24h' ? 86400000 : 259200000;
-    items = items.filter(n => {
-      if (!n.pubDate) return true;
-      return (now - new Date(n.pubDate).getTime()) <= ms;
-    });
-  }
-
-  // 건수 표시
-  const countEl = document.getElementById('news-filtered-count');
-  if (countEl) countEl.textContent = `${items.length}건`;
-
-  // 빈 상태
-  if (!items.length) {
-    list.innerHTML = `<div class="np-empty">
-      <div style="font-size:22px;">📭</div>
-      <div>해당 조건의 기사가 없습니다</div>
-      <div style="font-size:10px;color:#30363D;">시계열을 늘려서 확인해보세요</div>
-    </div>`;
-    return;
-  }
-
-  // 전체 탭에서만 배지 표시 (개별 탭은 단일 카테고리라 불필요)
-  const showBadge = false; // 닷 색상으로만 구분, 배지 제거
-
-  // _filteredItems 저장 (클릭 핸들러에서 인덱스로 참조)
-  // 소스ID → 탭 색상 매핑 (전체탭 포함 모든 탭에서 sourceId 기준 색상)
-  const SOURCE_COLOR_MAP = {
-    fed_press:      '#58A6FF', bis_speeches:   '#58A6FF',
-    us_treasury:    '#3FB950', bis_press:      '#3FB950',
-    wsj_markets:    '#3FB950', ecb_press:      '#3FB950',
-    zerohedge:      '#F0B429', wsj_economy:    '#F0B429',
-    semianalysis:   '#FF7B72', ars_science:    '#FF7B72',
-    ars_tech:       '#FF7B72', utility_dive:   '#FF7B72',
-    fierce_biotech: '#FF7B72',
-    blockworks:     '#A8B2BF', coindesk:       '#A8B2BF',
-  };
-
-  list._items = items;
-
-  list.innerHTML = items.map((n, idx) => {
-    const dotColor   = SOURCE_COLOR_MAP[n.sourceId] || (CAT[n.cat]?.color) || '#8B949E';
-    const isRead     = _readSet.has(idx + '_' + n.title);
-    const isExpanded = (_expandedId === idx);
-    const timeStr    = relTime(n.pubDate);
-
-    return `
-    <div class="np-item${isRead ? ' np-read' : ''}" data-idx="${idx}">
-      <div class="np-body">
-        <div class="np-headline-row">
-          <span class="np-dot" style="background:${dotColor};"></span>
-          <div>
-            <div class="np-headline">${escHtml(n.titleKo || n.title)}</div>
-            <div class="np-meta">
-              <span>${escHtml(n.sourceName)}</span>
-              <span class="np-meta-dot"></span>
-              <span>${timeStr}</span>
-              ${isRead ? '<span class="np-meta-dot"></span><span style="color:#30363D;">읽음</span>' : ''}
-            </div>
-          </div>
-        </div>
-        <div class="np-expand${isExpanded ? ' open' : ''}">
-          <div class="np-summary">${escHtml(n.summaryKo || n.summary || '요약 없음')}</div>
-          ${n.link ? `<a class="np-link" href="${escHtml(n.link)}" target="_blank" rel="noopener">전체 기사 →</a>` : ''}
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── 이벤트 위임 (클릭 버그 수정 핵심) ───────────────────────
-// inline onclick 대신 리스트 컨테이너에 단일 리스너 등록
-// JSON.stringify + 따옴표 충돌 문제 완전 해소
-document.addEventListener('DOMContentLoaded', function() {
-  const list = document.getElementById('news-list');
-  if (!list) return;
-
-  list.addEventListener('click', function(e) {
-    // 외부 링크 클릭은 무시
-    if (e.target.closest('.np-link')) return;
-
-    const item = e.target.closest('.np-item');
-    if (!item) return;
-
-    const idx = parseInt(item.dataset.idx, 10);
-    if (isNaN(idx)) return;
-
-    const items = list._items || [];
-    const n = items[idx];
-    if (!n) return;
-
-    // 읽음 처리
-    const readKey = idx + '_' + n.title;
-    _readSet.add(readKey);
-    try { localStorage.setItem(READ_KEY, JSON.stringify([..._readSet])); } catch(err){}
-
-    // 확장 토글
-    _expandedId = (_expandedId === idx) ? null : idx;
-    renderNews();
-  });
-});
-
-// ── 자동 새로고침 + 카운트다운 ───────────────────────────────
-function scheduleRefresh() {
-  if (_refreshTimer) clearTimeout(_refreshTimer);
-  if (_countdownTimer) clearInterval(_countdownTimer);
-
-  _nextRefresh = Date.now() + REFRESH_INTERVAL;
-  _refreshTimer = setTimeout(() => loadNews(false), REFRESH_INTERVAL);
-
-  _countdownTimer = setInterval(() => {
-    const el = document.getElementById('news-countdown');
-    if (!el) return;
-    const left = Math.max(0, _nextRefresh - Date.now());
-    const m = Math.floor(left / 60000);
-    const s = Math.floor((left % 60000) / 1000);
-    el.textContent = `갱신까지 ${m}:${s.toString().padStart(2,'0')}`;
-  }, 1000);
-}
-
-// ── 유틸 ─────────────────────────────────────────────────────
-function relTime(pubDate) {
-  if (!pubDate) return '—';
-  const diff = Date.now() - new Date(pubDate).getTime();
-  if (diff < 0) return '방금';
-  if (diff < 3600000)  return `${Math.floor(diff/60000)}분 전`;
-  if (diff < 86400000) return `${Math.floor(diff/3600000)}h 전`;
-  return `${Math.floor(diff/86400000)}일 전`;
-}
-
-function escHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-})();
-</script>
+</body>
+</html>
