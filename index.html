@@ -2915,7 +2915,7 @@ const WORKER = 'https://macrolens-worker.macrolens.workers.dev';
 function fetchT(url, ms=12000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+  return fetch(url, { signal: ctrl.signal, cache: 'no-store' }).finally(() => clearTimeout(t));
 }
 function fetchWithTimeout(url, ms=10000) { return fetchT(url, ms); }
 
@@ -2954,7 +2954,7 @@ function goTab(n, btn) {
 function fetchT(url, ms=12000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(t));
+  return fetch(url, { signal: ctrl.signal, cache: 'no-store' }).finally(() => clearTimeout(t));
 }
 function fetchWithTimeout(url, ms=10000) { return fetchT(url, ms); }
 
