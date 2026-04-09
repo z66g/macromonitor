@@ -109,6 +109,7 @@ export default {
       if (path.startsWith('/qra-preview'))   return await qraPreview(env);
       if (path.startsWith('/qra-apply'))     return await qraApply(request, env);
       if (path.startsWith('/qra-dismiss'))   return await qraDismiss(env);
+      if (path.startsWith('/gdpnow-test'))     return await gdpNowTest(env);
       if (path.startsWith('/srf'))           return await srfProxy();
       if (path.startsWith('/cds-api-test'))  return await cdsApiTest();
       if (path.startsWith('/cds-live'))      return await cdsLive();
@@ -5504,3 +5505,53 @@ async function newsTransFlush(env) {
     return new Response(JSON.stringify({ ok: false, error: e.message }), { headers: CORS });
   }
 }
+
+
+// ── GDPNow 진단 엔드포인트 ──
+async function gdpNowTest(env) {
+  const apiKey = env?.FRED_API_KEY;
+  const results = {};
+
+  // 1. Vintage 방식
+  try {
+    const u1 = `https://api.stlouisfed.org/fred/series/observations`
+      + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
+      + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
+      + `&sort_order=desc&limit=5&_cb=${Date.now()}`;
+    const r1 = await fetch(u1, { cf: { cacheKey: `test1-${Date.now()}`, cacheEverything: false } });
+    const d1 = await r1.json();
+    const obs1 = (d1.observations||[]).filter(o=>o.value!=='.');
+    obs1.sort((a,b)=>(b.realtime_start||'').localeCompare(a.realtime_start||''));
+    results.vintage = {
+      status: r1.status,
+      raw_top5: obs1.slice(0,5).map(o=>({ date:o.date, value:o.value, rt_start:o.realtime_start })),
+      parsed_current: obs1[0]?.value,
+      parsed_asOf: obs1[0]?.realtime_start,
+    };
+  } catch(e) { results.vintage = { error: e.message }; }
+
+  // 2. Simple 방식
+  try {
+    const u2 = `https://api.stlouisfed.org/fred/series/observations`
+      + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
+      + `&sort_order=desc&limit=3&_cb=${Date.now()}`;
+    const r2 = await fetch(u2, { cf: { cacheKey: `test2-${Date.now()}`, cacheEverything: false } });
+    const d2 = await r2.json();
+    const obs2 = (d2.observations||[]).filter(o=>o.value!=='.');
+    results.simple = {
+      status: r2.status,
+      raw_top3: obs2.slice(0,3).map(o=>({ date:o.date, value:o.value, rt_start:o.realtime_start })),
+    };
+  } catch(e) { results.simple = { error: e.message }; }
+
+  // 3. Series 메타
+  try {
+    const u3 = `https://api.stlouisfed.org/fred/series?series_id=GDPNOW&api_key=${apiKey}&file_type=json&_cb=${Date.now()}`;
+    const r3 = await fetch(u3, { cf: { cacheKey: `test3-${Date.now()}`, cacheEverything: false } });
+    const d3 = await r3.json();
+    results.meta = { last_updated: d3.seriess?.[0]?.last_updated, title: d3.seriess?.[0]?.title };
+  } catch(e) { results.meta = { error: e.message }; }
+
+  return new Response(JSON.stringify(results, null, 2), { headers: { ...CORS, 'Content-Type': 'application/json' } });
+}
+
