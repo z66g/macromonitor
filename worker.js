@@ -687,7 +687,7 @@ async function t2Cached(env, force = false, ctx) {
     const cached = await kvGet(env, KV_KEYS.t2);
     if (cached) return json(cached);
   }
-  const resp = await t2DataEndpoint(env);
+  const resp = await t2DataEndpoint(env, force);
   const data = await resp.json();
   const putPromise = kvPut(env, KV_KEYS.t2, data, KV_TTL.t2);
   if (ctx?.waitUntil) ctx.waitUntil(putPromise); else await putPromise;
@@ -697,7 +697,7 @@ async function t2Cached(env, force = false, ctx) {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 실물경제 탭 (t2) — 3개 섹션 데이터
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function t2DataEndpoint(env) {
+async function t2DataEndpoint(env, force = false) {
   const apiKey = env?.FRED_API_KEY;
   if (!apiKey) return json({ error: 'FRED_API_KEY 없음' }, 500);
 
@@ -717,12 +717,12 @@ async function t2DataEndpoint(env) {
   };
 
   // Atlanta Fed GDPNow 파싱 (HTML 스크래핑 → FRED fallback)
-  const gdpNowFetch = async () => {
+  const gdpNowFetch = async (force = false) => {
     // ── 1순위: Atlanta Fed RSS 피드 (가장 빠른 업데이트) ──
     try {
       const rss = await fetch('https://www.atlantafed.org/rss/GDPNow', {
         headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/rss+xml,text/xml' },
-        cf: { cacheTtl: 1800 },
+        cf: force ? { cacheTtl: 0, cacheEverything: false } : { cacheTtl: 1800 },
       });
       if (!rss.ok) throw new Error(`RSS ${rss.status}`);
       const xml = await rss.text();
@@ -775,7 +775,7 @@ async function t2DataEndpoint(env) {
           + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
           + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
           + `&sort_order=desc&limit=10`;
-        const r = await fetch(u, { cf: { cacheTtl: 1800 } });
+        const r = await fetch(u, { cf: force ? { cacheTtl: 0, cacheEverything: false } : { cacheTtl: 1800 } });
         if (!r.ok) throw new Error(`FRED ${r.status}`);
         const d = await r.json();
         const obs = (d.observations || []).filter(o => o.value !== '.');
@@ -808,7 +808,7 @@ async function t2DataEndpoint(env) {
     jolts, tempHelp, icsa, ic4wsa, payems, unrate, sahm,  // Section 2 (5-Stage Pipeline)
     umcsent, psavert, delinq, rsafs, rsxfs, cpiT2,  // Section 3
   ] = await Promise.all([
-    gdpNowFetch(),
+    gdpNowFetch(force),
     // ── 지역 연준 제조업 4개 (25개월 차트용)
     fredArr('GACDISA066MSFRBNY',  25),  // NY 엠파이어 스테이트
     fredArr('GACDFSA066MSFRBPHI', 25),  // 필라델피아 Fed
@@ -1112,7 +1112,7 @@ async function t2DataEndpoint(env) {
 
 async function refreshT2(env) {
   try {
-    const resp = await t2DataEndpoint(env);
+    const resp = await t2DataEndpoint(env, true);  // force=true: 엣지 캐시도 우회
     const data = await resp.json();
     await kvPut(env, KV_KEYS.t2, data, KV_TTL.t2);
   } catch(e) { console.error('refreshT2:', e.message); }
