@@ -741,26 +741,25 @@ async function t2DataEndpoint(env, force = false) {
       const qtrDate  = obs[0].date;
       const asOf     = obs[0].realtime_start?.slice(0, 10) ?? null;
 
-      // 같은 분기 직전 수정본: observation_start/end로 Q1 수정본만 재조회
+      // 직전 추정치: asOf 하루 전을 realtime_end로 지정 → 그 시점의 최신값
       let prevEst = null, delta = null;
       try {
+        const prevDate = new Date(asOf);
+        prevDate.setDate(prevDate.getDate() - 1);
+        const prevDateStr = prevDate.toISOString().slice(0, 10);
         const prevUrl = `https://api.stlouisfed.org/fred/series/observations`
           + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
-          + `&observation_start=${qtrDate}&observation_end=${qtrDate}`
-          + `&realtime_start=1776-07-04`
-          + `&sort_order=desc&limit=10`
+          + `&realtime_start=1776-07-04&realtime_end=${prevDateStr}`
+          + `&sort_order=desc&limit=1`
           + `&_cb=${Date.now()}`;
         const pr = await fetch(prevUrl, {
           cf: { cacheKey: `gdpnow-prev-${Date.now()}`, cacheEverything: false },
         });
         if (pr.ok) {
           const pd = await pr.json();
-          const prevObs = (pd.observations || [])
-            .filter(o => o.value !== '.')
-            .sort((a, b) => (b.realtime_start || '').localeCompare(a.realtime_start || ''));
-          // prevObs[0] = 최신(current와 동일), prevObs[1] = 직전 수정본
-          if (prevObs[1]) {
-            prevEst = parseFloat(prevObs[1].value);
+          const prevObs = (pd.observations || []).filter(o => o.value !== '.');
+          if (prevObs[0]) {
+            prevEst = parseFloat(prevObs[0].value);
             delta   = +(current - prevEst).toFixed(2);
           }
         }
