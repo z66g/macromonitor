@@ -276,12 +276,10 @@ async function fetchCalendar(env) {
     past.setDate(past.getDate() - 7);
     const pastStr = fmt(past);
     const endStr  = fmt(end);
-    // realtime_start=올해 1월: BLS/BEA가 연초에 등록한 연간 일정 모두 포함
-    // sort_order=desc: 최신 날짜 먼저 → 날짜 필터 후 정렬
-    const yearStart = `${todayKST.getFullYear()}-01-01`;
+    // realtime_start=과거7일 ~ realtime_end=미래45일: 해당 기간 발표일만 조회
     const u = `https://api.stlouisfed.org/fred/releases/dates`
       + `?api_key=${apiKey}&file_type=json`
-      + `&realtime_start=${yearStart}&realtime_end=9999-12-31`
+      + `&realtime_start=${pastStr}&realtime_end=${endStr}`
       + `&sort_order=asc&limit=1000&include_release_dates_with_no_data=true`;
     const r = await fetch(u, { cf: { cacheTtl: 3600 } });
     if (!r.ok) return { error: `FRED ${r.status}`, events: [] };
@@ -289,7 +287,7 @@ async function fetchCalendar(env) {
 
     const todayStr = fmt(todayKST);
     const events = (d.release_dates || [])
-      .filter(e => RELEASES[e.release_id] && e.date >= pastStr && e.date <= endStr)
+      .filter(e => RELEASES[e.release_id])
       .map(e => {
         const meta = RELEASES[e.release_id];
         const diff = Math.round((new Date(e.date) - todayKST) / 86400000);
@@ -5501,23 +5499,27 @@ async function gdpNowTest(env) {
 
 async function calendarDebug(env) {
   const apiKey = env?.FRED_API_KEY;
-  const yearStart = new Date().getFullYear() + '-01-01';
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9*60*60*1000);
+  const past = new Date(kst); past.setDate(past.getDate() - 7);
+  const end  = new Date(kst); end.setDate(end.getDate() + 45);
+  const fmt  = d => new Date(d.getTime() + 9*60*60*1000).toISOString().slice(0,10);
+  const pastStr = fmt(past);
+  const endStr  = fmt(end);
+
   const url = `https://api.stlouisfed.org/fred/releases/dates`
     + `?api_key=${apiKey}&file_type=json`
-    + `&realtime_start=${yearStart}&realtime_end=9999-12-31`
+    + `&realtime_start=${pastStr}&realtime_end=${endStr}`
     + `&sort_order=asc&limit=1000&include_release_dates_with_no_data=true`;
   const r = await fetch(url, { cf: { cacheKey: `cal-dbg-${Date.now()}`, cacheEverything: false } });
   const d = await r.json();
   const all = d.release_dates || [];
-  // release_id 10, 46, 54 필터
   const target = all.filter(e => [10, 46, 54].includes(Number(e.release_id)));
-  // 날짜 필터 없이 전체 반환
-  const sample = all.slice(0, 5); // 처음 5개 샘플
   return new Response(JSON.stringify({
     total: all.length,
-    sample_first5: sample,
+    sample_first5: all.slice(0, 5),
     cpi_ppi_pce: target,
-    yearStart,
+    range: `${pastStr} ~ ${endStr}`,
     status: r.status,
   }, null, 2), { headers: { ...CORS } });
 }
