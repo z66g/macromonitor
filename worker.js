@@ -783,12 +783,12 @@ async function t2DataEndpoint(env, force = false) {
     } catch(rssErr) {
       _dbg.rssErr = rssErr.message;
 
-      // ── 2순위: FRED GDPNOW ──
+      // ── FRED GDPNOW (Atlanta Fed RSS 403 차단으로 항상 이 경로 사용) ──
       try {
         const fredUrl = `https://api.stlouisfed.org/fred/series/observations`
           + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
           + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
-          + `&sort_order=desc&limit=10`
+          + `&sort_order=desc&limit=20`
           + (force ? `&_cb=${Date.now()}` : '');
         const r = await fetch(fredUrl, {
           cf: force
@@ -799,19 +799,24 @@ async function t2DataEndpoint(env, force = false) {
         const d = await r.json();
         const obs = (d.observations || []).filter(o => o.value !== '.');
         if (!obs.length) throw new Error('FRED no obs');
-        // sort_order=desc → obs[0]이 realtime_start 최신
-        // 같은 분기 내에서 realtime_start 최신 순으로 재정렬
+
+        // realtime_start 내림차순 정렬 → obs[0]이 가장 최근 추정치
         obs.sort((a, b) => (b.realtime_start || '').localeCompare(a.realtime_start || ''));
-        const current = parseFloat(obs[0].value);
-        const prevEst = obs[1] ? parseFloat(obs[1].value) : null;
+        const latestQtr = obs[0].date;  // 현재 추정 분기 (e.g. 2026-01-01)
+        const current   = parseFloat(obs[0].value);
+        const asOf      = obs[0].realtime_start?.slice(0, 10) ?? null;
+
+        // 같은 분기의 직전 추정치 → delta 계산 (분기 간 비교 방지)
+        const sameQtr = obs.filter(o => o.date === latestQtr);
+        const prevEst = sameQtr[1] ? parseFloat(sameQtr[1].value) : null;
         const delta   = prevEst != null ? +(current - prevEst).toFixed(2) : null;
+
         return {
           current, prevEst, delta,
-          asOf:    obs[0]?.realtime_start?.slice(0, 10) ?? null,
-          qtrDate: obs[0]?.date ?? null,
+          asOf, qtrDate: latestQtr,
           components: null, qualityWarning: false, warningReason: null,
           source: 'fred_fallback',
-          _debug: _dbg,
+          _debug: null,  // 정상 작동 시 debug 숨김
         };
       } catch(e) {
         _dbg.fredErr = e.message;
