@@ -3832,8 +3832,7 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
   if (!apiKey) return null;
 
   const IDS_STD = {
-    WRESBAL:   { key: 'reserve_balances',  unitM: true  },  // H.4.1 주간, Millions → ÷1000 = Billions
-    WDTGAL:    { key: 'other_draining',   unitM: true  },   // H.4.1 주간, Millions
+    WDTGAL: { key: 'other_draining', unitM: true },  // 기타 드레인 (Millions)
   };
 
   const fetchFredObs = async (id, limit, unitM) => {
@@ -3871,21 +3870,10 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
 
   const kv = Object.fromEntries(stdResults.filter(([,v]) => v));
 
-  // RRP: preloaded 52주 시계열에서 직접 추출 (RRPONTSYD — Billions)
-  const rrpDesc = [...rrpSeriesP].sort((a,b) => b.date.localeCompare(a.date));
-  if (rrpDesc.length >= 1) {
-    const rrpCur  = rrpDesc[0].value;
-    const rrpPrev = rrpDesc[1]?.value ?? null;
-    kv['rrp'] = { cur: rrpCur, prev: rrpPrev, delta: rrpPrev != null ? +(rrpCur - rrpPrev).toFixed(2) : null, date: rrpDesc[0].date };
-  }
-
-  // TGA: preloaded 시계열에서 추출 (WTREGEN — Millions → ÷1000 = Billions)
-  const tgaDesc = [...tgaSeriesP].sort((a,b) => b.date.localeCompare(a.date));
-  if (tgaDesc.length >= 1) {
-    const tgaCur  = +(tgaDesc[0].value / 1000).toFixed(1);
-    const tgaPrev = tgaDesc[1] ? +(tgaDesc[1].value / 1000).toFixed(1) : null;
-    kv['tga'] = { cur: tgaCur, prev: tgaPrev, delta: tgaPrev != null ? +(tgaCur - tgaPrev).toFixed(1) : null, date: tgaDesc[0].date };
-  }
+  // reserve_balances / rrp / tga: h41HtmlResult에서 직접 사용 (FRED API 호출 불필요)
+  if (h41HtmlResult?.reserve_balances) kv['reserve_balances'] = h41HtmlResult.reserve_balances;
+  if (h41HtmlResult?.rrp)              kv['rrp']              = h41HtmlResult.rrp;
+  if (h41HtmlResult?.tga)              kv['tga']              = h41HtmlResult.tga;
 
   // WALCL 13주 국면 인식
   let walcl_anomaly = { status:'NORMAL', regime:'QT', avg_13w_delta:null, threshold:10, walcl_delta:null, loans_delta:null, walcl_cur:null, loans_cur:null };
@@ -3910,7 +3898,7 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
   const res   = kv.reserve_balances?.cur ?? 0;
   const rrpV  = kv.rrp?.cur              ?? 0;
   const tgaV  = kv.tga?.cur             ?? 0;
-  const curr  = h41HtmlResult?.currency ?? 0;  // H.4.1 currency_circ (Currency in circulation)
+  const curr  = h41HtmlResult?.currency ?? 0;
   const otherV= kv.other_draining?.cur   ?? 0;
   const totL  = +(res + rrpV + tgaV + curr + otherV).toFixed(1);
   const bufCur = +(res + rrpV).toFixed(1);
@@ -3931,21 +3919,39 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
 
 // ── H.4.1 HTML 통합 파싱 (loans + maturity + currency) ─────
 async function fetchH41HtmlData() {
+  // h41HistoryFetcher(weeks=2)로 H.4.1 HTML 파싱 데이터 전체 활용
+  // reserve_balances / rrp / tga / loans / currency / treasury_total 모두 포함
   try {
     const fakeUrl = new URL('https://dummy/h41-history?weeks=2');
     const resp = await h41HistoryFetcher(fakeUrl);
     const data = await resp.json();
     const s    = data?.series;
-    if (!s) return { loans: null, maturity: null, currency: null };
+    if (!s) return { loans:null, maturity:null, currency:null, treasury_total:null,
+                     reserve_balances:null, rrp:null, tga:null };
 
-    const lCur  = s.loans?.[0] ?? null;
-    const lPrev = s.loans?.[1] ?? null;
-    const loans = lCur != null ? {
-      cur: lCur, prev: lPrev,
-      delta: lPrev != null ? +(lCur-lPrev).toFixed(1) : null,
-      date: s.labels?.[0] ?? null,
-    } : null;
+    const toKv2 = (arr, dates) => {
+      const cur  = arr?.[0] ?? null;
+      const prev = arr?.[1] ?? null;
+      return cur != null ? {
+        cur, prev,
+        delta: prev != null ? +(cur - prev).toFixed(1) : null,
+        date:  dates?.[0] ?? null,
+      } : null;
+    };
 
+    // 은행 준비금 (Table1 최하단: Reserve balances with F.R. Banks)
+    const reserve_balances = toKv2(s.reserve_balances, s.labels);
+
+    // ON RRP domestic (외국계정 제외)
+    const rrp = toKv2(s.on_rrp_domestic, s.labels);
+
+    // TGA
+    const tga = toKv2(s.tga, s.labels);
+
+    // 긴급대출
+    const loans = toKv2(s.loans, s.labels);
+
+    // 만기 절벽
     const maturity = (s.treasury_within_15d?.[0] != null) ? {
       treasury_within_15d: s.treasury_within_15d?.[0] ?? null,
       treasury_d16_90d:    s.treasury_d16_90d?.[0]    ?? null,
@@ -3955,24 +3961,19 @@ async function fetchH41HtmlData() {
       treasury_over_10y:   s.treasury_over_10y?.[0]   ?? null,
     } : null;
 
-    const rawCur = data?.raw?.[0];
-    // currency: H.4.1 HTML currency_circ (Currency in circulation, Table1 최상단 항목)
-    const currency = data?.currency_circ?.valueB ?? (rawCur?.fed_notes_net != null
-      ? +(rawCur.fed_notes_net / 1000).toFixed(1) : null);
+    // 화폐 유통량 (Currency in circulation, Table1 최상단)
+    const rawCur   = data?.raw?.[0];
+    const currency = data?.currency_circ?.valueB
+      ?? (rawCur?.fed_notes_net != null ? +(rawCur.fed_notes_net / 1000).toFixed(1) : null);
 
-    // treasury_total WoW delta (H.4.1 → 연준 보유 국채 변화 = 순발행 프록시)
-    const ttCur  = s.treasury_total?.[0] ?? null;
-    const ttPrev = s.treasury_total?.[1] ?? null;
-    const treasury_total = ttCur != null ? {
-      cur:   ttCur,
-      prev:  ttPrev,
-      delta: ttPrev != null ? +(ttCur - ttPrev).toFixed(1) : null,
-    } : null;
+    // 연준 보유 국채 WoW (순발행 프록시)
+    const treasury_total = toKv2(s.treasury_total, s.labels);
 
-    return { loans, maturity, currency, treasury_total };
+    return { reserve_balances, rrp, tga, loans, maturity, currency, treasury_total };
   } catch(e) {
     console.error('[fetchH41HtmlData]', e.message);
-    return { loans: null, maturity: null, currency: null, treasury_total: null };
+    return { reserve_balances:null, rrp:null, tga:null, loans:null,
+             maturity:null, currency:null, treasury_total:null };
   }
 }
 
