@@ -275,9 +275,12 @@ async function fetchCalendar(env) {
     past.setDate(past.getDate() - 7);
     const pastStr = fmt(past);
     const endStr  = fmt(end);
+    // realtime_start=올해 1월: BLS/BEA가 연초에 등록한 연간 일정 모두 포함
+    // sort_order=desc: 최신 날짜 먼저 → 날짜 필터 후 정렬
+    const yearStart = `${todayKST.getFullYear()}-01-01`;
     const u = `https://api.stlouisfed.org/fred/releases/dates`
       + `?api_key=${apiKey}&file_type=json`
-      + `&realtime_start=1776-07-04&realtime_end=9999-12-31`
+      + `&realtime_start=${yearStart}&realtime_end=9999-12-31`
       + `&sort_order=asc&limit=1000&include_release_dates_with_no_data=true`;
     const r = await fetch(u, { cf: { cacheTtl: 3600 } });
     if (!r.ok) return { error: `FRED ${r.status}`, events: [] };
