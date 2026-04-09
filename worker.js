@@ -3832,7 +3832,7 @@ async function fetchH41ForTower(env) {
   if (!apiKey) return null;
 
   const IDS_STD = {
-    TOTRESNS:  { key: 'reserve_balances',  unitM: false },
+    WRESBAL:   { key: 'reserve_balances',  unitM: false },  // H.4.1 주간, 단위: Billions
     RRPONTSYD: { key: 'rrp',              unitM: false },
     WTREGEN:   { key: 'tga',              unitM: true  },
     WDTGAL:    { key: 'other_draining',   unitM: true  },
