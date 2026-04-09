@@ -1669,8 +1669,8 @@ async function iciRaw() {
 //    Fed 아카이브: federalreserve.gov/releases/h41/YYYYMMDD/
 //    그래프용 시계열 생성
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function h41HistoryFetcher(url) {
-  const weeks  = Math.min(parseInt(url.searchParams.get('weeks') || '12'), 52);
+async function h41HistoryFetcher(url, weeksOverride = null) {
+  const weeks  = weeksOverride ?? Math.min(parseInt(url.searchParams.get('weeks') || '12'), 52);
   const debug  = url.searchParams.get('debug') === '1';
 
   // ── STEP 1: Fed H.4.1 인덱스에서 실제 릴리즈 URL 목록 수집 ──
@@ -3923,8 +3923,8 @@ async function fetchH41HtmlData() {
   // h41HistoryFetcher(weeks=2)로 H.4.1 HTML 파싱 데이터 전체 활용
   // reserve_balances / rrp / tga / loans / currency / treasury_total 모두 포함
   try {
-    const fakeUrl = new URL('https://dummy/h41-history?weeks=3');  // prev/delta 확보
-    const resp = await h41HistoryFetcher(fakeUrl);
+    // h41HistoryFetcher 직접 호출 (3주치: cur/prev/delta 확보)
+    const resp = await h41HistoryFetcher(new URL('https://dummy'), 3);
     const data = await resp.json();
     const s    = data?.series;
     if (!s) return { loans:null, maturity:null, currency:null, treasury_total:null,
