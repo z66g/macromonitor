@@ -741,34 +741,9 @@ async function t2DataEndpoint(env, force = false) {
       const qtrDate  = obs[0].date;
       const asOf     = obs[0].realtime_start?.slice(0, 10) ?? null;
 
-      // 직전 추정치: asOf 하루 전을 realtime_end로 지정 → 그 시점의 최신값
-      let prevEst = null, delta = null;
-      try {
-        const prevDate = new Date(asOf);
-        prevDate.setDate(prevDate.getDate() - 1);
-        const prevDateStr = prevDate.toISOString().slice(0, 10);
-        // 같은 분기(qtrDate)이면서 asOf 전날 기준 최신값
-        const prevUrl = `https://api.stlouisfed.org/fred/series/observations`
-          + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
-          + `&observation_start=${qtrDate}&observation_end=${qtrDate}`
-          + `&realtime_start=1776-07-04&realtime_end=${prevDateStr}`
-          + `&sort_order=desc&limit=1`
-          + `&_cb=${Date.now()}`;
-        const pr = await fetch(prevUrl, {
-          cf: { cacheKey: `gdpnow-prev-${Date.now()}`, cacheEverything: false },
-        });
-        if (pr.ok) {
-          const pd = await pr.json();
-          const prevObs = (pd.observations || []).filter(o => o.value !== '.');
-          if (prevObs[0]) {
-            prevEst = parseFloat(prevObs[0].value);
-            delta   = +(current - prevEst).toFixed(2);
-          }
-        }
-      } catch(_) {}
 
       return {
-        current, prevEst, delta, asOf, qtrDate,
+        current, prevEst: null, delta: null, asOf, qtrDate,
         components: null, qualityWarning: false, warningReason: null,
         source: 'fred',
       };
