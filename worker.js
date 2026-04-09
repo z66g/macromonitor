@@ -747,8 +747,10 @@ async function t2DataEndpoint(env, force = false) {
         const prevDate = new Date(asOf);
         prevDate.setDate(prevDate.getDate() - 1);
         const prevDateStr = prevDate.toISOString().slice(0, 10);
+        // 같은 분기(qtrDate)이면서 asOf 전날 기준 최신값
         const prevUrl = `https://api.stlouisfed.org/fred/series/observations`
           + `?series_id=GDPNOW&api_key=${apiKey}&file_type=json`
+          + `&observation_start=${qtrDate}&observation_end=${qtrDate}`
           + `&realtime_start=1776-07-04&realtime_end=${prevDateStr}`
           + `&sort_order=desc&limit=1`
           + `&_cb=${Date.now()}`;
