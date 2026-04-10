@@ -5615,13 +5615,20 @@ async function auctionResults(url) {
 
   try {
     const r = await fetch(apiUrl, {
-      headers: { 'Accept': 'application/json' },
-      cf: { cacheTtl: 300 },  // 5분 캐시 (경매 당일 결과 빠르게 반영)
+      headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
+      cf: { cacheTtl: 300 },
     });
-    if (!r.ok) throw new Error(`Treasury API ${r.status}`);
-    const d = await r.json();
+    const body = await r.text();
+    if (!r.ok) {
+      return new Response(JSON.stringify({
+        error: `Treasury API HTTP ${r.status}`,
+        url: apiUrl,
+        body_preview: body.slice(0, 300),
+      }), { status: r.status, headers: { ...CORS } });
+    }
+    const d = JSON.parse(body);
     return new Response(JSON.stringify(d), { headers: { ...CORS } });
   } catch(e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS } });
+    return new Response(JSON.stringify({ error: e.message, url: apiUrl }), { status: 500, headers: { ...CORS } });
   }
 }
