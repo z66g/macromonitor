@@ -48,21 +48,17 @@ jobs:
               if not api_key:
                   return None, None
 
-              prompt = f"""You are a US Treasury auction specialist.
-Search for the auction results of the {term} US Treasury {security_type} auctioned on {auction_date}.
-Find the auction tail (difference between high yield and when-issued rate at auction time, in basis points).
-Return ONLY this JSON, no other text:
-{{
-  "tail_bps": 1.2,
-  "when_issued_rate": 4.270,
-  "high_yield": 4.282,
-  "source": "brief source description"
-}}
-Rules:
-- tail_bps = (high_yield - when_issued_rate) * 100, rounded to 1 decimal
-- Positive tail = weak demand (stopped through), negative = strong demand (bid through)
-- If tail data is not available, return null for all fields
-- Numbers must be floats, not strings"""
+              prompt = (
+                  "You are a US Treasury auction specialist. "
+                  "Search for the auction results of the " + term + " US Treasury " + security_type + " auctioned on " + auction_date + ". "
+                  "Find the auction tail (difference between high yield and when-issued rate at auction time, in basis points). "
+                  "Return ONLY this JSON, no other text: "
+                  '{"tail_bps": 1.2, "when_issued_rate": 4.270, "high_yield": 4.282, "source": "brief source"} '
+                  "Rules: "
+                  "tail_bps = (high_yield - when_issued_rate) * 100 rounded to 1 decimal. "
+                  "Positive = weak demand (stopped through), negative = strong (bid through). "
+                  "If not available return null for all fields. Numbers must be floats not strings."
+              )
 
               url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}'
               body = json.dumps({
