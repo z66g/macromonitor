@@ -23,7 +23,7 @@ jobs:
           python3 << 'PYEOF'
           import urllib.request, json, datetime
 
-          BASE   = 'https://api.fiscaldata.treasury.gov/services/api/v1/debt/securities/auction_data'
+          BASE   = 'https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/debt/securities/auction_data'
           FIELDS = ','.join([
               'security_type','security_term','auction_date','issue_date','maturity_date',
               'offering_amt','total_accepted','total_tendered','bid_to_cover_ratio',
