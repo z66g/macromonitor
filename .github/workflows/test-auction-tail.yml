@@ -1,0 +1,84 @@
+name: Test Auction Tail (1회용)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test Gemini Tail on Recent Auctions
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request, urllib.error, json, re, time, os
+
+          GEMINI_KEY = os.environ.get('GEMINI_API_KEY', '')
+
+          def gemini_tail(security_type, term, auction_date, api_key):
+              prompt = f"""You are a US Treasury auction specialist.
+Search for the auction results of the {term} US Treasury {security_type} auctioned on {auction_date}.
+Find the auction tail (difference between high yield and when-issued rate at auction time, in basis points).
+Return ONLY this JSON, no other text:
+{{
+  "tail_bps": 1.2,
+  "when_issued_rate": 4.270,
+  "high_yield": 4.282,
+  "source": "brief source description"
+}}
+Rules:
+- tail_bps = (high_yield - when_issued_rate) * 100, rounded to 1 decimal
+- Positive = weak (stopped through), Negative = strong (bid through)
+- If not available, return null for all fields"""
+
+              url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}'
+              body = json.dumps({
+                  'contents': [{'parts': [{'text': prompt}]}],
+                  'tools': [{'googleSearch': {}}],
+              }).encode()
+
+              for attempt in range(3):
+                  try:
+                      req = urllib.request.Request(url, data=body,
+                          headers={'Content-Type': 'application/json'})
+                      with urllib.request.urlopen(req, timeout=30) as r:
+                          data = json.loads(r.read().decode())
+
+                      text = ''
+                      for part in data.get('candidates',[{}])[0].get('content',{}).get('parts',[]):
+                          text += part.get('text','')
+
+                      print(f'  Raw response: {text[:300]}')
+                      m = re.search(r'\{[\s\S]*?\}', text)
+                      if m:
+                          result = json.loads(m.group())
+                          return result
+                  except urllib.error.HTTPError as e:
+                      if e.code == 429:
+                          wait = 10 * (2 ** attempt)
+                          print(f'  429 → {wait}s 대기')
+                          time.sleep(wait)
+                      else:
+                          print(f'  HTTP {e.code}: {e.read().decode()[:200]}')
+                          break
+                  except Exception as e:
+                      print(f'  Error: {e}')
+                      break
+              return None
+
+          # 최근 실제 경매 3건으로 테스트
+          test_cases = [
+              ('Note', '3-Year',        '2026-04-07'),
+              ('Note', '9-Year 10-Month','2026-04-08'),
+              ('Bond', '29-Year 10-Month','2026-04-10'),
+          ]
+
+          for sec_type, term, date in test_cases:
+              print(f'\n=== {sec_type} {term} ({date}) ===')
+              result = gemini_tail(sec_type, term, date, GEMINI_KEY)
+              print(f'  결과: {result}')
+              time.sleep(3)
+          PYEOF
