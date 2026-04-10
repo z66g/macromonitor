@@ -1,0 +1,15 @@
+name: Debug Gemini Key
+
+on:
+  workflow_dispatch:
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Gemini API Key
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          echo "CmltcG9ydCBvcwprZXkgPSBvcy5lbnZpcm9uLmdldCgnR0VNSU5JX0FQSV9LRVknLCAnJykKaWYgbm90IGtleToKICAgIHByaW50KCLinYwgR0VNSU5JX0FQSV9LRVkg7JeG7J2MIC0gR2l0SHViIFNlY3JldHPsl5Ag7LaU6rCAIO2VhOyalCIpCmVsc2U6CiAgICBwcmludCgi4pyFIEdFTUlOSV9BUElfS0VZIOyeiOydjCAo6ri47J20OiAiICsgc3RyKGxlbihrZXkpKSArICIpIikKICAgICMg7Iuk7KCcIEdlbWluaSDtmLjstpwg7YWM7Iqk7Yq4CiAgICBpbXBvcnQgdXJsbGliLnJlcXVlc3QsIGpzb24KICAgIHVybCA9ICJodHRwczovL2dlbmVyYXRpdmVsYW5ndWFnZS5nb29nbGVhcGlzLmNvbS92MWJldGEvbW9kZWxzL2dlbWluaS0yLjUtZmxhc2g6Z2VuZXJhdGVDb250ZW50P2tleT0iICsga2V5CiAgICBib2R5ID0ganNvbi5kdW1wcyh7CiAgICAgICAgImNvbnRlbnRzIjogW3sicGFydHMiOiBbeyJ0ZXh0IjogIlNheSBPSyJ9XX1dCiAgICB9KS5lbmNvZGUoKQogICAgcmVxID0gdXJsbGliLnJlcXVlc3QuUmVxdWVzdCh1cmwsIGRhdGE9Ym9keSwgaGVhZGVycz17IkNvbnRlbnQtVHlwZSI6ICJhcHBsaWNhdGlvbi9qc29uIn0pCiAgICB0cnk6CiAgICAgICAgd2l0aCB1cmxsaWIucmVxdWVzdC51cmxvcGVuKHJlcSwgdGltZW91dD0xMCkgYXMgcjoKICAgICAgICAgICAgcHJpbnQoIuKchSBHZW1pbmkg7J2R64u1OiBIVFRQICIgKyBzdHIoci5zdGF0dXMpKQogICAgZXhjZXB0IHVybGxpYi5lcnJvci5IVFRQRXJyb3IgYXMgZToKICAgICAgICBwcmludCgi4p2MIEdlbWluaSBIVFRQICIgKyBzdHIoZS5jb2RlKSArICI6ICIgKyBlLnJlYWQoKS5kZWNvZGUoKVs6MjAwXSkKICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZToKICAgICAgICBwcmludCgi4p2MICIgKyBzdHIoZSkpCg==" | base64 -d > /tmp/check.py
+          python3 /tmp/check.py
