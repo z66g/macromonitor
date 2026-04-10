@@ -14,14 +14,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch Auction Results
+      - name: Fetch Auction Results + Gemini Tail
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           mkdir -p data
 
           python3 << 'PYEOF'
-          import urllib.request, json, re, datetime
+          import urllib.request, urllib.error, json, re, datetime, time
 
-          # 기존 fetch-auctions.yml과 동일한 JSONP API (작동 확인됨)
           BASE    = 'https://www.treasurydirect.gov/TA_WS/securities'
           HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; MacroMonitor/1.0)'}
 
@@ -33,8 +34,7 @@ jobs:
                       text = r.read().decode('utf-8')
                   m = re.search(r'cb\s*\(\s*(\[[\s\S]*\])\s*\)', text)
                   if m:
-                      items = json.loads(m.group(1))
-                      return items[:limit]
+                      return json.loads(m.group(1))[:limit]
               except Exception as e:
                   print(f'Error {endpoint}/{sec_type}: {e}')
               return []
@@ -43,11 +43,72 @@ jobs:
               try: return float(v) if v else None
               except: return None
 
-          def analyze(a):
+          def gemini_tail(security_type, term, auction_date, api_key):
+              """Gemini Search Grounding으로 경매 tail(bps) 조회"""
+              if not api_key:
+                  return None, None
+
+              prompt = f"""You are a US Treasury auction specialist.
+Search for the auction results of the {term} US Treasury {security_type} auctioned on {auction_date}.
+Find the auction tail (difference between high yield and when-issued rate at auction time, in basis points).
+Return ONLY this JSON, no other text:
+{{
+  "tail_bps": 1.2,
+  "when_issued_rate": 4.270,
+  "high_yield": 4.282,
+  "source": "brief source description"
+}}
+Rules:
+- tail_bps = (high_yield - when_issued_rate) * 100, rounded to 1 decimal
+- Positive tail = weak demand (stopped through), negative = strong demand (bid through)
+- If tail data is not available, return null for all fields
+- Numbers must be floats, not strings"""
+
+              url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}'
+              body = json.dumps({
+                  'contents': [{'parts': [{'text': prompt}]}],
+                  'tools': [{'googleSearch': {}}],
+              }).encode()
+
+              for attempt in range(3):
+                  try:
+                      req = urllib.request.Request(url, data=body,
+                          headers={'Content-Type': 'application/json'})
+                      with urllib.request.urlopen(req, timeout=30) as r:
+                          data = json.loads(r.read().decode())
+
+                      text = ''
+                      for part in data.get('candidates', [{}])[0].get('content', {}).get('parts', []):
+                          text += part.get('text', '')
+
+                      # JSON 추출
+                      m = re.search(r'\{[\s\S]*?\}', text)
+                      if m:
+                          result = json.loads(m.group())
+                          tail = result.get('tail_bps')
+                          wi   = result.get('when_issued_rate')
+                          print(f'  Gemini tail ({term} {auction_date}): {tail} bps, WI={wi}')
+                          return tail, wi
+                  except urllib.error.HTTPError as e:
+                      if e.code == 429:
+                          wait = 10 * (2 ** attempt)
+                          print(f'  Gemini 429 → {wait}s 대기')
+                          time.sleep(wait)
+                      else:
+                          print(f'  Gemini HTTP {e.code}')
+                          break
+                  except Exception as e:
+                      print(f'  Gemini error: {e}')
+                      break
+              return None, None
+
+          import os
+          GEMINI_KEY = os.environ.get('GEMINI_API_KEY', '')
+          today = datetime.date.today().isoformat()
+
+          def analyze(a, tail_bps=None, wi_rate=None):
               btc   = safe_float(a.get('bidToCoverRatio'))
               high  = safe_float(a.get('highYield') or a.get('highRate') or a.get('highInvestmentRate'))
-              wi    = safe_float(a.get('whenIssuedRate'))
-              tail  = round((high - wi) * 100, 2) if high and wi else None
 
               accept = safe_float(a.get('totalAccepted')) or 0
               pd_a   = safe_float(a.get('primaryDealerAccepted')) or 0
@@ -70,7 +131,7 @@ jobs:
 
               score = sum({
                   'strong': 2, 'neutral': 1, 'weak': 0
-              }.get(g or '', 1) for g in [grade_btc(btc), grade_tail(tail), grade_pd(pd_pct)])
+              }.get(g or '', 1) for g in [grade_btc(btc), grade_tail(tail_bps), grade_pd(pd_pct)])
 
               return {
                   'security_type':  a.get('securityType', ''),
@@ -85,9 +146,9 @@ jobs:
                   'interest_rate':  safe_float(a.get('interestRate')),
                   '_analysis': {
                       'btc':          btc,
-                      'tail_bps':     tail,
+                      'tail_bps':     tail_bps,
                       'high_yield':   high,
-                      'wi_rate':      wi,
+                      'wi_rate':      wi_rate,
                       'pd_pct':       pd_pct,
                       'di_pct':       di_pct,
                       'in_pct':       in_pct,
@@ -96,18 +157,50 @@ jobs:
                       'in_accepted':  in_a or None,
                       'grade': {
                           'btc':  grade_btc(btc),
-                          'tail': grade_tail(tail),
+                          'tail': grade_tail(tail_bps),
                           'pd':   grade_pd(pd_pct),
                       },
                       'score': score,
                   }
               }
 
+          # 기존 auction_results.json 로드 (tail 이미 있는 건 Gemini 재호출 안 함)
+          existing = {}
+          try:
+              with open('data/auction_results.json') as f:
+                  prev = json.load(f)
+              for r in prev.get('results', []):
+                  existing[r.get('cusip', '')] = r
+              print(f'기존 데이터: {len(existing)}건')
+          except:
+              print('기존 데이터 없음')
+
           all_results = []
           for t in ['Note', 'Bond', 'Bill', 'TIPS', 'FRN']:
               items = fetch_jsonp('auctioned', t, limit=10)
               print(f'{t}: {len(items)}건')
-              all_results += [analyze(a) for a in items]
+
+              for a in items:
+                  cusip = a.get('cusip', '')
+                  auction_date = (a.get('auctionDate') or '')[:10]
+                  sec_type = a.get('securityType', '')
+                  term     = a.get('securityTerm', '')
+
+                  # 기존에 tail이 있으면 재사용
+                  prev_r = existing.get(cusip)
+                  if prev_r and prev_r.get('_analysis', {}).get('tail_bps') is not None:
+                      all_results.append(prev_r)
+                      continue
+
+                  # 오늘 경매 Note/Bond만 Gemini tail 조회
+                  # (Bill은 tail 개념 적용 안 함 / TIPS·FRN은 선택적)
+                  tail_bps, wi_rate = None, None
+                  if GEMINI_KEY and sec_type in ('Note', 'Bond', 'TIPS') and auction_date == today:
+                      print(f'  Gemini 조회: {sec_type} {term} ({auction_date})')
+                      tail_bps, wi_rate = gemini_tail(sec_type, term, auction_date, GEMINI_KEY)
+                      time.sleep(2)  # rate limit 방지
+
+                  all_results.append(analyze(a, tail_bps, wi_rate))
 
           all_results.sort(key=lambda x: x.get('auction_date',''), reverse=True)
 
@@ -120,7 +213,10 @@ jobs:
           with open('data/auction_results.json', 'w') as f:
               json.dump(result, f, indent=2)
 
-          print(f'완료: 총 {len(all_results)}건 저장')
+          today_with_tail = [r for r in all_results
+              if r.get('auction_date','') == today
+              and r.get('_analysis',{}).get('tail_bps') is not None]
+          print(f'완료: 총 {len(all_results)}건 (오늘 tail 확보: {len(today_with_tail)}건)')
           PYEOF
 
       - name: Commit and Push
