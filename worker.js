@@ -5593,42 +5593,31 @@ async function liqTowerDebug(env) {
 }
 
 async function auctionResults(url) {
-  const BASE = 'https://api.fiscaldata.treasury.gov/services/api/v1/debt/securities/auction_data';
-  const FIELDS = [
-    'security_type','security_term','auction_date','issue_date','maturity_date',
-    'offering_amt','total_accepted','total_tendered','bid_to_cover_ratio',
-    'primary_dealer_accepted','primary_dealer_tendered',
-    'direct_bidder_accepted','direct_bidder_tendered',
-    'indirect_bidder_accepted','indirect_bidder_tendered',
-    'high_investment_rate','high_yield','high_rate','when_issued_rate',
-    'interest_rate','cusip',
-  ].join(',');
+  // fiscaldata.treasury.gov가 CF Worker IP 차단(525) →
+  // GitHub Actions가 4시간마다 수집한 data/auction_results.json 사용
+  const RAW = 'https://raw.githubusercontent.com/z66g/macromonitor/main/data/auction_results.json';
 
-  const type    = url.searchParams.get('type')  || 'Note';
-  const limit   = url.searchParams.get('limit') || '5';
-  const date    = url.searchParams.get('date');  // 특정 경매일 필터
-
-  let filter = `security_type:eq:${type}`;
-  if (date) filter += `,auction_date:gte:${date}`;
-
-  const apiUrl = `${BASE}?fields=${FIELDS}&filter=${filter}&sort=-auction_date&limit=${limit}`;
+  const type  = url.searchParams.get('type');   // 필터: Note/Bond/Bill 등
+  const limit = parseInt(url.searchParams.get('limit') || '10');
+  const date  = url.searchParams.get('date');   // 특정 경매일 이후
 
   try {
-    const r = await fetch(apiUrl, {
-      headers: { 'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0' },
-      cf: { cacheTtl: 300 },
-    });
-    const body = await r.text();
-    if (!r.ok) {
-      return new Response(JSON.stringify({
-        error: `Treasury API HTTP ${r.status}`,
-        url: apiUrl,
-        body_preview: body.slice(0, 300),
-      }), { status: r.status, headers: { ...CORS } });
-    }
-    const d = JSON.parse(body);
-    return new Response(JSON.stringify(d), { headers: { ...CORS } });
+    const r = await fetch(RAW, { cf: { cacheTtl: 300 } });
+    if (!r.ok) throw new Error(`GitHub raw ${r.status}`);
+    const d = await r.json();
+    let results = d.results || [];
+
+    // 필터 적용
+    if (type) results = results.filter(a => a.security_type === type);
+    if (date) results = results.filter(a => (a.auction_date || '') >= date);
+    results = results.slice(0, limit);
+
+    return new Response(JSON.stringify({
+      updated: d.updated,
+      count: results.length,
+      results,
+    }), { headers: { ...CORS } });
   } catch(e) {
-    return new Response(JSON.stringify({ error: e.message, url: apiUrl }), { status: 500, headers: { ...CORS } });
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS } });
   }
 }

@@ -1,0 +1,134 @@
+name: Fetch Auction Results
+
+on:
+  schedule:
+    # 미국 주요 경매 시간 이후 (ET 11:30 = UTC 15:30) 에 실행
+    # 월~금 16:00, 17:00, 18:00 UTC (결과 발표 후 빠르게 수집)
+    - cron: '0 16,17,18 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Auction Results
+        run: |
+          mkdir -p data
+
+          python3 << 'PYEOF'
+          import urllib.request, json, datetime
+
+          BASE   = 'https://api.fiscaldata.treasury.gov/services/api/v1/debt/securities/auction_data'
+          FIELDS = ','.join([
+              'security_type','security_term','auction_date','issue_date','maturity_date',
+              'offering_amt','total_accepted','total_tendered','bid_to_cover_ratio',
+              'primary_dealer_accepted','primary_dealer_tendered',
+              'direct_bidder_accepted','direct_bidder_tendered',
+              'indirect_bidder_accepted','indirect_bidder_tendered',
+              'high_investment_rate','high_yield','high_rate','when_issued_rate',
+              'interest_rate','cusip',
+          ])
+          HEADERS = {'Accept': 'application/json', 'User-Agent': 'Mozilla/5.0'}
+
+          def fetch_results(sec_type, limit=10):
+              url = f'{BASE}?fields={FIELDS}&filter=security_type:eq:{sec_type}&sort=-auction_date&limit={limit}'
+              try:
+                  req = urllib.request.Request(url, headers=HEADERS)
+                  with urllib.request.urlopen(req, timeout=20) as r:
+                      return json.loads(r.read().decode())
+              except Exception as e:
+                  print(f'Error {sec_type}: {e}')
+                  return {'data': []}
+
+          all_results = []
+          for sec_type in ['Note', 'Bond', 'Bill', 'TIPS', 'FRN']:
+              d = fetch_results(sec_type, limit=10)
+              items = d.get('data', [])
+              print(f'{sec_type}: {len(items)}건')
+              all_results += items
+
+          # 날짜순 정렬 (최신 먼저)
+          all_results.sort(key=lambda x: x.get('auction_date',''), reverse=True)
+
+          # 분석 지표 계산 추가
+          def analyze(a):
+              btc   = float(a.get('bid_to_cover_ratio') or 0) or None
+              high  = float(a.get('high_yield') or a.get('high_investment_rate') or a.get('high_rate') or 0) or None
+              wi    = float(a.get('when_issued_rate') or 0) or None
+              tail  = round((high - wi) * 100, 2) if high and wi else None  # bps
+
+              accept = float(a.get('total_accepted') or 0)
+              pd_a   = float(a.get('primary_dealer_accepted') or 0)
+              di_a   = float(a.get('direct_bidder_accepted') or 0)
+              in_a   = float(a.get('indirect_bidder_accepted') or 0)
+
+              pd_pct = round(pd_a / accept * 100, 1) if accept else None
+              di_pct = round(di_a / accept * 100, 1) if accept else None
+              in_pct = round(in_a / accept * 100, 1) if accept else None
+
+              # 등급 판정
+              def grade_btc(v):
+                  if v is None: return None
+                  return 'strong' if v >= 2.6 else 'neutral' if v >= 2.3 else 'weak'
+
+              def grade_tail(v):
+                  if v is None: return None
+                  return 'strong' if v <= 0.5 else 'neutral' if v <= 1.5 else 'weak'
+
+              def grade_pd(v):
+                  if v is None: return None
+                  return 'strong' if v <= 12 else 'neutral' if v <= 20 else 'weak'
+
+              return {
+                  **a,
+                  '_analysis': {
+                      'btc':     btc,
+                      'tail_bps': tail,
+                      'pd_pct':  pd_pct,
+                      'di_pct':  di_pct,
+                      'in_pct':  in_pct,
+                      'high_yield_pct': high,
+                      'wi_rate_pct':    wi,
+                      'grade': {
+                          'btc':  grade_btc(btc),
+                          'tail': grade_tail(tail),
+                          'pd':   grade_pd(pd_pct),
+                      },
+                      # 종합 점수 (strong=2, neutral=1, weak=0)
+                      'score': sum({
+                          'strong': 2, 'neutral': 1, 'weak': 0
+                      }.get(g or '', 1) for g in [grade_btc(btc), grade_tail(tail), grade_pd(pd_pct)]),
+                  }
+              }
+
+          analyzed = [analyze(a) for a in all_results]
+
+          result = {
+              'updated': datetime.datetime.utcnow().isoformat() + 'Z',
+              'count': len(analyzed),
+              'results': analyzed,
+          }
+
+          with open('data/auction_results.json', 'w') as f:
+              json.dump(result, f, indent=2)
+
+          print(f"완료: 총 {len(analyzed)}건 저장")
+
+          # 오늘 경매 결과 요약
+          today = datetime.date.today().isoformat()
+          today_results = [a for a in analyzed if a.get('auction_date','').startswith(today[:7])]
+          print(f"이번달 경매: {len(today_results)}건")
+          PYEOF
+
+      - name: Commit and Push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/auction_results.json
+          git diff --staged --quiet || git commit -m "chore: update auction results [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git push
