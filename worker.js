@@ -112,6 +112,7 @@ export default {
       if (path.startsWith('/qra-preview'))   return await qraPreview(env);
       if (path.startsWith('/qra-apply'))     return await qraApply(request, env);
       if (path.startsWith('/qra-dismiss'))   return await qraDismiss(env);
+      if (path.startsWith('/auction-results'))  return await auctionResults(url);
       if (path.startsWith('/gdpnow-test'))     return await gdpNowTest(env);
       if (path.startsWith('/srf'))           return await srfProxy();
       if (path.startsWith('/cds-api-test'))  return await cdsApiTest();
@@ -5589,4 +5590,38 @@ async function liqTowerDebug(env) {
     qra_exists:     !!data.qraActive,
   };
   return new Response(JSON.stringify(summary, null, 2), { headers: { ...CORS } });
+}
+
+async function auctionResults(url) {
+  const BASE = 'https://api.fiscaldata.treasury.gov/services/api/v1/debt/securities/auction_data';
+  const FIELDS = [
+    'security_type','security_term','auction_date','issue_date','maturity_date',
+    'offering_amt','total_accepted','total_tendered','bid_to_cover_ratio',
+    'primary_dealer_accepted','primary_dealer_tendered',
+    'direct_bidder_accepted','direct_bidder_tendered',
+    'indirect_bidder_accepted','indirect_bidder_tendered',
+    'high_investment_rate','high_yield','high_rate','when_issued_rate',
+    'interest_rate','cusip',
+  ].join(',');
+
+  const type    = url.searchParams.get('type')  || 'Note';
+  const limit   = url.searchParams.get('limit') || '5';
+  const date    = url.searchParams.get('date');  // 특정 경매일 필터
+
+  let filter = `security_type:eq:${type}`;
+  if (date) filter += `,auction_date:gte:${date}`;
+
+  const apiUrl = `${BASE}?fields=${FIELDS}&filter=${filter}&sort=-auction_date&limit=${limit}`;
+
+  try {
+    const r = await fetch(apiUrl, {
+      headers: { 'Accept': 'application/json' },
+      cf: { cacheTtl: 300 },  // 5분 캐시 (경매 당일 결과 빠르게 반영)
+    });
+    if (!r.ok) throw new Error(`Treasury API ${r.status}`);
+    const d = await r.json();
+    return new Response(JSON.stringify(d), { headers: { ...CORS } });
+  } catch(e) {
+    return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS } });
+  }
 }

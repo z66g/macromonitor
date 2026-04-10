@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>국채 경매 결과 테스트</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #0D1117; color: #E6EDF3; padding: 20px; font-size: 13px; }
+h2 { color: #F0B429; margin-bottom: 16px; }
+h3 { color: #58A6FF; margin: 16px 0 8px; font-size: 12px; letter-spacing: .05em; }
+.card { background: #161B22; border: 0.5px solid #30363D; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid #21262D; font-size: 12px; }
+.row:last-child { border-bottom: none; }
+.label { color: #8B949E; }
+.val { font-weight: 600; }
+.green { color: #3FB950; }
+.red { color: #F85149; }
+.amber { color: #F0B429; }
+.blue { color: #58A6FF; }
+pre { background: #0D1117; border: 0.5px solid #30363D; border-radius: 6px;
+  padding: 12px; overflow-x: auto; font-size: 11px; color: #8B949E; margin-top: 16px; }
+button { background: #1A7F5A; border: none; border-radius: 6px; color: #fff;
+  padding: 8px 16px; cursor: pointer; font-size: 12px; margin-right: 8px; }
+select { background: #161B22; border: 0.5px solid #30363D; border-radius: 4px;
+  color: #E6EDF3; padding: 6px 10px; font-size: 12px; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+.badge-ok  { background: #1A7F5A; color: #fff; }
+.badge-warn { background: #9A6700; color: #fff; }
+.badge-bad { background: #CF222B; color: #fff; }
+.score-bar { height: 6px; background: #21262D; border-radius: 3px; margin-top: 4px; }
+.score-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+</style>
+</head>
+<body>
+
+<h2>🏛️ 국채 경매 결과 테스트</h2>
+
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+  <select id="secType">
+    <option value="Note">Note (중기채)</option>
+    <option value="Bond">Bond (장기채 30Y)</option>
+    <option value="Bill">Bill (단기채)</option>
+    <option value="TIPS">TIPS</option>
+    <option value="FRN">FRN</option>
+  </select>
+  <select id="limit">
+    <option value="5">최근 5건</option>
+    <option value="10">최근 10건</option>
+    <option value="20">최근 20건</option>
+  </select>
+  <button onclick="fetchAuctions()">🔍 조회</button>
+  <button onclick="fetchToday()">📅 오늘 경매 결과</button>
+</div>
+
+<div id="result"></div>
+<pre id="raw" style="display:none;"></pre>
+<button id="toggleRaw" onclick="toggleRaw()" style="display:none;margin-top:8px;background:#21262D;">Raw JSON 보기</button>
+
+<script>
+const BASE = 'https://macrolens-worker.macrolens.workers.dev/auction-results';
+
+let _rawData = null;
+
+async function fetchAuctions() {
+  const type  = document.getElementById('secType').value;
+  const limit = document.getElementById('limit').value;
+  await doFetch(`${BASE}?type=${type}&limit=${limit}`);
+}
+
+async function fetchToday() {
+  const today = new Date(Date.now() + 9*3600000).toISOString().slice(0,10);
+  await doFetch(`${BASE}?type=Note&date=${today}&limit=10`, `오늘(${today}) 경매 결과`);
+}
+
+async function doFetch(url, title = null) {
+  const el = document.getElementById('result');
+  el.innerHTML = '<div style="color:#484F58;padding:20px 0;">로딩 중...</div>';
+  try {
+    const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    _rawData = d;
+    document.getElementById('raw').textContent = JSON.stringify(d, null, 2);
+    document.getElementById('toggleRaw').style.display = 'inline-block';
+    renderAuctions(d.data || [], title);
+  } catch(e) {
+    el.innerHTML = `<div style="color:#F85149;">오류: ${e.message}</div>`;
+  }
+}
+
+function renderAuctions(rows, title) {
+  const el = document.getElementById('result');
+  if (!rows.length) {
+    el.innerHTML = '<div style="color:#484F58;padding:20px 0;">결과 없음 (오늘 경매 없거나 결과 미발표)</div>';
+    return;
+  }
+
+  const cards = rows.map(r => {
+    const btc     = parseFloat(r.bid_to_cover_ratio) || null;
+    const offered = parseFloat(r.offering_amt)       || 0;
+    const accept  = parseFloat(r.total_accepted)     || 0;
+    const tender  = parseFloat(r.total_tendered)     || 0;
+
+    // 응찰자 구성 (낙찰 기준)
+    const pdA  = parseFloat(r.primary_dealer_accepted)  || 0;
+    const diA  = parseFloat(r.direct_bidder_accepted)   || 0;
+    const inA  = parseFloat(r.indirect_bidder_accepted) || 0;
+    const pdPct = accept ? (pdA/accept*100).toFixed(1) : null;
+    const diPct = accept ? (diA/accept*100).toFixed(1) : null;
+    const inPct = accept ? (inA/accept*100).toFixed(1) : null;
+
+    // Tail = 낙찰 수익률 - WI 수익률 (bps)
+    const highY = parseFloat(r.high_yield || r.high_investment_rate || r.high_rate) || null;
+    const wiY   = parseFloat(r.when_issued_rate) || null;
+    const tail  = (highY && wiY) ? +((highY - wiY)*100).toFixed(2) : null; // bps
+
+    // BTC 등급
+    const btcBadge = !btc ? '' :
+      btc >= 2.6 ? `<span class="badge badge-ok">BTC ${btc} 강세</span>` :
+      btc >= 2.3 ? `<span class="badge badge-warn">BTC ${btc} 보통</span>` :
+                   `<span class="badge badge-bad">BTC ${btc} 약세</span>`;
+
+    // Tail 등급
+    const tailBadge = tail == null ? '' :
+      tail <= 0.5 ? `<span class="badge badge-ok">Tail ${tail}bps 강세</span>` :
+      tail <= 1.5 ? `<span class="badge badge-warn">Tail ${tail}bps 보통</span>` :
+                    `<span class="badge badge-bad">Tail ${tail}bps 약세</span>`;
+
+    // PD 부담 등급
+    const pdBadge = !pdPct ? '' :
+      parseFloat(pdPct) <= 12 ? `<span class="badge badge-ok">PD ${pdPct}% 낮음</span>` :
+      parseFloat(pdPct) <= 20 ? `<span class="badge badge-warn">PD ${pdPct}% 보통</span>` :
+                                  `<span class="badge badge-bad">PD ${pdPct}% 높음</span>`;
+
+    // 스코어 바 (BTC 2.0~3.0 기준)
+    const btcPct = btc ? Math.min(Math.max((btc-2.0)/1.0*100, 0), 100) : 0;
+    const btcColor = btc >= 2.6 ? '#3FB950' : btc >= 2.3 ? '#F0B429' : '#F85149';
+
+    return `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div>
+          <span style="font-size:14px;font-weight:700;color:#E6EDF3;">${r.security_type} ${r.security_term}</span>
+          <span style="font-size:11px;color:#484F58;margin-left:8px;">경매 ${r.auction_date}</span>
+          <span style="font-size:10px;color:#656D76;margin-left:4px;">CUSIP: ${r.cusip || '—'}</span>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">${btcBadge}${tailBadge}${pdBadge}</div>
+      </div>
+
+      <h3>📊 발행 규모 & 응찰율</h3>
+      <div class="row"><span class="label">발행 예정액</span><span class="val">$${fmtB(offered)}</span></div>
+      <div class="row"><span class="label">총 응찰액</span><span class="val">$${fmtB(tender)}</span></div>
+      <div class="row"><span class="label">총 낙찰액</span><span class="val">$${fmtB(accept)}</span></div>
+      <div class="row"><span class="label">Bid-to-Cover</span>
+        <span class="val ${btc>=2.6?'green':btc>=2.3?'amber':'red'}">${btc ?? '—'}</span>
+      </div>
+      ${btc ? `<div class="score-bar" style="margin-bottom:8px;">
+        <div class="score-fill" style="width:${btcPct}%;background:${btcColor};"></div>
+      </div>` : ''}
+
+      <h3>👥 응찰자 구성 (낙찰 기준)</h3>
+      <div class="row"><span class="label">Primary Dealer</span>
+        <span class="val ${parseFloat(pdPct||99)>20?'red':parseFloat(pdPct||0)>12?'amber':'green'}">
+          $${fmtB(pdA)} (${pdPct ?? '—'}%)
+        </span>
+      </div>
+      <div class="row"><span class="label">Direct Bidder</span>
+        <span class="val">$${fmtB(diA)} (${diPct ?? '—'}%)</span>
+      </div>
+      <div class="row"><span class="label">Indirect Bidder</span>
+        <span class="val blue">$${fmtB(inA)} (${inPct ?? '—'}%)</span>
+      </div>
+
+      ${pdPct&&diPct&&inPct ? `
+      <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;margin-top:6px;margin-bottom:2px;">
+        <div style="flex:${pdPct};background:#F85149;opacity:.8;" title="PD ${pdPct}%"></div>
+        <div style="flex:${diPct};background:#F0B429;opacity:.8;" title="Direct ${diPct}%"></div>
+        <div style="flex:${inPct};background:#3FB950;opacity:.8;" title="Indirect ${inPct}%"></div>
+      </div>
+      <div style="font-size:10px;color:#484F58;">🔴 PD ${pdPct}% &nbsp; 🟡 Direct ${diPct}% &nbsp; 🟢 Indirect ${inPct}%</div>
+      ` : ''}
+
+      <h3>💰 금리 & Tail</h3>
+      <div class="row"><span class="label">낙찰 수익률(고가)</span>
+        <span class="val">${highY ? highY.toFixed(3)+'%' : '—'}</span>
+      </div>
+      <div class="row"><span class="label">WI(When-Issued) 금리</span>
+        <span class="val">${wiY ? wiY.toFixed(3)+'%' : '—'}</span>
+      </div>
+      <div class="row"><span class="label">Tail</span>
+        <span class="val ${tail==null?'':tail<=0.5?'green':tail<=1.5?'amber':'red'}">
+          ${tail != null ? (tail>0?'+':'')+tail+'bps' : '—'}
+        </span>
+      </div>
+      ${r.interest_rate ? `<div class="row"><span class="label">쿠폰 금리</span><span class="val">${r.interest_rate}%</span></div>` : ''}
+      <div class="row"><span class="label">발행일 / 만기일</span>
+        <span class="val" style="font-size:11px;">${r.issue_date} ~ ${r.maturity_date}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="font-size:11px;color:#484F58;margin-bottom:8px;">
+      ${title || `최근 ${rows.length}건`} · fiscaldata.treasury.gov
+    </div>
+    ${cards}`;
+}
+
+function fmtB(v) {
+  if (!v) return '—';
+  const b = v / 1e9;
+  return b >= 1000 ? (b/1000).toFixed(2)+'T' : b.toFixed(1)+'B';
+}
+
+function toggleRaw() {
+  const el = document.getElementById('raw');
+  const btn = document.getElementById('toggleRaw');
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    btn.textContent = 'Raw JSON 닫기';
+  } else {
+    el.style.display = 'none';
+    btn.textContent = 'Raw JSON 보기';
+  }
+}
+
+// 페이지 로드 시 최근 Note 5건 자동 조회
+fetchAuctions();
+</script>
+</body>
+</html>
