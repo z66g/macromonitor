@@ -11256,9 +11256,7 @@ function renderAucCal() {
              background:${isSelected ? '#1A3448' : 'transparent'};
              border:${isToday ? '0.5px solid #58A6FF' : '0.5px solid transparent'};
              opacity:${hasAuction ? '1' : '0.4'};">
-      <div style="font-size:9px;color:${d % 7 === 0 ? '#3FB950' : firstDay===0?'':d===1&&firstDay>0?'':
-        (new Date(_aucCalYear,_aucCalMonth,d).getDay()===0?'#CF222B':
-         new Date(_aucCalYear,_aucCalMonth,d).getDay()===6?'#3FB950':'#8B949E')};">
+      <div style="font-size:9px;color:${(()=>{const dw=new Date(_aucCalYear,_aucCalMonth,d).getDay();return dw===0?'#CF222B':dw===6?'#3FB950':'#8B949E';})()};">
         ${d}</div>
       <div style="display:flex;justify-content:center;gap:1px;margin-top:1px;min-height:5px;">${dots}</div>
     </div>`;
