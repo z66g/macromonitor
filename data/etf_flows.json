@@ -1,8 +1,13 @@
 {
-  "updated": "2026-04-10T07:09:35.028967+00:00",
+  "updated": "2026-04-11T05:47:47.919519+00:00",
   "source": "farside.co.uk",
-  "cumTotal": 56.509,
+  "cumTotal": 56.749,
   "dailyFlows": [
+    {
+      "date": "2026-04-10",
+      "netFlow": 0.24,
+      "cumFlow": 56.749
+    },
     {
       "date": "2026-04-09",
       "netFlow": 0.358,
