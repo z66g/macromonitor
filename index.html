@@ -11095,7 +11095,6 @@ const AUC_TYPE_BG = {
   'Note': '#031D3A', 'Bond': '#3D0000', 'Bill': '#2D1B00',
   'TIPS': '#001D12', 'FRN': '#1A0A3D',
 };
-const AUC_SCORE_LABEL = { 100:'Strong', 67:'Average', 33:'Weak', 0:'Disastrous' };
 
 let _aucData       = null;   // auction_results.json
 let _aucUpcoming   = null;   // auctions.json (upcoming + auctioned 날짜)
@@ -11158,6 +11157,8 @@ async function loadAuctionPanel(force = false) {
       _aucUpcoming = [...(d.upcoming || []), ...(d.auctioned || [])];
     }
 
+    console.log('[auction] data loaded:', (_aucData||[]).length, 'results,', (_aucUpcoming||[]).length, 'upcoming');
+    console.log('[auction] sample dates:', (_aucData||[]).slice(0,3).map(r=>r.auction_date));
     renderAucCal();
     renderAucCards(_aucSelectedDate);
     document.getElementById('led-auction').style.background = '#3FB950';
@@ -11305,9 +11306,6 @@ function renderAucCards(dateStr) {
     const typ = r.security_type || '';
     const col = AUC_TYPE_COLOR[typ] || '#484F58';
     const bg  = AUC_TYPE_BG[typ]    || '#161B22';
-    const score = a.score_pct;
-    const scoreLabel = score >= 80 ? 'Strong' : score >= 55 ? 'Average' : score >= 30 ? 'Weak' : 'Disastrous';
-    const scoreColor = score >= 80 ? '#1A7F5A' : score >= 55 ? '#9A6700' : '#CF222B';
 
     const offerBn = r.offering_amt ? (r.offering_amt/1e9).toFixed(0) : '—';
     const btcStr  = a.btc ? `${a.btc}x` : '—';
@@ -11336,7 +11334,6 @@ function renderAucCards(dateStr) {
                        background:${col}22;border-radius:3px;padding:1px 6px;">${typ}</span>
           <span style="font-size:10px;color:#E6EDF3;font-weight:600;">${r.security_term || ''}</span>
         </div>
-        <span style="font-size:8px;font-weight:700;color:${scoreColor};">● ${scoreLabel}</span>
       </div>
       <!-- 핵심 수치 -->
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
