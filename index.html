@@ -1127,7 +1127,7 @@ body{
 }
 
 @media (max-width: 599px) {
-  #news-panel, #cal-panel, #tower-panel {
+  #news-panel, #cal-panel, #tower-panel, #auction-panel {
     width: 100vw !important;
     border-left: none !important;
   }
@@ -1287,6 +1287,18 @@ body{
       <span style="font-size:11px;">📅</span>
       <span style="font-size:9px;">캘린더</span>
       <span id="led-cal" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
+    </button>
+    <button id="hdr-auction-btn" onclick="toggleAuctionPanel()" title="국채경매 분석"
+      style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
+             color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
+             display:flex;align-items:center;gap:4px;transition:all .2s;position:relative;">
+      <span style="font-size:11px;">🏛</span>
+      <span style="font-size:9px;">국채경매</span>
+      <span id="auction-n-badge"
+        style="display:none;position:absolute;top:-4px;right:-4px;
+               background:#CF222B;color:#fff;font-size:8px;font-weight:700;
+               border-radius:6px;padding:1px 4px;line-height:1.4;">N</span>
+      <span id="led-auction" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;"></span>
     </button>
     <button id="hdr-tower-btn" onclick="toggleLiqTower()" title="유동성 관제탑"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
@@ -2501,6 +2513,74 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
 <!-- 관제탑 패널 오버레이 -->
 <div id="tower-overlay" onclick="toggleLiqTower()"
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
+
+<!-- 국채경매 분석 슬라이드 패널 -->
+<div id="auction-overlay" onclick="toggleAuctionPanel()"
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:900;"></div>
+
+<div id="auction-panel"
+  style="position:fixed;top:0;right:0;height:100vh;width:400px;
+         background:#161B22;border-left:0.5px solid #30363D;
+         z-index:901;transform:translateX(100%);
+         transition:transform .28s cubic-bezier(.4,0,.2,1);
+         display:flex;flex-direction:column;overflow:hidden;
+         overscroll-behavior:contain;touch-action:pan-y;">
+  <!-- 헤더 -->
+  <div style="display:flex;align-items:center;justify-content:space-between;
+              padding:14px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:13px;font-weight:700;color:#E6EDF3;">국채경매 분석</span>
+      <span id="auction-updated" style="font-size:8px;color:#484F58;"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button onclick="loadAuctionPanel(true)" title="새로고침"
+        style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:13px;padding:2px;">↻</button>
+      <button onclick="toggleAuctionPanel()"
+        style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
+    </div>
+  </div>
+  <!-- 미니 캘린더 -->
+  <div style="flex-shrink:0;padding:12px 18px;border-bottom:0.5px solid #21262D;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <button onclick="aucCalMove(-1)"
+        style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">‹</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="auc-cal-label" style="font-size:11px;font-weight:700;color:#E6EDF3;"></span>
+        <button onclick="aucCalGoToday()"
+          style="font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;
+                 background:#1A3448;color:#58A6FF;border:0.5px solid #0969DA;">오늘</button>
+      </div>
+      <button onclick="aucCalMove(1)"
+        style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">›</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px;">
+      <span style="font-size:8px;color:#CF222B;">일</span>
+      <span style="font-size:8px;color:#8B949E;">월</span><span style="font-size:8px;color:#8B949E;">화</span>
+      <span style="font-size:8px;color:#8B949E;">수</span><span style="font-size:8px;color:#8B949E;">목</span>
+      <span style="font-size:8px;color:#8B949E;">금</span><span style="font-size:8px;color:#3FB950;">토</span>
+    </div>
+    <div id="auc-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;"></div>
+    <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+      <span style="font-size:8px;color:#8B949E;display:flex;align-items:center;gap:3px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#0969DA;display:inline-block;"></span>Note</span>
+      <span style="font-size:8px;color:#8B949E;display:flex;align-items:center;gap:3px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#CF222B;display:inline-block;"></span>Bond</span>
+      <span style="font-size:8px;color:#8B949E;display:flex;align-items:center;gap:3px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#9A6700;display:inline-block;"></span>Bill</span>
+      <span style="font-size:8px;color:#8B949E;display:flex;align-items:center;gap:3px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#1A7F5A;display:inline-block;"></span>TIPS</span>
+      <span style="font-size:8px;color:#8B949E;display:flex;align-items:center;gap:3px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#6E40C9;display:inline-block;"></span>FRN</span>
+    </div>
+  </div>
+  <!-- 선택일 레이블 -->
+  <div id="auc-date-label"
+    style="padding:8px 18px;font-size:9px;color:#656D76;
+           border-bottom:0.5px solid #21262D;flex-shrink:0;"></div>
+  <!-- 경매 카드 리스트 -->
+  <div id="auc-card-list"
+    style="flex:1;overflow-y:auto;overscroll-behavior:contain;padding:10px 14px;"></div>
+</div>
 
 <!-- 유동성 관제탑 슬라이드 패널 -->
 <div id="tower-panel"
@@ -9853,7 +9933,7 @@ function fixPanelHeight() {
   _fixPanelTimer = requestAnimationFrame(() => {
     _fixPanelTimer = null;
     const h = (window.visualViewport?.height || window.innerHeight) + 'px';
-    ['news-panel', 'cal-panel', 'tower-panel'].forEach(id => {
+    ['news-panel', 'cal-panel', 'tower-panel', 'auction-panel'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.height = h;
     });
@@ -9862,7 +9942,7 @@ function fixPanelHeight() {
 // 초기 1회 실행 (패널 열릴 때도 호출하므로 여기선 직접 설정)
 ;(function() {
   const h = (window.visualViewport?.height || window.innerHeight) + 'px';
-  ['news-panel', 'cal-panel', 'tower-panel'].forEach(id => {
+  ['news-panel', 'cal-panel', 'tower-panel', 'auction-panel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.height = h;
   });
@@ -11003,6 +11083,320 @@ function toggleNewsPanel() {
     btn.style.color         = '#8B949E';
   }
 }
+
+// ══════════════════════════════════════════════════════════════
+// 국채경매 분석 패널
+// ══════════════════════════════════════════════════════════════
+const AUC_TYPE_COLOR = {
+  'Note': '#0969DA', 'Bond': '#CF222B', 'Bill': '#9A6700',
+  'TIPS': '#1A7F5A', 'FRN': '#6E40C9',
+};
+const AUC_TYPE_BG = {
+  'Note': '#031D3A', 'Bond': '#3D0000', 'Bill': '#2D1B00',
+  'TIPS': '#001D12', 'FRN': '#1A0A3D',
+};
+const AUC_SCORE_LABEL = { 100:'Strong', 67:'Average', 33:'Weak', 0:'Disastrous' };
+
+let _aucData       = null;   // auction_results.json
+let _aucUpcoming   = null;   // auctions.json (upcoming + auctioned 날짜)
+let _aucCalYear    = nowKST().getUTCFullYear();
+let _aucCalMonth   = nowKST().getUTCMonth();
+let _aucSelectedDate = todayKSTStr();
+let _aucPanelOpen  = false;
+let _aucLastSeen   = localStorage.getItem('auc_last_seen') || '';
+
+// 타입별 날짜 → Set 매핑
+function buildAucDateMap(results, upcoming) {
+  const map = {};  // date → [{type, hasResult}]
+  (results || []).forEach(r => {
+    const d = r.auction_date;
+    if (!d) return;
+    if (!map[d]) map[d] = [];
+    map[d].push({ type: r.security_type, hasResult: true });
+  });
+  (upcoming || []).forEach(u => {
+    const d = (u.auctionDate || '').slice(0, 10);
+    if (!d) return;
+    const t = u.type || u.securityType || '';
+    if (!map[d]) map[d] = [];
+    // 중복 방지
+    if (!map[d].find(x => x.type === t && x.hasResult)) {
+      map[d].push({ type: t, hasResult: false });
+    }
+  });
+  return map;
+}
+
+async function loadAuctionPanel(force = false) {
+  const RAW_RESULTS  = `${WORKER}/auction-results?limit=100`;
+  const RAW_UPCOMING = `https://raw.githubusercontent.com/z66g/macromonitor/main/data/auctions.json`;
+
+  try {
+    const [rRes, rUpcoming] = await Promise.allSettled([
+      fetchT(RAW_RESULTS, 15000),
+      fetch(RAW_UPCOMING, { cf: { cacheTtl: 3600 } }),
+    ]);
+
+    if (rRes.status === 'fulfilled') {
+      const d = await rRes.value.json();
+      _aucData = d.results || [];
+      const upd = d.updated || '';
+      const updEl = document.getElementById('auction-updated');
+      if (updEl && upd) {
+        const dt = new Date(upd);
+        updEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} 기준`;
+      }
+      // N 뱃지: 마지막으로 본 updated보다 새로운 데이터 있으면 표시
+      const badge = document.getElementById('auction-n-badge');
+      if (badge) {
+        badge.style.display = (upd && upd > _aucLastSeen) ? 'block' : 'none';
+      }
+    }
+
+    if (rUpcoming.status === 'fulfilled') {
+      const d = await rUpcoming.value.json();
+      _aucUpcoming = [...(d.upcoming || []), ...(d.auctioned || [])];
+    }
+
+    renderAucCal();
+    renderAucCards(_aucSelectedDate);
+    document.getElementById('led-auction').style.background = '#3FB950';
+  } catch(e) {
+    console.error('[auction panel]', e);
+    document.getElementById('led-auction').style.background = '#F85149';
+  }
+}
+
+function toggleAuctionPanel() {
+  const panel   = document.getElementById('auction-panel');
+  const overlay = document.getElementById('auction-overlay');
+  const isOpen  = panel.style.transform === 'translateX(0%)';
+
+  // 다른 패널 닫기
+  ['news-panel','cal-panel','tower-panel'].forEach(id => {
+    const p = document.getElementById(id);
+    if (p) p.style.transform = 'translateX(100%)';
+  });
+  ['news-overlay','cal-overlay','tower-overlay'].forEach(id => {
+    const o = document.getElementById(id);
+    if (o) o.style.display = 'none';
+  });
+
+  if (isOpen) {
+    panel.style.transform = 'translateX(100%)';
+    overlay.style.display = 'none';
+    _aucPanelOpen = false;
+  } else {
+    panel.style.transform = 'translateX(0%)';
+    overlay.style.display = 'block';
+    _aucPanelOpen = true;
+
+    // N 뱃지 숨기고 읽음 처리
+    const badge = document.getElementById('auction-n-badge');
+    if (badge) badge.style.display = 'none';
+    if (_aucData) {
+      const upd = document.getElementById('auction-updated')?.textContent || '';
+      _aucLastSeen = new Date().toISOString();
+      localStorage.setItem('auc_last_seen', _aucLastSeen);
+    }
+
+    if (!_aucData) loadAuctionPanel();
+    else { renderAucCal(); renderAucCards(_aucSelectedDate); }
+  }
+}
+
+function aucCalMove(delta) {
+  _aucCalMonth += delta;
+  if (_aucCalMonth < 0)  { _aucCalMonth = 11; _aucCalYear--; }
+  if (_aucCalMonth > 11) { _aucCalMonth = 0;  _aucCalYear++; }
+  renderAucCal();
+}
+function aucCalGoToday() {
+  const n = nowKST();
+  _aucCalYear  = n.getUTCFullYear();
+  _aucCalMonth = n.getUTCMonth();
+  _aucSelectedDate = todayKSTStr();
+  renderAucCal();
+  renderAucCards(_aucSelectedDate);
+}
+
+function renderAucCal() {
+  const label = document.getElementById('auc-cal-label');
+  const grid  = document.getElementById('auc-cal-grid');
+  if (!label || !grid) return;
+
+  label.textContent = `${_aucCalYear}년 ${_aucCalMonth + 1}월`;
+
+  const today     = todayKSTStr();
+  const dateMap   = buildAucDateMap(_aucData, _aucUpcoming);
+  const firstDay  = new Date(_aucCalYear, _aucCalMonth, 1).getDay();
+  const daysInMon = new Date(_aucCalYear, _aucCalMonth + 1, 0).getDate();
+
+  let html = '';
+  // 빈 칸
+  for (let i = 0; i < firstDay; i++) {
+    html += '<div></div>';
+  }
+  for (let d = 1; d <= daysInMon; d++) {
+    const ds  = `${_aucCalYear}-${String(_aucCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday    = ds === today;
+    const isSelected = ds === _aucSelectedDate;
+    const dayInfo    = dateMap[ds] || [];
+    const hasAuction = dayInfo.length > 0;
+    const hasResult  = dayInfo.some(x => x.hasResult);
+
+    // 타입 도트 (최대 3개)
+    const dots = dayInfo.slice(0, 3).map(x =>
+      `<span style="width:4px;height:4px;border-radius:50%;background:${AUC_TYPE_COLOR[x.type]||'#484F58'};display:inline-block;"></span>`
+    ).join('');
+
+    html += `<div onclick="aucSelectDate('${ds}')"
+      style="text-align:center;padding:3px 1px;cursor:${hasAuction?'pointer':'default'};
+             border-radius:4px;
+             background:${isSelected ? '#1A3448' : 'transparent'};
+             border:${isToday ? '0.5px solid #58A6FF' : '0.5px solid transparent'};
+             opacity:${hasAuction ? '1' : '0.4'};">
+      <div style="font-size:9px;color:${d % 7 === 0 ? '#3FB950' : firstDay===0?'':d===1&&firstDay>0?'':
+        (new Date(_aucCalYear,_aucCalMonth,d).getDay()===0?'#CF222B':
+         new Date(_aucCalYear,_aucCalMonth,d).getDay()===6?'#3FB950':'#8B949E')};">
+        ${d}</div>
+      <div style="display:flex;justify-content:center;gap:1px;margin-top:1px;min-height:5px;">${dots}</div>
+    </div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function aucSelectDate(ds) {
+  _aucSelectedDate = ds;
+  renderAucCal();
+  renderAucCards(ds);
+}
+
+function renderAucCards(dateStr) {
+  const el = document.getElementById('auc-card-list');
+  const lbl = document.getElementById('auc-date-label');
+  if (!el) return;
+
+  // 날짜 레이블
+  if (lbl) {
+    const dt = new Date(dateStr + 'T00:00:00');
+    lbl.textContent = `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 경매`;
+  }
+
+  // 해당일 경매 결과
+  const results = (_aucData || []).filter(r => r.auction_date === dateStr);
+
+  // 해당일 예정 경매 (결과 없는 것만)
+  const resultCusips = new Set(results.map(r => r.cusip));
+  const upcoming = (_aucUpcoming || []).filter(u => {
+    const d = (u.auctionDate || '').slice(0, 10);
+    return d === dateStr && !resultCusips.has(u.cusip);
+  });
+
+  if (results.length === 0 && upcoming.length === 0) {
+    el.innerHTML = `<div style="color:#484F58;font-size:11px;text-align:center;padding:24px 0;">
+      이 날짜에 경매 없음</div>`;
+    return;
+  }
+
+  let html = '';
+
+  // 결과 카드
+  results.forEach(r => {
+    const a   = r._analysis || {};
+    const typ = r.security_type || '';
+    const col = AUC_TYPE_COLOR[typ] || '#484F58';
+    const bg  = AUC_TYPE_BG[typ]    || '#161B22';
+    const score = a.score_pct;
+    const scoreLabel = score >= 80 ? 'Strong' : score >= 55 ? 'Average' : score >= 30 ? 'Weak' : 'Disastrous';
+    const scoreColor = score >= 80 ? '#1A7F5A' : score >= 55 ? '#9A6700' : '#CF222B';
+
+    const offerBn = r.offering_amt ? (r.offering_amt/1e9).toFixed(0) : '—';
+    const btcStr  = a.btc ? `${a.btc}x` : '—';
+    const btcAvg  = a.btc_avg6 ? `avg ${a.btc_avg6}x` : '';
+    const tailStr = a.tail_bps != null ? `${a.tail_bps > 0 ? '+' : ''}${a.tail_bps}bps` : '—';
+    const tailCol = a.tail_bps == null ? '#484F58' : a.tail_bps <= 0.5 ? '#1A7F5A' : a.tail_bps <= 1.5 ? '#9A6700' : '#CF222B';
+    const pdStr   = a.pd_pct != null ? `PD ${a.pd_pct}%` : '';
+    const inStr   = a.in_pct != null ? `Indirect ${a.in_pct}%` : '';
+
+    // 요약 파싱 (줄바꿈 처리)
+    const summaryHtml = r.summary
+      ? r.summary.split('\n').map(line => {
+          if (line.startsWith('🎯')) return `<div style="font-size:10px;font-weight:700;color:#E6EDF3;margin-bottom:6px;">${line}</div>`;
+          if (/^[1-4]\./.test(line)) return `<div style="font-size:9px;color:#8B949E;margin-bottom:3px;line-height:1.5;">${line}</div>`;
+          return `<div style="font-size:9px;color:#656D76;margin-bottom:2px;">${line}</div>`;
+        }).join('')
+      : `<div style="font-size:9px;color:#484F58;">요약 준비 중...</div>`;
+
+    html += `
+    <div style="background:${bg};border:0.5px solid ${col}33;border-left:3px solid ${col};
+                border-radius:6px;padding:10px 12px;margin-bottom:10px;">
+      <!-- 타입 + 결과 있음 표시 -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:9px;font-weight:700;color:${col};
+                       background:${col}22;border-radius:3px;padding:1px 6px;">${typ}</span>
+          <span style="font-size:10px;color:#E6EDF3;font-weight:600;">${r.security_term || ''}</span>
+        </div>
+        <span style="font-size:8px;font-weight:700;color:${scoreColor};">● ${scoreLabel}</span>
+      </div>
+      <!-- 핵심 수치 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:8px;">
+        <div style="text-align:center;background:#0D1117;border-radius:4px;padding:4px 2px;">
+          <div style="font-size:8px;color:#484F58;">발행액</div>
+          <div style="font-size:10px;font-weight:700;color:#E6EDF3;">$${offerBn}B</div>
+        </div>
+        <div style="text-align:center;background:#0D1117;border-radius:4px;padding:4px 2px;">
+          <div style="font-size:8px;color:#484F58;">BTC ${btcAvg}</div>
+          <div style="font-size:10px;font-weight:700;color:${a.grade?.btc==='strong'?'#1A7F5A':a.grade?.btc==='weak'?'#CF222B':'#9A6700'};">${btcStr}</div>
+        </div>
+        <div style="text-align:center;background:#0D1117;border-radius:4px;padding:4px 2px;">
+          <div style="font-size:8px;color:#484F58;">Tail</div>
+          <div style="font-size:10px;font-weight:700;color:${tailCol};">${tailStr}</div>
+        </div>
+      </div>
+      <!-- 응찰자 구성 바 -->
+      ${a.pd_pct!=null && a.in_pct!=null ? `
+      <div style="margin-bottom:6px;">
+        <div style="display:flex;height:6px;border-radius:3px;overflow:hidden;margin-bottom:2px;">
+          <div style="flex:${a.pd_pct};background:#CF222B;opacity:.8;" title="PD ${a.pd_pct}%"></div>
+          <div style="flex:${a.di_pct||0};background:#9A6700;opacity:.8;" title="Direct ${a.di_pct||0}%"></div>
+          <div style="flex:${a.in_pct};background:#1A7F5A;opacity:.8;" title="Indirect ${a.in_pct}%"></div>
+        </div>
+        <div style="font-size:8px;color:#484F58;">
+          🔴PD ${a.pd_pct}% &nbsp; 🟡Direct ${a.di_pct||0}% &nbsp; 🟢Indirect ${a.in_pct}%
+        </div>
+      </div>` : ''}
+      <!-- 분석 요약 -->
+      <div style="border-top:0.5px solid ${col}33;padding-top:8px;">
+        ${summaryHtml}
+      </div>
+    </div>`;
+  });
+
+  // 예정 카드 (결과 없는 upcoming)
+  upcoming.forEach(u => {
+    const typ = u.type || u.securityType || '';
+    const col = AUC_TYPE_COLOR[typ] || '#484F58';
+    const offerBn = u.offeringAmt ? (u.offeringAmt/1e9).toFixed(0) : '—';
+    html += `
+    <div style="background:#0D1117;border:0.5px dashed ${col}55;border-left:3px solid ${col}55;
+                border-radius:6px;padding:10px 12px;margin-bottom:10px;opacity:0.7;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <span style="font-size:9px;font-weight:700;color:${col};
+                     background:${col}22;border-radius:3px;padding:1px 6px;">${typ}</span>
+        <span style="font-size:10px;color:#8B949E;">${u.term || u.securityTerm || ''}</span>
+        <span style="font-size:8px;color:#484F58;margin-left:auto;">결과 대기 중</span>
+      </div>
+      <div style="font-size:9px;color:#484F58;">
+        발행 예정 $${offerBn}B &nbsp;·&nbsp; 결제일 ${(u.issueDate||'').slice(0,10)||'—'}
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
 window.toggleNewsPanel = toggleNewsPanel;
 
 // ── 시간 필터 ─────────────────────────────────────────────────
