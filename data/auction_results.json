@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-12T07:06:20.059197+00:00",
+  "updated": "2026-04-12T07:10:24.325223+00:00",
   "count": 19,
   "results": [
     {
@@ -316,9 +316,9 @@
       "interest_rate": 3.875,
       "_analysis": {
         "btc": 2.29,
-        "tail_bps": null,
+        "tail_bps": 1.4,
         "high_yield": 3.98,
-        "wi_rate": null,
+        "wi_rate": 3.966,
         "pd_pct": 14.1,
         "di_pct": 20.3,
         "in_pct": 56.0,
@@ -327,11 +327,12 @@
         "in_accepted": 43236369000.0,
         "grade": {
           "btc": "weak",
-          "tail": null,
+          "tail": "neutral",
           "pd": "neutral"
         },
         "score": 2
-      }
+      },
+      "summary": "\ud83c\udfaf \ucd1d\ud3c9: \ubcf4\ud1b5\n1. Tail: 1.4bps. \uc774\ub294 \uc2dc\uc7a5 \uc608\uc0c1\ubcf4\ub2e4 \ub192\uc740 \uae08\ub9ac\uc5d0\uc11c \ub099\ucc30\ub418\uc5c8\uc74c\uc744 \uc2dc\uc0ac\ud558\uba70, \uc218\uc694\uac00 \ub2e4\uc18c \uc57d\ud588\uc74c\uc744 \ub098\ud0c0\ub0c5\ub2c8\ub2e4.\n2. BTC: 2.29x vs 6avg N/A x. 6\uac1c\uc6d4 \ud3c9\uade0 \ub370\uc774\ud130\ub294 \uc5c6\uc73c\ub098, 2.29\ubc30\uc758 \uc751\ucc30\ub960\uc740 \uacac\uc870\ud55c \uc218\uc694\ub97c \ubcf4\uc5ec\uc90d\ub2c8\ub2e4.\n3. Indirect 56.0% vs 6avg N/A %. \uac04\uc811 \uc785\ucc30\uc790\ub4e4\uc758 \ub192\uc740 \ucc38\uc5ec\ub294 \uae30\uad00 \ud22c\uc790\uc790\ub4e4\uc758 \uac15\ud55c \uad00\uc2ec\uc744 \ubc18\uc601\ud569\ub2c8\ub2e4. PD 14.1% vs 6avg N/A %. \ub0ae\uc740 PD\ub294 \ub51c\ub7ec\ub4e4\uc758 \uc7ac\uace0 \ubd80\ub2f4\uc774 \uc801\uc74c\uc744 \uc758\ubbf8\ud569\ub2c8\ub2e4.\n4. \uacb0\ub860: \uae0d\uc815\uc801\uc778 \ud14c\uc77c\uc5d0\ub3c4 \ubd88\uad6c\ud558\uace0 \uacac\uc870\ud55c \uac04\uc811 \uc218\uc694\uac00 \uae08\ub9ac \uc0c1\uc2b9 \uc555\ub825\uc744 \uc644\ud654\ud558\uba70 \uc720\ub3d9\uc131\uc744 \uc9c0\uc9c0\ud560 \uac83\uc785\ub2c8\ub2e4."
     },
     {
       "security_type": "Note",
@@ -361,7 +362,8 @@
           "pd": "weak"
         },
         "score": 3
-      }
+      },
+      "summary": "\ud83c\udfaf \ucd1d\ud3c9: Weak\n1. Tail: N/Abps. \ud14c\uc77c \ub370\uc774\ud130 \ubd80\uc7ac\ub85c \uae08\ub9ac \uc601\ud5a5 \ud3c9\uac00\uac00 \uc5b4\ub835\uc2b5\ub2c8\ub2e4.\n2. BTC: 2.78x vs 6avg N/Ax. \uc785\ucc30\uc218\uc694\ub294 2.78\ubc30\ub85c \ub098\ud0c0\ub0ac\uc73c\ub098, \uacfc\uac70 \ud3c9\uade0 \ub300\ube44 \ud3c9\uac00\uac00 \uc5b4\ub835\uc2b5\ub2c8\ub2e4.\n3. Indirect 50.9% vs 6avg N/A%. \uac04\uc811\uc785\ucc30\uc740 50.9%\ub97c \uae30\ub85d\ud588\uc73c\ub098, \uacfc\uac70 \ud3c9\uade0 \ub300\ube44 \ucd94\uc138 \ud30c\uc545\uc774 \uc5b4\ub835\uc2b5\ub2c8\ub2e4. PD 49.1% vs 6avg N/A%. PD \ube44\uc911\uc740 49.1%\ub85c \ub192\uc740 \uc218\uc900\uc774\uba70, \uc774\ub294 \ucd5c\uc885 \ud22c\uc790\uc790 \uc218\uc694\uac00 \uc0c1\ub300\uc801\uc73c\ub85c \uc57d\ud588\uc74c\uc744 \uc2dc\uc0ac\ud569\ub2c8\ub2e4.\n4. \uacb0\ub860: \ub192\uc740 PD \ube44\uc911\uacfc \ud575\uc2ec \ub370\uc774\ud130 \ubd80\uc7ac\ub85c \uc778\ud574 \uc2dc\uc7a5 \uc720\ub3d9\uc131 \ubc0f \uae08\ub9ac \ud558\ubc29 \uc555\ub825\uc740 \uc81c\ud55c\uc801\uc77c \uac83\uc73c\ub85c \uc608\uc0c1\ub429\ub2c8\ub2e4."
     },
     {
       "security_type": "Note",
@@ -376,9 +378,9 @@
       "interest_rate": 3.875,
       "_analysis": {
         "btc": 2.44,
-        "tail_bps": null,
+        "tail_bps": 1.8,
         "high_yield": 3.936,
-        "wi_rate": null,
+        "wi_rate": 3.918,
         "pd_pct": 21.7,
         "di_pct": 14.8,
         "in_pct": 53.4,
@@ -387,11 +389,12 @@
         "in_accepted": 40624707500.0,
         "grade": {
           "btc": "neutral",
-          "tail": null,
+          "tail": "weak",
           "pd": "weak"
         },
         "score": 2
-      }
+      },
+      "summary": "\ud83c\udfaf \ucd1d\ud3c9: \uc57d\ud568\n1. Tail: 1.8bps. \uc774\ub294 \uc608\uc0c1\ubcf4\ub2e4 \uc57d\ud55c \uc218\uc694\ub97c \ub098\ud0c0\ub0b4\uba70, \uae08\ub9ac \uc0c1\uc2b9 \uc555\ub825\uc73c\ub85c \uc791\uc6a9\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.\n2. BTC: 2.44x vs 6avg N/A. \uc751\ucc30\ub960\uc740 \uc591\ud638\ud55c \uc218\uc900\uc774\ub098, \uacfc\uac70 \ud3c9\uade0 \ub300\ube44 \ube44\uad50\uac00 \uc5b4\ub824\uc6cc \uc0c1\ub300\uc801 \uac15\ub3c4\ub97c \ud310\ub2e8\ud558\uae30 \uc5b4\ub835\uc2b5\ub2c8\ub2e4.\n3. Indirect 53.4% vs 6avg N/A%. \uac04\uc811 \uc785\ucc30\uc740 \ub192\uc740 \uc218\uc900\uc774\ub098, \uacfc\uac70 \ud3c9\uade0\uacfc\uc758 \ube44\uad50\ub294 \ubd88\uac00\ub2a5\ud569\ub2c8\ub2e4. PD 21.7% vs 6avg N/A%. \ud504\ub77c\uc774\uba38\ub9ac \ub51c\ub7ec \ubc30\uc815 \ube44\uc728\uc740 21.7%\ub85c \ub2e4\uc18c \ub192\uc740 \uc218\uc900\uc774\uba70, \uc774\ub294 \ucd5c\uc885 \ud22c\uc790\uc790 \uc218\uc694\uac00 \uc57d\ud588\uc74c\uc744 \uc2dc\uc0ac\ud569\ub2c8\ub2e4.\n4. \uacb0\ub860: \uc57d\ud55c \uc218\uc694 \uc9c0\ud45c\ub4e4\ub85c \uc778\ud574 \uae08\ub9ac\ub294 \uc0c1\uc2b9 \uc555\ub825\uc744 \ubc1b\uc744 \uc218 \uc788\uc73c\uba70, \uc2dc\uc7a5 \uc720\ub3d9\uc131\uc5d0\ub3c4 \uc8fc\uc758\uac00 \ud544\uc694\ud569\ub2c8\ub2e4."
     },
     {
       "security_type": "Note",
