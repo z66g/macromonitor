@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-10T06:13:28.944574+00:00",
+  "updated": "2026-04-12T07:06:20.059197+00:00",
   "count": 19,
   "results": [
     {
@@ -105,9 +105,9 @@
       "interest_rate": 4.125,
       "_analysis": {
         "btc": 2.43,
-        "tail_bps": null,
+        "tail_bps": 0.2,
         "high_yield": 4.282,
-        "wi_rate": null,
+        "wi_rate": 4.28,
         "pd_pct": 9.2,
         "di_pct": 20.2,
         "in_pct": 55.4,
@@ -116,11 +116,12 @@
         "in_accepted": 25424801000.0,
         "grade": {
           "btc": "neutral",
-          "tail": null,
+          "tail": "strong",
           "pd": "strong"
         },
         "score": 4
-      }
+      },
+      "summary": "\ud83c\udfaf \ucd1d\ud3c9: Average\n1. Tail: 0.2bps. 0.2bps\uc758 \uaf2c\ub9ac\ub294 \uc2dc\uc7a5\uc758 \uac00\uaca9 \ucc45\uc815\uc774 \uc591\ud638\ud588\uc74c\uc744 \uc2dc\uc0ac\ud558\uba70, \uae08\ub9ac \uc0c1\uc2b9 \uc555\ub825\uc774 \uc81c\ud55c\uc801\uc784\uc744 \ub098\ud0c0\ub0c5\ub2c8\ub2e4.\n2. BTC: 2.43x vs 6\uac1c\uc6d4 \ud3c9\uade0 2.47x. 6\uac1c\uc6d4 \ud3c9\uade0 \ub300\ube44 \uc18c\ud3ed \ub0ae\uc740 \uc751\ucc30\ub960\uc740 \uc804\ubc18\uc801\uc778 \uc218\uc694\uac00 \ub2e4\uc18c \ubd80\uc9c4\ud588\uc74c\uc744 \ubcf4\uc5ec\uc90d\ub2c8\ub2e4.\n3. Indirect 55.4% vs 6\uac1c\uc6d4 \ud3c9\uade0 61.9%. 6\uac1c\uc6d4 \ud3c9\uade0\ubcf4\ub2e4 \ud604\uc800\ud788 \ub0ae\uc740 \uac04\uc811 \uc751\ucc30\ub960\uc740 \ud574\uc678 \ubc0f \uae30\uad00 \ud22c\uc790\uc790 \uc218\uc694 \uc57d\ud654\ub97c \uc2dc\uc0ac\ud569\ub2c8\ub2e4. PD 9.2% vs 6\uac1c\uc6d4 \ud3c9\uade0 6.8%. 6\uac1c\uc6d4 \ud3c9\uade0 \ub300\ube44 \ub192\uc740 \ud504\ub77c\uc774\uba38\ub9ac \ub51c\ub7ec \uc751\ucc30\ub960\uc740 \ub51c\ub7ec\ub4e4\uc758 \ubd80\ub2f4\uc774 \uac00\uc911\ub418\uc5c8\uc74c\uc744 \uacbd\uace0\ud569\ub2c8\ub2e4.\n4. \uacb0\ub860: \uc791\uc740 \uaf2c\ub9ac\uc640 WI\uc640 \ub3d9\uc77c\ud55c \ub099\ucc30 \uae08\ub9ac\ub294 \uae0d\uc815\uc801\uc774\ub098, \uc57d\ud654\ub41c \uc218\uc694 \uc9c0\ud45c\uc640 \ub192\uc544\uc9c4 \ub51c\ub7ec \ubd80\ub2f4\uc740 \ud5a5\ud6c4 \uae08\ub9ac \uc548\uc815\uc131\uc5d0 \ub300\ud55c \uc6b0\ub824\ub97c \uc81c\uae30\ud558\uba70 \uc720\ub3d9\uc131 \uc555\ubc15 \uac00\ub2a5\uc131\uc744 \uc2dc\uc0ac\ud569\ub2c8\ub2e4."
     },
     {
       "security_type": "Bill",
