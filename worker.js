@@ -4749,7 +4749,7 @@ ${items.join('\n')}
     console.log(`[NEWS DIGEST] 생성: ${digest.items.length}건`);
 
     // ── Telegram 발송 (실패해도 digest 결과에 영향 없음) ──
-    sendTelegramDigest(env, digest).catch(e =>
+    await sendTelegramDigest(env, digest).catch(e =>
       console.error('[NEWS DIGEST TELEGRAM]', e.message)
     );
 
