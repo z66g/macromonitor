@@ -4747,6 +4747,12 @@ ${items.join('\n')}
 
     await kvPut(env, KV_KEYS.newsDigest, digest, KV_TTL.newsDigest);
     console.log(`[NEWS DIGEST] 생성: ${digest.items.length}건`);
+
+    // ── Telegram 발송 (실패해도 digest 결과에 영향 없음) ──
+    sendTelegramDigest(env, digest).catch(e =>
+      console.error('[NEWS DIGEST TELEGRAM]', e.message)
+    );
+
     return { ok: true, digest };
 
   } catch(e) {
@@ -5620,4 +5626,69 @@ async function auctionResults(url) {
   } catch(e) {
     return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...CORS } });
   }
+}
+
+// ══════════════════════════════════════════════════════
+//  Telegram 알림 헬퍼
+// ══════════════════════════════════════════════════════
+
+/**
+ * Telegram Bot API로 메시지 발송
+ * @param {object} env - Cloudflare Worker env (TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)
+ * @param {string} text - HTML 파싱 모드 메시지
+ */
+async function sendTelegram(env, text) {
+  const token  = env?.TELEGRAM_BOT_TOKEN;
+  const chatId = env?.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) {
+    console.warn('[TELEGRAM] secrets 없음, 스킵');
+    return;
+  }
+  const resp = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: 'HTML',
+      disable_web_page_preview: true,
+    }),
+  });
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error(`Telegram API ${resp.status}: ${err}`);
+  }
+  const result = await resp.json();
+  if (!result.ok) throw new Error(`Telegram error: ${JSON.stringify(result)}`);
+  console.log('[TELEGRAM] 발송 완료');
+}
+
+/**
+ * 뉴스 다이제스트 Telegram 포맷 조립 후 발송
+ */
+async function sendTelegramDigest(env, digest) {
+  if (!digest?.items?.length) return;
+
+  // KST 시간
+  const now    = new Date();
+  const kst    = new Date(now.getTime() + 9 * 3600_000);
+  const mm     = String(kst.getUTCMonth() + 1).padStart(2, '0');
+  const dd     = String(kst.getUTCDate()).padStart(2, '0');
+  const hh     = String(kst.getUTCHours()).padStart(2, '0');
+  const min    = String(kst.getUTCMinutes()).padStart(2, '0');
+  const dateStr = `${mm}-${dd}`;
+  const timeStr = `${hh}:${min} KST`;
+
+  const nums = ['1️⃣', '2️⃣', '3️⃣'];
+  const lines = digest.items.slice(0, 3).map((item, i) =>
+    `${nums[i] ?? `${i + 1}.`} ${item.summary || item.title}`
+  ).join('\n');
+
+  const text =
+    `📰 <b>MacroMonitor 뉴스</b> | ${dateStr} ${timeStr}\n` +
+    `${'─'.repeat(24)}\n` +
+    `${lines}\n\n` +
+    `🔗 macromonitor.zbbg.kr`;
+
+  await sendTelegram(env, text);
 }
