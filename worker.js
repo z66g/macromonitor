@@ -5679,9 +5679,8 @@ async function sendTelegramDigest(env, digest) {
   const dateStr = `${mm}-${dd}`;
   const timeStr = `${hh}:${min} KST`;
 
-  const nums = ['1️⃣', '2️⃣', '3️⃣'];
   const lines = digest.items.slice(0, 3).map((item, i) =>
-    `${nums[i] ?? `${i + 1}.`} ${item.summary || item.title}`
+    `${i + 1}. ${item.summary || item.title}`
   ).join('\n');
 
   const text =
