@@ -11127,13 +11127,13 @@ function buildAucDateMap(results, upcoming) {
 }
 
 async function loadAuctionPanel(force = false) {
-  const RAW_RESULTS  = `${WORKER}/auction-results?limit=100`;
-  const RAW_UPCOMING = `https://raw.githubusercontent.com/z66g/macromonitor/main/data/auctions.json`;
+  const RAW_RESULTS  = `${WORKER}/auction-results?limit=100${force ? '&force=1' : ''}`;
+  const RAW_UPCOMING = `https://raw.githubusercontent.com/z66g/macromonitor/main/data/auctions.json${force ? '?t='+Date.now() : ''}`;
 
   try {
     const [rRes, rUpcoming] = await Promise.allSettled([
       fetchT(RAW_RESULTS, 15000),
-      fetch(RAW_UPCOMING, { cf: { cacheTtl: 3600 } }),
+      fetch(RAW_UPCOMING),
     ]);
 
     if (rRes.status === 'fulfilled') {
