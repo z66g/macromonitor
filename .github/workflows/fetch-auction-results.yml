@@ -18,6 +18,7 @@ jobs:
         run: |
           echo "CmltcG9ydCBqc29uLCByZSwgZGF0ZXRpbWUsIHRpbWUsIG9zLCBzeXMKdHJ5OgogICAgaW1wb3J0IHJlcXVlc3RzCmV4Y2VwdCBJbXBvcnRFcnJvcjoKICAgIG9zLnN5c3RlbSgncGlwIGluc3RhbGwgcmVxdWVzdHMgLXEnKQogICAgaW1wb3J0IHJlcXVlc3RzCgpCQVNFICAgID0gJ2h0dHBzOi8vd3d3LnRyZWFzdXJ5ZGlyZWN0Lmdvdi9UQV9XUy9zZWN1cml0aWVzJwpIRUFERVJTID0geydVc2VyLUFnZW50JzogJ01vemlsbGEvNS4wIChjb21wYXRpYmxlOyBNYWNyb01vbml0b3IvMS4wKSd9CkdFTUlOSV9LRVkgPSBvcy5lbnZpcm9uLmdldCgnR0VNSU5JX0FQSV9LRVknLCAnJykKdG9kYXkgPSBkYXRldGltZS5kYXRlLnRvZGF5KCkuaXNvZm9ybWF0KCkKTU9ERUxTID0gWydnZW1pbmktMi41LWZsYXNoJywgJ2dlbWluaS0yLjAtZmxhc2gnXQoKZGVmIGZldGNoX2pzb25wKGVuZHBvaW50LCBzZWNfdHlwZSwgbGltaXQ9MjApOgogICAgdXJsID0gQkFTRSsnLycrZW5kcG9pbnQrJz9mb3JtYXQ9anNvbnAmbGltaXRCeVRlcm09dHJ1ZSZ0eXBlPScrc2VjX3R5cGUrJyZjYWxsYmFjaz1jYicKICAgIHRyeToKICAgICAgICByZXEgPSB1cmxsaWIucmVxdWVzdC5SZXF1ZXN0KHVybCwgaGVhZGVycz1IRUFERVJTKQogICAgICAgIHdpdGggdXJsbGliLnJlcXVlc3QudXJsb3BlbihyZXEsIHRpbWVvdXQ9MTUpIGFzIHI6CiAgICAgICAgICAgIHRleHQgPSByLnJlYWQoKS5kZWNvZGUoJ3V0Zi04JykKICAgICAgICBtID0gcmUuc2VhcmNoKHInY2JccypcKFxzKihcW1tcc1xTXSpcXSlccypcKScsIHRleHQpCiAgICAgICAgaWYgbTogcmV0dXJuIGpzb24ubG9hZHMobS5ncm91cCgxKSlbOmxpbWl0XQogICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlOgogICAgICAgIHByaW50KCdFcnJvciAnK2VuZHBvaW50KycvJytzZWNfdHlwZSsnOiAnK3N0cihlKSkKICAgIHJldHVybiBbXQoKZGVmIHNhZmVfZmxvYXQodik6CiAgICB0cnk6IHJldHVybiBmbG9hdCh2KSBpZiB2IGVsc2UgTm9uZQogICAgZXhjZXB0OiByZXR1cm4gTm9uZQoKZGVmIGdlbWluaV9jYWxsKHByb21wdCwgdXNlX3NlYXJjaCwgYXBpX2tleSwgdGltZW91dD01MCk6CiAgICBwYXlsb2FkID0geyJjb250ZW50cyI6IFt7InBhcnRzIjogW3sidGV4dCI6IHByb21wdH1dfV0sICJnZW5lcmF0aW9uQ29uZmlnIjogeyJ0ZW1wZXJhdHVyZSI6IDAsICJtYXhPdXRwdXRUb2tlbnMiOiA0MDk2fX0KICAgIGlmIHVzZV9zZWFyY2g6IHBheWxvYWRbInRvb2xzIl0gPSBbeyJnb29nbGVTZWFyY2giOiB7fX1dCiAgICBmb3IgbW9kZWwgaW4gTU9ERUxTOgogICAgICAgIHVybCA9ICJodHRwczovL2dlbmVyYXRpdmVsYW5ndWFnZS5nb29nbGVhcGlzLmNvbS92MWJldGEvbW9kZWxzLyIrbW9kZWwrIjpnZW5lcmF0ZUNvbnRlbnQ/a2V5PSIrYXBpX2tleQogICAgICAgIHByaW50KCIgIFsiK21vZGVsKyJdIGNhbGxpbmcuLi4iKQogICAgICAgIHRyeToKICAgICAgICAgICAgcmVzcCA9IHJlcXVlc3RzLnBvc3QodXJsLCBqc29uPXBheWxvYWQsIHRpbWVvdXQ9dGltZW91dCkKICAgICAgICAgICAgaWYgcmVzcC5zdGF0dXNfY29kZSA9PSAyMDA6CiAgICAgICAgICAgICAgICBkYXRhID0gcmVzcC5qc29uKCkKICAgICAgICAgICAgICAgIHRleHQgPSAiIgogICAgICAgICAgICAgICAgZm9yIHBhcnQgaW4gZGF0YS5nZXQoImNhbmRpZGF0ZXMiLFt7fV0pWzBdLmdldCgiY29udGVudCIse30pLmdldCgicGFydHMiLFtdKToKICAgICAgICAgICAgICAgICAgICB0ZXh0ICs9IHBhcnQuZ2V0KCJ0ZXh0IiwiIikKICAgICAgICAgICAgICAgIHByaW50KCIgIFsiK21vZGVsKyJdIE9LIGxlbj0iK3N0cihsZW4odGV4dCkpKQogICAgICAgICAgICAgICAgcmV0dXJuIHRleHQKICAgICAgICAgICAgZWxpZiByZXNwLnN0YXR1c19jb2RlIGluICg0MjksIDUwMyk6CiAgICAgICAgICAgICAgICBwcmludCgiICBbIittb2RlbCsiXSAiK3N0cihyZXNwLnN0YXR1c19jb2RlKSsiIC0+IHdhaXQgNzBzLCB0cnkgbmV4dCBtb2RlbCIpCiAgICAgICAgICAgICAgICB0aW1lLnNsZWVwKDcwKQogICAgICAgICAgICBlbHNlOgogICAgICAgICAgICAgICAgcHJpbnQoIiAgWyIrbW9kZWwrIl0gSFRUUCAiK3N0cihyZXNwLnN0YXR1c19jb2RlKSkKICAgICAgICAgICAgICAgIHJldHVybiBOb25lCiAgICAgICAgZXhjZXB0IHJlcXVlc3RzLmV4Y2VwdGlvbnMuVGltZW91dDoKICAgICAgICAgICAgcHJpbnQoIiAgWyIrbW9kZWwrIl0gdGltZW91dCAtPiB0cnkgbmV4dCIpCiAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlOgogICAgICAgICAgICBwcmludCgiICBbIittb2RlbCsiXSBlcnJvcjogIitzdHIoZSkpCiAgICBwcmludCgiICBBbGwgbW9kZWxzIGZhaWxlZCIpCiAgICByZXR1cm4gTm9uZQoKZGVmIGdldF90YWlsKHN0eXBlLCB0ZXJtLCBhdWN0aW9uX2RhdGUsIGFwaV9rZXkpOgogICAgcHJvbXB0ID0gKAogICAgICAgICJTZWFyY2ggZm9yIFVTIFRyZWFzdXJ5IGF1Y3Rpb24gcmVzdWx0czogIit0ZXJtKyIgIitzdHlwZSsiIGF1Y3Rpb25lZCBvbiAiK2F1Y3Rpb25fZGF0ZSsiLiAiCiAgICAgICAgIkZpbmQgdGhlIHRhaWwgaW4gYmFzaXMgcG9pbnRzIChoaWdoIHlpZWxkIG1pbnVzIHdoZW4taXNzdWVkIHJhdGUpLiAiCiAgICAgICAgIlNvdXJjZXM6IFplcm9IZWRnZSwgQmxvb21iZXJnLCBSZXV0ZXJzLCBUcmVhc3VyeSBwcmVzcyByZWxlYXNlLiAiCiAgICAgICAgIlJldHVybiBPTkxZIEpTT04gbm8gbWFya2Rvd246ICIKICAgICAgICAie1widGFpbF9icHNcIjogLTEuMiwgXCJ3aV9yYXRlXCI6IDMuOTA5LCBcImhpZ2hfeWllbGRcIjogMy44OTcsIFwic291cmNlXCI6IFwiWmVyb0hlZGdlXCJ9ICIKICAgICAgICAicG9zaXRpdmU9c3RvcHBlZC10aHJvdWdoLCBuZWdhdGl2ZT1iaWQtdGhyb3VnaC4gbnVsbCBpZiBub3QgZm91bmQuIgogICAgKQogICAgdGV4dCA9IGdlbWluaV9jYWxsKHByb21wdCwgVHJ1ZSwgYXBpX2tleSwgNjApCiAgICBpZiBub3QgdGV4dDogcmV0dXJuIE5vbmUsIE5vbmUKICAgIGNsZWFuZWQgPSByZS5zdWIocidgYGAoPzpqc29uKT8nLCcnLHRleHQpLnN0cmlwKCkKICAgIG0gPSByZS5zZWFyY2gocidce1tee31dKlx9JywgY2xlYW5lZCwgcmUuRE9UQUxMKQogICAgaWYgbToKICAgICAgICB0cnk6CiAgICAgICAgICAgIHIgPSBqc29uLmxvYWRzKG0uZ3JvdXAoKSkKICAgICAgICAgICAgcHJpbnQoIiAgdGFpbD0iK3N0cihyLmdldCgndGFpbF9icHMnKSkrImJwcyBzcmM9IitzdHIoci5nZXQoJ3NvdXJjZScsJycpKSkKICAgICAgICAgICAgcmV0dXJuIHIuZ2V0KCd0YWlsX2JwcycpLCByLmdldCgnd2lfcmF0ZScpCiAgICAgICAgZXhjZXB0OiBwYXNzCiAgICByZXR1cm4gTm9uZSwgTm9uZQoKZGVmIGdldF9zdW1tYXJ5KHN0eXBlLCB0ZXJtLCBhdWN0aW9uX2RhdGUsIGJ0YywgYnRjX2F2ZzYsIHRhaWxfYnBzLCBoaWdoLCB3aV9yYXRlLCBwZF9wY3QsIHBkX2F2ZzYsIGRpX3BjdCwgaW5fcGN0LCBpbl9hdmc2LCBvZmZlcmluZ19ibiwgYXBpX2tleSk6CiAgICBkZWYgZm10KHYsIGRlYz0yKTogcmV0dXJuIHN0cihyb3VuZCh2LGRlYykpIGlmIHYgaXMgbm90IE5vbmUgZWxzZSAnTi9BJwogICAgcHJvbXB0ID0gKAogICAgICAgICJZb3UgYXJlIGEgc2hhcnAgaW5zdGl0dXRpb25hbCBib25kIG1hcmtldCBhbmFseXN0IHdyaXRpbmcgaW4gS29yZWFuLiAiCiAgICAgICAgIkdlbmVyYXRlIGF1Y3Rpb24gYW5hbHlzaXMgdXNpbmcgRVhBQ1RMWSB0aGlzIG1hcmtkb3duIGZvcm1hdCwgbm8gZXh0cmEgdGV4dC4gIgogICAgICAgICJEYXRhOiBTZWN1cml0eT0iK3Rlcm0rIiAiK3N0eXBlKyIgRGF0ZT0iK2F1Y3Rpb25fZGF0ZQogICAgICAgICsiIFNpemU9IitmbXQob2ZmZXJpbmdfYm4sMSkrIkIgVVNEIEhpZ2hZaWVsZD0iK2ZtdChoaWdoKSsiJSBXST0iK2ZtdCh3aV9yYXRlKSsiJSIKICAgICAgICArIiBUYWlsPSIrZm10KHRhaWxfYnBzLDEpKyJicHMgQlRDPSIrZm10KGJ0YykrIiBCVENfNmF2Zz0iK2ZtdChidGNfYXZnNikKICAgICAgICArIiBQRD0iK2ZtdChwZF9wY3QsMSkrIiUgUERfNmF2Zz0iK2ZtdChwZF9hdmc2LDEpKyIlIgogICAgICAgICsiIERpcmVjdD0iK2ZtdChkaV9wY3QsMSkrIiUgSW5kaXJlY3Q9IitmbXQoaW5fcGN0LDEpKyIlIEluZGlyZWN0XzZhdmc9IitmbXQoaW5fYXZnNiwxKSsiJSAiCiAgICAgICAgIkZvciBbT3ZlcmFsbF0gY2hvb3NlIGV4YWN0bHkgb25lOiBTdHJvbmcgLyBBdmVyYWdlIC8gV2VhayAvIERpc2FzdHJvdXMuICIKICAgICAgICAiVXNlIHNwZWNpZmljIG51bWJlcnMuIFNoYXJwIGFuYWx5dGljYWwgS29yZWFuLiAiCiAgICAgICAgIi0tLUZPUk1BVC0tLSDwn46vIOy0ne2PiTogW092ZXJhbGxdIDEuIFRhaWw6IFt0YWlsX2Jwc11icHMuIFtvbmUgc2VudGVuY2UgcmF0ZSBpbXBhY3RdIDIuIEJUQzogW2N1cnJlbnRdeCB2cyA2YXZnIFtidGNfYXZnNl14LiBbb25lIHNlbnRlbmNlIGRlbWFuZCBhc3Nlc3NtZW50XSAzLiBJbmRpcmVjdCBbaW5fcGN0XSUgdnMgNmF2ZyBbaW5fYXZnNl0lLiBbb25lIHNlbnRlbmNlXS4gUEQgW3BkX3BjdF0lIHZzIDZhdmcgW3BkX2F2ZzZdJS4gW29uZSBzZW50ZW5jZSwgd2FybiBpZiBlbGV2YXRlZF0gNC4g6rKw66GgOiBbb25lIHNoYXJwIHNlbnRlbmNlIG9uIHJhdGUgdHJhamVjdG9yeSBhbmQgbGlxdWlkaXR5XSAtLS1FTkQgRk9STUFULS0tIgogICAgKQogICAgdGV4dCA9IGdlbWluaV9jYWxsKHByb21wdCwgRmFsc2UsIGFwaV9rZXksIDYwKQogICAgaWYgdGV4dDoKICAgICAgICBtID0gcmUuc2VhcmNoKHInKCMjI1xzKvCfjq9bXHNcU10rKScsIHRleHQpCiAgICAgICAgaWYgbTogcmV0dXJuIG0uZ3JvdXAoMSkuc3RyaXAoKQogICAgcmV0dXJuIE5vbmUKCmRlZiBjYWxjX2F2ZzYocmVjb3JkcywgZmllbGQsIGV4Y2x1ZGVfY3VzaXApOgogICAgdmFscyA9IFtyLmdldChmaWVsZCkgZm9yIHIgaW4gcmVjb3JkcyBpZiByLmdldCgnY3VzaXAnKSE9ZXhjbHVkZV9jdXNpcCBhbmQgci5nZXQoZmllbGQpIGlzIG5vdCBOb25lXQogICAgcmV0dXJuIHJvdW5kKHN1bSh2YWxzWzo2XSkvbGVuKHZhbHNbOjZdKSwyKSBpZiB2YWxzIGVsc2UgTm9uZQoKZGVmIGdyYWRlX2J0Yyh2KToKICAgIGlmIHYgaXMgTm9uZTogcmV0dXJuIE5vbmUKICAgIHJldHVybiAnc3Ryb25nJyBpZiB2Pj0yLjYgZWxzZSAnbmV1dHJhbCcgaWYgdj49Mi4zIGVsc2UgJ3dlYWsnCmRlZiBncmFkZV90YWlsKHYpOgogICAgaWYgdiBpcyBOb25lOiByZXR1cm4gTm9uZQogICAgcmV0dXJuICdzdHJvbmcnIGlmIHY8PTAuNSBlbHNlICduZXV0cmFsJyBpZiB2PD0xLjUgZWxzZSAnd2VhaycKZGVmIGdyYWRlX3BkKHYpOgogICAgaWYgdiBpcyBOb25lOiByZXR1cm4gTm9uZQogICAgcmV0dXJuICdzdHJvbmcnIGlmIHY8PTEyIGVsc2UgJ25ldXRyYWwnIGlmIHY8PTIwIGVsc2UgJ3dlYWsnCgpkZWYgYnVpbGRfcmVjb3JkKGEsIHNhbWVfdGVybV9yZWNvcmRzLCB0YWlsX2Jwcz1Ob25lLCB3aV9yYXRlPU5vbmUsIHN1bW1hcnk9Tm9uZSk6CiAgICBidGMgICAgPSBzYWZlX2Zsb2F0KGEuZ2V0KCdiaWRUb0NvdmVyUmF0aW8nKSkKICAgIGhpZ2ggICA9IHNhZmVfZmxvYXQoYS5nZXQoJ2hpZ2hZaWVsZCcpIG9yIGEuZ2V0KCdoaWdoUmF0ZScpIG9yIGEuZ2V0KCdoaWdoSW52ZXN0bWVudFJhdGUnKSkKICAgIGFjY2VwdCA9IHNhZmVfZmxvYXQoYS5nZXQoJ3RvdGFsQWNjZXB0ZWQnKSkgb3IgMAogICAgcGRfYSAgID0gc2FmZV9mbG9hdChhLmdldCgncHJpbWFyeURlYWxlckFjY2VwdGVkJykpIG9yIDAKICAgIGRpX2EgICA9IHNhZmVfZmxvYXQoYS5nZXQoJ2RpcmVjdEJpZGRlckFjY2VwdGVkJykpIG9yIDAKICAgIGluX2EgICA9IHNhZmVfZmxvYXQoYS5nZXQoJ2luZGlyZWN0QmlkZGVyQWNjZXB0ZWQnKSkgb3IgMAogICAgcGRfcGN0ID0gcm91bmQocGRfYS9hY2NlcHQqMTAwLDEpIGlmIGFjY2VwdCBlbHNlIE5vbmUKICAgIGRpX3BjdCA9IHJvdW5kKGRpX2EvYWNjZXB0KjEwMCwxKSBpZiBhY2NlcHQgZWxzZSBOb25lCiAgICBpbl9wY3QgPSByb3VuZChpbl9hL2FjY2VwdCoxMDAsMSkgaWYgYWNjZXB0IGVsc2UgTm9uZQogICAgY3VzaXAgID0gYS5nZXQoJ2N1c2lwJywnJykKICAgIGJ0Y19hdmc2ID0gY2FsY19hdmc2KHNhbWVfdGVybV9yZWNvcmRzLCdidGMnLGN1c2lwKQogICAgcGRfYXZnNiAgPSBjYWxjX2F2ZzYoc2FtZV90ZXJtX3JlY29yZHMsJ3BkX3BjdCcsY3VzaXApCiAgICBpbl9hdmc2ICA9IGNhbGNfYXZnNihzYW1lX3Rlcm1fcmVjb3JkcywnaW5fcGN0JyxjdXNpcCkKICAgIHNjb3JlX2l0ZW1zID0gW2dyYWRlX2J0YyhidGMpLCBncmFkZV90YWlsKHRhaWxfYnBzKSwgZ3JhZGVfcGQocGRfcGN0KV0KICAgIHZhbGlkID0gW2cgZm9yIGcgaW4gc2NvcmVfaXRlbXMgaWYgZyBpcyBub3QgTm9uZV0KICAgIHNjb3JlID0gcm91bmQoc3VtKHsnc3Ryb25nJzoyLCduZXV0cmFsJzoxLCd3ZWFrJzowfVtnXSBmb3IgZyBpbiB2YWxpZCkvKGxlbih2YWxpZCkqMikqMTAwKSBpZiB2YWxpZCBlbHNlIE5vbmUKICAgIHJldHVybiB7CiAgICAgICAgJ3NlY3VyaXR5X3R5cGUnOiBhLmdldCgnc2VjdXJpdHlUeXBlJywnJyksICdzZWN1cml0eV90ZXJtJzogYS5nZXQoJ3NlY3VyaXR5VGVybScsJycpLAogICAgICAgICdhdWN0aW9uX2RhdGUnOiAoYS5nZXQoJ2F1Y3Rpb25EYXRlJykgb3IgJycpWzoxMF0sICdpc3N1ZV9kYXRlJzogKGEuZ2V0KCdpc3N1ZURhdGUnKSBvciAnJylbOjEwXSwKICAgICAgICAnbWF0dXJpdHlfZGF0ZSc6IChhLmdldCgnbWF0dXJpdHlEYXRlJykgb3IgJycpWzoxMF0sICdjdXNpcCc6IGN1c2lwLAogICAgICAgICdvZmZlcmluZ19hbXQnOiBzYWZlX2Zsb2F0KGEuZ2V0KCdvZmZlcmluZ0Ftb3VudCcpKSwgJ3RvdGFsX2FjY2VwdGVkJzogYWNjZXB0IG9yIE5vbmUsCiAgICAgICAgJ3RvdGFsX3RlbmRlcmVkJzogc2FmZV9mbG9hdChhLmdldCgndG90YWxUZW5kZXJlZCcpKSwgJ2ludGVyZXN0X3JhdGUnOiBzYWZlX2Zsb2F0KGEuZ2V0KCdpbnRlcmVzdFJhdGUnKSksCiAgICAgICAgJ3N1bW1hcnknOiBzdW1tYXJ5LAogICAgICAgICdfYW5hbHlzaXMnOiB7CiAgICAgICAgICAgICdidGMnOmJ0YywgJ2J0Y19hdmc2JzpidGNfYXZnNiwgJ3RhaWxfYnBzJzp0YWlsX2JwcywgJ2hpZ2hfeWllbGQnOmhpZ2gsICd3aV9yYXRlJzp3aV9yYXRlLAogICAgICAgICAgICAncGRfcGN0JzpwZF9wY3QsICdwZF9hdmc2JzpwZF9hdmc2LCAnZGlfcGN0JzpkaV9wY3QsICdpbl9wY3QnOmluX3BjdCwgJ2luX2F2ZzYnOmluX2F2ZzYsCiAgICAgICAgICAgICdwZF9hY2NlcHRlZCc6cGRfYSBvciBOb25lLCAnZGlfYWNjZXB0ZWQnOmRpX2Egb3IgTm9uZSwgJ2luX2FjY2VwdGVkJzppbl9hIG9yIE5vbmUsCiAgICAgICAgICAgICdncmFkZSc6eydidGMnOmdyYWRlX2J0YyhidGMpLCd0YWlsJzpncmFkZV90YWlsKHRhaWxfYnBzKSwncGQnOmdyYWRlX3BkKHBkX3BjdCl9LAogICAgICAgICAgICAnc2NvcmVfcGN0JzpzY29yZSwKICAgICAgICB9CiAgICB9CgpleGlzdGluZyA9IHt9CnRyeToKICAgIHdpdGggb3BlbignZGF0YS9hdWN0aW9uX3Jlc3VsdHMuanNvbicpIGFzIGY6CiAgICAgICAgcHJldiA9IGpzb24ubG9hZChmKQogICAgZm9yIHIgaW4gcHJldi5nZXQoJ3Jlc3VsdHMnLFtdKTogZXhpc3Rpbmdbci5nZXQoJ2N1c2lwJywnJyldID0gcgogICAgcHJpbnQoJ+q4sOyhtDogJytzdHIobGVuKGV4aXN0aW5nKSkrJ+qxtCcpCmV4Y2VwdDogcHJpbnQoJ+q4sOyhtCDsl4bsnYwnKQoKYWxsX3JhdyA9IHt9CmFsbF9pdGVtcyA9IFtdCmZvciB0IGluIFsnTm90ZScsJ0JvbmQnLCdCaWxsJywnVElQUycsJ0ZSTiddOgogICAgaXRlbXMgPSBmZXRjaF9qc29ucCgnYXVjdGlvbmVkJywgdCwgbGltaXQ9MjApCiAgICBwcmludCh0Kyc6ICcrc3RyKGxlbihpdGVtcykpKyfqsbQnKQogICAgZm9yIGEgaW4gaXRlbXM6CiAgICAgICAgYWNjZXB0ID0gc2FmZV9mbG9hdChhLmdldCgndG90YWxBY2NlcHRlZCcpKSBvciAwCiAgICAgICAgcGRfYSA9IHNhZmVfZmxvYXQoYS5nZXQoJ3ByaW1hcnlEZWFsZXJBY2NlcHRlZCcpKSBvciAwCiAgICAgICAgaW5fYSA9IHNhZmVfZmxvYXQoYS5nZXQoJ2luZGlyZWN0QmlkZGVyQWNjZXB0ZWQnKSkgb3IgMAogICAgICAgIHRlcm0gPSBhLmdldCgnc2VjdXJpdHlUZXJtJywnJykKICAgICAgICBpZiB0ZXJtIG5vdCBpbiBhbGxfcmF3OiBhbGxfcmF3W3Rlcm1dID0gW10KICAgICAgICBhbGxfcmF3W3Rlcm1dLmFwcGVuZCh7J2N1c2lwJzphLmdldCgnY3VzaXAnLCcnKSwgJ2J0Yyc6c2FmZV9mbG9hdChhLmdldCgnYmlkVG9Db3ZlclJhdGlvJykpLCAncGRfcGN0Jzpyb3VuZChwZF9hL2FjY2VwdCoxMDAsMSkgaWYgYWNjZXB0IGVsc2UgTm9uZSwgJ2luX3BjdCc6cm91bmQoaW5fYS9hY2NlcHQqMTAwLDEpIGlmIGFjY2VwdCBlbHNlIE5vbmV9KQogICAgICAgIGFsbF9pdGVtcy5hcHBlbmQoKHQsIGEpKQoKYWxsX3Jlc3VsdHMgPSBbXQpmb3Igc2VjX3R5cGUsIGEgaW4gYWxsX2l0ZW1zOgogICAgY3VzaXAgPSBhLmdldCgnY3VzaXAnLCcnKQogICAgYXVjdGlvbl9kYXRlID0gKGEuZ2V0KCdhdWN0aW9uRGF0ZScpIG9yICcnKVs6MTBdCiAgICBzdHlwZSA9IGEuZ2V0KCdzZWN1cml0eVR5cGUnLCcnKQogICAgdGVybSA9IGEuZ2V0KCdzZWN1cml0eVRlcm0nLCcnKQogICAgc2FtZV90ZXJtID0gYWxsX3Jhdy5nZXQodGVybSxbXSkKICAgIHByZXZfciA9IGV4aXN0aW5nLmdldChjdXNpcCkKICAgIGhhc190YWlsID0gcHJldl9yIGFuZCBwcmV2X3IuZ2V0KCdfYW5hbHlzaXMnLHt9KS5nZXQoJ3RhaWxfYnBzJykgaXMgbm90IE5vbmUKICAgIGhhc19zdW1tYXJ5ID0gcHJldl9yIGFuZCBwcmV2X3IuZ2V0KCdzdW1tYXJ5JykKCiAgICBpZiBzdHlwZSBpbiAoJ05vdGUnLCdCb25kJywnVElQUycpIGFuZCBhdWN0aW9uX2RhdGUgPT0gdG9kYXk6CiAgICAgICAgcHJpbnQoJ1xuLS0gJytzdHlwZSsnICcrdGVybSsnICgnK2F1Y3Rpb25fZGF0ZSsnKSAtLScpCiAgICAgICAgdGFpbF9icHMsIHdpX3JhdGUgPSBOb25lLCBOb25lCiAgICAgICAgaWYgR0VNSU5JX0tFWToKICAgICAgICAgICAgdGFpbF9icHMsIHdpX3JhdGUgPSBnZXRfdGFpbChzdHlwZSwgdGVybSwgYXVjdGlvbl9kYXRlLCBHRU1JTklfS0VZKQogICAgICAgICAgICB0aW1lLnNsZWVwKDgpCiAgICAgICAgc3VtbWFyeSA9IE5vbmUKICAgICAgICBpZiBHRU1JTklfS0VZOgogICAgICAgICAgICBhY2NlcHQgPSBzYWZlX2Zsb2F0KGEuZ2V0KCd0b3RhbEFjY2VwdGVkJykpIG9yIDAKICAgICAgICAgICAgcGRfYSA9IHNhZmVfZmxvYXQoYS5nZXQoJ3ByaW1hcnlEZWFsZXJBY2NlcHRlZCcpKSBvciAwCiAgICAgICAgICAgIGRpX2EgPSBzYWZlX2Zsb2F0KGEuZ2V0KCdkaXJlY3RCaWRkZXJBY2NlcHRlZCcpKSBvciAwCiAgICAgICAgICAgIGluX2EgPSBzYWZlX2Zsb2F0KGEuZ2V0KCdpbmRpcmVjdEJpZGRlckFjY2VwdGVkJykpIG9yIDAKICAgICAgICAgICAgc3VtbWFyeSA9IGdldF9zdW1tYXJ5KAogICAgICAgICAgICAgICAgc3R5cGUsIHRlcm0sIGF1Y3Rpb25fZGF0ZSwKICAgICAgICAgICAgICAgIHNhZmVfZmxvYXQoYS5nZXQoJ2JpZFRvQ292ZXJSYXRpbycpKSwgY2FsY19hdmc2KHNhbWVfdGVybSwnYnRjJyxjdXNpcCksCiAgICAgICAgICAgICAgICB0YWlsX2Jwcywgc2FmZV9mbG9hdChhLmdldCgnaGlnaFlpZWxkJykgb3IgYS5nZXQoJ2hpZ2hSYXRlJykgb3IgYS5nZXQoJ2hpZ2hJbnZlc3RtZW50UmF0ZScpKSwgd2lfcmF0ZSwKICAgICAgICAgICAgICAgIHJvdW5kKHBkX2EvYWNjZXB0KjEwMCwxKSBpZiBhY2NlcHQgZWxzZSBOb25lLCBjYWxjX2F2ZzYoc2FtZV90ZXJtLCdwZF9wY3QnLGN1c2lwKSwKICAgICAgICAgICAgICAgIHJvdW5kKGRpX2EvYWNjZXB0KjEwMCwxKSBpZiBhY2NlcHQgZWxzZSBOb25lLAogICAgICAgICAgICAgICAgcm91bmQoaW5fYS9hY2NlcHQqMTAwLDEpIGlmIGFjY2VwdCBlbHNlIE5vbmUsIGNhbGNfYXZnNihzYW1lX3Rlcm0sJ2luX3BjdCcsY3VzaXApLAogICAgICAgICAgICAgICAgKHNhZmVfZmxvYXQoYS5nZXQoJ29mZmVyaW5nQW1vdW50JykpIG9yIDApLzFlOSwgR0VNSU5JX0tFWSkKICAgICAgICAgICAgdGltZS5zbGVlcCg4KQogICAgICAgIGFsbF9yZXN1bHRzLmFwcGVuZChidWlsZF9yZWNvcmQoYSwgc2FtZV90ZXJtLCB0YWlsX2Jwcywgd2lfcmF0ZSwgc3VtbWFyeSkpCiAgICBlbGlmIGhhc190YWlsIGFuZCBoYXNfc3VtbWFyeToKICAgICAgICBhbGxfcmVzdWx0cy5hcHBlbmQoYnVpbGRfcmVjb3JkKGEsIHNhbWVfdGVybSwgcHJldl9yWydfYW5hbHlzaXMnXS5nZXQoJ3RhaWxfYnBzJyksIHByZXZfclsnX2FuYWx5c2lzJ10uZ2V0KCd3aV9yYXRlJyksIHByZXZfci5nZXQoJ3N1bW1hcnknKSkpCiAgICBlbHNlOgogICAgICAgIGFsbF9yZXN1bHRzLmFwcGVuZChidWlsZF9yZWNvcmQoYSwgc2FtZV90ZXJtKSkKCmFsbF9yZXN1bHRzLnNvcnQoa2V5PWxhbWJkYSB4OiB4LmdldCgnYXVjdGlvbl9kYXRlJywnJyksIHJldmVyc2U9VHJ1ZSkKb3V0cHV0ID0geyd1cGRhdGVkJzogZGF0ZXRpbWUuZGF0ZXRpbWUubm93KGRhdGV0aW1lLnRpbWV6b25lLnV0YykuaXNvZm9ybWF0KCksICdjb3VudCc6IGxlbihhbGxfcmVzdWx0cyksICdyZXN1bHRzJzogYWxsX3Jlc3VsdHN9CndpdGggb3BlbignZGF0YS9hdWN0aW9uX3Jlc3VsdHMuanNvbicsJ3cnKSBhcyBmOiBqc29uLmR1bXAob3V0cHV0LCBmLCBpbmRlbnQ9MikKZG9uZSA9IFtyIGZvciByIGluIGFsbF9yZXN1bHRzIGlmIHIuZ2V0KCdzdW1tYXJ5JykgYW5kIHIuZ2V0KCdhdWN0aW9uX2RhdGUnLCcnKT09dG9kYXldCnByaW50KCdcbkRvbmU6ICcrc3RyKGxlbihhbGxfcmVzdWx0cykpKycgdG90YWwgfCB0b2RheSBzdW1tYXJ5OiAnK3N0cihsZW4oZG9uZSkpKQo=" | base64 -d > /tmp/fetch.py
           python3 /tmp/fetch.py
+
       - name: Commit and Push
         run: |
           git config user.name  "github-actions[bot]"
@@ -25,3 +26,111 @@ jobs:
           git add data/auction_results.json
           git diff --staged --quiet || git commit -m "chore: update auction results [$(date -u '+%Y-%m-%d %H:%M UTC')]"
           git push
+
+      # ── Telegram 알림: 오늘 경매 결과가 summary 완성된 경우에만 발송 ──
+      - name: Send Telegram notification
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python3 << 'PYEOF'
+          import json, os, datetime, urllib.request, urllib.parse
+
+          BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+          CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID", "")
+          today     = datetime.date.today().isoformat()
+
+          if not BOT_TOKEN or not CHAT_ID:
+              print("Telegram secrets 없음, 스킵")
+              exit(0)
+
+          with open("data/auction_results.json", encoding="utf-8") as f:
+              data = json.load(f)
+
+          # 오늘 날짜 + summary 완성 건만 추출
+          today_done = [
+              r for r in data.get("results", [])
+              if r.get("auction_date", "")[:10] == today
+              and r.get("summary")
+          ]
+
+          if not today_done:
+              print(f"오늘({today}) 완성된 경매 결과 없음, 스킵")
+              exit(0)
+
+          def grade_emoji(g):
+              return {"strong": "✅", "average": "🟡", "weak": "⚠️", "disastrous": "🚨"}.get(g or "", "⚪")
+
+          def overall_emoji(summary_text):
+              t = (summary_text or "").lower()
+              if "strong"      in t: return "💪"
+              if "average"     in t: return "😐"
+              if "weak"        in t: return "⚠️"
+              if "disastrous"  in t: return "🚨"
+              return "📊"
+
+          def fmt(v, dec=2):
+              return str(round(v, dec)) if v is not None else "N/A"
+
+          messages = []
+          for r in today_done:
+              an   = r.get("_analysis", {})
+              gr   = an.get("grade", {})
+              term = r.get("security_term", "")
+              stype= r.get("security_type", "")
+              size = (r.get("offering_amt") or 0) / 1e9
+
+              # 요약 첫 줄 (총평 줄)
+              summary_lines = (r.get("summary") or "").strip().splitlines()
+              first_line = summary_lines[0] if summary_lines else ""
+
+              tail_bps = an.get("tail_bps")
+              tail_str = (f"{tail_bps:+.1f}bp" if tail_bps is not None else "N/A")
+              tail_emoji = grade_emoji(gr.get("tail"))
+
+              btc     = an.get("btc")
+              btc_avg = an.get("btc_avg6")
+              btc_str = f"{fmt(btc, 2)}x" if btc is not None else "N/A"
+              btc_avg_str = f"{fmt(btc_avg, 2)}x" if btc_avg is not None else "N/A"
+
+              in_pct  = an.get("in_pct")
+              in_avg  = an.get("in_avg6")
+              pd_pct  = an.get("pd_pct")
+              pd_avg  = an.get("pd_avg6")
+
+              # 나머지 요약 (2~4줄)
+              detail_lines = "\n".join(summary_lines[1:]) if len(summary_lines) > 1 else ""
+
+              msg = (
+                  f"🏦 <b>국채경매 결과</b> | {term} {stype} | {today}\n"
+                  f"{'─' * 24}\n"
+                  f"{overall_emoji(r.get('summary'))} {first_line}\n\n"
+                  f"• Tail: {tail_str} {tail_emoji}\n"
+                  f"• BTC: {btc_str}  (6avg {btc_avg_str}) {grade_emoji(gr.get('btc'))}\n"
+                  f"• Indirect: {fmt(in_pct, 1)}%  (6avg {fmt(in_avg, 1)}%)\n"
+                  f"• PD: {fmt(pd_pct, 1)}%  (6avg {fmt(pd_avg, 1)}%) {grade_emoji(gr.get('pd'))}\n"
+                  f"• 규모: ${fmt(size, 1)}B\n"
+              )
+              if detail_lines:
+                  msg += f"\n{detail_lines}\n"
+              msg += f"\n🔗 macromonitor.zbbg.kr"
+              messages.append(msg)
+
+          # 발송
+          url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+          for text in messages:
+              payload = json.dumps({
+                  "chat_id": CHAT_ID,
+                  "text": text,
+                  "parse_mode": "HTML",
+                  "disable_web_page_preview": True,
+              }).encode("utf-8")
+              req = urllib.request.Request(url, data=payload,
+                                           headers={"Content-Type": "application/json"})
+              with urllib.request.urlopen(req, timeout=15) as resp:
+                  result = json.loads(resp.read())
+                  if result.get("ok"):
+                      print(f"✅ Telegram 발송 완료: {r.get('security_term')}")
+                  else:
+                      print(f"❌ Telegram 오류: {result}")
+          PYEOF

@@ -1,0 +1,142 @@
+name: H.4.1 Weekly Liquidity Telegram
+
+on:
+  schedule:
+    # 매주 목요일 22:00 UTC (금요일 07:00 KST) — Fed H.4.1 릴리즈(~21:30 UTC) 직후
+    - cron: '0 22 * * 4'
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch H.4.1 data & Send Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WORKER_URL: https://macrolens-worker.macrolens.workers.dev
+        run: |
+          python3 << 'PYEOF'
+          import json, os, urllib.request, datetime
+
+          BOT_TOKEN  = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+          CHAT_ID    = os.environ.get("TELEGRAM_CHAT_ID", "")
+          WORKER_URL = os.environ.get("WORKER_URL", "")
+
+          if not BOT_TOKEN or not CHAT_ID:
+              print("Telegram secrets 없음, 스킵")
+              exit(0)
+
+          # ── Worker에서 H.4.1 파싱 데이터 가져오기 ──
+          print("H.4.1 데이터 요청 중...")
+          try:
+              req = urllib.request.Request(
+                  f"{WORKER_URL}/h41-html",
+                  headers={"User-Agent": "MacroMonitor-Actions/1.0"}
+              )
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  raw = json.loads(resp.read())
+          except Exception as e:
+              print(f"Worker 호출 실패: {e}")
+              exit(1)
+
+          # ── 데이터 파싱 ──
+          # /h41-html 응답 구조: { reserve_balances, rrp, tga, currency_circ, ... }
+          # 각 항목: { latest, prev, delta, ... } (단위: 백만 달러)
+          def get_val(d, key):
+              """백만 달러 → T/B 자동 단위 변환"""
+              item = d.get(key, {})
+              if not item:
+                  return None, None, None
+              latest = item.get("latest")
+              delta  = item.get("delta")  # 전주 대비 변화 (백만 달러)
+              return latest, delta, item
+
+          M = 1_000_000      # 백만달러 기준
+          T = 1_000_000      # → T 변환: /1e6 (이미 백만 단위면 /1e6 = T)
+
+          def fmt_T(v_mm):
+              """백만달러 → T 표시"""
+              if v_mm is None: return "N/A"
+              return f"${v_mm/1e6:.2f}T"
+
+          def fmt_B(v_mm):
+              """백만달러 → B 표시"""
+              if v_mm is None: return "N/A"
+              return f"${v_mm/1e3:.0f}B"
+
+          def delta_str(d_mm, threshold_mm=1000):
+              """delta 이모지 + 포맷"""
+              if d_mm is None: return ""
+              b = d_mm / 1e3  # → 십억달러
+              sign = "+" if b >= 0 else ""
+              emoji = "🟢" if b >= 0 else "🔴"
+              if abs(d_mm) >= threshold_mm * 1000:  # T급
+                  return f"  Δ {sign}{b/1e3:.2f}T {emoji}"
+              return f"  Δ {sign}{b:.0f}B {emoji}"
+
+          d = raw  # 응답 최상위가 바로 데이터
+
+          res_latest, res_delta, _ = get_val(d, "reserve_balances")
+          rrp_latest, rrp_delta, _ = get_val(d, "rrp")
+          tga_latest, tga_delta, _ = get_val(d, "tga")
+
+          # 순유동성 = 준비금 + RRP (TGA는 차감 항목이지만 H.4.1 기준 단순 합산)
+          net_liq = None
+          net_delta = None
+          if res_latest is not None and rrp_latest is not None:
+              net_liq   = res_latest + rrp_latest
+              if res_delta is not None and rrp_delta is not None:
+                  net_delta = res_delta + rrp_delta
+
+          # 날짜
+          release_date = d.get("release_date") or d.get("date") or datetime.date.today().isoformat()
+          kst_now = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
+          kst_str = kst_now.strftime("%m-%d %H:%M KST")
+
+          # ── 메시지 조립 ──
+          lines = [
+              f"📊 <b>Fed H.4.1 주간 유동성</b> | {release_date}",
+              "─" * 24,
+              f"• 준비금:   {fmt_T(res_latest)}{delta_str(res_delta)}",
+              f"• ON RRP:  {fmt_B(rrp_latest)}{delta_str(rrp_delta)}",
+              f"• TGA:     {fmt_B(tga_latest)}{delta_str(tga_delta)}",
+              f"• 순유동성: {fmt_T(net_liq)}{delta_str(net_delta)}",
+              "",
+          ]
+
+          # 방향성 판단 (단순 룰)
+          if net_delta is not None:
+              if net_delta > 50_000:      # +500억 이상 증가
+                  direction = "→ 유동성 순증 — 위험자산 우호 환경"
+              elif net_delta < -50_000:   # -500억 이상 감소
+                  direction = "→ 유동성 순감 — 단기 헤드윈드 주의"
+              else:
+                  direction = "→ 유동성 소폭 변화 — 방향성 중립"
+              lines.append(direction)
+              lines.append("")
+
+          lines.append(f"🔗 macromonitor.zbbg.kr")
+
+          text = "\n".join(lines)
+          print("메시지 미리보기:")
+          print(text)
+
+          # ── Telegram 발송 ──
+          url     = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+          payload = json.dumps({
+              "chat_id": CHAT_ID,
+              "text": text,
+              "parse_mode": "HTML",
+              "disable_web_page_preview": True,
+          }).encode("utf-8")
+          req = urllib.request.Request(url, data=payload,
+                                       headers={"Content-Type": "application/json"})
+          with urllib.request.urlopen(req, timeout=15) as resp:
+              result = json.loads(resp.read())
+              if result.get("ok"):
+                  print("✅ H.4.1 Telegram 발송 완료")
+              else:
+                  print(f"❌ Telegram 오류: {result}")
+                  exit(1)
+          PYEOF
