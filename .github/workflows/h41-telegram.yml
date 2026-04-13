@@ -27,66 +27,93 @@ jobs:
               print("Telegram secrets 없음, 스킵")
               exit(0)
 
-          # ── Worker에서 H.4.1 데이터 가져오기 ──
-          print("H.4.1 데이터 요청 중...")
+          # ── /h41-history?weeks=2 호출 ──
+          print("H.4.1 히스토리 요청 중...")
           try:
               req = urllib.request.Request(
-                  f"{WORKER_URL}/h41-html",
+                  f"{WORKER_URL}/h41-history?weeks=2",
                   headers={"User-Agent": "MacroMonitor-Actions/1.0"}
               )
               with urllib.request.urlopen(req, timeout=30) as resp:
-                  raw = json.loads(resp.read())
+                  data = json.loads(resp.read())
           except Exception as e:
               print(f"Worker 호출 실패: {e}")
               exit(1)
 
-          # ── 응답 구조: raw["data"][key]["valueB"] 단위: 십억달러(B)
-          #              raw["data"][key]["deltaB"] 전주 대비 Δ 십억달러
-          data    = raw.get("data", {})
+          raw = data.get("raw", [])
+          if len(raw) < 1:
+              print("데이터 없음, 스킵")
+              exit(0)
 
-          def get_B(key):
-              item = data.get(key, {})
-              return item.get("valueB"), item.get("deltaB")
+          # raw 단위: 백만달러(M)
+          cur  = raw[0]
+          prev = raw[1] if len(raw) >= 2 else {}
 
-          def fmt_T(v):
-              return f"${v/1e3:.2f}T" if v is not None else "N/A"
+          def M(key, d):
+              v = d.get(key)
+              return float(v) if v is not None else None
 
-          def fmt_B(v):
-              return f"${v:.0f}B" if v is not None else "N/A"
+          def delta(key):
+              c, p = M(key, cur), M(key, prev)
+              return (c - p) if c is not None and p is not None else None
 
-          def delta_str(d):
-              if d is None: return ""
-              sign  = "+" if d >= 0 else ""
-              emoji = "🟢" if d >= 0 else "🔴"
-              if abs(d) >= 100:
-                  return f"  Δ {sign}{d/1e3:.2f}T {emoji}"
-              return f"  Δ {sign}{d:.1f}B {emoji}"
+          # ── 핵심 지표 (백만달러) ──
+          rc   = M("reserve_credit",   cur)   # 연준 총자산
+          tga  = M("tga",              cur)   # TGA
+          rrp  = M("on_rrp_domestic",  cur)   # ON RRP (domestic only)
+          res  = M("reserve_balances", cur)   # 은행 준비금
 
-          res_B,  res_dB  = get_B("reserve_balances")
-          rrp_B,  rrp_dB  = get_B("rrp_bs")
-          tga_B,  tga_dB  = get_B("tga")
-          cur_B,  cur_dB  = get_B("currency_circ")
+          # 순유동성 = 연준총자산 - TGA - ON RRP(domestic)
+          nl   = (rc - tga - rrp) if rc is not None and tga is not None and rrp is not None else None
 
-          net_B  = (res_B  + rrp_B)  if res_B  is not None and rrp_B  is not None else None
-          net_dB = (res_dB + rrp_dB) if res_dB is not None and rrp_dB is not None else None
+          # 전주 순유동성
+          rc_p  = M("reserve_credit",  prev)
+          tga_p = M("tga",             prev)
+          rrp_p = M("on_rrp_domestic", prev)
+          nl_p  = (rc_p - tga_p - rrp_p) if all(v is not None for v in [rc_p, tga_p, rrp_p]) else None
 
-          release_date = raw.get("releaseDate", datetime.date.today().isoformat())
+          nl_d  = (nl - nl_p)  if nl  is not None and nl_p  is not None else None
+          rc_d  = delta("reserve_credit")
+          tga_d = delta("tga")
+          rrp_d = delta("on_rrp_domestic")
+          res_d = delta("reserve_balances")
 
-          if net_dB is not None:
-              if   net_dB >  50: direction = "→ 유동성 순증 — 위험자산 우호 환경 🟢"
-              elif net_dB < -50: direction = "→ 유동성 순감 — 단기 헤드윈드 주의 🔴"
-              else:              direction = "→ 유동성 소폭 변화 — 방향성 중립 ⚪"
+          # ── 포맷 함수 ──
+          def fmt_T(v_M):
+              return f"${v_M/1e6:.2f}T" if v_M is not None else "N/A"
+
+          def fmt_B(v_M):
+              return f"${v_M/1e3:.1f}B" if v_M is not None else "N/A"
+
+          def d_str(d_M):
+              if d_M is None: return ""
+              b     = d_M / 1e3
+              sign  = "+" if b >= 0 else ""
+              emoji = "🟢" if b >= 0 else "🔴"
+              if abs(b) >= 100:
+                  return f"  Δ{sign}{b/1e3:.2f}T {emoji}"
+              return f"  Δ{sign}{b:.1f}B {emoji}"
+
+          # ── 방향성 판단 ──
+          if nl_d is not None:
+              nl_dB = nl_d / 1e3
+              if   nl_dB >  50: direction = "→ 유동성 순증 — 위험자산 우호 환경 🟢"
+              elif nl_dB < -50: direction = "→ 유동성 순감 — 단기 헤드윈드 주의 🔴"
+              else:             direction = "→ 유동성 소폭 변화 — 방향성 중립 ⚪"
           else:
               direction = None
 
+          release_date = cur.get("releaseDate", datetime.date.today().isoformat())
+
+          # ── 메시지 조립 ──
           lines = [
               f"📊 <b>Fed H.4.1 주간 유동성</b> | {release_date}",
               "─" * 24,
-              f"• 준비금:    {fmt_T(res_B)}{delta_str(res_dB)}",
-              f"• ON RRP:   {fmt_B(rrp_B)}{delta_str(rrp_dB)}",
-              f"• TGA:      {fmt_B(tga_B)}{delta_str(tga_dB)}",
-              f"• 유통화폐: {fmt_T(cur_B)}{delta_str(cur_dB)}",
-              f"• 순유동성: {fmt_T(net_B)}{delta_str(net_dB)}",
+              f"• 연준총자산: {fmt_T(rc)}{d_str(rc_d)}",
+              f"• 준비금:    {fmt_T(res)}{d_str(res_d)}",
+              f"• TGA:       {fmt_B(tga)}{d_str(tga_d)}",
+              f"• ON RRP:    {fmt_B(rrp)}{d_str(rrp_d)}",
+              f"• 순유동성:  {fmt_T(nl)}{d_str(nl_d)}",
               "",
           ]
           if direction:
@@ -97,6 +124,7 @@ jobs:
           print("메시지 미리보기:")
           print(text)
 
+          # ── Telegram 발송 ──
           url     = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
           payload = json.dumps({
               "chat_id": CHAT_ID,
