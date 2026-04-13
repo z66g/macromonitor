@@ -102,8 +102,7 @@ jobs:
               detail_lines = "\n".join(summary_lines[1:]) if len(summary_lines) > 1 else ""
 
               msg = (
-                  f"🏦 <b>국채경매 결과</b> | {term} {stype} | {today}\n"
-                  f"{'─' * 24}\n"
+                  f"🏦 <b>국채경매 결과</b> | {term} {stype} | {today}\n\n"
                   f"{overall_emoji(r.get('summary'))} {first_line}\n\n"
                   f"• Tail: {tail_str} {tail_emoji}\n"
                   f"• BTC: {btc_str}  (6avg {btc_avg_str}) {grade_emoji(gr.get('btc'))}\n"

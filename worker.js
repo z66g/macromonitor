@@ -5685,8 +5685,7 @@ async function sendTelegramDigest(env, digest) {
   ).join('\n');
 
   const text =
-    `📰 <b>MacroMonitor 뉴스</b> | ${dateStr} ${timeStr}\n` +
-    `${'─'.repeat(24)}\n` +
+    `📰 <b>MacroMonitor 뉴스</b> | ${dateStr} ${timeStr}\n\n` +
     `${lines}\n\n` +
     `🔗 macromonitor.zbbg.kr`;
 

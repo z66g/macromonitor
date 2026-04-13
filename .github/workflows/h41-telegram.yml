@@ -108,7 +108,7 @@ jobs:
           # ── 메시지 조립 ──
           lines = [
               f"📊 <b>Fed H.4.1 주간 유동성</b> | {release_date}",
-              "─" * 24,
+              "",
               f"• 연준총자산: {fmt_T(rc)}{d_str(rc_d)}",
               f"• 준비금:    {fmt_T(res)}{d_str(res_d)}",
               f"• TGA:       {fmt_B(tga)}{d_str(tga_d)}",
