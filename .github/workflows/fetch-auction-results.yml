@@ -2,7 +2,7 @@ name: Fetch Auction Results
 
 on:
   schedule:
-    - cron: '0 16,17,18 * * 1-5'
+    - cron: '0 21 * * 1-5'
   workflow_dispatch:
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python3 << 'PYEOF'
-          import json, os, datetime, urllib.request, urllib.parse
+          import json, os, datetime, urllib.request
 
           BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
           CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID", "")
@@ -47,15 +47,14 @@ jobs:
           with open("data/auction_results.json", encoding="utf-8") as f:
               data = json.load(f)
 
-          # 오늘 날짜 + summary 완성 건만 추출
-          today_done = [
+          # 오늘 날짜 경매 전체 (Bill 포함, summary 유무 무관)
+          today_results = [
               r for r in data.get("results", [])
               if r.get("auction_date", "")[:10] == today
-              and r.get("summary")
           ]
 
-          if not today_done:
-              print(f"오늘({today}) 완성된 경매 결과 없음, 스킵")
+          if not today_results:
+              print(f"오늘({today}) 경매 결과 없음, 스킵")
               exit(0)
 
           def grade_emoji(g):
@@ -72,64 +71,68 @@ jobs:
           def fmt(v, dec=2):
               return str(round(v, dec)) if v is not None else "N/A"
 
-          messages = []
-          for r in today_done:
-              an   = r.get("_analysis", {})
-              gr   = an.get("grade", {})
-              term = r.get("security_term", "")
-              stype= r.get("security_type", "")
-              size = (r.get("offering_amt") or 0) / 1e9
+          # 하나의 메시지로 합침
+          msg = f"🏦 <b>국채경매 결과</b> | {today}\n"
 
-              # 요약 첫 줄 (총평 줄)
-              summary_lines = (r.get("summary") or "").strip().splitlines()
-              first_line = summary_lines[0] if summary_lines else ""
-
-              tail_bps = an.get("tail_bps")
-              tail_str = (f"{tail_bps:+.1f}bp" if tail_bps is not None else "N/A")
-              tail_emoji = grade_emoji(gr.get("tail"))
+          for r in today_results:
+              an    = r.get("_analysis", {})
+              gr    = an.get("grade", {})
+              term  = r.get("security_term", "")
+              stype = r.get("security_type", "")
+              size  = (r.get("offering_amt") or 0) / 1e9
 
               btc     = an.get("btc")
               btc_avg = an.get("btc_avg6")
               btc_str = f"{fmt(btc, 2)}x" if btc is not None else "N/A"
-              btc_avg_str = f"{fmt(btc_avg, 2)}x" if btc_avg is not None else "N/A"
+              btc_avg_str = f"(6avg {fmt(btc_avg, 2)}x)" if btc_avg is not None else ""
 
-              in_pct  = an.get("in_pct")
-              in_avg  = an.get("in_avg6")
-              pd_pct  = an.get("pd_pct")
-              pd_avg  = an.get("pd_avg6")
+              tail_bps = an.get("tail_bps")
+              tail_str = f"{tail_bps:+.1f}bp" if tail_bps is not None else ""
 
-              # 나머지 요약 (2~4줄)
-              detail_lines = "\n".join(summary_lines[1:]) if len(summary_lines) > 1 else ""
+              in_pct = an.get("in_pct")
+              pd_pct = an.get("pd_pct")
 
-              msg = (
-                  f"🏦 <b>국채경매 결과</b> | {term} {stype} | {today}\n\n"
-                  f"{overall_emoji(r.get('summary'))} {first_line}\n\n"
-                  f"• Tail: {tail_str} {tail_emoji}\n"
-                  f"• BTC: {btc_str}  (6avg {btc_avg_str}) {grade_emoji(gr.get('btc'))}\n"
-                  f"• Indirect: {fmt(in_pct, 1)}%  (6avg {fmt(in_avg, 1)}%)\n"
-                  f"• PD: {fmt(pd_pct, 1)}%  (6avg {fmt(pd_avg, 1)}%) {grade_emoji(gr.get('pd'))}\n"
-                  f"• 규모: ${fmt(size, 1)}B\n"
-              )
-              if detail_lines:
-                  msg += f"\n{detail_lines}\n"
-              msg += f"\n🔗 macromonitor.zbbg.kr"
-              messages.append(msg)
+              msg += f"\n━━━ {term} {stype}  ${fmt(size,1)}B ━━━\n"
+
+              # Note/Bond/TIPS: summary 포함
+              if r.get("summary"):
+                  summary_lines = r["summary"].strip().splitlines()
+                  first_line = summary_lines[0] if summary_lines else ""
+                  msg += f"{overall_emoji(r['summary'])} {first_line}\n"
+                  if tail_str:
+                      msg += f"• Tail: {tail_str} {grade_emoji(gr.get('tail'))}\n"
+                  msg += f"• BTC: {btc_str} {btc_avg_str} {grade_emoji(gr.get('btc'))}\n"
+                  if in_pct is not None:
+                      msg += f"• Indirect: {fmt(in_pct,1)}%  (6avg {fmt(an.get('in_avg6'),1)}%)\n"
+                  if pd_pct is not None:
+                      msg += f"• PD: {fmt(pd_pct,1)}%  (6avg {fmt(an.get('pd_avg6'),1)}%) {grade_emoji(gr.get('pd'))}\n"
+                  detail = "\n".join(summary_lines[1:]).strip()
+                  if detail:
+                      msg += f"{detail}\n"
+              else:
+                  # Bill 등 summary 없는 경우: 핵심 수치만
+                  msg += f"• BTC: {btc_str} {btc_avg_str} {grade_emoji(gr.get('btc'))}\n"
+                  if in_pct is not None:
+                      msg += f"• Indirect: {fmt(in_pct,1)}%\n"
+                  if pd_pct is not None:
+                      msg += f"• PD: {fmt(pd_pct,1)}% {grade_emoji(gr.get('pd'))}\n"
+
+          msg += f"\n🔗 macromonitor.zbbg.kr"
 
           # 발송
           url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-          for text in messages:
-              payload = json.dumps({
-                  "chat_id": CHAT_ID,
-                  "text": text,
-                  "parse_mode": "HTML",
-                  "disable_web_page_preview": True,
-              }).encode("utf-8")
-              req = urllib.request.Request(url, data=payload,
-                                           headers={"Content-Type": "application/json"})
-              with urllib.request.urlopen(req, timeout=15) as resp:
-                  result = json.loads(resp.read())
-                  if result.get("ok"):
-                      print(f"✅ Telegram 발송 완료: {r.get('security_term')}")
-                  else:
-                      print(f"❌ Telegram 오류: {result}")
+          payload = json.dumps({
+              "chat_id": CHAT_ID,
+              "text": msg,
+              "parse_mode": "HTML",
+              "disable_web_page_preview": True,
+          }).encode("utf-8")
+          req = urllib.request.Request(url, data=payload,
+                                       headers={"Content-Type": "application/json"})
+          with urllib.request.urlopen(req, timeout=15) as resp:
+              result = json.loads(resp.read())
+              if result.get("ok"):
+                  print(f"✅ Telegram 발송 완료: {len(today_results)}건")
+              else:
+                  print(f"❌ Telegram 오류: {result}")
           PYEOF
