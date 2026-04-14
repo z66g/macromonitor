@@ -52,12 +52,10 @@ newsDigest: 24h
 ## API 구성
 | API | Key | 용도 |
 |---|---|---|
-| Anthropic | `ANTHROPIC_API_KEY` | 뉴스 다이제스트 생성, 뉴스 번역 (Haiku) |
-| Gemini | `GEMINI_API_KEY` | QRA 검색, 국채경매 Tail 검색·요약 (Search Grounding) |
+| Gemini | `GEMINI_API_KEY` | 뉴스 다이제스트·번역, QRA 검색, 국채경매 Tail·요약 |
 | Telegram | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | 알림 발송 |
 
-- Anthropic 모델: `claude-haiku-4-5-20251001`
-- Gemini 모델: `gemini-2.5-flash` → 503/429 시 `gemini-2.0-flash` fallback
+- Gemini 모델: `gemini-2.5-flash` (유료 티어, 전 기능 통일)
 
 ## 텔레그램 알림 구성 ★ 신규
 
@@ -191,7 +189,7 @@ newsDigest: 24h
 | 키 | 위치 |
 |---|---|
 | `FRED_API_KEY` | Cloudflare Worker (wrangler secret) |
-| `ANTHROPIC_API_KEY` | Cloudflare Worker (wrangler secret) |
+| ~~`ANTHROPIC_API_KEY`~~ | 제거됨 — Gemini로 통일 |
 | `GEMINI_API_KEY` | Cloudflare Worker + GitHub Actions |
 | `CLOUDFLARE_API_TOKEN` | GitHub Actions |
 | `TELEGRAM_BOT_TOKEN` | Cloudflare Worker + GitHub Actions |
