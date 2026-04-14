@@ -11316,13 +11316,16 @@ function renderAucCards(dateStr) {
     const inStr   = a.in_pct != null ? `Indirect ${a.in_pct}%` : '';
 
     // 요약 파싱 (줄바꿈 처리)
+    const isBill = typ === 'Bill';
     const summaryHtml = r.summary
       ? r.summary.split('\n').map(line => {
           if (line.startsWith('🎯')) return `<div style="font-size:10px;font-weight:700;color:#E6EDF3;margin-bottom:6px;">${line}</div>`;
           if (/^[1-4]\./.test(line)) return `<div style="font-size:9px;color:#8B949E;margin-bottom:3px;line-height:1.5;">${line}</div>`;
           return `<div style="font-size:9px;color:#656D76;margin-bottom:2px;">${line}</div>`;
         }).join('')
-      : `<div style="font-size:9px;color:#484F58;">요약 준비 중...</div>`;
+      : isBill
+        ? `<div style="font-size:9px;color:#484F58;">Bills는 요약이 제공되지 않습니다</div>`
+        : `<div style="font-size:9px;color:#484F58;">요약 준비 중...</div>`;
 
     html += `
     <div style="background:${bg};border:0.5px solid ${col}33;border-left:3px solid ${col};
