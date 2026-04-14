@@ -1,0 +1,300 @@
+name: Daily Market Telegram
+
+on:
+  schedule:
+    # 매일 10:30 UTC (KST 19:30) — KOSPI 마감 후 + 미국 장 개시 3시간 전
+    - cron: '30 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch data & Send Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          WORKER_URL: https://macrolens-worker.macrolens.workers.dev
+        run: |
+          pip install requests -q
+          python3 << 'PYEOF'
+          import json, os, requests, datetime
+          from concurrent.futures import ThreadPoolExecutor
+
+          BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
+          CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID", "")
+          WORKER    = os.environ.get("WORKER_URL", "")
+          HEADERS   = {"User-Agent": "MacroMonitor-Actions/1.0"}
+
+          if not BOT_TOKEN or not CHAT_ID:
+              print("Telegram secrets 없음, 스킵")
+              exit(0)
+
+          # ── 공통 fetch helper ──
+          def fetch_json(path, timeout=30):
+              try:
+                  r = requests.get(f"{WORKER}{path}", headers=HEADERS, timeout=timeout)
+                  r.raise_for_status()
+                  return r.json()
+              except Exception as e:
+                  print(f"  {path} 실패: {e}")
+                  return None
+
+          # ── 1) 코어 엔드포인트 병렬 호출 (force=1 최신 보장) ──
+          print("핵심 데이터 수집 중...")
+          with ThreadPoolExecutor(max_workers=3) as ex:
+              fut_liq = ex.submit(fetch_json, "/liq?force=1", 45)
+              fut_t3  = ex.submit(fetch_json, "/t3?force=1",  45)
+              liq = fut_liq.result()
+              t3  = fut_t3.result()
+
+          # ── 2) 원자재 모멘텀: 12종 yahoo-chart 병렬 (1M % 계산용) ──
+          COMMODITIES = [
+              ('CL=F',  'WTI 원유'),
+              ('BZ=F',  'Brent 원유'),
+              ('NG=F',  '천연가스'),
+              ('URA',   '우라늄'),
+              ('HG=F',  '구리'),
+              ('ALI=F', '알루미늄'),
+              ('GC=F',  '금'),
+              ('SI=F',  '은'),
+              ('ZW=F',  '밀'),
+              ('ZS=F',  '대두'),
+              ('LBR=F', '목재'),
+              ('BDRY',  'BDRY'),
+          ]
+
+          def fetch_commodity_1m(ticker):
+              import urllib.parse
+              path = f"/yahoo-chart?ticker={urllib.parse.quote(ticker)}&range=3mo"
+              data = fetch_json(path, 20)
+              if not data:
+                  return None
+              # Yahoo chart 응답 구조: chart.result[0].indicators.quote[0].close
+              try:
+                  result = data.get('chart', {}).get('result', [{}])[0]
+                  closes = result.get('indicators', {}).get('quote', [{}])[0].get('close', [])
+                  closes = [c for c in closes if c is not None and c > 0]
+                  if len(closes) < 21: return None
+                  now_price = closes[-1]
+                  prev_price = closes[-21]  # 20영업일 전
+                  pct_1m = (now_price - prev_price) / prev_price * 100
+                  return {'ticker': ticker, 'price': now_price, 'pct_1m': round(pct_1m, 1)}
+              except Exception as e:
+                  print(f"  {ticker} 파싱 실패: {e}")
+                  return None
+
+          print("원자재 12종 수집 중...")
+          comm_results = {}
+          with ThreadPoolExecutor(max_workers=6) as ex:
+              for ticker, label in COMMODITIES:
+                  comm_results[ticker] = ex.submit(fetch_commodity_1m, ticker)
+              comm_data = {t: f.result() for t, f in comm_results.items()}
+
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # 메시지 빌드
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          kst_now = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
+          kst_str = kst_now.strftime("%m-%d (%a) %H:%M KST")
+
+          lines = [
+              f"🌅 <b>MacroMonitor 일일 리포트</b> | {kst_str}",
+          ]
+
+          # ─────────────────────────────────────
+          # ① 국채 금리
+          # ─────────────────────────────────────
+          lines += ["", "━━━ 국채 금리 ━━━"]
+          y = (liq or {}).get("yields", {})
+          d2 = y.get("dgs2",  {})
+          d10 = y.get("dgs10", {})
+
+          def bp_delta(d_pct):
+              """0.02% → +2bp"""
+              if d_pct is None: return ""
+              bp = round(d_pct * 100, 1)
+              em = "🔴" if bp > 0 else "🟢" if bp < 0 else "⚪"
+              return f"  Δ{bp:+.1f}bp {em}"
+
+          if d2.get("current") is not None:
+              lines.append(f"• 2Y:  {d2['current']:.2f}%{bp_delta(d2.get('delta'))}")
+          if d10.get("current") is not None:
+              lines.append(f"• 10Y: {d10['current']:.2f}%{bp_delta(d10.get('delta'))}")
+          if d2.get("current") is not None and d10.get("current") is not None:
+              spread_bp = round((d10["current"] - d2["current"]) * 100, 0)
+              spread_str = f"+{spread_bp:.0f}bp" if spread_bp >= 0 else f"{spread_bp:.0f}bp"
+              label = "가팔라짐" if spread_bp > 0 else "역전"
+              lines.append(f"• 2s10s: {spread_str} ({label})")
+
+          # ─────────────────────────────────────
+          # ② 원자재 모멘텀
+          # ─────────────────────────────────────
+          lines += ["", "━━━ 원자재 모멘텀 (1M 등락률) ━━━"]
+          movers = []
+          for tkr, lbl in COMMODITIES:
+              d = comm_data.get(tkr)
+              if d and d.get('pct_1m') is not None:
+                  movers.append((lbl, d['pct_1m']))
+          movers.sort(key=lambda x: x[1], reverse=True)
+
+          up    = [m for m in movers if m[1] >=  2]
+          flat  = [m for m in movers if -2 < m[1] < 2]
+          down  = [m for m in movers if m[1] <= -2]
+
+          def fmt_mover(m):
+              sign = "+" if m[1] >= 0 else ""
+              return f"  {m[0]:<8s} {sign}{m[1]:.1f}%"
+
+          if up:
+              lines.append("🟢 상승 (≥+2%)")
+              for m in up: lines.append(fmt_mover(m))
+          if down:
+              lines.append("🔴 하락 (≤-2%)")
+              for m in down: lines.append(fmt_mover(m))
+          if flat:
+              lines.append("⚪ 보합")
+              for m in flat: lines.append(fmt_mover(m))
+          if not movers:
+              lines.append("  데이터 수집 실패")
+
+          # ─────────────────────────────────────
+          # ③ 글로벌 유동성 국면 (T3 Block 1)
+          # ─────────────────────────────────────
+          lines += ["", "━━━ 글로벌 유동성 국면 ━━━"]
+          t3d = t3 or {}
+          dxy5y   = t3d.get("dxy5y", [])
+          broad5y = t3d.get("broad5y", [])
+
+          def dma10(series, offset=0):
+              """offset일 전 기준 10DMA"""
+              if not series or len(series) < 10 + offset: return None
+              end = len(series) - offset
+              vals = [p.get("value") for p in series[end-10:end] if p.get("value") is not None]
+              return sum(vals) / len(vals) if vals else None
+
+          dxy_now   = dma10(dxy5y, 0)
+          dxy_3d    = dma10(dxy5y, 3)
+          broad_now = dma10(broad5y, 0)
+          broad_3d  = dma10(broad5y, 3)
+
+          divergence_line = None
+          if all(v is not None for v in [dxy_now, dxy_3d, broad_now, broad_3d]):
+              dxy_dir   = "up" if dxy_now > dxy_3d else "down"
+              broad_dir = "up" if broad_now > broad_3d else "down"
+              if dxy_dir == "down" and broad_dir == "up":
+                  divergence_line = "🚨 악성 다이버전스 (DXY↓ & Broad↑) — 자본 도피, 위험자산 회피"
+              elif dxy_dir == "up" and broad_dir == "down":
+                  divergence_line = "🚀 역방향 다이버전스 (DXY↑ & Broad↓) — 동기화 성장, EM 고베타 랠리"
+              elif dxy_dir == broad_dir:
+                  divergence_line = f"⚪ 동방향 ({'동반 강세' if dxy_dir=='up' else '동반 약세'})"
+          if divergence_line:
+              lines.append(divergence_line)
+
+          # 4-Card KPI (GSR / Copper-Gold / USDCNH / SPY-EEM)
+          def kpi_line(label, kpi):
+              if not kpi or kpi.get("current") is None: return None
+              cur = kpi["current"]
+              spread = kpi.get("spread")
+              sig = kpi.get("sig", "")
+              em = "🟢" if sig == "green" else "🔴" if sig == "red" else "⚪"
+              sp_str = f"  Δvs200DMA {spread:+.1f}%" if spread is not None else ""
+              fmt_val = f"{cur:.2f}" if abs(cur) < 100 else f"{cur:.1f}"
+              if label == "Copper/Gold": fmt_val = f"{cur:.4f}"
+              return f"• {label}: {fmt_val} {em}{sp_str}"
+
+          for label, key in [("GSR",         "gsr"),
+                             ("Copper/Gold", "copperGold"),
+                             ("USD/CNH",     "usdcnh"),
+                             ("SPY/EEM",     "spyEem")]:
+              ln = kpi_line(label, t3d.get(key))
+              if ln: lines.append(ln)
+
+          # ─────────────────────────────────────
+          # ④ 글로벌 성장 엔진 (T3 Block 2)
+          # ─────────────────────────────────────
+          lines += ["", "━━━ 글로벌 성장 엔진 ━━━"]
+
+          def engine_pct_1m(series):
+              """20영업일 전 대비 %"""
+              if not series or len(series) < 21: return None
+              now = series[-1].get("value")
+              prev = series[-21].get("value")
+              if now is None or prev is None or prev == 0: return None
+              return round((now - prev) / prev * 100, 1)
+
+          def engine_regime(s1, s2):
+              """두 시계열의 10DMA 방향 비교"""
+              a_now, a_3d = dma10(s1, 0), dma10(s1, 3)
+              b_now, b_3d = dma10(s2, 0), dma10(s2, 3)
+              if None in (a_now, a_3d, b_now, b_3d): return None
+              a_up = a_now > a_3d
+              b_up = b_now > b_3d
+              if a_up and b_up: return ("🟢", "성장 확증 (동반 상승)")
+              if not a_up and not b_up: return ("🔴", "침체 확증 (동반 하락)")
+              return ("🟡", "혼조세")
+
+          asia = t3d.get("asiaEngine", {})
+          aud_s = asia.get("aud", {}).get("series", [])
+          kospi_s = asia.get("kospi", {}).get("series", [])
+          aud_latest = asia.get("aud", {}).get("latest", {}).get("value")
+          kospi_latest = asia.get("kospi", {}).get("latest", {}).get("value")
+
+          asia_reg = engine_regime(aud_s, kospi_s)
+          if asia_reg:
+              em, desc = asia_reg
+              lines.append(f"{em} 아시아 팩토리 — {desc}")
+              if aud_latest is not None:
+                  pct = engine_pct_1m(aud_s)
+                  pct_str = f" ({pct:+.1f}% 1M)" if pct is not None else ""
+                  lines.append(f"  AUD/USD: {aud_latest:.4f}{pct_str}")
+              if kospi_latest is not None:
+                  pct = engine_pct_1m(kospi_s)
+                  pct_str = f" ({pct:+.1f}% 1M)" if pct is not None else ""
+                  lines.append(f"  KOSPI: {kospi_latest:,.0f}{pct_str}")
+
+          euro = t3d.get("euroEngine", {})
+          eur_s = euro.get("eurusd", {}).get("series", [])
+          fez_s = euro.get("fez", {}).get("series", [])
+          eur_latest = euro.get("eurusd", {}).get("latest", {}).get("value")
+          fez_latest = euro.get("fez", {}).get("latest", {}).get("value")
+
+          euro_reg = engine_regime(eur_s, fez_s)
+          if euro_reg:
+              em, desc = euro_reg
+              lines.append("")
+              lines.append(f"{em} 유로존 팩토리 — {desc}")
+              if eur_latest is not None:
+                  pct = engine_pct_1m(eur_s)
+                  pct_str = f" ({pct:+.1f}% 1M)" if pct is not None else ""
+                  lines.append(f"  EUR/USD: {eur_latest:.4f}{pct_str}")
+              if fez_latest is not None:
+                  pct = engine_pct_1m(fez_s)
+                  pct_str = f" ({pct:+.1f}% 1M)" if pct is not None else ""
+                  lines.append(f"  FEZ: ${fez_latest:.2f}{pct_str}")
+
+          lines += ["", "🔗 macromonitor.zbbg.kr"]
+
+          text = "\n".join(lines)
+          print("메시지 미리보기:")
+          print(text)
+          print(f"\n메시지 길이: {len(text)}자")
+
+          # ── Telegram 발송 (4096자 제한 주의) ──
+          import urllib.request
+          url     = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+          payload = json.dumps({
+              "chat_id": CHAT_ID,
+              "text": text,
+              "parse_mode": "HTML",
+              "disable_web_page_preview": True,
+          }).encode("utf-8")
+          req = urllib.request.Request(url, data=payload,
+                                       headers={"Content-Type": "application/json"})
+          with urllib.request.urlopen(req, timeout=15) as resp:
+              result = json.loads(resp.read())
+              if result.get("ok"):
+                  print("✅ Daily Market Telegram 발송 완료")
+              else:
+                  print(f"❌ Telegram 오류: {result}")
+                  exit(1)
+          PYEOF
