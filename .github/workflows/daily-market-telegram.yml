@@ -68,21 +68,19 @@ jobs:
               import urllib.parse
               path = f"/yahoo-chart?ticker={urllib.parse.quote(ticker)}&range=3mo"
               data = fetch_json(path, 20)
-              if not data:
+              if not data or data.get('error'):
+                  print(f"  {ticker} 응답 없음/에러: {data}")
                   return None
-              # Yahoo chart 응답 구조: chart.result[0].indicators.quote[0].close
-              try:
-                  result = data.get('chart', {}).get('result', [{}])[0]
-                  closes = result.get('indicators', {}).get('quote', [{}])[0].get('close', [])
-                  closes = [c for c in closes if c is not None and c > 0]
-                  if len(closes) < 21: return None
-                  now_price = closes[-1]
-                  prev_price = closes[-21]  # 20영업일 전
-                  pct_1m = (now_price - prev_price) / prev_price * 100
-                  return {'ticker': ticker, 'price': now_price, 'pct_1m': round(pct_1m, 1)}
-              except Exception as e:
-                  print(f"  {ticker} 파싱 실패: {e}")
+              # Worker가 flatten해서 {dates, closes} 반환
+              closes = data.get('closes', [])
+              closes = [c for c in closes if c is not None and c > 0]
+              if len(closes) < 21:
+                  print(f"  {ticker} 데이터 부족: {len(closes)}개")
                   return None
+              now_price = closes[-1]
+              prev_price = closes[-21]  # 20영업일 전
+              pct_1m = (now_price - prev_price) / prev_price * 100
+              return {'ticker': ticker, 'price': now_price, 'pct_1m': round(pct_1m, 1)}
 
           print("원자재 12종 수집 중...")
           comm_results = {}
@@ -162,8 +160,10 @@ jobs:
           # ─────────────────────────────────────
           lines += ["", "━━━ 글로벌 유동성 국면 ━━━"]
           t3d = t3 or {}
-          dxy5y   = t3d.get("dxy5y", [])
-          broad5y = t3d.get("broad5y", [])
+          dxy5y   = (t3d.get("dxy", {}) or {}).get("series", [])
+          broad5y = (t3d.get("broadDollar", {}) or {}).get("series", [])
+          dxy_latest   = (t3d.get("dxy", {}) or {}).get("latest", {})
+          broad_latest = (t3d.get("broadDollar", {}) or {}).get("latest", {})
 
           def dma10(series, offset=0):
               """offset일 전 기준 10DMA"""
@@ -189,6 +189,9 @@ jobs:
                   divergence_line = f"⚪ 동방향 ({'동반 강세' if dxy_dir=='up' else '동반 약세'})"
           if divergence_line:
               lines.append(divergence_line)
+          # 현재 수치
+          if dxy_latest.get("value") is not None and broad_latest.get("value") is not None:
+              lines.append(f"• DXY: {dxy_latest['value']:.2f} | Broad Dollar: {broad_latest['value']:.2f}")
 
           # 4-Card KPI (GSR / Copper-Gold / USDCNH / SPY-EEM)
           def kpi_line(label, kpi):
