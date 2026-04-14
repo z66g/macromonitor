@@ -2,51 +2,57 @@ name: H.4.1 Weekly Liquidity Telegram
 
 on:
   schedule:
-    # 매주 목요일 22:00 UTC (금요일 07:00 KST) — Fed H.4.1 릴리즈(~21:30 UTC) 직후
-    - cron: '0 22 * * 4'
+    # 매주 목요일 22:13 UTC (금요일 07:13 KST)
+    - cron: '13 22 * * 4'
   workflow_dispatch:
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch H.4.1 data & Send Telegram
+      - name: Fetch data & Send Telegram
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           WORKER_URL: https://macrolens-worker.macrolens.workers.dev
         run: |
+          pip install requests -q
           python3 << 'PYEOF'
-          import json, os, urllib.request, datetime
+          import json, os, requests, datetime
 
           BOT_TOKEN  = os.environ.get("TELEGRAM_BOT_TOKEN", "")
           CHAT_ID    = os.environ.get("TELEGRAM_CHAT_ID", "")
-          WORKER_URL = os.environ.get("WORKER_URL", "")
+          WORKER     = os.environ.get("WORKER_URL", "")
+          HEADERS    = {"User-Agent": "MacroMonitor-Actions/1.0"}
 
           if not BOT_TOKEN or not CHAT_ID:
               print("Telegram secrets 없음, 스킵")
               exit(0)
 
-          # ── /h41-history?weeks=2 호출 ──
-          print("H.4.1 히스토리 요청 중...")
-          try:
-              req = urllib.request.Request(
-                  f"{WORKER_URL}/h41-history?weeks=2",
-                  headers={"User-Agent": "MacroMonitor-Actions/1.0"}
-              )
-              with urllib.request.urlopen(req, timeout=30) as resp:
-                  data = json.loads(resp.read())
-          except Exception as e:
-              print(f"Worker 호출 실패: {e}")
+          # ── 3개 엔드포인트 병렬-ish 호출 ──
+          def fetch_json(path, timeout=30):
+              try:
+                  r = requests.get(f"{WORKER}{path}", headers=HEADERS, timeout=timeout)
+                  r.raise_for_status()
+                  return r.json()
+              except Exception as e:
+                  print(f"  {path} 실패: {e}")
+                  return None
+
+          print("데이터 수집 중...")
+          h41  = fetch_json("/h41-history?weeks=2")
+          liq  = fetch_json("/liq?force=1", 45)
+          tower = fetch_json("/liq-tower", 45)
+
+          if not h41:
+              print("H.4.1 데이터 없음, 종료")
               exit(1)
 
-          raw = data.get("raw", [])
-          if len(raw) < 1:
-              print("데이터 없음, 스킵")
-              exit(0)
-
-          # raw 단위: 백만달러(M)
-          cur  = raw[0]
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # 1. H.4.1 대차대조표 (raw: 백만달러)
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          raw = h41.get("raw", [])
+          cur  = raw[0] if len(raw) >= 1 else {}
           prev = raw[1] if len(raw) >= 2 else {}
 
           def M(key, d):
@@ -57,28 +63,21 @@ jobs:
               c, p = M(key, cur), M(key, prev)
               return (c - p) if c is not None and p is not None else None
 
-          # ── 핵심 지표 (백만달러) ──
-          rc   = M("reserve_credit",   cur)   # 연준 총자산
-          tga  = M("tga",              cur)   # TGA
-          rrp  = M("on_rrp_domestic",  cur)   # ON RRP (domestic only)
-          res  = M("reserve_balances", cur)   # 은행 준비금
+          rc   = M("reserve_credit",   cur)
+          tga  = M("tga",              cur)
+          rrp  = M("on_rrp_domestic",  cur)
+          res  = M("reserve_balances", cur)
 
-          # 순유동성 = 연준총자산 - TGA - ON RRP(domestic)
-          nl   = (rc - tga - rrp) if rc is not None and tga is not None and rrp is not None else None
+          nl   = (rc - tga - rrp) if all(v is not None for v in [rc, tga, rrp]) else None
+          rc_p, tga_p, rrp_p = M("reserve_credit", prev), M("tga", prev), M("on_rrp_domestic", prev)
+          nl_p = (rc_p - tga_p - rrp_p) if all(v is not None for v in [rc_p, tga_p, rrp_p]) else None
 
-          # 전주 순유동성
-          rc_p  = M("reserve_credit",  prev)
-          tga_p = M("tga",             prev)
-          rrp_p = M("on_rrp_domestic", prev)
-          nl_p  = (rc_p - tga_p - rrp_p) if all(v is not None for v in [rc_p, tga_p, rrp_p]) else None
-
-          nl_d  = (nl - nl_p)  if nl  is not None and nl_p  is not None else None
+          nl_d  = (nl - nl_p) if nl is not None and nl_p is not None else None
           rc_d  = delta("reserve_credit")
           tga_d = delta("tga")
           rrp_d = delta("on_rrp_domestic")
           res_d = delta("reserve_balances")
 
-          # ── 포맷 함수 ──
           def fmt_T(v_M):
               return f"${v_M/1e6:.2f}T" if v_M is not None else "N/A"
 
@@ -87,38 +86,178 @@ jobs:
 
           def d_str(d_M):
               if d_M is None: return ""
-              b     = d_M / 1e3
-              sign  = "+" if b >= 0 else ""
+              b = d_M / 1e3
+              sign = "+" if b >= 0 else ""
               emoji = "🟢" if b >= 0 else "🔴"
               if abs(b) >= 100:
                   return f"  Δ{sign}{b/1e3:.2f}T {emoji}"
               return f"  Δ{sign}{b:.1f}B {emoji}"
 
-          # ── 방향성 판단 ──
-          if nl_d is not None:
-              nl_dB = nl_d / 1e3
-              if   nl_dB >  50: direction = "→ 유동성 순증 — 위험자산 우호 환경 🟢"
-              elif nl_dB < -50: direction = "→ 유동성 순감 — 단기 헤드윈드 주의 🔴"
-              else:             direction = "→ 유동성 소폭 변화 — 방향성 중립 ⚪"
-          else:
-              direction = None
-
           release_date = cur.get("releaseDate", datetime.date.today().isoformat())
 
-          # ── 메시지 조립 ──
           lines = [
-              f"📊 <b>Fed H.4.1 주간 유동성</b> | {release_date}",
+              f"📊 <b>Fed H.4.1 주간 유동성 리포트</b> | {release_date}",
               "",
+              "━━━ 연준 대차대조표 ━━━",
               f"• 연준총자산: {fmt_T(rc)}{d_str(rc_d)}",
               f"• 준비금:    {fmt_T(res)}{d_str(res_d)}",
               f"• TGA:       {fmt_B(tga)}{d_str(tga_d)}",
               f"• ON RRP:    {fmt_B(rrp)}{d_str(rrp_d)}",
               f"• 순유동성:  {fmt_T(nl)}{d_str(nl_d)}",
-              "",
           ]
-          if direction:
-              lines += [direction, ""]
-          lines.append("🔗 macromonitor.zbbg.kr")
+
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # 2. NL 모멘텀 & 드레인 전망 (/liq + /liq-tower)
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          nlm = liq.get("nlMomentum", {}) if liq else {}
+          nl_score = nlm.get("score")
+          nl_regime = nlm.get("regime")
+          nl_cur_b = nlm.get("currentNL")
+          nl_avg_b = nlm.get("avg4wNL")
+
+          regime_emoji = {"risk_on": "🟢", "risk_off": "🔴"}.get(nl_regime, "⚪")
+
+          lines += ["", "━━━ NL 모멘텀 & 드레인 전망 ━━━"]
+          if nl_score is not None:
+              lines.append(f"• NL Score: {nl_score:+.2f} ({nl_regime} {regime_emoji})")
+          if nl_avg_b is not None and nl_cur_b is not None:
+              lines.append(f"• 4주 평균: ${nl_avg_b/1000:.2f}T → 현재 ${nl_cur_b/1000:.2f}T")
+
+          # Vampire drain 4주 전망
+          vampire = tower.get("vampire", {}) if tower else {}
+          weeks = vampire.get("weeks", [])
+          if weeks:
+              lines.append("")
+              lines.append("드레인 4주 전망:")
+              for w in weeks:
+                  bd = w.get("breakdown", {})
+                  nd = w.get("netDrain", 0)
+                  warn = " 🚨" if nd > 50 else " ⚠️" if nd > 30 else ""
+                  lines.append(
+                      f"  {w['label']}: {nd:+.0f}B"
+                      f" (쿠폰{bd.get('couponDrain',0):+.0f}"
+                      f"|Bill{bd.get('billAbsorb',0):+.0f}"
+                      f"|QT{bd.get('qtDrain',0):+.0f}){warn}"
+                  )
+
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # 3. MMF 자본 이동 & 유동성 질
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          mmf = liq.get("mmf", {}) if liq else {}
+          bd  = liq.get("bankDeposits", {}) if liq else {}
+          rr  = liq.get("repoRegime", {}) if liq else {}
+
+          mmf_total = mmf.get("total", {})
+          mmf_cur   = mmf_total.get("current")
+          mmf_delta = mmf_total.get("delta")
+          bd_cur    = bd.get("current")
+          bd_delta  = bd.get("delta")
+          mmf_retail = mmf.get("retail", {}).get("current")
+          mmf_inst   = mmf.get("inst", {}).get("current")
+
+          lines += ["", "━━━ MMF 자본 이동 & 유동성 질 ━━━"]
+          if mmf_cur is not None:
+              d = f"  WoW {mmf_delta:+.1f}B" if mmf_delta is not None else ""
+              lines.append(f"• MMF 총잔고: ${mmf_cur/1000:.2f}T{d}")
+              if mmf_retail is not None and mmf_inst is not None:
+                  lines.append(f"  소매 ${mmf_retail/1000:.2f}T | 기관 ${mmf_inst/1000:.2f}T")
+          if bd_cur is not None:
+              d = f"  WoW {bd_delta:+.0f}B" if bd_delta is not None else ""
+              lines.append(f"• 은행예금: ${bd_cur/1000:.3f}T{d}")
+
+          # 4W Δ 국면 판별 (ICI KV 5주 이상 시)
+          mmf_series = mmf.get("series", [])
+          bd_series  = bd.get("series", [])
+          rrp_delta  = rr.get("rrpDelta5d")
+
+          mmf_4w_delta = None
+          bd_4w_delta  = None
+          if len(mmf_series) >= 5:
+              t0 = mmf_series[0].get("total")
+              t4 = mmf_series[4].get("total")
+              if t0 is not None and t4 is not None:
+                  mmf_4w_delta = round(t0 - t4, 1)
+          if len(bd_series) >= 5:
+              b0 = bd_series[0].get("value")
+              b4 = bd_series[4].get("value")
+              if b0 is not None and b4 is not None:
+                  bd_4w_delta = round(b0 - b4, 1)
+
+          fmt_gb = lambda v: f"{v:+.1f}B" if v is not None else "—"
+
+          if mmf_4w_delta is not None or bd_4w_delta is not None:
+              rrp_str = fmt_gb(rrp_delta) if rrp_delta is not None else "—"
+              lines.append(f"• 4W Δ — MMF: {fmt_gb(mmf_4w_delta)} | 은행예금: {fmt_gb(bd_4w_delta)} | RRP: {rrp_str}")
+
+          # 5가지 국면 판별
+          if mmf_4w_delta is not None and bd_4w_delta is not None and rrp_delta is not None:
+              if mmf_4w_delta > 0:
+                  if bd_4w_delta < 0:
+                      ratio = round(mmf_4w_delta / abs(bd_4w_delta), 2)
+                      if ratio > 1.5:
+                          lines.append(f"🔴 예금 이탈 심화 (비율 {ratio}x)")
+                          lines.append("  MMF↑ & 은행예금↓ — SLOOS 긴축, 신용 경색 우려")
+                      else:
+                          lines.append(f"🟡 조용한 뱅크런 (비율 {ratio}x)")
+                          lines.append("  은행→MMF 자금 직접 유출, 신용 수축 초기")
+                  else:
+                      lines.append("🟢 건강한 자금 대기")
+                      lines.append("  예금↑ & MMF↑ — 시장 재진입 대기 자본 축적")
+              else:
+                  if rrp_delta < 0:
+                      lines.append("🟢 진짜 랠리 (Risk-On)")
+                      lines.append("  MMF↓ & RRP↓ — 연준 배관 열림, 실질 유동성 팽창")
+                  else:
+                      lines.append("🟡 가짜 랠리 주의")
+                      lines.append("  MMF↓ & RRP↑ — 배관 미개선, 기존 자금 재분배")
+          elif mmf_cur is not None:
+              lines.append("⏳ 자금이동 국면: 데이터 축적 중")
+
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # 4. 민간레포 유입 국면
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          regime      = rr.get("regime")
+          rrp_cur     = rr.get("rrpCurrent")
+          rrp_d5      = rr.get("rrpDelta5d")
+          sofr_cur    = rr.get("sofrVolCurrent")
+          sofr_d5     = rr.get("sofrVolDelta5d")
+
+          REGIME_MAP = {
+              "expansion":   ("🟢", "정상 유입 (Liquidity Expansion)", "RRP↓ & SOFR Vol↑ — 바톤터치 정상"),
+              "divergence":  ("🟡", "분산 및 대기 (Divergence)", "RRP↓ & SOFR Vol↓ — T-Bill 매입 또는 관망"),
+              "contraction": ("🔴", "유동성 파킹 (Contraction)", "RRP↑ — 연준 금고로 자금 재유입, 수축"),
+          }
+
+          lines += ["", "━━━ 민간레포 유입 국면 ━━━"]
+          if regime and regime in REGIME_MAP:
+              em, label, desc = REGIME_MAP[regime]
+              lines.append(f"{em} {label}")
+              if rrp_cur is not None:
+                  d5 = f"  Δ5d {rrp_d5:+.1f}B" if rrp_d5 is not None else ""
+                  lines.append(f"• RRP: ${rrp_cur:.1f}B{d5}")
+              if sofr_cur is not None:
+                  d5 = f"  Δ5d {sofr_d5:+.1f}B" if sofr_d5 is not None else ""
+                  lines.append(f"• SOFR Vol: ${sofr_cur/1000:.2f}T{d5}")
+              lines.append(f"  {desc}")
+          else:
+              lines.append("⏳ 데이터 대기 중")
+
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          # 5. 종합 판단
+          # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+          lines += ["", "━━━ 종합 ━━━"]
+          if nl_d is not None:
+              nl_dB = nl_d / 1e3
+              if   nl_dB >  50: lines.append("→ 유동성 순증 — 위험자산 우호 환경 🟢")
+              elif nl_dB < -50: lines.append("→ 유동성 순감 — 단기 헤드윈드 주의 🔴")
+              else:             lines.append("→ 유동성 소폭 변화 — 방향성 중립 ⚪")
+
+          # 드레인 경고
+          danger_weeks = [w["label"] for w in weeks if w.get("isDangerZone")]
+          if danger_weeks:
+              lines.append(f"→ {', '.join(danger_weeks)} 드레인 집중, 경매 금리 주시")
+
+          lines += ["", "🔗 macromonitor.zbbg.kr"]
 
           text = "\n".join(lines)
           print("메시지 미리보기:")
@@ -132,6 +271,7 @@ jobs:
               "parse_mode": "HTML",
               "disable_web_page_preview": True,
           }).encode("utf-8")
+          import urllib.request
           req = urllib.request.Request(url, data=payload,
                                        headers={"Content-Type": "application/json"})
           with urllib.request.urlopen(req, timeout=15) as resp:
