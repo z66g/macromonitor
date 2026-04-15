@@ -125,6 +125,7 @@ export default {
       if (path.startsWith('/auction-html-debug')) return await auctionHtmlDebug();
 
       // ── 뉴스 다이제스트 ────────────────────────────────────
+      if (path.startsWith('/news-digest-send'))     return await newsDigestSend(env);
       if (path.startsWith('/news-digest-generate')) return await newsDigestGenerate(request, env);
       if (path.startsWith('/news-digest'))           return await newsDigestEndpoint(env);
 
@@ -149,18 +150,9 @@ export default {
       return;
     }
 
-    // ── 뉴스 다이제스트: 3시간 간격 (하루 8회 생성, 텔레그램은 2회만) ──
+    // ── 뉴스 다이제스트: 3시간마다 생성만 (텔레그램 발송은 cron-job.org → /news-digest-send) ──
     if (event.cron === '0 */3 * * *') {
-      ctx.waitUntil((async () => {
-        await generateNewsDigest(env);
-        // KST 06:00 (UTC 21:00) / KST 21:00 (UTC 12:00) — 누적 발송
-        const hour = new Date(event.scheduledTime).getUTCHours();
-        if (hour === 21 || hour === 12) {
-          await sendBatchedTelegramDigest(env).catch(e =>
-            console.error('[BATCHED DIGEST TELEGRAM]', e.message)
-          );
-        }
-      })());
+      ctx.waitUntil(generateNewsDigest(env));
       return;
     }
 
@@ -4683,6 +4675,20 @@ async function newsDigestEndpoint(env) {
 async function newsDigestGenerate(request, env) {
   const result = await generateNewsDigest(env);
   return json(result);
+}
+
+/**
+ * 누적된 다이제스트를 배치 발송 (cron-job.org 트리거용)
+ * GET /news-digest-send
+ */
+async function newsDigestSend(env) {
+  try {
+    await sendBatchedTelegramDigest(env);
+    return json({ ok: true, sentAt: new Date().toISOString() });
+  } catch(e) {
+    console.error('[NEWS DIGEST SEND ERROR]', e.message);
+    return json({ ok: false, error: e.message }, 500);
+  }
 }
 
 async function generateNewsDigest(env) {
