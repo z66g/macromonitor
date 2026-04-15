@@ -4664,7 +4664,7 @@ async function fetchOnchainMacro() {
 // ══════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════
-// 뉴스 다이제스트 생성 (Gemini 2.5 Flash — 핵심뉴스 3건 선별)
+// 뉴스 다이제스트 생성 (Anthropic Haiku — Worker에서 Gemini는 location 제한)
 // ══════════════════════════════════════════════════════════
 
 async function newsDigestEndpoint(env) {
@@ -4692,8 +4692,8 @@ async function newsDigestSend(env) {
 }
 
 async function generateNewsDigest(env) {
-  const apiKey = env?.GEMINI_API_KEY;
-  if (!apiKey) return { error: 'GEMINI_API_KEY 없음' };
+  const apiKey = env?.ANTHROPIC_API_KEY;
+  if (!apiKey) return { error: 'ANTHROPIC_API_KEY 없음' };
 
   try {
     const newsData = await kvGet(env, KV_KEYS.newsCache);
@@ -4710,7 +4710,7 @@ async function generateNewsDigest(env) {
 
     if (items.length === 0) return { error: '뉴스 없음' };
 
-    const prompt = `당신은 MacroMonitor의 거시경제 뉴스 편집 엔진입니다.
+    const systemPrompt = `당신은 MacroMonitor의 거시경제 뉴스 편집 엔진입니다.
 
 ■ 선별 우선순위 (높을수록 우선)
 1. Fed 커뮤니케이션 (FOMC, 파월·이사 발언, 통화정책 시그널)
@@ -4728,48 +4728,41 @@ async function generateNewsDigest(env) {
 ■ 출력 규칙
 - 반드시 JSON만 반환 (코드블록 없이)
 - 한국어 한 줄 요약: 명사구 종결, 수치 포함 권장
-- 선별 불가 시 빈 배열 반환
+- 선별 불가 시 빈 배열 반환`;
 
-다음 ${items.length}건의 뉴스에서 시장 배관(유동성·금리·신용·지정학)에 가장 큰 파급력이 있는 3건을 선별하고 한 줄로 요약하세요.
+    const userPrompt = `다음 ${items.length}건의 뉴스에서 시장 배관(유동성·금리·신용·지정학)에 가장 큰 파급력이 있는 3건을 선별하고 한 줄로 요약하세요.
 
 ${items.join('\n')}
 
 출력 JSON:
 {"items":[{"rank":1,"title":"원문 제목","summary":"한 줄 요약"},{"rank":2,...},{"rank":3,...}]}`;
 
-    const resp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0,
-            maxOutputTokens: 2048,
-            responseMimeType: 'application/json',  // JSON 모드 강제
-            thinkingConfig: { thinkingBudget: 0 },  // thinking 비활성화 (JSON 출력엔 불필요)
-          },
-        }),
-      }
-    );
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1024,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    });
 
     if (!resp.ok) {
       const errText = await resp.text();
-      throw new Error(`Gemini API ${resp.status}: ${errText.slice(0, 200)}`);
+      throw new Error(`Haiku API ${resp.status}: ${errText.slice(0, 200)}`);
     }
     const data = await resp.json();
-    const raw  = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
-    if (!raw) {
-      console.error('[NEWS DIGEST] 빈 응답:', JSON.stringify(data).slice(0, 500));
-      throw new Error('Gemini 빈 응답');
-    }
-    const cleaned = raw.replace(/```json?/gi,'').replace(/```/g,'').trim();
+    const raw  = (data.content?.[0]?.text || '').replace(/```json?/gi,'').replace(/```/g,'').trim();
     let parsed;
     try {
-      parsed = JSON.parse(cleaned);
+      parsed = JSON.parse(raw);
     } catch(e) {
-      console.error('[NEWS DIGEST] JSON 파싱 실패:', cleaned.slice(0, 300));
+      console.error('[NEWS DIGEST] JSON 파싱 실패:', raw.slice(0, 300));
       throw e;
     }
 
@@ -4816,7 +4809,7 @@ async function newsScheduledRefresh(env) {
     });
 
     // 4. 신규 기사 번역 (30분마다 보통 5~15건 → 1~2배치)
-    if (uncached.length > 0 && env?.GEMINI_API_KEY) {
+    if (uncached.length > 0 && env?.ANTHROPIC_API_KEY) {
       const BATCH = 10;
       for (let i = 0; i < uncached.length; i += BATCH) {
         const batch = uncached.slice(i, i + BATCH);
@@ -5234,8 +5227,8 @@ async function newsEndpoint(env, isFresh, ctx) {
 // 1회 호출 = 최대 2배치(20건) — TPM 한도 보호
 // 배치마다 즉시 KV 저장 — 중간 실패해도 진행분 보존
 async function newsTranslateEndpoint(env) {
-  if (!env?.GEMINI_API_KEY) {
-    return new Response(JSON.stringify({ error: 'GEMINI_API_KEY 없음' }), { headers: CORS });
+  if (!env?.ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY 없음' }), { headers: CORS });
   }
 
   const transMap  = await newsLoadTransMap(env);
@@ -5350,8 +5343,10 @@ async function newsSaveTransMap(env, map, ctx) {
 // ── Gemini API 배치 번역 ────────────────────────────────────────
 // 모델: gemini-2.5-flash (빠른 배치 번역, 30건 1회 호출)
 async function translateViaGemini(batch, env, transMap) {
-  const apiKey = env?.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY 없음');
+  // 함수명은 유지 (호출부 호환) — 실제 구현은 Anthropic Haiku
+  // Worker에서 Gemini는 'User location not supported' 제한으로 사용 불가
+  const apiKey = env?.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error('ANTHROPIC_API_KEY 없음');
 
   const inputJson = JSON.stringify(
     batch.map((item, i) => ({
@@ -5361,7 +5356,7 @@ async function translateViaGemini(batch, env, transMap) {
     }))
   );
 
-  const prompt = `당신은 한국 주요 경제지(한국경제, 매일경제)에서 20년 경력을 쌓은 수석 금융 편집장이자 월가 출신 퀀트 애널리스트입니다.
+  const systemPrompt = `당신은 한국 주요 경제지(한국경제, 매일경제)에서 20년 경력을 쌓은 수석 금융 편집장이자 월가 출신 퀀트 애널리스트입니다.
 영문 금융·매크로 뉴스를 한국 독자에게 최적화된 전문 한국어로 번역합니다.
 
 번역 원칙:
@@ -5373,46 +5368,45 @@ async function translateViaGemini(batch, env, transMap) {
    - 금융 약어는 원문 유지: TGA, RRP, FOMC, QRA, SOFR, NFP, HY, IG, CDS, ETF, SMR, ECB, BOJ, BIS
    - 수치는 한국식 단위로 변환: $1 trillion → 1조 달러, $100 billion → 1,000억 달러
 4. 비금융 기사(지정학, 기술, 바이오)도 동일 원칙 적용, 업계 전문 용어 살려서 번역
-5. 응답은 반드시 JSON 배열만 — 마크다운, 설명 텍스트 절대 금지
+5. 응답은 반드시 JSON 배열만 — 마크다운, 설명 텍스트 절대 금지`;
 
-아래 JSON 배열을 번역하라. 반드시 동일한 구조의 JSON 배열로만 응답하라.
+  const userPrompt = `아래 JSON 배열을 번역하라. 반드시 동일한 구조의 JSON 배열로만 응답하라.
 
 ${inputJson}
 
 출력 형식 (이 구조만):
 [{"id":"0","titleKo":"번역된 헤드라인","summaryKo":"번역된 요약"},...]`;
 
-  // 429 재시도 (최대 3회, 지수 백오프)
+  const body = JSON.stringify({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 4096,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }],
+  });
+
+  // 429/403 재시도 (최대 3회, 지수 백오프)
   const MAX_RETRIES = 3;
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(30000),
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0,
-            maxOutputTokens: 8192,
-            responseMimeType: 'application/json',
-            thinkingConfig: { thinkingBudget: 0 },
-          },
-        }),
-      }
-    );
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      signal: AbortSignal.timeout(30000),
+      body,
+    });
 
-    // Rate Limit → 재시도
-    if (res.status === 429) {
+    if (res.status === 429 || res.status === 403) {
       if (attempt < MAX_RETRIES - 1) {
-        const errText = await res.text();
-        const delayMatch = errText.match(/"retryDelay":\s*"([\d.]+)s"/);
-        const retrySec = delayMatch ? parseFloat(delayMatch[1]) : 0;
-        const waitMs = Math.min(Math.max(retrySec * 1000, Math.pow(2, attempt + 1) * 2000), 30000);
-        console.warn(`[Trans] 429 → ${waitMs}ms 후 재시도 (${attempt + 1}/${MAX_RETRIES})`);
+        const retryAfter = parseInt(res.headers.get('retry-after') || '0', 10);
+        const waitMs = retryAfter > 0
+          ? retryAfter * 1000
+          : Math.pow(2, attempt + 1) * 2000;
+        console.warn(`[Trans] ${res.status} → ${waitMs}ms 후 재시도 (${attempt + 1}/${MAX_RETRIES})`);
         await sleep(waitMs);
         continue;
       }
@@ -5422,11 +5416,11 @@ ${inputJson}
 
     if (!res.ok) {
       const err = await res.text();
-      throw new Error(`Gemini API HTTP ${res.status}: ${err.slice(0, 150)}`);
+      throw new Error(`Claude API HTTP ${res.status}: ${err.slice(0, 150)}`);
     }
 
     const data = await res.json();
-    const rawText = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+    const rawText = data.content?.[0]?.text || '';
     const cleaned = rawText
       .replace(/^```json\s*/i, '')
       .replace(/^```\s*/i, '')
@@ -5440,7 +5434,7 @@ ${inputJson}
       const key = newsTransKey(srcItem);
       if (key) transMap[key] = { titleKo: t.titleKo || '', summaryKo: t.summaryKo || '' };
     });
-    return true; // ← 명시적 성공 반환
+    return true;
   }
   return false;
 }
@@ -5460,9 +5454,9 @@ function applyTransMapToItems(items, transMap) {
 async function newsTransDebug(env) {
   const result = {};
 
-  // 1. API 키 확인
-  result.gemini_key_set    = !!env?.GEMINI_API_KEY;
-  result.gemini_key_prefix = env?.GEMINI_API_KEY?.slice(0, 12) + '...' || 'MISSING';
+  // 1. API 키 확인 (번역: Anthropic Haiku)
+  result.anthropic_key_set    = !!env?.ANTHROPIC_API_KEY;
+  result.anthropic_key_prefix = env?.ANTHROPIC_API_KEY?.slice(0, 12) + '...' || 'MISSING';
 
   // 2. 번역 캐시 현황
   try {
