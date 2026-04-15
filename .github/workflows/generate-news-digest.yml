@@ -1,10 +1,9 @@
 name: Generate News Digest
 
 on:
+  # cron-job.org에서 repository_dispatch로 트리거 (매 3시간)
   repository_dispatch:
     types: [generate-news-digest]
-  schedule:
-    - cron: '0 */3 * * *'
   workflow_dispatch:
 
 jobs:

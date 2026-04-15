@@ -1,12 +1,9 @@
 name: H.4.1 Weekly Liquidity Telegram
 
 on:
-  # 외부 크론 서비스(cron-job.org)에서 repository_dispatch로 트리거
+  # cron-job.org에서 repository_dispatch로 트리거 (KST 07:13 금)
   repository_dispatch:
     types: [h41-weekly]
-  # 백업: GitHub Actions 내장 크론
-  schedule:
-    - cron: '13 22 * * 4'   # UTC 22:13 목 (KST 07:13 금)
   workflow_dispatch:
 
 jobs:

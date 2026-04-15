@@ -1,10 +1,9 @@
 name: Check QRA
 
 on:
+  # cron-job.org에서 repository_dispatch로 트리거 (KST 00:00 목)
   repository_dispatch:
     types: [check-qra]
-  schedule:
-    - cron: '0 15 * * 3'   # 매주 수요일 15:00 UTC (KST 00:00 목)
   workflow_dispatch:
 
 jobs:

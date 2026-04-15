@@ -1,10 +1,9 @@
 name: Translate News
 
 on:
+  # cron-job.org에서 repository_dispatch로 트리거 (매 30분)
   repository_dispatch:
     types: [translate-news]
-  schedule:
-    - cron: '*/30 * * * *'   # 30분마다 (cron-job.org가 주 트리거)
   workflow_dispatch:
 
 jobs:
