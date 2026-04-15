@@ -1,0 +1,151 @@
+name: Translate News
+
+on:
+  repository_dispatch:
+    types: [translate-news]
+  schedule:
+    - cron: '*/30 * * * *'   # 30분마다 (cron-job.org가 주 트리거)
+  workflow_dispatch:
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Translate via Gemini + Write to CF KV
+        env:
+          GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
+          CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          KV_NAMESPACE_ID:       "66c313c710a04a4eb04775b80a44f313"
+        run: |
+          pip install requests -q
+          python3 << 'PYEOF'
+          import os, json, time, re, requests
+
+          GEMINI_KEY  = os.environ["GEMINI_API_KEY"]
+          CF_TOKEN    = os.environ["CLOUDFLARE_API_TOKEN"]
+          CF_ACCOUNT  = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+          NAMESPACE   = os.environ["KV_NAMESPACE_ID"]
+
+          KV_BASE = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT}/storage/kv/namespaces/{NAMESPACE}"
+          HDR     = {"Authorization": f"Bearer {CF_TOKEN}"}
+
+          def kv_get(key):
+              r = requests.get(f"{KV_BASE}/values/{key}", headers=HDR, timeout=20)
+              if r.status_code == 404: return None
+              r.raise_for_status()
+              try: return r.json()
+              except: return r.text
+
+          def kv_put(key, value, ttl=None):
+              # Raw value (string). 기존 Worker 코드는 JSON.stringify()로 저장
+              url = f"{KV_BASE}/values/{key}"
+              params = {"expiration_ttl": ttl} if ttl else {}
+              body = value if isinstance(value, str) else json.dumps(value)
+              r = requests.put(url, headers=HDR, params=params,
+                               data=body.encode("utf-8"), timeout=30)
+              r.raise_for_status()
+
+          # ── 1. 뉴스 캐시 + 번역맵 로드 ──
+          print("KV 로드 중...")
+          news_cache   = kv_get("news_cache_v1")
+          trans_map    = kv_get("news_trans_map_v1") or {}
+
+          if not news_cache or not news_cache.get("items"):
+              print("뉴스 캐시 없음, 종료")
+              exit(0)
+
+          items = news_cache["items"]
+          print(f"전체 {len(items)}건 / 기존 번역 {len(trans_map)}건")
+
+          def trans_key(item):
+              return (item.get("link") or item.get("title") or "")[:200]
+
+          uncached = [it for it in items if trans_key(it) and trans_key(it) not in trans_map]
+          if not uncached:
+              print("번역 필요한 항목 없음, 종료")
+              exit(0)
+
+          print(f"미번역 {len(uncached)}건 → 배치 번역")
+
+          # ── 2. Gemini 배치 번역 ──
+          SYS_PROMPT = """당신은 한국 주요 경제지(한국경제, 매일경제)에서 20년 경력을 쌓은 수석 금융 편집장이자 월가 출신 퀀트 애널리스트입니다.
+          영문 금융·매크로 뉴스를 한국 독자에게 최적화된 전문 한국어로 번역합니다.
+
+          번역 원칙:
+          1. 헤드라인(titleKo)은 한국 경제지 스타일의 명사구로 작성 — 동사 종결어미(-합니다, -한다) 사용 금지
+             예시: "Fed raises rates" → "연준, 기준금리 인상 단행" (O) / "연준이 금리를 올렸습니다" (X)
+          2. 요약(summaryKo)은 간결한 2~3문장, 핵심 수치와 맥락 포함
+          3. 전문 용어 처리:
+             - 주요 약어는 한국어+원문 병기 (첫 등장 시): 연준(Fed), 재무부(Treasury), 국채(Treasury Bond)
+             - 금융 약어는 원문 유지: TGA, RRP, FOMC, QRA, SOFR, NFP, HY, IG, CDS, ETF, SMR, ECB, BOJ, BIS
+             - 수치는 한국식 단위로 변환: $1 trillion → 1조 달러, $100 billion → 1,000억 달러
+          4. 비금융 기사(지정학, 기술, 바이오)도 동일 원칙 적용, 업계 전문 용어 살려서 번역
+          5. 응답은 반드시 JSON 배열만 — 마크다운, 설명 텍스트 절대 금지"""
+
+          def gemini_translate(batch):
+              payload_in = [{
+                  "id": str(i),
+                  "title": (it.get("title") or "")[:300],
+                  "summary": (it.get("summary") or "")[:500],
+              } for i, it in enumerate(batch)]
+              user_prompt = (
+                  SYS_PROMPT + "\n\n아래 JSON 배열을 번역하라. 반드시 동일한 구조의 JSON 배열로만 응답하라.\n\n"
+                  + json.dumps(payload_in, ensure_ascii=False)
+                  + '\n\n출력 형식 (이 구조만):\n[{"id":"0","titleKo":"번역된 헤드라인","summaryKo":"번역된 요약"},...]'
+              )
+              url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}"
+              body = {
+                  "contents": [{"parts": [{"text": user_prompt}]}],
+                  "generationConfig": {
+                      "temperature": 0,
+                      "maxOutputTokens": 8192,
+                      "responseMimeType": "application/json",
+                      "thinkingConfig": {"thinkingBudget": 0},
+                  },
+              }
+              for attempt in range(3):
+                  r = requests.post(url, json=body, timeout=60)
+                  if r.status_code == 429:
+                      wait = 2 ** (attempt + 1) * 2
+                      print(f"  429 → {wait}s 대기 후 재시도")
+                      time.sleep(wait)
+                      continue
+                  r.raise_for_status()
+                  data = r.json()
+                  text = "".join(p.get("text","") for p in data.get("candidates",[{}])[0].get("content",{}).get("parts",[]))
+                  cleaned = re.sub(r'^```json\s*|\s*```$', '', text.strip(), flags=re.M)
+                  return json.loads(cleaned)
+              return None
+
+          BATCH = 10
+          batch_count = 0
+          for i in range(0, len(uncached), BATCH):
+              batch = uncached[i:i+BATCH]
+              try:
+                  translated = gemini_translate(batch)
+                  if not translated:
+                      print(f"  배치 {batch_count+1}: 실패, 중단")
+                      break
+                  for t in translated:
+                      idx = int(t.get("id", -1))
+                      if 0 <= idx < len(batch):
+                          src = batch[idx]
+                          k = trans_key(src)
+                          if k:
+                              trans_map[k] = {
+                                  "titleKo":   t.get("titleKo", ""),
+                                  "summaryKo": t.get("summaryKo", ""),
+                              }
+                  batch_count += 1
+                  print(f"  배치 {batch_count}: {len(batch)}건 완료")
+                  # 배치 후 KV 즉시 저장 (중간 실패 대비)
+                  kv_put("news_trans_map_v1", trans_map, ttl=2592000)
+                  if i + BATCH < len(uncached):
+                      time.sleep(3)
+              except Exception as e:
+                  print(f"  배치 에러: {e}")
+                  break
+
+          print(f"완료: {batch_count}개 배치, trans_map 총 {len(trans_map)}건")
+          PYEOF

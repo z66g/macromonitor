@@ -142,19 +142,17 @@ export default {
     }
   },
 
-  // Cron 트리거 — FRED 데이터 주기적 갱신
+  // Cron 트리거 — FRED 데이터 주기적 갱신 (LLM 호출은 GitHub Actions로 이전됨)
   async scheduled(event, env, ctx) {
-    // ── 30분마다: 뉴스 갱신 + 자동 번역 ──────────────────
+    // ── 30분마다: 뉴스 RSS 수집 (번역은 GH Actions translate-news) ────
     if (event.cron === '*/30 * * * *') {
       ctx.waitUntil(newsScheduledRefresh(env));
       return;
     }
 
-    // ── 뉴스 다이제스트: 3시간마다 생성만 (텔레그램 발송은 cron-job.org → /news-digest-send) ──
-    if (event.cron === '0 */3 * * *') {
-      ctx.waitUntil(generateNewsDigest(env));
-      return;
-    }
+    // ── 3시간 크론(0 */3 * * *)은 GH Actions generate-news-digest가 담당 ────
+    // ── 수요일 크론(0 15 * * 3)은 GH Actions check-qra가 담당 ────
+    // → 두 크론은 wrangler.toml에서도 제거됨
 
     // ── 매일 새벽 1시: 일반 데이터 갱신 ──────────────────
     ctx.waitUntil(Promise.all([
@@ -165,10 +163,6 @@ export default {
       fetchCalendar(env).then(data => kvPut(env, KV_KEYS.calendar, data, KV_TTL.calendar)),
       refreshLiqTower(env),
     ]));
-    const isWednesday = new Date().getUTCDay() === 3;
-    if (isWednesday) {
-      ctx.waitUntil(checkNewQra(env));
-    }
   }
 };
 
@@ -4796,46 +4790,21 @@ ${items.join('\n')}
 
 async function newsScheduledRefresh(env) {
   try {
-    // 1. RSS 파싱
+    // 1. RSS 파싱 (LLM 호출 없음)
     const data = await newsFetchAll(env);
 
-    // 2. 번역맵 로드
+    // 2. 기존 번역맵 적용 (GH Actions가 채워놓은 번역본을 items에 merge)
     const transMap = await newsLoadTransMap(env);
-
-    // 3. 신규(미번역) 기사 추출
-    const uncached = data.items.filter(item => {
-      const key = newsTransKey(item);
-      return key && !transMap[key];
-    });
-
-    // 4. 신규 기사 번역 (30분마다 보통 5~15건 → 1~2배치)
-    if (uncached.length > 0 && env?.ANTHROPIC_API_KEY) {
-      const BATCH = 10;
-      for (let i = 0; i < uncached.length; i += BATCH) {
-        const batch = uncached.slice(i, i + BATCH);
-        const ok = await translateViaGemini(batch, env, transMap);
-        if (ok) {
-          await newsSaveTransMap(env, transMap, null);
-        } else {
-          // Rate limit 시 진행분만 저장하고 중단 (다음 30분에 이어서)
-          break;
-        }
-        // 배치 간 3초 대기
-        if (i + BATCH < uncached.length) {
-          await new Promise(r => setTimeout(r, 3000));
-        }
-      }
-    }
-
-    // 5. 번역 적용 후 뉴스캐시 갱신
     applyTransMapToItems(data.items, transMap);
+
+    // 3. 뉴스캐시 저장
     await env.MMF_KV.put(
       KV_KEYS.newsCache,
       JSON.stringify({ ...data, _translatedAt: new Date().toISOString() }),
       { expirationTtl: KV_TTL.newsCache }
     );
 
-    console.log(`[News Cron] 완료: 전체 ${data.items.length}건, 신규 번역 ${uncached.length}건`);
+    console.log(`[News Cron] RSS 완료: 전체 ${data.items.length}건 (번역은 GH Actions가 담당)`);
   } catch(e) {
     console.error('[News Cron] 실패:', e.message);
   }

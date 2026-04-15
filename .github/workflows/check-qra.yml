@@ -1,0 +1,156 @@
+name: Check QRA
+
+on:
+  repository_dispatch:
+    types: [check-qra]
+  schedule:
+    - cron: '0 15 * * 3'   # 매주 수요일 15:00 UTC (KST 00:00 목)
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gemini Search Grounding + KV 업데이트
+        env:
+          GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
+          CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          KV_NAMESPACE_ID:       "66c313c710a04a4eb04775b80a44f313"
+        run: |
+          pip install requests -q
+          python3 << 'PYEOF'
+          import os, json, re, datetime, math, requests
+
+          GEMINI_KEY  = os.environ["GEMINI_API_KEY"]
+          CF_TOKEN    = os.environ["CLOUDFLARE_API_TOKEN"]
+          CF_ACCOUNT  = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+          NAMESPACE   = os.environ["KV_NAMESPACE_ID"]
+
+          KV_BASE = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT}/storage/kv/namespaces/{NAMESPACE}"
+          HDR     = {"Authorization": f"Bearer {CF_TOKEN}"}
+
+          TTL_ACTIVE  = 86400 * 95
+          TTL_PENDING = 86400 * 30
+
+          def kv_get(key):
+              r = requests.get(f"{KV_BASE}/values/{key}", headers=HDR, timeout=20)
+              if r.status_code == 404: return None
+              r.raise_for_status()
+              try: return r.json()
+              except: return r.text
+
+          def kv_put(key, value, ttl=None):
+              url = f"{KV_BASE}/values/{key}"
+              params = {"expiration_ttl": ttl} if ttl else {}
+              body = value if isinstance(value, str) else json.dumps(value)
+              r = requests.put(url, headers=HDR, params=params,
+                               data=body.encode("utf-8"), timeout=30)
+              r.raise_for_status()
+
+          def kv_delete(key):
+              url = f"{KV_BASE}/values/{key}"
+              r = requests.delete(url, headers=HDR, timeout=20)
+              if r.status_code not in (200, 404): r.raise_for_status()
+
+          # ── 상태 확인 ──
+          active  = kv_get("qra_active_v1")
+          pending = kv_get("qra_pending_v1")
+
+          if pending and pending.get("status") == "new":
+              print("pending=new 상태, 스킵"); exit(0)
+
+          now = datetime.datetime.now(datetime.timezone.utc)
+          expected = f"{now.year} Q{(now.month - 1) // 3 + 1}"
+          print(f"현재 분기: {expected}")
+
+          if active and active.get("target_quarter") == expected:
+              print(f"이미 현재 분기({expected}) 적용 중, 스킵"); exit(0)
+
+          # ── Gemini Search Grounding ──
+          prompt = """You are a US Treasury document specialist.
+          Use Google Search to find the most recent Quarterly Refunding Announcement (QRA) from the US Treasury (home.treasury.gov).
+          Extract the data and return ONLY this JSON, no other text:
+          {
+            "target_quarter": "2026 Q2",
+            "net_borrowing_billions": 514,
+            "tga_target_balance_billions": 850,
+            "announcement_date": "2026-02-05",
+            "source_url": "https://home.treasury.gov/news/press-releases/...",
+            "pdf_url": "https://home.treasury.gov/system/files/...",
+            "evidence_quote": "exact sentence from document with the borrowing number",
+            "confidence": "high"
+          }
+          Rules: numbers in integer billions USD. pdf_url is null if not found. confidence is "high" if you found exact numbers, "medium" if estimated, "low" if uncertain."""
+
+          url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}"
+          body = {
+              "contents": [{"parts": [{"text": prompt}]}],
+              "tools": [{"googleSearch": {}}],
+          }
+
+          r = requests.post(url, json=body, timeout=90)
+          if not r.ok:
+              print(f"Gemini HTTP {r.status_code}: {r.text[:200]}"); exit(1)
+          data = r.json()
+          text = "".join(p.get("text","") for p in data.get("candidates",[{}])[0].get("content",{}).get("parts",[]))
+          cleaned = re.sub(r'```json|```', '', text).strip()
+          m = re.search(r'\{[\s\S]*\}', cleaned)
+          if not m:
+              print("JSON 파싱 실패:", text[:300]); exit(1)
+          result = json.loads(m.group())
+          result["fetched_at"] = now.isoformat()
+          print(f"QRA 결과: {result.get('target_quarter')} / conf={result.get('confidence')}")
+
+          # 같은 분기면 스킵
+          if active and result.get("target_quarter") == active.get("target_quarter"):
+              print("동일 분기, 스킵"); exit(0)
+
+          if result.get("confidence") == "high":
+              # HIGH → 자동 적용
+              kv_put("qra_active_v1", {
+                  **result,
+                  "applied_at": now.isoformat(),
+                  "applied_by": "auto",
+              }, ttl=TTL_ACTIVE)
+              kv_put("qra_pending_v1", {
+                  "status": "auto_applied",
+                  "detected_at": now.isoformat(),
+                  "data": result,
+              }, ttl=TTL_PENDING)
+              # liqTower 캐시 무효화
+              kv_delete("liq_tower_v1")
+              print(f"[QRA AUTO APPLIED] {result.get('target_quarter')}")
+
+              # 캘린더 QRA 추정일 → 실제일 교체
+              ad = result.get("announcement_date")
+              if ad:
+                  cal = kv_get("calendar_v1")
+                  if cal and isinstance(cal, dict) and cal.get("events"):
+                      changed = False
+                      a_dt = datetime.datetime.fromisoformat(ad.replace("Z","+00:00")) if "T" in ad else datetime.datetime.fromisoformat(ad + "T00:00:00+00:00")
+                      for e in cal["events"]:
+                          if e.get("category") == "treasury" and e.get("estimated") and "QRA" in (e.get("name","")):
+                              try:
+                                  e_dt = datetime.datetime.fromisoformat(e["date"].replace("Z","+00:00")) if "T" in e["date"] else datetime.datetime.fromisoformat(e["date"] + "T00:00:00+00:00")
+                              except:
+                                  continue
+                              same_q = e_dt.year == a_dt.year and (e_dt.month - 1) // 3 == (a_dt.month - 1) // 3
+                              if same_q:
+                                  diff = (a_dt.date() - now.date()).days
+                                  e["date"]      = ad
+                                  e["estimated"] = False
+                                  e["dday"]      = "D-DAY" if diff == 0 else (f"D-{diff}" if diff > 0 else f"D+{abs(diff)}")
+                                  e["name"]      = "QRA 발표 (분기 자금조달 계획)"
+                                  changed = True
+                      if changed:
+                          kv_put("calendar_v1", cal, ttl=21600)
+                          print("캘린더 QRA 일자 실제일로 교체")
+          else:
+              kv_put("qra_pending_v1", {
+                  "status": "new",
+                  "detected_at": now.isoformat(),
+                  "data": result,
+              }, ttl=TTL_PENDING)
+              print(f"[QRA PENDING] {result.get('target_quarter')} conf={result.get('confidence')}")
+          PYEOF
