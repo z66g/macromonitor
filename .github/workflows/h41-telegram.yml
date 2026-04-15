@@ -258,6 +258,16 @@ jobs:
               if   nl_dB >  50: lines.append("→ 유동성 순증 — 위험자산 우호 환경 🟢")
               elif nl_dB < -50: lines.append("→ 유동성 순감 — 단기 헤드윈드 주의 🔴")
               else:             lines.append("→ 유동성 소폭 변화 — 방향성 중립 ⚪")
+          elif nl is not None:
+              # 전주대비 계산 불가 시: NL Score 기반 대체 판단
+              if nl_score is not None:
+                  if nl_score > 3:    lines.append("→ NL 모멘텀 양(+) — 위험자산 우호 🟢")
+                  elif nl_score < -3: lines.append("→ NL 모멘텀 음(-) — 단기 헤드윈드 🔴")
+                  else:               lines.append("→ NL 모멘텀 중립 ⚪")
+              else:
+                  lines.append("→ 전주대비 비교 불가 (데이터 1주치만 확보)")
+          else:
+              lines.append("→ H.4.1 데이터 부족으로 판단 보류")
 
           # 드레인 경고
           danger_weeks = [w["label"] for w in weeks if w.get("isDangerZone")]
