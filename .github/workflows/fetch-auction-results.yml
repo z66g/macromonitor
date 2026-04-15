@@ -42,7 +42,6 @@ jobs:
 
           BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
           CHAT_ID   = os.environ.get("TELEGRAM_CHAT_ID", "")
-          today     = datetime.date.today().isoformat()
 
           if not BOT_TOKEN or not CHAT_ID:
               print("Telegram secrets 없음, 스킵")
@@ -51,15 +50,37 @@ jobs:
           with open("data/auction_results.json", encoding="utf-8") as f:
               data = json.load(f)
 
-          # 오늘 날짜 경매 전체 (Bill 포함, summary 유무 무관)
+          # UTC / US Eastern 날짜 (EDT=UTC-4, EST=UTC-5) — 경매 날짜는 US 기준
+          utc_now = datetime.datetime.utcnow()
+          utc_today   = utc_now.date().isoformat()
+          us_today    = (utc_now - datetime.timedelta(hours=4)).date().isoformat()  # EDT
+          us_yesterday = (utc_now - datetime.timedelta(hours=4, days=1)).date().isoformat()
+
+          # 결과 중 가장 최근 auction_date 찾기
+          all_dates = sorted({r.get("auction_date","")[:10] for r in data.get("results", []) if r.get("auction_date")}, reverse=True)
+          latest_auction_date = all_dates[0] if all_dates else None
+
+          print(f"UTC today: {utc_today} | US today: {us_today} | US yesterday: {us_yesterday}")
+          print(f"최신 경매일: {latest_auction_date}")
+
+          # 최신 경매일이 오늘/어제(US 기준)면 알림 대상
+          target_date = None
+          if latest_auction_date in (us_today, us_yesterday, utc_today):
+              target_date = latest_auction_date
+          else:
+              print(f"최신 경매일이 오늘/어제 아님 (마지막: {latest_auction_date}), 스킵")
+              exit(0)
+
           today_results = [
               r for r in data.get("results", [])
-              if r.get("auction_date", "")[:10] == today
+              if r.get("auction_date", "")[:10] == target_date
           ]
 
           if not today_results:
-              print(f"오늘({today}) 경매 결과 없음, 스킵")
+              print(f"대상 경매({target_date}) 없음, 스킵")
               exit(0)
+
+          today = target_date  # 이하 기존 변수명 호환
 
           def grade_emoji(g):
               return {"strong": "✅", "average": "🟡", "weak": "⚠️", "disastrous": "🚨"}.get(g or "", "⚪")

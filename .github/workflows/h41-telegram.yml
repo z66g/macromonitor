@@ -55,7 +55,10 @@ jobs:
           # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
           # 1. H.4.1 대차대조표 (raw: 백만달러)
           # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-          raw = h41.get("raw", [])
+          # raw에는 파싱 실패 항목도 포함됨 → reserve_balances 있는 valid 항목만
+          raw_all = h41.get("raw", [])
+          raw = [r for r in raw_all if r and r.get("reserve_balances") is not None]
+          print(f"H.4.1 raw 전체 {len(raw_all)}건 → valid {len(raw)}건")
           cur  = raw[0] if len(raw) >= 1 else {}
           prev = raw[1] if len(raw) >= 2 else {}
 
