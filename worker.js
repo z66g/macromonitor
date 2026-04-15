@@ -2727,7 +2727,28 @@ async function ofrFsi(env) {
     recent: { dates: [], total: [], funding: [], otherAdv: [] },
   });
 }
-  }
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 국채 수익률 히스토리 (DGS2/5/10/30)
+//    yieldsHistCached → yieldsHistory
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function yieldsHistory(env) {
+  const apiKey = env?.FRED_API_KEY;
+  if (!apiKey) return json({ error: 'FRED_API_KEY 없음' }, 500);
+
+  const fredSeries = async (id) => {
+    const url = `https://api.stlouisfed.org/fred/series/observations?series_id=${id}&api_key=${apiKey}&file_type=json&sort_order=desc&limit=252`;
+    try {
+      const r = await fetch(url, { cf: { cacheTtl: 3600 } });
+      if (!r.ok) return {};
+      const d = await r.json();
+      const map = {};
+      for (const o of (d.observations || [])) {
+        if (o.value !== '.') map[o.date] = parseFloat(o.value);
+      }
+      return map;
+    } catch(e) { return {}; }
+  };
 
   // 4개 시리즈 병렬 fetch
   const [m2, m5, m10, m30] = await Promise.all([
