@@ -4744,16 +4744,34 @@ ${items.join('\n')}
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: 1024 },
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 2048,
+            responseMimeType: 'application/json',  // JSON 모드 강제
+            thinkingConfig: { thinkingBudget: 0 },  // thinking 비활성화 (JSON 출력엔 불필요)
+          },
         }),
       }
     );
 
-    if (!resp.ok) throw new Error(`Gemini API ${resp.status}`);
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Gemini API ${resp.status}: ${errText.slice(0, 200)}`);
+    }
     const data = await resp.json();
     const raw  = (data.candidates?.[0]?.content?.parts || []).map(p => p.text || '').join('');
+    if (!raw) {
+      console.error('[NEWS DIGEST] 빈 응답:', JSON.stringify(data).slice(0, 500));
+      throw new Error('Gemini 빈 응답');
+    }
     const cleaned = raw.replace(/```json?/gi,'').replace(/```/g,'').trim();
-    const parsed = JSON.parse(cleaned);
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch(e) {
+      console.error('[NEWS DIGEST] JSON 파싱 실패:', cleaned.slice(0, 300));
+      throw e;
+    }
 
     const digest = {
       items:       parsed.items || [],
@@ -5377,7 +5395,12 @@ ${inputJson}
         signal: AbortSignal.timeout(30000),
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0, maxOutputTokens: 8192 },
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 8192,
+            responseMimeType: 'application/json',
+            thinkingConfig: { thinkingBudget: 0 },
+          },
         }),
       }
     );
