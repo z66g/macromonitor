@@ -43,7 +43,7 @@ jobs:
                   return None
 
           print("데이터 수집 중...")
-          h41   = fetch_json("/h41-history?weeks=2")
+          h41   = fetch_json("/h41-history?weeks=4")  # 여분 포함: 파싱 실패분 제외 후 최소 2주치 확보
           liq   = fetch_json("/liq?force=1", 45)
           tower = fetch_json("/liq-tower", 45)
           ici   = fetch_json("/ici", 15)
