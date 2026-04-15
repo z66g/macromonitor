@@ -21,6 +21,7 @@ jobs:
           pip install requests -q
           python3 << 'PYEOF'
           import os, json, re, datetime, requests
+          from email.utils import parsedate_to_datetime
 
           GEMINI_KEY  = os.environ["GEMINI_API_KEY"]
           CF_TOKEN    = os.environ["CLOUDFLARE_API_TOKEN"]
@@ -52,16 +53,27 @@ jobs:
 
           # 최근 12시간 뉴스 (번역본 우선)
           now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
+
+          def parse_date(s):
+              if not s: return 0
+              # 1) ISO 8601 (YYYY-MM-DDTHH:MM:SSZ or +00:00)
+              try:
+                  return datetime.datetime.fromisoformat(s.replace("Z","+00:00")).timestamp()
+              except: pass
+              # 2) RFC 822 / RFC 2822 (Wed, 15 Apr 2026 14:30:00 GMT)
+              try:
+                  return parsedate_to_datetime(s).timestamp()
+              except: pass
+              return 0
+
           items_raw = news["items"]
           recent = []
           for n in items_raw:
-              pub = n.get("pubDate") or ""
-              try:
-                  ts = datetime.datetime.fromisoformat(pub.replace("Z","+00:00")).timestamp()
-              except:
-                  ts = 0
-              if now_ts - ts < 12 * 3600:
+              ts = parse_date(n.get("pubDate") or "")
+              if ts and now_ts - ts < 12 * 3600:
                   recent.append(n)
+
+          print(f"전체 {len(items_raw)}건 중 최근 12h: {len(recent)}건")
           recent = recent[:25]
 
           if not recent:
