@@ -1,8 +1,12 @@
 name: Fetch Auction Results
 
 on:
+  # 외부 크론 서비스(cron-job.org)에서 repository_dispatch로 트리거
+  repository_dispatch:
+    types: [auction-results]
+  # 백업: GitHub Actions 내장 크론
   schedule:
-    - cron: '0 21 * * 1-5'
+    - cron: '0 21 * * 1-5'   # UTC 21:00 월-금 (KST 06:00 화-토)
   workflow_dispatch:
 
 jobs:

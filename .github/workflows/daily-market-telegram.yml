@@ -1,9 +1,12 @@
 name: Daily Market Telegram
 
 on:
+  # 외부 크론 서비스(cron-job.org)에서 repository_dispatch로 트리거
+  repository_dispatch:
+    types: [daily-market]
+  # 백업/수동: GitHub Actions 내장 크론 (지연 가능, cron-job.org가 주 트리거)
   schedule:
-    # 매일 10:30 UTC (KST 19:30) — KOSPI 마감 후 + 미국 장 개시 3시간 전
-    - cron: '30 10 * * *'
+    - cron: '30 10 * * *'   # 매일 10:30 UTC (KST 19:30)
   workflow_dispatch:
 
 jobs:
