@@ -3236,7 +3236,8 @@ async function fetchLiqTowerData(env) {
   else                  { billWeight = 1.0; billWeightLabel = '1.0 (RRP 소진, 장기채 동등 충격)'; }
 
   const h41Tower = await fetchH41ForTower(env, { rrpSeries, walclSeries, tgaSeries });
-  const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive, h41Tower?.maturity ?? null);
+  const tgaCurrentBn = h41Tower?.tga?.cur ?? null;  // H.4.1 파싱 TGA (Billions)
+  const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive, h41Tower?.maturity ?? null, tgaCurrentBn);
 
   return {
     _savedAt: new Date().toISOString(),
@@ -3410,15 +3411,34 @@ async function fetchH41HtmlData() {
 }
 
 // ── TGA 뱀파이어 4주 추정 모델 ──────────────────────────
-function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData) {
+function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData, tgaCurrentBn = null) {
   const now = new Date();
   const weeks = [];
 
-  // ── QRA 기반 주간 순발행 필요액 ──────────────────────
-  // QRA net_borrowing_billions ÷ 13주 = 주간 평균 순발행
-  const weeklyNet = qraActive?.net_borrowing_billions
-    ? +(qraActive.net_borrowing_billions / 13).toFixed(1)
-    : 30; // Fallback: $30B/주
+  // ── 분기 남은 주수 계산 ──────────────────────────────
+  const currentQ = Math.floor(now.getUTCMonth() / 3);       // 0,1,2,3
+  const quarterEnd = new Date(Date.UTC(now.getUTCFullYear(), (currentQ + 1) * 3, 0)); // 분기 말일
+  const remainingDays = Math.max(1, (quarterEnd - now) / 86400000);
+  const remainingWeeks = Math.max(1, Math.ceil(remainingDays / 7));
+
+  // ── weeklyNet: TGA 갭 기반 동적 계산 (QRA fallback) ──
+  // TGA 갭 = 목표잔고(QRA) − 실제잔고(H.4.1) → 남은 주수로 나눠 주간 순차입 추정
+  // TGA가 목표 이하면 캐치업 압력 반영, 이상이면 차입 압력 감소
+  const tgaTarget = qraActive?.tga_target_balance_billions ?? null;
+  const qraFlat   = qraActive?.net_borrowing_billions
+    ? +(qraActive.net_borrowing_billions / 13).toFixed(1) : 30;
+
+  let weeklyNet, weeklyNetSource;
+
+  if (tgaTarget != null && tgaCurrentBn != null) {
+    const tgaGap = tgaTarget - tgaCurrentBn;
+    const gapBased = +(Math.max(0, tgaGap) / remainingWeeks).toFixed(1);
+    weeklyNet = Math.max(gapBased, +(qraFlat * 0.5).toFixed(1));  // QRA 50%를 하한
+    weeklyNetSource = 'tga_gap';
+  } else {
+    weeklyNet = qraFlat;
+    weeklyNetSource = qraActive ? 'qra_flat' : 'fallback';
+  }
 
   // ── H.4.1 만기 데이터 → 주차별 QT 동적 계산 ─────────
   const within15d = maturityData?.treasury_within_15d ?? null; // $B
@@ -3502,6 +3522,12 @@ function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData)
       },
       meta: {
         weeklyNet,
+        weeklyNetSource,
+        tgaGap:      tgaTarget != null && tgaCurrentBn != null ? +(tgaTarget - tgaCurrentBn).toFixed(1) : null,
+        tgaTarget,
+        tgaCurrent:  tgaCurrentBn,
+        remainingWeeks,
+        qraFlat,
         billRatio:    totalGross > 0 ? +(billGross/totalGross*100).toFixed(0) : 50,
         couponRatio:  totalGross > 0 ? +(couponGross/totalGross*100).toFixed(0) : 50,
         maturitySource: maturityData ? 'H.4.1' : 'fallback',
