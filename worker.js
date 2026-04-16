@@ -3786,6 +3786,8 @@ function getCurrentQuarter() {
   return `${year} Q${q}`;
 }
 
+async function qraDebug(env) {
+  const results = {};
 
   // 1. API 키 존재 여부
   results.gemini_key_set = !!env?.GEMINI_API_KEY;
