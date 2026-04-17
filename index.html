@@ -9409,20 +9409,21 @@ function renderTowerS2(d) {
   const el      = document.getElementById('tw-s2-content');
   if (!el) return;
 
-  // TGA 데이터 (WTREGEN — Millions → /1000 = $B already done in worker)
+  // TGA 데이터 — DTS daily (Worker에서 h41.tga를 DTS로 오버라이드)
   const tga     = h41.tga || {};
   const tgaCur  = tga.cur;                       // $B
-  const tgaDelta= tga.delta ?? null;             // $B WoW
+  const tgaDelta= tga.delta ?? null;             // $B (일별 변화)
+  const tgaSrc  = tga.source === 'DTS' ? 'Treasury DTS (일별)' : 'H.4.1 (주간)';
 
   // treasury_total WoW delta (H.4.1 연준 국채 보유 변화 = 순발행 프록시)
   const tt      = h41.treasury_total || {};
   const ttDelta = tt.delta ?? null;              // $B WoW
 
-  // TGA 6개월 시계열 (WTREGEN, Millions)
-  const tgaSeries = (d.fed?.tgaSeries || []).map(o => ({
-    date:  o.date,
-    value: +(o.value / 1000).toFixed(1),         // Millions → $B
-  }));
+  // TGA 시계열: DTS 일별 우선, fallback WTREGEN 주간
+  const dtsSeries = d.fed?.tgaDts?.series || [];
+  const tgaSeries = dtsSeries.length > 1
+    ? dtsSeries.map(o => ({ date: o.date, value: o.close }))  // 이미 $B
+    : (d.fed?.tgaSeries || []).map(o => ({ date: o.date, value: +(o.value / 1000).toFixed(1) }));
 
   // LED 색상: TGA 급등 = 유동성 흡수 경고
   const ledColor = tgaDelta != null
@@ -9462,7 +9463,7 @@ function renderTowerS2(d) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
       ${card(
         'TGA 재무부 금고 잔고',
-        '높을수록 시장 유동성 악재 (WTREGEN)',
+        '높을수록 시장 유동성 악재',
         fmtB(tgaCur),
         tgaDelta,
         true,   // TGA 상승 = 유동성 흡수 = 빨간
@@ -9479,14 +9480,14 @@ function renderTowerS2(d) {
     </div>
 
     <div style="font-size:9px;color:#656D76;font-weight:600;margin-bottom:6px;">
-      📈 TGA 잔고 6개월 추세
+      📈 TGA 잔고 추세 <span style="font-weight:400;color:#484F58;font-size:7px;">${dtsSeries.length > 1 ? '(DTS 일별)' : '(WTREGEN 주간)'}</span>
       <span style="font-weight:400;color:#484F58;margin-left:4px;">채워지면 시장 악재 / 소진되면 호재</span>
     </div>
     <div style="position:relative;height:70px;margin-bottom:4px;">
       <canvas id="tw-tga-spark"></canvas>
     </div>
     <div style="font-size:7px;color:#484F58;margin-top:6px;">
-      📌 출처: FRED WTREGEN (주간) + H.4.1 연준 보고서 / 기준: ${h41.data_date || ''}
+      📌 출처: ${tgaSrc} + H.4.1 연준 보고서 / 기준: ${tga.date || h41.data_date || ''}
     </div>`;
 
   // TGA 스파크라인

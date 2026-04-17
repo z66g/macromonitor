@@ -3240,15 +3240,16 @@ async function fetchLiqTowerData(env) {
   };
 
 
-  const [walcl, rrp, rrpSeries, tga, walclSeries, tgaSeries, auctions, qraActive] = await Promise.all([
+  const [walcl, rrp, rrpSeries, tga, walclSeries, tgaSeries, auctions, qraActive, tgaDtsData] = await Promise.all([
     fredVal('WALCL'),
     fredVal('RRPONTSYD'),
     fredSeries('RRPONTSYD', 52),
     fredVal('WTREGEN'),
     fredSeries('WALCL', 15),
-    fredSeries('WTREGEN', 26),   // TGA 6개월 시계열 (Millions)
+    fredSeries('WTREGEN', 26),   // TGA 6개월 시계열 (Millions) — fallback
     auctionsFetch(),
     kvGet(env, KV_KEYS.qraActive),
+    kvGet(env, KV_KEYS.tgaDts).catch(() => null),  // DTS 일별 TGA ($B)
   ]);
 
   // RRP 기반 T-Bill 동적 가중치
@@ -3259,7 +3260,29 @@ async function fetchLiqTowerData(env) {
   else                  { billWeight = 1.0; billWeightLabel = '1.0 (RRP 소진, 장기채 동등 충격)'; }
 
   const h41Tower = await fetchH41ForTower(env, { rrpSeries, walclSeries, tgaSeries });
-  const tgaCurrentBn = h41Tower?.tga?.cur ?? null;  // H.4.1 파싱 TGA (Billions)
+
+  // DTS TGA 우선, fallback H.4.1
+  const dtsTgaLatest = tgaDtsData?.latest ?? null;  // {date, close} $B
+  const tgaCurrentBn = dtsTgaLatest?.close ?? h41Tower?.tga?.cur ?? null;
+
+  // DTS 데이터가 있으면 h41Tower.tga를 DTS 기반으로 오버라이드
+  if (dtsTgaLatest && tgaDtsData?.series?.length >= 2) {
+    const dtsSorted = tgaDtsData.series.slice().sort((a, b) => b.date.localeCompare(a.date));
+    h41Tower.tga = {
+      cur:   dtsSorted[0].close,
+      prev:  dtsSorted[1].close,
+      delta: +(dtsSorted[0].close - dtsSorted[1].close).toFixed(1),
+      date:  dtsSorted[0].date,
+      source: 'DTS',
+    };
+    // liabilities도 갱신
+    if (h41Tower.liabilities) {
+      h41Tower.liabilities.tga = dtsSorted[0].close;
+      const { res = 0, rrp: rrpL = 0, curr = 0, other = 0 } = h41Tower.liabilities;
+      h41Tower.liabilities.total = +(res + rrpL + dtsSorted[0].close + curr + other).toFixed(1);
+    }
+  }
+
   const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive, h41Tower?.maturity ?? null, tgaCurrentBn);
 
   return {
@@ -3269,7 +3292,8 @@ async function fetchLiqTowerData(env) {
       rrp:         rrp,
       rrpSeries:   rrpSeries.slice(-26),
       walclSeries: walclSeries,
-      tgaSeries:   tgaSeries,   // WTREGEN 26주 (Millions)
+      tgaSeries:   tgaSeries,   // WTREGEN 26주 (Millions) — fallback
+      tgaDts:      tgaDtsData,  // DTS 일별 TGA ($B) — 프론트 차트용
       h41:         h41Tower,
     },
     auctions,
