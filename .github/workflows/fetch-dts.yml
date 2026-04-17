@@ -1,0 +1,86 @@
+name: Fetch DTS TGA Daily
+
+on:
+  # cron-job.org에서 repository_dispatch로 트리거 (매일 KST 08:00 = UTC 23:00)
+  repository_dispatch:
+    types: [fetch-dts]
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch DTS TGA + Write KV
+        env:
+          CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          KV_NAMESPACE_ID:       "66c313c710a04a4eb04775b80a44f313"
+        run: |
+          pip install requests -q
+          python3 << 'PYEOF'
+          import os, json, requests, datetime
+
+          CF_TOKEN    = os.environ["CLOUDFLARE_API_TOKEN"]
+          CF_ACCOUNT  = os.environ["CLOUDFLARE_ACCOUNT_ID"]
+          NAMESPACE   = os.environ["KV_NAMESPACE_ID"]
+
+          KV_BASE = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT}/storage/kv/namespaces/{NAMESPACE}"
+          HDR     = {"Authorization": f"Bearer {CF_TOKEN}"}
+
+          def kv_put(key, value, ttl=None):
+              url = f"{KV_BASE}/values/{key}"
+              params = {"expiration_ttl": ttl} if ttl else {}
+              body = value if isinstance(value, str) else json.dumps(value)
+              r = requests.put(url, headers=HDR, params=params,
+                               data=body.encode("utf-8"), timeout=30)
+              r.raise_for_status()
+
+          # ── DTS API: Federal Reserve Account (TGA) ──
+          DTS_BASE = "https://api.fiscaldata.treasury.gov/services/api/v1/accounting/dts"
+          TABLE    = "dts_table_1"
+          FIELDS   = "record_date,account_type,open_today_bal,close_today_bal"
+          LIMIT    = 60  # 최근 60일치 (주말 제외 약 40 영업일)
+
+          url = f"{DTS_BASE}/{TABLE}/?fields={FIELDS}&sort=-record_date&page[size]={LIMIT}"
+          r = requests.get(url, headers={"Accept": "application/json"}, timeout=30)
+          r.raise_for_status()
+          data = r.json().get("data", [])
+
+          # Federal Reserve Account 행만 필터
+          fra = [
+              row for row in data
+              if "federal reserve" in (row.get("account_type") or "").lower()
+          ]
+
+          if not fra:
+              print("Federal Reserve Account 데이터 없음")
+              exit(1)
+
+          # Millions → Billions 변환, 시계열 구성
+          series = []
+          for row in fra:
+              try:
+                  close_m = float(row["close_today_bal"].replace(",", ""))
+                  open_m  = float(row["open_today_bal"].replace(",", ""))
+                  series.append({
+                      "date":    row["record_date"],
+                      "close":   round(close_m / 1000, 1),  # $B
+                      "open":    round(open_m  / 1000, 1),   # $B
+                      "netFlow": round((close_m - open_m) / 1000, 1),
+                  })
+              except (ValueError, KeyError) as e:
+                  continue
+
+          # 최신일 기준 정렬 (내림차순 → 오름차순)
+          series.sort(key=lambda x: x["date"])
+
+          payload = {
+              "latest":    series[-1] if series else None,
+              "series":    series,          # 오름차순 (차트용)
+              "count":     len(series),
+              "fetchedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+          }
+
+          kv_put("tga_dts_v1", payload, ttl=86400)  # 24h TTL
+          print(f"DTS TGA 저장 완료: {len(series)}일치, 최신: {series[-1]['date']} ${series[-1]['close']}B")
+          PYEOF

@@ -36,6 +36,7 @@ const KV_KEYS = {
   newsTransMap: 'news_trans_map_v1',
   newsDigest:        'news_digest_v1',    // 핵심뉴스 (장마감/장시작)
   newsDigestHistory: 'news_digest_history_v1', // 다이제스트 누적 (배치 텔레그램용)
+  tgaDts:            'tga_dts_v1',             // DTS 일별 TGA 잔고 (GitHub Actions)
 };
 const KV_TTL = {
   liq:        7200,
@@ -2795,7 +2796,7 @@ async function liqDataEndpoint(env) {
     } catch(e) { return []; }
   };
 
-  // 병렬 fetch — 23개 시리즈
+  // 병렬 fetch — FRED 시리즈 + H.4.1 + DTS TGA
   const [
     mmfR, mmfI, bankDep,               // 유동성 흐름
     dgs2, dgs5, dgs10, dgs30,          // 국채 수익률 (일별)
@@ -2804,7 +2805,7 @@ async function liqDataEndpoint(env) {
     corePce, wages,                    // Core PCE + 임금 (CES0500000003)
     mich, bei10, t5y5y, tips10,        // 기대인플레이션 + 실질금리
     rrpSeries, sofrVolSeries,          // Repo Regime Matrix
-    walclSeries, tregenSeries,         // Net Liquidity Momentum
+    h41Data, tgaDtsData,               // NLM: H.4.1 총자산 + DTS 일별 TGA
   ] = await Promise.all([
     fredArr('WRMFNS',          12),  // 소매 MMF 주간
     fredArr('WRMFSL',          12),  // 기관 MMF 주간
@@ -2827,8 +2828,17 @@ async function liqDataEndpoint(env) {
     fredArr('DFII10',           3),  // TIPS 10Y 실질금리
     fredArr('RRPONTSYD',       30),  // ON RRP 잔고 일별 (NLM + Regime 공용, 30일치)
     fredArr('SOFRVOL',         10),  // SOFR 거래량 일별 ($B)
-    fredArr('WALCL',            8),  // 연준 총자산 주간 (Millions → /1000 = $B)
-    fredArr('WTREGEN',          8),  // 재무부 TGA 주간 ($B)
+    // H.4.1 reserve_credit (총자산) — KV 캐시 또는 직접 파싱
+    kvGet(env, KV_KEYS.h41Html).then(cached => {
+      if (!cached?.series?.reserve_credit) return null;
+      const s = cached.series;
+      // {date, value} 배열로 변환 (내림차순: 최신→과거)
+      return (s.labels || []).map((d, i) => ({
+        date: d, value: s.reserve_credit[i],  // 이미 $B 단위
+      })).filter(o => o.value != null);
+    }).catch(() => null),
+    // DTS 일별 TGA — KV에서 읽기 (GitHub Actions가 저장)
+    kvGet(env, KV_KEYS.tgaDts).catch(() => null),
   ]);
 
   // ── MMF 합산 (날짜 매칭) ──
@@ -2861,29 +2871,41 @@ async function liqDataEndpoint(env) {
   });
 
   // ── Net Liquidity Momentum 계산 ──
-  // WALCL: Millions → $B (÷1000), WTREGEN: $B, RRPONTSYD: $B
-  // WALCL 날짜를 앵커로, 해당 날짜 이전 가장 가까운 RRPONTSYD 값 매칭
+  // 총자산: H.4.1 reserve_credit ($B, 주간)
+  // TGA:    DTS daily close ($B) — fallback: H.4.1 tga
+  // RRP:    FRED RRPONTSYD ($B, 일별) — 기존 유지
+  //
+  // H.4.1 날짜(주간)를 앵커로, 해당 날짜 이전 가장 가까운 RRP/TGA 매칭
+  const h41Series = h41Data || [];    // [{date, value}] 내림차순, $B
+  const dtsSeries = tgaDtsData?.series || [];  // [{date, close}] 오름차순, $B
+
+  // DTS TGA를 내림차순 {date, value} 변환 (날짜 매칭 편의)
+  const tgaDailyDesc = dtsSeries.slice().reverse().map(d => ({ date: d.date, value: d.close }));
+
   const nlTimeSeries = [];
-  for (let i = 0; i < Math.min(walclSeries.length, tregenSeries.length, 6); i++) {
-    const walclEntry  = walclSeries[i];
-    const tregenEntry = tregenSeries[i];
-    if (!walclEntry || !tregenEntry) break;
+  for (let i = 0; i < Math.min(h41Series.length, 6); i++) {
+    const h41Entry = h41Series[i];
+    if (!h41Entry || h41Entry.value == null) continue;
 
-    const walclB  = walclEntry.value / 1000;   // Millions → Billions
-    const tregenB = tregenEntry.value / 1000;  // Millions → Billions (WTREGEN도 $M 단위)
+    const walclB     = h41Entry.value;    // 이미 $B
+    const anchorDate = h41Entry.date;
 
-    // WALCL 날짜(수요일) 이전/당일 RRPONTSYD 중 가장 최신값 매칭
-    const anchorDate = walclEntry.date;
+    // TGA: DTS 일별에서 앵커 이전/당일 가장 최신값 매칭 → fallback FRED
+    const matchedTga = tgaDailyDesc.find(r => r.date <= anchorDate);
+    const tgaB = matchedTga?.value ?? null;
+
+    // RRP: FRED 일별에서 앵커 이전/당일 가장 최신값 매칭
     const matchedRrp = rrpSeries.find(r => r.date <= anchorDate);
     const rrpB = matchedRrp?.value ?? null;
 
-    if (walclB != null && tregenB != null && rrpB != null) {
+    if (walclB != null && tgaB != null && rrpB != null) {
       nlTimeSeries.push({
         date:   anchorDate,
         walcl:  +walclB.toFixed(2),
-        tga:    +tregenB.toFixed(2),
+        tga:    +tgaB.toFixed(2),
         rrp:    +rrpB.toFixed(2),
-        nl:     +(walclB - tregenB - rrpB).toFixed(2),
+        nl:     +(walclB - tgaB - rrpB).toFixed(2),
+        tgaSource: matchedTga ? 'DTS' : 'H.4.1',
       });
     }
   }
@@ -2960,6 +2982,11 @@ async function liqDataEndpoint(env) {
       rrp:        nlTimeSeries[0]?.rrp    ?? null,
       series:     nlTimeSeries,
       asOf:       nlTimeSeries[0]?.date   ?? null,
+      sources: {
+        walcl: 'H.4.1 reserve_credit',
+        tga:   tgaDailyDesc.length ? 'DTS daily' : 'H.4.1',
+        rrp:   'FRED RRPONTSYD daily',
+      },
     },
     // Repo Regime Matrix
     repoRegime: {
