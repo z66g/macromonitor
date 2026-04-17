@@ -2828,14 +2828,17 @@ async function liqDataEndpoint(env) {
     fredArr('DFII10',           3),  // TIPS 10Y 실질금리
     fredArr('RRPONTSYD',       30),  // ON RRP 잔고 일별 (NLM + Regime 공용, 30일치)
     fredArr('SOFRVOL',         10),  // SOFR 거래량 일별 ($B)
-    // H.4.1 reserve_credit (총자산) — KV 캐시 또는 직접 파싱
-    kvGet(env, KV_KEYS.h41Html).then(cached => {
-      if (!cached?.series?.reserve_credit) return null;
-      const s = cached.series;
-      // {date, value} 배열로 변환 (내림차순: 최신→과거)
-      return (s.labels || []).map((d, i) => ({
-        date: d, value: s.reserve_credit[i],  // 이미 $B 단위
-      })).filter(o => o.value != null);
+    // H.4.1 reserve_credit (총자산) — h41HistoryFetcher 직접 호출 (6주)
+    h41HistoryFetcher(new URL('https://dummy'), 6).then(async resp => {
+      try {
+        const d = await resp.json();
+        const s = d?.series;
+        if (!s?.reserve_credit || !s?.labels) return null;
+        // {date, value} 배열 (내림차순: 최신→과거), $B 단위
+        return s.labels.map((date, i) => ({
+          date, value: s.reserve_credit[i],
+        })).filter(o => o.value != null);
+      } catch { return null; }
     }).catch(() => null),
     // DTS 일별 TGA — KV에서 읽기 (GitHub Actions가 저장)
     kvGet(env, KV_KEYS.tgaDts).catch(() => null),
