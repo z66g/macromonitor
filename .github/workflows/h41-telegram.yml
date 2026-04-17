@@ -99,13 +99,25 @@ jobs:
 
           release_date = cur.get("releaseDate", datetime.date.today().isoformat())
 
+          # DTS 최신 TGA (tower 엔드포인트에서 이미 DTS 오버라이드됨)
+          dts_tga = None
+          dts_date = None
+          if tower and tower.get("fed", {}).get("tgaDts", {}).get("latest"):
+              dts_latest = tower["fed"]["tgaDts"]["latest"]
+              dts_tga = dts_latest.get("close")  # $B
+              dts_date = dts_latest.get("date", "")
+
+          tga_line = f"• TGA:       {fmt_B(tga)}{d_str(tga_d)}"
+          if dts_tga is not None:
+              tga_line += f"\n  └ DTS 최신: ${dts_tga:.1f}B ({dts_date})"
+
           lines = [
               f"📊 <b>Fed H.4.1 주간 유동성 리포트</b> | {release_date}",
               "",
               "━━━ 연준 대차대조표 ━━━",
               f"• 연준총자산: {fmt_T(rc)}{d_str(rc_d)}",
               f"• 준비금:    {fmt_T(res)}{d_str(res_d)}",
-              f"• TGA:       {fmt_B(tga)}{d_str(tga_d)}",
+              tga_line,
               f"• ON RRP:    {fmt_B(rrp)}{d_str(rrp_d)}",
               f"• 순유동성:  {fmt_T(nl)}{d_str(nl_d)}",
           ]
