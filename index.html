@@ -9461,6 +9461,13 @@ function renderTowerS2(d) {
       ${hint ? `<div style="font-size:7px;color:#484F58;margin-top:3px;">${hint}</div>` : ''}
     </div>`;
 
+  const tgaHint  = tgaDelta != null
+    ? (tgaDelta < -20 ? '💧 금고 소진 → 시장 유동성 유입' : tgaDelta > 20 ? '🔺 금고 충전 → 시장 유동성 흡수' : '안정 구간')
+    : '';
+  const ttHint = ttDelta != null
+    ? (ttDelta < 0 ? '🔴 연준 국채 축소(QT) → 시장 유동성 흡수 압박' : '💚 연준 국채 증가(QE) → 시장 유동성 방출')
+    : '';
+
   // TGA 전용 카드 (전일대비 + 주간대비)
   const fmtDeltaLine = (v, label, redWhenPositive=true) => {
     if (v == null) return '';
@@ -9480,13 +9487,6 @@ function renderTowerS2(d) {
       </div>
       ${tgaHint ? `<div style="font-size:7px;color:#484F58;margin-top:3px;">${tgaHint}</div>` : ''}
     </div>`;
-
-  const tgaHint  = tgaDelta != null
-    ? (tgaDelta < -20 ? '💧 금고 소진 → 시장 유동성 유입' : tgaDelta > 20 ? '🔺 금고 충전 → 시장 유동성 흡수' : '안정 구간')
-    : '';
-  const ttHint = ttDelta != null
-    ? (ttDelta < 0 ? '🔴 연준 국채 축소(QT) → 시장 유동성 흡수 압박' : '💚 연준 국채 증가(QE) → 시장 유동성 방출')
-    : '';
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
