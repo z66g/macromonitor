@@ -88,11 +88,13 @@ jobs:
           def fmt_B(v_M):
               return f"${v_M/1e3:.1f}B" if v_M is not None else "N/A"
 
-          def d_str(d_M):
+          def d_str(d_M, invert=False):
+              """invert=True: 증가가 악재 (TGA, RRP)"""
               if d_M is None: return ""
               b = d_M / 1e3
               sign = "+" if b >= 0 else ""
-              emoji = "🟢" if b >= 0 else "🔴"
+              good = (b < 0) if invert else (b >= 0)
+              emoji = "🟢" if good else "🔴"
               if abs(b) >= 100:
                   return f"  Δ{sign}{b/1e3:.2f}T {emoji}"
               return f"  Δ{sign}{b:.1f}B {emoji}"
@@ -107,7 +109,7 @@ jobs:
               dts_tga = dts_latest.get("close")  # $B
               dts_date = dts_latest.get("date", "")
 
-          tga_line = f"• TGA:       {fmt_B(tga)}{d_str(tga_d)}"
+          tga_line = f"• TGA:       {fmt_B(tga)}{d_str(tga_d, invert=True)}"
           if dts_tga is not None:
               tga_line += f"\n  └ DTS 최신: ${dts_tga:.1f}B ({dts_date})"
 
@@ -118,7 +120,7 @@ jobs:
               f"• 연준총자산: {fmt_T(rc)}{d_str(rc_d)}",
               f"• 준비금:    {fmt_T(res)}{d_str(res_d)}",
               tga_line,
-              f"• ON RRP:    {fmt_B(rrp)}{d_str(rrp_d)}",
+              f"• ON RRP:    {fmt_B(rrp)}{d_str(rrp_d, invert=True)}",
               f"• 순유동성:  {fmt_T(nl)}{d_str(nl_d)}",
           ]
 
