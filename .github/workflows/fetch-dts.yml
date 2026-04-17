@@ -35,52 +35,50 @@ jobs:
                                data=body.encode("utf-8"), timeout=30)
               r.raise_for_status()
 
-          # ── DTS API: Federal Reserve Account (TGA) ──
-          DTS_BASE = "https://api.fiscaldata.treasury.gov/services/api/v1/accounting/dts"
-          TABLE    = "dts_table_1"
-          FIELDS   = "record_date,account_type,open_today_bal,close_today_bal"
-          LIMIT    = 60  # 최근 60일치 (주말 제외 약 40 영업일)
+          # ── DTS API: TGA Closing Balance (일별) ──
+          # fiscal_service 경로 + operating_cash_balance 테이블
+          # account_type "Treasury General Account (TGA) Closing Balance" 필터
+          # 값은 open_today_bal 컬럼에 $M 단위로 제공 (API 구조 특성)
+          DTS_URL = (
+              "https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
+              "/v1/accounting/dts/operating_cash_balance"
+              "?fields=record_date,account_type,open_today_bal"
+              "&filter=account_type:eq:Treasury%20General%20Account%20(TGA)%20Closing%20Balance"
+              "&sort=-record_date"
+              "&page%5Bsize%5D=60"
+          )
 
-          url = f"{DTS_BASE}/{TABLE}/?fields={FIELDS}&sort=-record_date&limit={LIMIT}"
-          r = requests.get(url, headers={"Accept": "application/json"}, timeout=30)
+          r = requests.get(DTS_URL, headers={"Accept": "application/json"}, timeout=30)
           r.raise_for_status()
-          data = r.json().get("data", [])
+          rows = r.json().get("data", [])
 
-          # Federal Reserve Account 행만 필터
-          fra = [
-              row for row in data
-              if "federal reserve" in (row.get("account_type") or "").lower()
-          ]
-
-          if not fra:
-              print("Federal Reserve Account 데이터 없음")
+          if not rows:
+              print("TGA Closing Balance 데이터 없음")
               exit(1)
 
-          # Millions → Billions 변환, 시계열 구성
+          # Millions → Billions 변환
           series = []
-          for row in fra:
+          for row in rows:
               try:
-                  close_m = float(row["close_today_bal"].replace(",", ""))
-                  open_m  = float(row["open_today_bal"].replace(",", ""))
+                  val_m = float(str(row["open_today_bal"]).replace(",", ""))
                   series.append({
-                      "date":    row["record_date"],
-                      "close":   round(close_m / 1000, 1),  # $B
-                      "open":    round(open_m  / 1000, 1),   # $B
-                      "netFlow": round((close_m - open_m) / 1000, 1),
+                      "date":  row["record_date"],
+                      "close": round(val_m / 1000, 1),  # $B
                   })
-              except (ValueError, KeyError) as e:
+              except (ValueError, KeyError):
                   continue
 
-          # 최신일 기준 정렬 (내림차순 → 오름차순)
+          # 오름차순 정렬 (차트용)
           series.sort(key=lambda x: x["date"])
 
           payload = {
               "latest":    series[-1] if series else None,
-              "series":    series,          # 오름차순 (차트용)
+              "series":    series,
               "count":     len(series),
               "fetchedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
           }
 
           kv_put("tga_dts_v1", payload, ttl=86400)  # 24h TTL
-          print(f"DTS TGA 저장 완료: {len(series)}일치, 최신: {series[-1]['date']} ${series[-1]['close']}B")
+          latest = series[-1] if series else {}
+          print(f"DTS TGA 저장 완료: {len(series)}일치, 최신: {latest.get('date')} ${latest.get('close')}B")
           PYEOF
