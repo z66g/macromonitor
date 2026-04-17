@@ -41,7 +41,7 @@ jobs:
           FIELDS   = "record_date,account_type,open_today_bal,close_today_bal"
           LIMIT    = 60  # 최근 60일치 (주말 제외 약 40 영업일)
 
-          url = f"{DTS_BASE}/{TABLE}/?fields={FIELDS}&sort=-record_date&page[size]={LIMIT}"
+          url = f"{DTS_BASE}/{TABLE}/?fields={FIELDS}&sort=-record_date&limit={LIMIT}"
           r = requests.get(url, headers={"Accept": "application/json"}, timeout=30)
           r.raise_for_status()
           data = r.json().get("data", [])
