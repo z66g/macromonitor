@@ -142,6 +142,7 @@ export default {
 
     // ── 매일 새벽 1시: 일반 데이터 갱신 ──────────────────
     ctx.waitUntil(Promise.all([
+      h41HtmlParser(env, ctx, true).catch(e => console.error('cron h41Html:', e.message)),
       refreshLiq(env),
       refreshYieldsHist(env),
       refreshT2(env),
@@ -2828,15 +2829,24 @@ async function liqDataEndpoint(env) {
     fredArr('DFII10',           3),  // TIPS 10Y 실질금리
     fredArr('RRPONTSYD',       30),  // ON RRP 잔고 일별 (NLM + Regime 공용, 30일치)
     fredArr('SOFRVOL',         10),  // SOFR 거래량 일별 ($B)
-    // H.4.1 reserve_credit (총자산) — KV 캐시에서 최신값 읽기
-    kvGet(env, KV_KEYS.h41Html).then(cached => {
-      if (!cached?.data?.reserve_credit?.val) return null;
-      const valB = +(cached.data.reserve_credit.val / 1000).toFixed(2); // Millions → $B
-      const date = cached.releaseDate
-        ? new Date(cached.releaseDate).toISOString().slice(0, 10)
-        : cached._savedAt?.slice(0, 10) ?? null;
-      return { value: valB, date };
-    }).catch(() => null),
+    // H.4.1 reserve_credit (총자산) — KV 캐시 → 없으면 직접 파싱
+    (async () => {
+      try {
+        // 1) KV 캐시 확인
+        let cached = await kvGet(env, KV_KEYS.h41Html);
+        // 2) 캐시 없거나 데이터 없으면 h41HtmlParser 호출로 갱신
+        if (!cached?.data?.reserve_credit?.val) {
+          const resp = await h41HtmlParser(env, null, true);
+          cached = await resp.json();
+        }
+        if (!cached?.data?.reserve_credit?.val) return null;
+        const valB = +(cached.data.reserve_credit.val / 1000).toFixed(2);
+        const date = cached.releaseDate
+          ? new Date(cached.releaseDate).toISOString().slice(0, 10)
+          : cached._savedAt?.slice(0, 10) ?? null;
+        return { value: valB, date };
+      } catch { return null; }
+    })(),
     // DTS 일별 TGA — KV에서 읽기 (GitHub Actions가 저장)
     kvGet(env, KV_KEYS.tgaDts).catch(() => null),
   ]);
