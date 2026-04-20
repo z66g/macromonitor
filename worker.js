@@ -198,7 +198,7 @@ async function fetchCalendar(env) {
   // 주요 릴리즈 ID 및 메타 (high/medium만 표시)
   const RELEASES = {
     10:  { nameKo: '소비자물가 (CPI)',              imp: 'high',   tag: '인플레', series:'CPIAUCSL',        fmt:'yoy'  },
-    46:  { nameKo: '생산자물가 (PPI)',              imp: 'high',   tag: '인플레', series:'PPIFID',          fmt:'yoy'  },
+    46:  { nameKo: '생산자물가 (PPI)',              imp: 'high',   tag: '인플레', series:'PPIFIS',          fmt:'yoy'  },
     54:  { nameKo: '개인소비지출 (PCE · Core PCE)', imp: 'high',   tag: '인플레', series:'PCEPILFE',        fmt:'yoy'  },
     // 10: NFP → 매월 첫째 금요일 수학 계산 (buildMarketEvents)
     // 33: ISM 제조업 → 매월 첫 영업일 수학 계산 (buildMarketEvents)
@@ -2819,7 +2819,7 @@ async function liqDataEndpoint(env) {
     fredArr('T10Y3M',        1300),  // 3m10y 스프레드 5년치
     fredArr('CPIAUCSL',        15),  // CPI 월별 (prevYoY 위해 15개)
     fredArr('CPILFESL',        15),  // Core CPI
-    fredArr('PPIACO',          15),  // PPI
+    fredArr('PPIFIS',          15),  // PPI (Final Demand — 헤드라인 PPI, SA)
     fredArr('PCEPI',           15),  // PCE
     fredArr('PCEPILFE',        15),  // Core PCE (연준 공식 목표 지표)
     fredArr('CES0500000003',   15),  // 시간당 평균 임금 (민간 전체, 현행 시리즈)
