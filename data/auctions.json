@@ -1,5 +1,5 @@
 {
-  "updated": "2026-04-22T15:57:47.005232Z",
+  "updated": "2026-04-22T19:55:56.763869Z",
   "upcoming": [
     {
       "type": "Bill",
@@ -66,14 +66,6 @@
       "cusip": "91282CQN4"
     },
     {
-      "type": "Bond",
-      "term": "19-Year 10-Month",
-      "auctionDate": "2026-04-22",
-      "issueDate": "2026-04-30",
-      "offeringAmt": 13000000000.0,
-      "cusip": "912810UT3"
-    },
-    {
       "type": "Note",
       "term": "5-Year",
       "auctionDate": "2026-04-23",
@@ -99,6 +91,15 @@
       "offeringAmt": 69000000000.0,
       "cusip": "912797UV7",
       "highRate": ""
+    },
+    {
+      "type": "Bond",
+      "term": "19-Year 10-Month",
+      "auctionDate": "2026-04-22",
+      "issueDate": "2026-04-30",
+      "offeringAmt": 13000000000.0,
+      "cusip": "912810UT3",
+      "highRate": "4.8830"
     },
     {
       "type": "Bill",
@@ -207,15 +208,6 @@
       "offeringAmt": 69000000000.0,
       "cusip": "91282CQH7",
       "highRate": "3.9360"
-    },
-    {
-      "type": "Bond",
-      "term": "19-Year 11-Month",
-      "auctionDate": "2026-03-17",
-      "issueDate": "2026-03-31",
-      "offeringAmt": 13000000000.0,
-      "cusip": "912810UT3",
-      "highRate": "4.8170"
     }
   ]
 }
