@@ -1,7 +1,41 @@
 {
-  "updated": "2026-04-28T21:01:59.632403+00:00",
+  "updated": "2026-04-29T21:00:33.386397+00:00",
   "count": 19,
   "results": [
+    {
+      "security_type": "Bill",
+      "security_term": "17-Week",
+      "auction_date": "2026-04-29",
+      "issue_date": "2026-05-05",
+      "maturity_date": "2026-09-01",
+      "cusip": "912797UW5",
+      "offering_amt": 69000000000.0,
+      "total_accepted": 70975422200.0,
+      "total_tendered": 193827842200.0,
+      "interest_rate": null,
+      "summary": null,
+      "_analysis": {
+        "btc": 2.78,
+        "btc_avg6": null,
+        "tail_bps": null,
+        "high_yield": 3.715,
+        "wi_rate": null,
+        "pd_pct": 48.4,
+        "pd_avg6": null,
+        "di_pct": 5.5,
+        "in_pct": 42.5,
+        "in_avg6": null,
+        "pd_accepted": 34363787500.0,
+        "di_accepted": 3938575000.0,
+        "in_accepted": 30160831500.0,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      }
+    },
     {
       "security_type": "Note",
       "security_term": "7-Year",
@@ -81,7 +115,7 @@
       "total_accepted": 33775865800.0,
       "total_tendered": 109454035800.0,
       "interest_rate": null,
-      "summary": "\ud83c\udfaf \ucd1d\ud3c9: Weak\n1. Tail: N/Abps. \uaf2c\ub9ac \uc785\ucc30 \uc815\ubcf4\uac00 \uc5c6\uc5b4 \uac00\uaca9 \ubbfc\uac10\ub3c4\ub97c \uc9c1\uc811\uc801\uc73c\ub85c \ud3c9\uac00\ud558\uae30 \uc5b4\ub835\uc2b5\ub2c8\ub2e4.\n2. BTC: 3.52x vs 6avg 2.65x. \uc785\ucc30 \uacbd\uc7c1\ub960\uc740 \ud3c9\uade0\uc744 \ud06c\uac8c \uc0c1\ud68c\ud558\uba70 \uc591\ud638\ud55c \uc218\uc694\ub97c \uc2dc\uc0ac\ud569\ub2c8\ub2e4.\n3. Indirect 58.3% vs 6avg 49.7%. \uac04\uc811 \uc785\ucc30\uc740 \ud3c9\uade0 \ub300\ube44 \uc99d\uac00\ud558\uc5ec \uae30\uad00 \ud22c\uc790\uc790\ub4e4\uc758 \uad00\uc2ec\uc774 \ub192\uc558\uc74c\uc744 \ubcf4\uc5ec\uc90d\ub2c8\ub2e4. PD 30.4% vs 6avg 10.4%. \ud504\ub77c\uc774\uba38\ub9ac \ub51c\ub7ec \uc778\uc218 \ube44\uc911\uc774 6\uac1c\uc6d4 \ud3c9\uade0 \ub300\ube44 3\ubc30 \uac00\uae4c\uc774 \uae09\uc99d\ud558\uc5ec \ucd5c\uc885 \ud22c\uc790\uc790 \uc218\uc694\uac00 \ubd80\uc871\ud588\uc74c\uc744 \uacbd\uace0\ud569\ub2c8\ub2e4.\n4. \uacb0\ub860: \ub192\uc740 \ub51c\ub7ec \uc778\uc218 \ube44\uc911\uc740 \uc2dc\uc7a5\uc758 \uc18c\ud654 \ub2a5\ub825\uc5d0 \ub300\ud55c \uc6b0\ub824\ub97c \uc81c\uae30\ud558\uba70, \ub2e8\uae30 \uae08\ub9ac \uc0c1\uc2b9 \uc555\ub825\uacfc \uc720\ub3d9\uc131 \uc545\ud654\ub97c \uc2dc\uc0ac\ud569\ub2c8\ub2e4.",
+      "summary": null,
       "_analysis": {
         "btc": 3.52,
         "btc_avg6": 2.65,
@@ -374,40 +408,6 @@
           "pd": "strong"
         },
         "score_pct": 83
-      }
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "17-Week",
-      "auction_date": "2026-04-22",
-      "issue_date": "2026-04-28",
-      "maturity_date": "2026-08-25",
-      "cusip": "912797UV7",
-      "offering_amt": 69000000000.0,
-      "total_accepted": 69918225000.0,
-      "total_tendered": 209226389800.0,
-      "interest_rate": null,
-      "summary": null,
-      "_analysis": {
-        "btc": 3.02,
-        "btc_avg6": null,
-        "tail_bps": null,
-        "high_yield": 3.704,
-        "wi_rate": null,
-        "pd_pct": 39.9,
-        "pd_avg6": null,
-        "di_pct": 5.9,
-        "in_pct": 51.2,
-        "in_avg6": null,
-        "pd_accepted": 27885132000.0,
-        "di_accepted": 4143280000.0,
-        "in_accepted": 35770398200.0,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 50
       }
     },
     {
