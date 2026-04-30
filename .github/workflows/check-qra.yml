@@ -19,7 +19,7 @@ jobs:
         run: |
           pip install requests -q
           python3 << 'PYEOF'
-          import os, json, re, datetime, math, requests
+          import os, json, re, time, datetime, math, requests
 
           GEMINI_KEY  = os.environ["GEMINI_API_KEY"]
           CF_TOKEN    = os.environ["CLOUDFLARE_API_TOKEN"]
@@ -39,13 +39,23 @@ jobs:
               try: return r.json()
               except: return r.text
 
-          def kv_put(key, value, ttl=None):
+          def kv_put(key, value, ttl=None, max_retries=6):
+              """429 백오프 retry: 5s → 15s → 45s → 90s → 120s → 180s"""
               url = f"{KV_BASE}/values/{key}"
               params = {"expiration_ttl": ttl} if ttl else {}
               body = value if isinstance(value, str) else json.dumps(value)
-              r = requests.put(url, headers=HDR, params=params,
-                               data=body.encode("utf-8"), timeout=30)
-              r.raise_for_status()
+              backoff = [5, 15, 45, 90, 120, 180]
+              for attempt in range(max_retries):
+                  r = requests.put(url, headers=HDR, params=params,
+                                   data=body.encode("utf-8"), timeout=30)
+                  if r.status_code == 429:
+                      wait = backoff[attempt]
+                      print(f"  KV PUT 429 ({key}, attempt {attempt+1}/{max_retries}) → wait {wait}s")
+                      time.sleep(wait)
+                      continue
+                  r.raise_for_status()
+                  return
+              raise RuntimeError(f"KV PUT {key} failed after {max_retries} retries (429)")
 
           def kv_delete(key):
               url = f"{KV_BASE}/values/{key}"
