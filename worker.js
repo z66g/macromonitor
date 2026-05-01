@@ -937,7 +937,9 @@ async function t2DataEndpoint(env, force = false) {
     const avg12 = recent12.length
       ? +(recent12.reduce((s,d) => s+d.value, 0) / recent12.length).toFixed(1) : null;
     return { current: cur, prev, mma3, yoy, decline3m, sig,
-      asOf: (arr[0]?.released ?? arr[0]?.date)?.slice(0,7) ?? null, series, avg12 };
+      asOf: arr[0]?.date?.slice(0,7) ?? null,                     // 데이터 실제 월 (예: 2026-02)
+      releasedAt: arr[0]?.released ?? null,                       // FRED 발표/revision 일자 (예: 2026-04-15)
+      series, avg12 };
   };
   const umcData  = mkSentiment(umcsent);
 
@@ -1010,35 +1012,44 @@ async function t2DataEndpoint(env, force = false) {
              labels: ['Dallas 서비스', 'NY 서비스', 'Philly 비제조업'] },
     },
     // Section 2: Labor Pipeline (5-Stage)
+    // asOf = 데이터 실제 월 / releasedAt = FRED 발표·revision 일자
     labor: {
       jolts: {
         current:    jolts[0]?.value ?? null,
-        asOf:       (jolts[0]?.released ?? jolts[0]?.date)?.slice(0,7) ?? null,
+        asOf:       jolts[0]?.date?.slice(0,7) ?? null,
+        releasedAt: jolts[0]?.released ?? null,
         yoy:        joltsYoY, decline3m: joltsDecline3m, series: joltsSeries,
       },
       tempHelp: {
         current:    tempHelp[0]?.value ?? null, prev: tempHelp[1]?.value ?? null,
         delta:      tempDelta,
-        asOf:       (tempHelp[0]?.released ?? tempHelp[0]?.date)?.slice(0,7) ?? null,
+        asOf:       tempHelp[0]?.date?.slice(0,7) ?? null,
+        releasedAt: tempHelp[0]?.released ?? null,
         consecNeg:  tempConsecNeg, series: tempSeries,
       },
       ic4wsa: {
-        current:        ic4wsaCur, icsaLatest, asOf: (icsa[0]?.released ?? icsa[0]?.date)?.slice(0,7) ?? null,
+        current:        ic4wsaCur, icsaLatest,
+        asOf:           icsa[0]?.date?.slice(0,10) ?? null,        // weekly이므로 day까지
+        releasedAt:     icsa[0]?.released ?? null,
         yoy:            ic4wsaYoy, circuitBreaker: ic4wsaCB, cbPct: ic4wsaCBPct, series: ic4wsaSeries,
       },
       payems: {
         latest: nfpLatest, mma3: nfpMma3,
-        asOf:   (payems[0]?.released ?? payems[0]?.date)?.slice(0,7) ?? null,
+        asOf:       payems[0]?.date?.slice(0,7) ?? null,
+        releasedAt: payems[0]?.released ?? null,
         circuitBreaker: nfpCB, series: nfpSeries,
       },
       sahm: {
-        current: sahmCur, asOf: (sahm[0]?.released ?? sahm[0]?.date)?.slice(0,7) ?? null,
+        current:    sahmCur,
+        asOf:       sahm[0]?.date?.slice(0,7) ?? null,
+        releasedAt: sahm[0]?.released ?? null,
         triggered: sahmTriggered, series: sahmSeries,
       },
       unrate: {
         current: unrate[0]?.value ?? null, prev: unrate[1]?.value ?? null,
         delta:   unrateDelta,
-        asOf:    (unrate[0]?.released ?? unrate[0]?.date)?.slice(0,7) ?? null,
+        asOf:       unrate[0]?.date?.slice(0,7) ?? null,
+        releasedAt: unrate[0]?.released ?? null,
         series:  unrateSeries,
       },
     },
@@ -1046,17 +1057,21 @@ async function t2DataEndpoint(env, force = false) {
     consumer: {
       umcsent:  { ...umcData },
       psavert:  { current: psaCur, prev: psaPrev, delta: psaDelta, mma3: psaMma3, sig: psaSig,
-                  asOf: (psavert[0]?.released ?? psavert[0]?.date)?.slice(0,7) ?? null,
+                  asOf:       psavert[0]?.date?.slice(0,7) ?? null,
+                  releasedAt: psavert[0]?.released ?? null,
                   series5y: psavert.slice(0, 62).reverse()
                     .filter(d => d.date >= '2019-01-01')
                     .map(d => ({ date: d.date, value: d.value })) },
       delinq:   { current: delCur, prev: delPrev, yoyDelta: delYoyDelta, sig: delSig,
-                  asOf: (delinq[0]?.released ?? delinq[0]?.date)?.slice(0,7) ?? null,
+                  asOf:       delinq[0]?.date?.slice(0,7) ?? null,
+                  releasedAt: delinq[0]?.released ?? null,
                   series5y: delinq.slice(0, 22).reverse()
                     .filter(d => d.date >= '2019-01-01')
                     .map(d => ({ date: d.date, value: d.value })) },
       realRetail: { current: realCoreCur, mma3: realCore3MMA, nominalMom: rsafsLatestMom,
-                    sig: retailSig, asOf: (rsafs[0]?.released ?? rsafs[0]?.date)?.slice(0,7) ?? null,
+                    sig: retailSig,
+                    asOf:       rsafs[0]?.date?.slice(0,7) ?? null,
+                    releasedAt: rsafs[0]?.released ?? null,
                     series: realRetailSeries, mma3Series: realRetailMma3Series },
       divCB,
       rsafsHist,

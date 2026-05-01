@@ -9,8 +9,9 @@ preview_id = "66c313c710a04a4eb04775b80a44f313"
 
 [triggers]
 crons = [
-  "0 1 * * *",       # 매일 새벽 — 일반 데이터 갱신 (liq/yields/t2/t3/calendar/liqTower)
-  "*/30 * * * *",    # 30분마다 — 뉴스 RSS 수집 (번역/다이제스트/QRA는 GH Actions로 이전)
+  "0 1,7,13,19 * * *",  # 6시간마다 — 일반 데이터 갱신 (liq/yields/t2/t3/calendar/liqTower)
+                         # NFP/CPI/JOLTS 등 발표 직후 빠르게 반영 (UTC 1·7·13·19시)
+  "*/30 * * * *",       # 30분마다 — 뉴스 RSS 수집 (번역/다이제스트/QRA는 GH Actions로 이전)
 ]
 
 [ai]
