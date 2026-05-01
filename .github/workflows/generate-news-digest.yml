@@ -19,8 +19,13 @@ jobs:
         run: |
           pip install requests -q
           python3 << 'PYEOF'
-          import os, json, re, time, datetime, requests
+          import os, json, re, time, random, datetime, requests
           from email.utils import parsedate_to_datetime
+
+          # 동시 실행 충돌 방지 — 시작 시 0~30s random jitter
+          jitter = random.uniform(0, 30)
+          print(f"start jitter: {jitter:.1f}s")
+          time.sleep(jitter)
 
           GEMINI_KEY  = os.environ["GEMINI_API_KEY"]
           CF_TOKEN    = os.environ["CLOUDFLARE_API_TOKEN"]

@@ -19,7 +19,12 @@ jobs:
         run: |
           pip install requests -q
           python3 << 'PYEOF'
-          import os, json, time, re, requests
+          import os, json, time, random, re, requests
+
+          # 동시 실행 충돌 방지 — 시작 시 0~30s random jitter
+          jitter = random.uniform(0, 30)
+          print(f"start jitter: {jitter:.1f}s")
+          time.sleep(jitter)
 
           GEMINI_KEY  = os.environ["GEMINI_API_KEY"]
           CF_TOKEN    = os.environ["CLOUDFLARE_API_TOKEN"]
@@ -128,6 +133,7 @@ jobs:
 
           BATCH = 10
           batch_count = 0
+          new_translations = 0
           for i in range(0, len(uncached), BATCH):
               batch = uncached[i:i+BATCH]
               try:
@@ -145,15 +151,20 @@ jobs:
                                   "titleKo":   t.get("titleKo", ""),
                                   "summaryKo": t.get("summaryKo", ""),
                               }
+                              new_translations += 1
                   batch_count += 1
-                  print(f"  배치 {batch_count}: {len(batch)}건 완료")
-                  # 배치 후 KV 즉시 저장 (중간 실패 대비)
-                  kv_put("news_trans_map_v1", trans_map, ttl=2592000)
+                  print(f"  배치 {batch_count}: {len(batch)}건 완료 (누적 +{new_translations})")
+                  # ★ KV 즉시 저장 제거 → 모든 batch 끝난 후 1번만 PUT (KV writes 80% 감소)
                   if i + BATCH < len(uncached):
                       time.sleep(3)
               except Exception as e:
                   print(f"  배치 에러: {e}")
                   break
 
-          print(f"완료: {batch_count}개 배치, trans_map 총 {len(trans_map)}건")
+          # ★ 모든 batch 끝나고 한 번만 KV 저장 (중간 실패해도 다음 cron에서 미번역분 재처리됨)
+          if new_translations > 0:
+              kv_put("news_trans_map_v1", trans_map, ttl=2592000)
+              print(f"KV 저장: trans_map 총 {len(trans_map)}건 ({batch_count}개 배치, +{new_translations} 신규)")
+          else:
+              print(f"신규 번역 없음, KV 저장 스킵")
           PYEOF
