@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-01T11:41:26.403348Z",
+  "updated": "2026-05-01T15:34:52.125225Z",
   "upcoming": [
     {
       "type": "Bill",
@@ -24,6 +24,86 @@
       "issueDate": "2026-05-07",
       "offeringAmt": 75000000000.0,
       "cusip": "912797TD9"
+    },
+    {
+      "type": "Bill",
+      "term": "17-Week",
+      "auctionDate": "2026-05-06",
+      "issueDate": "2026-05-12",
+      "offeringAmt": 0.0,
+      "cusip": "912797VB0"
+    },
+    {
+      "type": "Bill",
+      "term": "4-Week",
+      "auctionDate": "2026-05-07",
+      "issueDate": "2026-05-12",
+      "offeringAmt": 0.0,
+      "cusip": "912797TZ0"
+    },
+    {
+      "type": "Bill",
+      "term": "8-Week",
+      "auctionDate": "2026-05-07",
+      "issueDate": "2026-05-12",
+      "offeringAmt": 0.0,
+      "cusip": "912797UN5"
+    },
+    {
+      "type": "Bill",
+      "term": "13-Week",
+      "auctionDate": "2026-05-11",
+      "issueDate": "2026-05-14",
+      "offeringAmt": 0.0,
+      "cusip": "912797TW7"
+    },
+    {
+      "type": "Bill",
+      "term": "26-Week",
+      "auctionDate": "2026-05-11",
+      "issueDate": "2026-05-14",
+      "offeringAmt": 0.0,
+      "cusip": "912797UY1"
+    },
+    {
+      "type": "Bill",
+      "term": "52-Week",
+      "auctionDate": "2026-05-12",
+      "issueDate": "2026-05-14",
+      "offeringAmt": 0.0,
+      "cusip": "912797UX3"
+    },
+    {
+      "type": "Bill",
+      "term": "6-Week",
+      "auctionDate": "2026-05-12",
+      "issueDate": "2026-05-14",
+      "offeringAmt": 0.0,
+      "cusip": "912797TE7"
+    },
+    {
+      "type": "Note",
+      "term": "3-Year",
+      "auctionDate": "2026-05-11",
+      "issueDate": "2026-05-15",
+      "offeringAmt": 0.0,
+      "cusip": "91282CQR5"
+    },
+    {
+      "type": "Note",
+      "term": "10-Year",
+      "auctionDate": "2026-05-12",
+      "issueDate": "2026-05-15",
+      "offeringAmt": 0.0,
+      "cusip": "91282CQQ7"
+    },
+    {
+      "type": "Bond",
+      "term": "30-Year",
+      "auctionDate": "2026-05-13",
+      "issueDate": "2026-05-15",
+      "offeringAmt": 0.0,
+      "cusip": "912810UU0"
     }
   ],
   "auctioned": [
