@@ -49,18 +49,27 @@ jobs:
                   except: return r.text
               raise RuntimeError(f"KV GET {key} failed after {max_retries} retries (429)")
 
-          def kv_put(key, value, ttl=None, max_retries=6):
-              """429 백오프 retry: 5s → 15s → 45s → 90s → 120s → 180s (총 ~7분)"""
+          def kv_put(key, value, ttl=None, max_retries=8):
+              """
+              429 백오프 retry — Retry-After 헤더 존중
+              base 백오프: 10s → 30s → 60s → 120s → 240s → 300s × 3 (총 ~25분)
+              """
               url = f"{KV_BASE}/values/{key}"
               params = {"expiration_ttl": ttl} if ttl else {}
               body = value if isinstance(value, str) else json.dumps(value)
-              backoff = [5, 15, 45, 90, 120, 180]
+              backoff = [10, 30, 60, 120, 240, 300, 300, 300]
               for attempt in range(max_retries):
                   r = requests.put(url, headers=HDR, params=params,
                                    data=body.encode("utf-8"), timeout=30)
                   if r.status_code == 429:
-                      wait = backoff[attempt]
-                      print(f"  KV PUT 429 ({key}, attempt {attempt+1}/{max_retries}) → wait {wait}s")
+                      ra = r.headers.get('Retry-After')
+                      try:
+                          ra_sec = int(ra) if ra else 0
+                      except (ValueError, TypeError):
+                          ra_sec = 0
+                      wait = max(backoff[attempt], ra_sec)
+                      reason = f"Retry-After={ra}s" if ra_sec else "기본"
+                      print(f"  KV PUT 429 ({key}, attempt {attempt+1}/{max_retries}, {reason}) → wait {wait}s")
                       time.sleep(wait)
                       continue
                   r.raise_for_status()
