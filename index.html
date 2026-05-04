@@ -11129,7 +11129,20 @@ let _aucCalYear    = nowKST().getUTCFullYear();
 let _aucCalMonth   = nowKST().getUTCMonth();
 let _aucSelectedDate = todayKSTStr();
 let _aucPanelOpen  = false;
-let _aucLastSeen   = localStorage.getItem('auc_last_seen') || '';
+// 최신 경매 cusip 추적 — 새 경매 등록 시에만 N 뱃지 표시
+// (data.updated는 backfill/타임스탬프 갱신에도 바뀌므로 부적합)
+let _aucLastSeenCusip = localStorage.getItem('auc_last_cusip') || '';
+
+// 가장 최신 경매의 cusip (auction_date 내림차순, 동일 날짜면 cusip 기준)
+function getLatestAuctionCusip(results) {
+  if (!results || results.length === 0) return null;
+  const sorted = [...results].sort((a, b) => {
+    const dCmp = (b.auction_date || '').localeCompare(a.auction_date || '');
+    if (dCmp !== 0) return dCmp;
+    return (b.cusip || '').localeCompare(a.cusip || '');
+  });
+  return sorted[0]?.cusip || null;
+}
 
 // 타입별 날짜 → Set 매핑
 function buildAucDateMap(results, upcoming) {
@@ -11172,10 +11185,22 @@ async function loadAuctionPanel(force = false) {
         const dt = new Date(upd);
         updEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} 기준`;
       }
-      // N 뱃지: 마지막으로 본 updated보다 새로운 데이터 있으면 표시
+      // N 뱃지: 새 cusip(=새 경매 결과)이 등록되었을 때만 표시
+      // - data.updated 기반은 backfill/timestamp만 갱신돼도 N이 떠서 부적합
+      // - 첫 방문(localStorage 비어있음)은 silently 저장, N 표시 안 함
       const badge = document.getElementById('auction-n-badge');
+      const latestCusip = getLatestAuctionCusip(_aucData);
       if (badge) {
-        badge.style.display = (upd && upd > _aucLastSeen) ? 'block' : 'none';
+        if (!_aucLastSeenCusip) {
+          // 첫 방문: 현재 최신을 저장하고 N 숨김
+          if (latestCusip) {
+            _aucLastSeenCusip = latestCusip;
+            localStorage.setItem('auc_last_cusip', latestCusip);
+          }
+          badge.style.display = 'none';
+        } else {
+          badge.style.display = (latestCusip && latestCusip !== _aucLastSeenCusip) ? 'block' : 'none';
+        }
       }
     }
 
@@ -11219,13 +11244,15 @@ function toggleAuctionPanel() {
     overlay.style.display = 'block';
     _aucPanelOpen = true;
 
-    // N 뱃지 숨기고 읽음 처리
+    // N 뱃지 숨기고 읽음 처리 — 현재 최신 cusip을 lastSeen으로 저장
     const badge = document.getElementById('auction-n-badge');
     if (badge) badge.style.display = 'none';
     if (_aucData) {
-      const upd = document.getElementById('auction-updated')?.textContent || '';
-      _aucLastSeen = new Date().toISOString();
-      localStorage.setItem('auc_last_seen', _aucLastSeen);
+      const latestCusip = getLatestAuctionCusip(_aucData);
+      if (latestCusip) {
+        _aucLastSeenCusip = latestCusip;
+        localStorage.setItem('auc_last_cusip', latestCusip);
+      }
     }
 
     if (!_aucData) loadAuctionPanel();
