@@ -1,5 +1,5 @@
 {
-  "updated": "2026-05-06T10:11:01.306796Z",
+  "updated": "2026-05-06T13:50:13.362277Z",
   "upcoming": [
     {
       "type": "Bill",
@@ -62,7 +62,7 @@
       "term": "3-Year",
       "auctionDate": "2026-05-11",
       "issueDate": "2026-05-15",
-      "offeringAmt": 0.0,
+      "offeringAmt": 58000000000.0,
       "cusip": "91282CQR5"
     },
     {
@@ -70,7 +70,7 @@
       "term": "10-Year",
       "auctionDate": "2026-05-12",
       "issueDate": "2026-05-15",
-      "offeringAmt": 0.0,
+      "offeringAmt": 42000000000.0,
       "cusip": "91282CQQ7"
     },
     {
@@ -78,7 +78,7 @@
       "term": "30-Year",
       "auctionDate": "2026-05-13",
       "issueDate": "2026-05-15",
-      "offeringAmt": 0.0,
+      "offeringAmt": 25000000000.0,
       "cusip": "912810UU0"
     }
   ],
