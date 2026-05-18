@@ -1,7 +1,75 @@
 {
-  "updated": "2026-05-15T21:00:28.282598+00:00",
+  "updated": "2026-05-18T21:00:26.198245+00:00",
   "count": 19,
   "results": [
+    {
+      "security_type": "Bill",
+      "security_term": "13-Week",
+      "auction_date": "2026-05-18",
+      "issue_date": "2026-05-21",
+      "maturity_date": "2026-08-20",
+      "cusip": "912797TX5",
+      "offering_amt": 89000000000.0,
+      "total_accepted": 94371135100.0,
+      "total_tendered": 287570347400.0,
+      "interest_rate": null,
+      "summary": null,
+      "_analysis": {
+        "btc": 3.17,
+        "btc_avg6": null,
+        "tail_bps": null,
+        "high_yield": 3.684,
+        "wi_rate": null,
+        "pd_pct": 27.5,
+        "pd_avg6": null,
+        "di_pct": 5.7,
+        "in_pct": 57.1,
+        "in_avg6": null,
+        "pd_accepted": 25929975000.0,
+        "di_accepted": 5423455000.0,
+        "in_accepted": 53902259400.0,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      }
+    },
+    {
+      "security_type": "Bill",
+      "security_term": "26-Week",
+      "auction_date": "2026-05-18",
+      "issue_date": "2026-05-21",
+      "maturity_date": "2026-11-19",
+      "cusip": "912797UZ8",
+      "offering_amt": 77000000000.0,
+      "total_accepted": 81647073600.0,
+      "total_tendered": 241145909300.0,
+      "interest_rate": null,
+      "summary": null,
+      "_analysis": {
+        "btc": 3.07,
+        "btc_avg6": null,
+        "tail_bps": null,
+        "high_yield": 3.733,
+        "wi_rate": null,
+        "pd_pct": 25.1,
+        "pd_avg6": null,
+        "di_pct": 8.4,
+        "in_pct": 57.7,
+        "in_avg6": null,
+        "pd_accepted": 20528420000.0,
+        "di_accepted": 6854750000.0,
+        "in_accepted": 47088050900.0,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      }
+    },
     {
       "security_type": "Bill",
       "security_term": "4-Week",
@@ -270,74 +338,6 @@
           "btc": "neutral",
           "tail": "neutral",
           "pd": "neutral"
-        },
-        "score_pct": 50
-      }
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "13-Week",
-      "auction_date": "2026-05-11",
-      "issue_date": "2026-05-14",
-      "maturity_date": "2026-08-13",
-      "cusip": "912797TW7",
-      "offering_amt": 89000000000.0,
-      "total_accepted": 94585611100.0,
-      "total_tendered": 259872343100.0,
-      "interest_rate": null,
-      "summary": null,
-      "_analysis": {
-        "btc": 2.86,
-        "btc_avg6": null,
-        "tail_bps": null,
-        "high_yield": 3.694,
-        "wi_rate": null,
-        "pd_pct": 31.1,
-        "pd_avg6": null,
-        "di_pct": 6.3,
-        "in_pct": 53.5,
-        "in_avg6": null,
-        "pd_accepted": 29405018000.0,
-        "di_accepted": 5982660000.0,
-        "in_accepted": 50600852800.0,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 50
-      }
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "26-Week",
-      "auction_date": "2026-05-11",
-      "issue_date": "2026-05-14",
-      "maturity_date": "2026-11-12",
-      "cusip": "912797UY1",
-      "offering_amt": 77000000000.0,
-      "total_accepted": 81831821800.0,
-      "total_tendered": 229003407800.0,
-      "interest_rate": null,
-      "summary": null,
-      "_analysis": {
-        "btc": 2.91,
-        "btc_avg6": null,
-        "tail_bps": null,
-        "high_yield": 3.733,
-        "wi_rate": null,
-        "pd_pct": 32.3,
-        "pd_avg6": null,
-        "di_pct": 8.0,
-        "in_pct": 51.2,
-        "in_avg6": null,
-        "pd_accepted": 26421679000.0,
-        "di_accepted": 6576270000.0,
-        "in_accepted": 41927442000.0,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
         },
         "score_pct": 50
       }
