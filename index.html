@@ -1651,7 +1651,7 @@ body{
             </div>
             <div class="csp-leg-item">
               <div class="csp-leg-dot" style="background:#3FB950;"></div>
-              <span>MMF 총자산 소매+기관 합산 (우측 Y, $T · FRED WRMFNS+WRMFSL)</span>
+              <span>MMF 총자산 소매+기관 합산 (우측 Y, $T · ICI weekly)</span>
             </div>
           </div>
 
@@ -4639,8 +4639,8 @@ async function loadS2(force = false) {
       fetchT('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true'),
       fetchT(`${WORKER}/fred?series_id=DFII10&limit=60&sort_order=desc`),
       fetchT(`${WORKER}/ici`, 15000),
+      // WRMFSL(Institutional)은 Fed가 2021-02 이후 발표 중단 → ICI history로 대체
       fetchT(`${WORKER}/fred?series_id=WRMFNS&limit=60&sort_order=desc`),
-      fetchT(`${WORKER}/fred?series_id=WRMFSL&limit=60&sort_order=desc`),
     ]);
 
     const _sj2 = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
@@ -4649,7 +4649,6 @@ async function loadS2(force = false) {
     const tipsJson      = await _sj2(tipsRes);
     const iciJson       = await _sj2(iciRes);
     const mmfRetailJson = await _sj2(mmfRetailRes);
-    const mmfInstJson   = await _sj2(mmfInstRes);
 
     const q = yahooJson.quotes || {};
 
@@ -4674,7 +4673,7 @@ async function loadS2(force = false) {
     };
 
     renderRatioGrid(prices, pct24h);
-    renderCSP(tipsJson, iciJson, mmfRetailJson, mmfInstJson);
+    renderCSP(tipsJson, iciJson, mmfRetailJson);
     showContent2();
 
   } catch(e) {
@@ -4833,7 +4832,7 @@ async function fetchBtcHistory() {
 // ══════════════════════════════
 // PART B: 현금 대피 압력 렌더
 // ══════════════════════════════
-function renderCSP(tipsJson, iciJson, mmfRetailJson, mmfInstJson) {
+function renderCSP(tipsJson, iciJson, mmfRetailJson) {
 
   // ── TIPS: 오래된→최신 정렬 ──
   const tipsObs = (tipsJson?.observations || [])
@@ -4841,18 +4840,17 @@ function renderCSP(tipsJson, iciJson, mmfRetailJson, mmfInstJson) {
     .reverse();
   const tipsLatest = tipsObs.length ? parseFloat(tipsObs[tipsObs.length-1].value) : null;
 
-  // ── MMF 합산: WRMFNS(소매) + WRMFSL(기관) — 인덱스 기반 합산 ──
-  // 두 시리즈 모두 주간 데이터, FRED 업데이트 날짜가 달라 날짜 매칭 불가
-  // → 같은 인덱스 위치가 같은 주 데이터이므로 인덱스 기준으로 합산
-  const retailObs = (mmfRetailJson?.observations || []).filter(o => o.value !== '.').reverse(); // 오래된→최신
-  const instObs   = (mmfInstJson?.observations   || []).filter(o => o.value !== '.').reverse();
-
-  const minLen = Math.min(retailObs.length, instObs.length);
-  const mmfSeries = Array.from({ length: minLen }, (_, i) => ({
-    date:    retailObs[i].date,  // WRMFNS 날짜 기준
-    total:   +(parseFloat(retailObs[i].value) + parseFloat(instObs[i].value)).toFixed(1),
-    hasInst: true,
-  }));
+  // ── MMF 합산: ICI history 기반 (WRMFSL은 2021-02 폐지) ──
+  // ICI는 weekly retail+institutional 전체 합계를 제공 (trillion 단위)
+  // 인덱스/날짜를 통일해 ICI history → mmfSeries (billion 단위, 오래된→최신)
+  const iciHist = (iciJson?.history || []).slice().reverse(); // 오래된→최신
+  const mmfSeries = iciHist
+    .filter(h => h.totalB != null && h.weekEnded)
+    .map(h => ({
+      date:    h.weekEnded,
+      total:   +h.totalB.toFixed(1),    // $B
+      hasInst: true,                    // ICI는 retail+inst 합산
+    }));
 
   const mmfLatest = mmfSeries.length ? mmfSeries[mmfSeries.length-1].total / 1000 : null;
 

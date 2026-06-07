@@ -2813,8 +2813,9 @@ async function liqDataEndpoint(env) {
   };
 
   // 병렬 fetch — FRED 시리즈 + H.4.1 + DTS TGA
+  // ※ MMF Institutional(WRMFSL): Federal Reserve가 2021-02 이후 발표 중단 → ICI 데이터로 대체 (별도 /ici)
   const [
-    mmfR, mmfI, bankDep,               // 유동성 흐름
+    mmfR, bankDep,                     // 유동성 흐름 (Institutional은 /ici에서)
     dgs2, dgs5, dgs10, dgs30,          // 국채 수익률 (일별)
     sp2_10, sp3m_10,                   // 스프레드 5년 히스토리
     cpi, coreCpi, ppi, pce,            // 물가 지수 15개월
@@ -2823,8 +2824,7 @@ async function liqDataEndpoint(env) {
     rrpSeries, sofrVolSeries,          // Repo Regime Matrix
     h41Data, tgaDtsData,               // NLM: H.4.1 총자산 + DTS 일별 TGA
   ] = await Promise.all([
-    fredArr('WRMFNS',          12),  // 소매 MMF 주간
-    fredArr('WRMFSL',          12),  // 기관 MMF 주간
+    fredArr('WRMFNS',          12),  // 소매 MMF 주간 (기관은 ICI 사용)
     fredArr('DPSACBW027SBOG',  12),  // 상업은행 총 예금 주간
     fredArr('DGS2',            30),  // 30일치 → 20영업일 전(1M ago) 확보
     fredArr('DGS5',            30),
@@ -2866,17 +2866,11 @@ async function liqDataEndpoint(env) {
     kvGet(env, KV_KEYS.tgaDts).catch(() => null),
   ]);
 
-  // ── MMF 합산 (날짜 매칭) ──
-  const mmfMap = {};
-  mmfR.forEach(d => { mmfMap[d.date] = { date: d.date, retail: d.value }; });
-  mmfI.forEach(d => {
-    if (mmfMap[d.date]) mmfMap[d.date].inst = d.value;
-    else mmfMap[d.date] = { date: d.date, inst: d.value };
-  });
-  const mmfSeries = Object.values(mmfMap)
-    .sort((a, b) => b.date.localeCompare(a.date))
+  // ── MMF 시계열 (Retail만 — Institutional은 ICI에서 별도 조회) ──
+  // ※ WRMFSL은 Fed가 2021-02 이후 발표 중단. 인덱스 기반 합산은 ICI 사용.
+  const mmfSeries = mmfR
     .slice(0, 12)
-    .map(d => ({ ...d, total: (d.retail ?? 0) + (d.inst ?? 0) }));
+    .map(d => ({ date: d.date, retail: d.value, total: d.value }));
 
   // ── 단순 요약 헬퍼 ──
   const cur  = a => a[0]?.value ?? null;
@@ -2982,13 +2976,15 @@ async function liqDataEndpoint(env) {
     asOf: new Date().toISOString().slice(0, 10),
     // 유동성 흐름
     mmf: {
+      // ※ Institutional은 FRED WRMFSL 폐지(2021-02). ICI(/ici) 데이터 사용 권장.
       series: mmfSeries,
-      retail: summ(mmfR), inst: summ(mmfI),
+      retail: summ(mmfR),
       total: {
-        current: (cur(mmfR) ?? 0) + (cur(mmfI) ?? 0) || null,
-        prev:    (prv(mmfR) ?? 0) + (prv(mmfI) ?? 0) || null,
-        delta:   (dt(mmfR) ?? 0) + (dt(mmfI) ?? 0) || null,
+        current: cur(mmfR),
+        prev:    prv(mmfR),
+        delta:   dt(mmfR),
         asOf:    asOf(mmfR),
+        note:    'retail only (institutional은 /ici 사용)',
       },
     },
     bankDeposits: { series: bankDep, ...summ(bankDep) },
