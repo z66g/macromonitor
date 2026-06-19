@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-18T21:01:23.965843+00:00",
+  "updated": "2026-06-19T21:00:37.298908+00:00",
   "count": 19,
   "results": [
     {
@@ -81,7 +81,7 @@
       "total_accepted": 27592591700.0,
       "total_tendered": 66220016700.0,
       "interest_rate": 1.25,
-      "summary": "\ud83c\udfaf \ucd1d\ud3c9: Strong\n1. Tail: N/Abps. N/A\ub85c \uae08\ub9ac \ubcc0\ub3d9 \uc555\ub825\uc740 \uc5c6\uc5c8\ub358 \uac83\uc73c\ub85c \ubcf4\uc774\uba70, \uc774\ub294 \uae0d\uc815\uc801 \uc2e0\ud638\uc785\ub2c8\ub2e4.\n2. BTC: 2.61x vs 6avg N/Ax. 2.61\ubc30\ub85c \uacac\uc870\ud55c \uc218\uc694\ub97c \ub098\ud0c0\ub0c8\uc73c\ub098, 6\ud68c \ud3c9\uade0\uacfc\uc758 \ube44\uad50\ub294 \uc5b4\ub835\uc2b5\ub2c8\ub2e4.\n3. Indirect 59.4% vs 6avg N/A%. \uac04\uc811 \uc785\ucc30\uc740 59.4%\ub85c \ub9e4\uc6b0 \ub192\uc544 \ud574\uc678 \ubc0f \uae30\uad00\uc758 \uac15\ub825\ud55c \uc218\uc694\ub97c \ubc29\uc99d\ud569\ub2c8\ub2e4. PD 3.0% vs 6avg N/A%. PD\ub294 3.0%\ub85c \ub0ae\uc740 \uc218\uc900\uc744 \uae30\ub85d, \ub51c\ub7ec\ub4e4\uc758 \uc778\uc218 \ubd80\ub2f4\uc774 \uacbd\ubbf8\ud569\ub2c8\ub2e4.\n4. \uacb0\ub860: \uac15\ub825\ud55c \uac04\uc811 \uc218\uc694\uc640 \ub0ae\uc740 PD\ub294 \ud574\ub2f9 \ub9cc\uae30\ubb3c\uc758 \uacac\uc870\ud55c \uc720\ub3d9\uc131\uacfc \uc548\uc815\uc801\uc778 \uae08\ub9ac \ud750\ub984\uc744 \uc9c0\uc9c0\ud560 \uac83\uc785\ub2c8\ub2e4.",
+      "summary": null,
       "_analysis": {
         "btc": 2.61,
         "btc_avg6": null,
