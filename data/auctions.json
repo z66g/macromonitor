@@ -1,22 +1,6 @@
 {
-  "updated": "2026-06-24T14:11:20.240154Z",
+  "updated": "2026-06-24T17:48:28.382113Z",
   "upcoming": [
-    {
-      "type": "Note",
-      "term": "1-Year 10-Month",
-      "auctionDate": "2026-06-24",
-      "issueDate": "2026-06-26",
-      "offeringAmt": 28000000000.0,
-      "cusip": "91282CQM6"
-    },
-    {
-      "type": "Bill",
-      "term": "17-Week",
-      "auctionDate": "2026-06-24",
-      "issueDate": "2026-06-30",
-      "offeringAmt": 69000000000.0,
-      "cusip": "912797VN4"
-    },
     {
       "type": "Bill",
       "term": "4-Week",
@@ -32,14 +16,6 @@
       "issueDate": "2026-06-30",
       "offeringAmt": 75000000000.0,
       "cusip": "912797UV7"
-    },
-    {
-      "type": "Note",
-      "term": "5-Year",
-      "auctionDate": "2026-06-24",
-      "issueDate": "2026-06-30",
-      "offeringAmt": 70000000000.0,
-      "cusip": "91282CQX2"
     },
     {
       "type": "Note",
@@ -75,6 +51,24 @@
     }
   ],
   "auctioned": [
+    {
+      "type": "Bill",
+      "term": "17-Week",
+      "auctionDate": "2026-06-24",
+      "issueDate": "2026-06-30",
+      "offeringAmt": 69000000000.0,
+      "cusip": "912797VN4",
+      "highRate": ""
+    },
+    {
+      "type": "Note",
+      "term": "5-Year",
+      "auctionDate": "2026-06-24",
+      "issueDate": "2026-06-30",
+      "offeringAmt": 70000000000.0,
+      "cusip": "91282CQX2",
+      "highRate": "4.2000"
+    },
     {
       "type": "Bill",
       "term": "6-Week",
@@ -130,15 +124,6 @@
       "highRate": ""
     },
     {
-      "type": "Bill",
-      "term": "17-Week",
-      "auctionDate": "2026-06-17",
-      "issueDate": "2026-06-23",
-      "offeringAmt": 69000000000.0,
-      "cusip": "912797VM6",
-      "highRate": ""
-    },
-    {
       "type": "Bond",
       "term": "19-Year 11-Month",
       "auctionDate": "2026-06-16",
@@ -191,15 +176,6 @@
       "offeringAmt": 44000000000.0,
       "cusip": "91282CQT1",
       "highRate": "4.2900"
-    },
-    {
-      "type": "Note",
-      "term": "5-Year",
-      "auctionDate": "2026-05-27",
-      "issueDate": "2026-06-01",
-      "offeringAmt": 70000000000.0,
-      "cusip": "91282CQU8",
-      "highRate": "4.1820"
     }
   ]
 }
