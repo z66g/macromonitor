@@ -1,22 +1,6 @@
 {
-  "updated": "2026-07-28T13:46:06.759240Z",
+  "updated": "2026-07-28T17:20:28.382386Z",
   "upcoming": [
-    {
-      "type": "Bill",
-      "term": "6-Week",
-      "auctionDate": "2026-07-28",
-      "issueDate": "2026-07-30",
-      "offeringAmt": 95000000000.0,
-      "cusip": "912797UF2"
-    },
-    {
-      "type": "Note",
-      "term": "7-Year",
-      "auctionDate": "2026-07-28",
-      "issueDate": "2026-07-31",
-      "offeringAmt": 44000000000.0,
-      "cusip": "91282CRC7"
-    },
     {
       "type": "Note",
       "term": "2-Year",
@@ -30,7 +14,7 @@
       "term": "17-Week",
       "auctionDate": "2026-07-29",
       "issueDate": "2026-08-04",
-      "offeringAmt": 0.0,
+      "offeringAmt": 72000000000.0,
       "cusip": "912797VZ7"
     },
     {
@@ -38,7 +22,7 @@
       "term": "4-Week",
       "auctionDate": "2026-07-30",
       "issueDate": "2026-08-04",
-      "offeringAmt": 0.0,
+      "offeringAmt": 110000000000.0,
       "cusip": "912797UW5"
     },
     {
@@ -46,7 +30,7 @@
       "term": "8-Week",
       "auctionDate": "2026-07-30",
       "issueDate": "2026-08-04",
-      "offeringAmt": 0.0,
+      "offeringAmt": 100000000000.0,
       "cusip": "912797VE4"
     },
     {
@@ -83,6 +67,24 @@
     }
   ],
   "auctioned": [
+    {
+      "type": "Bill",
+      "term": "6-Week",
+      "auctionDate": "2026-07-28",
+      "issueDate": "2026-07-30",
+      "offeringAmt": 95000000000.0,
+      "cusip": "912797UF2",
+      "highRate": ""
+    },
+    {
+      "type": "Note",
+      "term": "7-Year",
+      "auctionDate": "2026-07-28",
+      "issueDate": "2026-07-31",
+      "offeringAmt": 44000000000.0,
+      "cusip": "91282CRC7",
+      "highRate": "4.4730"
+    },
     {
       "type": "Bill",
       "term": "13-Week",
@@ -156,15 +158,6 @@
       "highRate": "5.1630"
     },
     {
-      "type": "Bill",
-      "term": "6-Week",
-      "auctionDate": "2026-07-21",
-      "issueDate": "2026-07-23",
-      "offeringAmt": 95000000000.0,
-      "cusip": "912797RS8",
-      "highRate": ""
-    },
-    {
       "type": "Bond",
       "term": "29-Year 10-Month",
       "auctionDate": "2026-07-09",
@@ -199,15 +192,6 @@
       "offeringAmt": 58000000000.0,
       "cusip": "91282CQZ7",
       "highRate": "4.1790"
-    },
-    {
-      "type": "Note",
-      "term": "7-Year",
-      "auctionDate": "2026-06-25",
-      "issueDate": "2026-06-30",
-      "offeringAmt": 44000000000.0,
-      "cusip": "91282CQW4",
-      "highRate": "4.2600"
     }
   ]
 }
