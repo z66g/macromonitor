@@ -1,7 +1,41 @@
 {
-  "updated": "2026-08-04T21:00:37.408379+00:00",
+  "updated": "2026-08-05T21:00:37.980378+00:00",
   "count": 19,
   "results": [
+    {
+      "security_type": "Bill",
+      "security_term": "17-Week",
+      "auction_date": "2026-08-05",
+      "issue_date": "2026-08-11",
+      "maturity_date": "2026-12-08",
+      "cusip": "912797WE3",
+      "offering_amt": 72000000000.0,
+      "total_accepted": 75354250700.0,
+      "total_tendered": 232780975900.0,
+      "interest_rate": null,
+      "summary": null,
+      "_analysis": {
+        "btc": 3.19,
+        "btc_avg6": null,
+        "tail_bps": null,
+        "high_yield": 3.886,
+        "wi_rate": null,
+        "pd_pct": 27.7,
+        "pd_avg6": null,
+        "di_pct": 5.8,
+        "in_pct": 61.0,
+        "in_avg6": null,
+        "pd_accepted": 20846310000.0,
+        "di_accepted": 4398665000.0,
+        "in_accepted": 45987714800.0,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      }
+    },
     {
       "security_type": "Bill",
       "security_term": "6-Week",
@@ -198,40 +232,6 @@
         "pd_accepted": 32300900000.0,
         "di_accepted": 3869590000.0,
         "in_accepted": 61351031300.0,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 50
-      }
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "17-Week",
-      "auction_date": "2026-07-29",
-      "issue_date": "2026-08-04",
-      "maturity_date": "2026-12-01",
-      "cusip": "912797VZ7",
-      "offering_amt": 72000000000.0,
-      "total_accepted": 75934306500.0,
-      "total_tendered": 222474668500.0,
-      "interest_rate": null,
-      "summary": null,
-      "_analysis": {
-        "btc": 3.04,
-        "btc_avg6": null,
-        "tail_bps": null,
-        "high_yield": 3.98,
-        "wi_rate": null,
-        "pd_pct": 31.9,
-        "pd_avg6": null,
-        "di_pct": 7.9,
-        "in_pct": 54.1,
-        "in_avg6": null,
-        "pd_accepted": 24204380000.0,
-        "di_accepted": 5995040000.0,
-        "in_accepted": 41108782000.0,
         "grade": {
           "btc": "strong",
           "tail": null,
