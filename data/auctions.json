@@ -1,14 +1,6 @@
 {
-  "updated": "2026-08-19T12:29:19.553603Z",
+  "updated": "2026-08-19T16:21:23.185212Z",
   "upcoming": [
-    {
-      "type": "Bill",
-      "term": "17-Week",
-      "auctionDate": "2026-08-19",
-      "issueDate": "2026-08-25",
-      "offeringAmt": 72000000000.0,
-      "cusip": "912797WG8"
-    },
     {
       "type": "Bill",
       "term": "4-Week",
@@ -101,6 +93,15 @@
   "auctioned": [
     {
       "type": "Bill",
+      "term": "17-Week",
+      "auctionDate": "2026-08-19",
+      "issueDate": "2026-08-25",
+      "offeringAmt": 72000000000.0,
+      "cusip": "912797WG8",
+      "highRate": ""
+    },
+    {
+      "type": "Bill",
       "term": "6-Week",
       "auctionDate": "2026-08-18",
       "issueDate": "2026-08-20",
@@ -152,15 +153,6 @@
       "offeringAmt": 25000000000.0,
       "cusip": "912810UW6",
       "highRate": "5.2160"
-    },
-    {
-      "type": "Bill",
-      "term": "17-Week",
-      "auctionDate": "2026-08-12",
-      "issueDate": "2026-08-18",
-      "offeringAmt": 72000000000.0,
-      "cusip": "912797WF0",
-      "highRate": ""
     },
     {
       "type": "Note",
