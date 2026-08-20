@@ -1,5 +1,5 @@
 {
-  "updated": "2026-08-20T16:24:35.516335Z",
+  "updated": "2026-08-20T20:19:22.775448Z",
   "upcoming": [
     {
       "type": "Bill",
@@ -56,14 +56,6 @@
       "issueDate": "2026-08-31",
       "offeringAmt": 44000000000.0,
       "cusip": "91282CRJ2"
-    },
-    {
-      "type": "Bond",
-      "term": "29-Year 6-Month",
-      "auctionDate": "2026-08-20",
-      "issueDate": "2026-08-31",
-      "offeringAmt": 8000000000.0,
-      "cusip": "912810US5"
     }
   ],
   "auctioned": [
