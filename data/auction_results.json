@@ -1,7 +1,75 @@
 {
-  "updated": "2026-09-02T21:00:37.553374+00:00",
+  "updated": "2026-09-03T21:00:37.890849+00:00",
   "count": 19,
   "results": [
+    {
+      "security_type": "Bill",
+      "security_term": "4-Week",
+      "auction_date": "2026-09-03",
+      "issue_date": "2026-09-08",
+      "maturity_date": "2026-10-06",
+      "cusip": "912797VK0",
+      "offering_amt": 90000000000.0,
+      "total_accepted": 95385335100.0,
+      "total_tendered": 272835287900.0,
+      "interest_rate": null,
+      "summary": null,
+      "_analysis": {
+        "btc": 2.97,
+        "btc_avg6": null,
+        "tail_bps": null,
+        "high_yield": 3.762,
+        "wi_rate": null,
+        "pd_pct": 25.0,
+        "pd_avg6": null,
+        "di_pct": 2.9,
+        "in_pct": 58.3,
+        "in_avg6": null,
+        "pd_accepted": 23875680000.0,
+        "di_accepted": 2775320000.0,
+        "in_accepted": 55571291900.0,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      }
+    },
+    {
+      "security_type": "Bill",
+      "security_term": "8-Week",
+      "auction_date": "2026-09-03",
+      "issue_date": "2026-09-08",
+      "maturity_date": "2026-11-03",
+      "cusip": "912797VP9",
+      "offering_amt": 85000000000.0,
+      "total_accepted": 90086510700.0,
+      "total_tendered": 262091264300.0,
+      "interest_rate": null,
+      "summary": null,
+      "_analysis": {
+        "btc": 3.02,
+        "btc_avg6": null,
+        "tail_bps": null,
+        "high_yield": 3.824,
+        "wi_rate": null,
+        "pd_pct": 23.2,
+        "pd_avg6": null,
+        "di_pct": 4.2,
+        "in_pct": 64.5,
+        "in_avg6": null,
+        "pd_accepted": 20876135000.0,
+        "di_accepted": 3817690000.0,
+        "in_accepted": 58066329400.0,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      }
+    },
     {
       "security_type": "Bill",
       "security_term": "17-Week",
@@ -204,74 +272,6 @@
           "pd": "strong"
         },
         "score_pct": 83
-      }
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "4-Week",
-      "auction_date": "2026-08-27",
-      "issue_date": "2026-09-01",
-      "maturity_date": "2026-09-29",
-      "cusip": "912797VE4",
-      "offering_amt": 100000000000.0,
-      "total_accepted": 108522561100.0,
-      "total_tendered": 281383834200.0,
-      "interest_rate": null,
-      "summary": null,
-      "_analysis": {
-        "btc": 2.73,
-        "btc_avg6": null,
-        "tail_bps": null,
-        "high_yield": 3.711,
-        "wi_rate": null,
-        "pd_pct": 26.8,
-        "pd_avg6": null,
-        "di_pct": 2.2,
-        "in_pct": 56.1,
-        "in_avg6": null,
-        "pd_accepted": 29077445000.0,
-        "di_accepted": 2350000000.0,
-        "in_accepted": 60912261900.0,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 50
-      }
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "8-Week",
-      "auction_date": "2026-08-27",
-      "issue_date": "2026-09-01",
-      "maturity_date": "2026-10-27",
-      "cusip": "912797VN4",
-      "offering_amt": 90000000000.0,
-      "total_accepted": 97671054300.0,
-      "total_tendered": 256994892300.0,
-      "interest_rate": null,
-      "summary": null,
-      "_analysis": {
-        "btc": 2.77,
-        "btc_avg6": null,
-        "tail_bps": null,
-        "high_yield": 3.742,
-        "wi_rate": null,
-        "pd_pct": 35.3,
-        "pd_avg6": null,
-        "di_pct": 3.0,
-        "in_pct": 51.5,
-        "in_avg6": null,
-        "pd_accepted": 34480640000.0,
-        "di_accepted": 2956330000.0,
-        "in_accepted": 50297233000.0,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 50
       }
     },
     {
