@@ -1,7 +1,75 @@
 {
-  "updated": "2026-09-11T21:00:38.843269+00:00",
+  "updated": "2026-09-14T21:00:36.773555+00:00",
   "count": 19,
   "results": [
+    {
+      "security_type": "Bill",
+      "security_term": "13-Week",
+      "auction_date": "2026-09-14",
+      "issue_date": "2026-09-17",
+      "maturity_date": "2026-12-17",
+      "cusip": "912797VH7",
+      "offering_amt": 92000000000.0,
+      "total_accepted": 100214352100.0,
+      "total_tendered": 251080978100.0,
+      "interest_rate": null,
+      "summary": null,
+      "_analysis": {
+        "btc": 2.64,
+        "btc_avg6": null,
+        "tail_bps": null,
+        "high_yield": 4.066,
+        "wi_rate": null,
+        "pd_pct": 34.2,
+        "pd_avg6": null,
+        "di_pct": 6.1,
+        "in_pct": 49.4,
+        "in_avg6": null,
+        "pd_accepted": 34225360000.0,
+        "di_accepted": 6098600000.0,
+        "in_accepted": 49545728900.0,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      }
+    },
+    {
+      "security_type": "Bill",
+      "security_term": "26-Week",
+      "auction_date": "2026-09-14",
+      "issue_date": "2026-09-17",
+      "maturity_date": "2027-03-18",
+      "cusip": "912797UD7",
+      "offering_amt": 79000000000.0,
+      "total_accepted": 86053185400.0,
+      "total_tendered": 223857560400.0,
+      "interest_rate": null,
+      "summary": null,
+      "_analysis": {
+        "btc": 2.74,
+        "btc_avg6": null,
+        "tail_bps": null,
+        "high_yield": 4.203,
+        "wi_rate": null,
+        "pd_pct": 29.6,
+        "pd_avg6": null,
+        "di_pct": 5.5,
+        "in_pct": 54.4,
+        "in_avg6": null,
+        "pd_accepted": 25506500000.0,
+        "di_accepted": 4745375000.0,
+        "in_accepted": 46835225000.0,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      }
+    },
     {
       "security_type": "Bond",
       "security_term": "29-Year 11-Month",
@@ -232,74 +300,6 @@
         "pd_accepted": 23839950000.0,
         "di_accepted": 2750000000.0,
         "in_accepted": 45217329500.0,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 50
-      }
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "13-Week",
-      "auction_date": "2026-09-08",
-      "issue_date": "2026-09-10",
-      "maturity_date": "2026-12-10",
-      "cusip": "912797VG9",
-      "offering_amt": 92000000000.0,
-      "total_accepted": 99067804400.0,
-      "total_tendered": 247398360400.0,
-      "interest_rate": null,
-      "summary": null,
-      "_analysis": {
-        "btc": 2.61,
-        "btc_avg6": null,
-        "tail_bps": null,
-        "high_yield": 3.89,
-        "wi_rate": null,
-        "pd_pct": 36.2,
-        "pd_avg6": null,
-        "di_pct": 7.3,
-        "in_pct": 47.0,
-        "in_avg6": null,
-        "pd_accepted": 35878144000.0,
-        "di_accepted": 7230000000.0,
-        "in_accepted": 46546339200.0,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 50
-      }
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "26-Week",
-      "auction_date": "2026-09-08",
-      "issue_date": "2026-09-10",
-      "maturity_date": "2027-03-11",
-      "cusip": "912797WK9",
-      "offering_amt": 79000000000.0,
-      "total_accepted": 85069040200.0,
-      "total_tendered": 233436693700.0,
-      "interest_rate": null,
-      "summary": null,
-      "_analysis": {
-        "btc": 2.88,
-        "btc_avg6": null,
-        "tail_bps": null,
-        "high_yield": 4.023,
-        "wi_rate": null,
-        "pd_pct": 24.4,
-        "pd_avg6": null,
-        "di_pct": 7.7,
-        "in_pct": 58.2,
-        "in_avg6": null,
-        "pd_accepted": 20790050000.0,
-        "di_accepted": 6537750000.0,
-        "in_accepted": 49517160500.0,
         "grade": {
           "btc": "strong",
           "tail": null,
