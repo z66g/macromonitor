@@ -1,14 +1,6 @@
 {
-  "updated": "2026-10-07T10:44:13.288104Z",
+  "updated": "2026-10-07T18:12:59.375955Z",
   "upcoming": [
-    {
-      "type": "Bill",
-      "term": "17-Week",
-      "auctionDate": "2026-10-07",
-      "issueDate": "2026-10-13",
-      "offeringAmt": 75000000000.0,
-      "cusip": "912797WY9"
-    },
     {
       "type": "Bill",
       "term": "4-Week",
@@ -50,14 +42,6 @@
       "cusip": "912797SU2"
     },
     {
-      "type": "Note",
-      "term": "9-Year 10-Month",
-      "auctionDate": "2026-10-07",
-      "issueDate": "2026-10-15",
-      "offeringAmt": 39000000000.0,
-      "cusip": "91282CRF0"
-    },
-    {
       "type": "Bond",
       "term": "29-Year 10-Month",
       "auctionDate": "2026-10-08",
@@ -67,6 +51,24 @@
     }
   ],
   "auctioned": [
+    {
+      "type": "Bill",
+      "term": "17-Week",
+      "auctionDate": "2026-10-07",
+      "issueDate": "2026-10-13",
+      "offeringAmt": 75000000000.0,
+      "cusip": "912797WY9",
+      "highRate": ""
+    },
+    {
+      "type": "Note",
+      "term": "9-Year 10-Month",
+      "auctionDate": "2026-10-07",
+      "issueDate": "2026-10-15",
+      "offeringAmt": 39000000000.0,
+      "cusip": "91282CRF0",
+      "highRate": "5.3000"
+    },
     {
       "type": "Bill",
       "term": "6-Week",
@@ -123,15 +125,6 @@
     },
     {
       "type": "Bill",
-      "term": "17-Week",
-      "auctionDate": "2026-09-30",
-      "issueDate": "2026-10-06",
-      "offeringAmt": 75000000000.0,
-      "cusip": "912797WS2",
-      "highRate": ""
-    },
-    {
-      "type": "Bill",
       "term": "52-Week",
       "auctionDate": "2026-09-29",
       "issueDate": "2026-10-01",
@@ -183,15 +176,6 @@
       "offeringAmt": 22000000000.0,
       "cusip": "912810UW6",
       "highRate": "5.3080"
-    },
-    {
-      "type": "Note",
-      "term": "9-Year 11-Month",
-      "auctionDate": "2026-09-09",
-      "issueDate": "2026-09-15",
-      "offeringAmt": 39000000000.0,
-      "cusip": "91282CRF0",
-      "highRate": "4.8340"
     }
   ]
 }
