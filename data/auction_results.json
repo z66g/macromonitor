@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-19T21:00:39.604287+00:00",
+  "updated": "2026-10-20T21:00:38.183256+00:00",
   "count": 20,
   "results": [
     {
@@ -310,6 +310,40 @@
     },
     {
       "security_type": "Bill",
+      "security_term": "6-Week",
+      "auction_date": "",
+      "issue_date": "2026-10-22",
+      "maturity_date": "2026-12-03",
+      "cusip": "912797VA2",
+      "offering_amt": 95000000000.0,
+      "total_accepted": null,
+      "total_tendered": null,
+      "interest_rate": null,
+      "summary": null,
+      "_analysis": {
+        "btc": 2.74,
+        "btc_avg6": null,
+        "tail_bps": null,
+        "high_yield": 3.975,
+        "wi_rate": null,
+        "pd_pct": null,
+        "pd_avg6": null,
+        "di_pct": null,
+        "in_pct": null,
+        "in_avg6": null,
+        "pd_accepted": null,
+        "di_accepted": null,
+        "in_accepted": null,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": null
+        },
+        "score_pct": 100
+      }
+    },
+    {
+      "security_type": "Bill",
       "security_term": "8-Week",
       "auction_date": "",
       "issue_date": "2026-10-20",
@@ -359,40 +393,6 @@
         "btc_avg6": null,
         "tail_bps": null,
         "high_yield": 4.095,
-        "wi_rate": null,
-        "pd_pct": null,
-        "pd_avg6": null,
-        "di_pct": null,
-        "in_pct": null,
-        "in_avg6": null,
-        "pd_accepted": null,
-        "di_accepted": null,
-        "in_accepted": null,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": null
-        },
-        "score_pct": 100
-      }
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "26-Week",
-      "auction_date": "",
-      "issue_date": "2026-10-22",
-      "maturity_date": "2027-04-22",
-      "cusip": "912797WV5",
-      "offering_amt": 82000000000.0,
-      "total_accepted": null,
-      "total_tendered": null,
-      "interest_rate": null,
-      "summary": null,
-      "_analysis": {
-        "btc": 2.84,
-        "btc_avg6": null,
-        "tail_bps": null,
-        "high_yield": 4.22,
         "wi_rate": null,
         "pd_pct": null,
         "pd_avg6": null,
