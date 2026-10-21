@@ -1,14 +1,6 @@
 {
-  "updated": "2026-10-21T16:22:52.976232Z",
+  "updated": "2026-10-21T22:56:04.067445Z",
   "upcoming": [
-    {
-      "type": "Bond",
-      "term": "19-Year 10-Month",
-      "auctionDate": "",
-      "issueDate": "2026-10-23",
-      "offeringAmt": 13000000000.0,
-      "cusip": "912810UX4"
-    },
     {
       "type": "Bill",
       "term": "4-Week",
@@ -173,12 +165,12 @@
     },
     {
       "type": "Bond",
-      "term": "19-Year 11-Month",
+      "term": "19-Year 10-Month",
       "auctionDate": "",
-      "issueDate": "2026-09-18",
+      "issueDate": "2026-10-23",
       "offeringAmt": 13000000000.0,
       "cusip": "912810UX4",
-      "highRate": "5.420"
+      "highRate": "5.469"
     },
     {
       "type": "Bond",
