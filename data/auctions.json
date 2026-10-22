@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-22T16:23:19.786224Z",
+  "updated": "2026-10-22T22:53:22.635803Z",
   "upcoming": [
     {
       "type": "Bill",
@@ -32,14 +32,6 @@
       "issueDate": "2026-10-29",
       "offeringAmt": 95000000000.0,
       "cusip": "912797VG9"
-    },
-    {
-      "type": "Note",
-      "term": "5-Year",
-      "auctionDate": "",
-      "issueDate": "2026-10-30",
-      "offeringAmt": 26000000000.0,
-      "cusip": "91282CRR4"
     },
     {
       "type": "Note",
