@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-28T10:13:38.137546Z",
+  "updated": "2026-10-28T17:43:48.248008Z",
   "upcoming": [
     {
       "type": "Note",
@@ -8,22 +8,6 @@
       "issueDate": "2026-11-02",
       "offeringAmt": 44000000000.0,
       "cusip": "91282CRV5"
-    },
-    {
-      "type": "Note",
-      "term": "2-Year",
-      "auctionDate": "",
-      "issueDate": "2026-11-02",
-      "offeringAmt": 30000000000.0,
-      "cusip": "91282CRS2"
-    },
-    {
-      "type": "Bill",
-      "term": "17-Week",
-      "auctionDate": "",
-      "issueDate": "2026-11-03",
-      "offeringAmt": 75000000000.0,
-      "cusip": "912797XB8"
     },
     {
       "type": "Bill",
@@ -78,12 +62,12 @@
     },
     {
       "type": "Bill",
-      "term": "8-Week",
+      "term": "17-Week",
       "auctionDate": "",
-      "issueDate": "2026-10-27",
-      "offeringAmt": 105000000000.0,
-      "cusip": "912797WG8",
-      "highRate": "4.015"
+      "issueDate": "2026-11-03",
+      "offeringAmt": 75000000000.0,
+      "cusip": "912797XB8",
+      "highRate": "4.140"
     },
     {
       "type": "Bill",
