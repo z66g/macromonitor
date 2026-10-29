@@ -1,36 +1,12 @@
 {
-  "updated": "2026-10-29T10:36:28.004311Z",
+  "updated": "2026-10-29T17:50:57.505013Z",
   "upcoming": [
-    {
-      "type": "Note",
-      "term": "7-Year",
-      "auctionDate": "",
-      "issueDate": "2026-11-02",
-      "offeringAmt": 44000000000.0,
-      "cusip": "91282CRV5"
-    },
-    {
-      "type": "Bill",
-      "term": "4-Week",
-      "auctionDate": "",
-      "issueDate": "2026-11-03",
-      "offeringAmt": 115000000000.0,
-      "cusip": "912797VZ7"
-    },
-    {
-      "type": "Bill",
-      "term": "8-Week",
-      "auctionDate": "",
-      "issueDate": "2026-11-03",
-      "offeringAmt": 110000000000.0,
-      "cusip": "912797WH6"
-    },
     {
       "type": "Bill",
       "term": "13-Week",
       "auctionDate": "",
       "issueDate": "2026-11-05",
-      "offeringAmt": 0.0,
+      "offeringAmt": 95000000000.0,
       "cusip": "912797VV6"
     },
     {
@@ -38,7 +14,7 @@
       "term": "26-Week",
       "auctionDate": "",
       "issueDate": "2026-11-05",
-      "offeringAmt": 0.0,
+      "offeringAmt": 82000000000.0,
       "cusip": "912797WX1"
     },
     {
@@ -46,7 +22,7 @@
       "term": "6-Week",
       "auctionDate": "",
       "issueDate": "2026-11-05",
-      "offeringAmt": 0.0,
+      "offeringAmt": 100000000000.0,
       "cusip": "912797VH7"
     }
   ],
@@ -62,12 +38,12 @@
     },
     {
       "type": "Bill",
-      "term": "17-Week",
+      "term": "8-Week",
       "auctionDate": "",
       "issueDate": "2026-11-03",
-      "offeringAmt": 75000000000.0,
-      "cusip": "912797XB8",
-      "highRate": "4.140"
+      "offeringAmt": 110000000000.0,
+      "cusip": "912797WH6",
+      "highRate": "4.020"
     },
     {
       "type": "Bill",
@@ -109,10 +85,10 @@
       "type": "Note",
       "term": "7-Year",
       "auctionDate": "",
-      "issueDate": "2026-09-30",
+      "issueDate": "2026-11-02",
       "offeringAmt": 44000000000.0,
-      "cusip": "91282CRM5",
-      "highRate": "5.085"
+      "cusip": "91282CRV5",
+      "highRate": "4.894"
     },
     {
       "type": "Note",
