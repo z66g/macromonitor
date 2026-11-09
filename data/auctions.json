@@ -1,38 +1,6 @@
 {
-  "updated": "2026-11-09T12:23:18.700802Z",
+  "updated": "2026-11-09T23:55:08.259972Z",
   "upcoming": [
-    {
-      "type": "Bill",
-      "term": "13-Week",
-      "auctionDate": "",
-      "issueDate": "2026-11-12",
-      "offeringAmt": 95000000000.0,
-      "cusip": "912797WB9"
-    },
-    {
-      "type": "Bill",
-      "term": "26-Week",
-      "auctionDate": "",
-      "issueDate": "2026-11-12",
-      "offeringAmt": 82000000000.0,
-      "cusip": "912797UX3"
-    },
-    {
-      "type": "Bill",
-      "term": "6-Week",
-      "auctionDate": "",
-      "issueDate": "2026-11-12",
-      "offeringAmt": 100000000000.0,
-      "cusip": "912797TC1"
-    },
-    {
-      "type": "Note",
-      "term": "3-Year",
-      "auctionDate": "",
-      "issueDate": "2026-11-16",
-      "offeringAmt": 58000000000.0,
-      "cusip": "91282CRW3"
-    },
     {
       "type": "Note",
       "term": "10-Year",
@@ -117,15 +85,6 @@
   "auctioned": [
     {
       "type": "Bill",
-      "term": "6-Week",
-      "auctionDate": "",
-      "issueDate": "2026-11-05",
-      "offeringAmt": 100000000000.0,
-      "cusip": "912797VH7",
-      "highRate": "3.940"
-    },
-    {
-      "type": "Bill",
       "term": "8-Week",
       "auctionDate": "",
       "issueDate": "2026-11-10",
@@ -135,12 +94,21 @@
     },
     {
       "type": "Bill",
-      "term": "52-Week",
+      "term": "13-Week",
       "auctionDate": "",
-      "issueDate": "2026-10-29",
-      "offeringAmt": 54000000000.0,
-      "cusip": "912797WT0",
-      "highRate": "4.290"
+      "issueDate": "2026-11-12",
+      "offeringAmt": 95000000000.0,
+      "cusip": "912797WB9",
+      "highRate": "4.060"
+    },
+    {
+      "type": "Bill",
+      "term": "26-Week",
+      "auctionDate": "",
+      "issueDate": "2026-11-12",
+      "offeringAmt": 82000000000.0,
+      "cusip": "912797UX3",
+      "highRate": "4.145"
     },
     {
       "type": "Note",
@@ -155,10 +123,10 @@
       "type": "Note",
       "term": "3-Year",
       "auctionDate": "",
-      "issueDate": "2026-10-15",
+      "issueDate": "2026-11-16",
       "offeringAmt": 58000000000.0,
-      "cusip": "91282CRQ6",
-      "highRate": "4.932"
+      "cusip": "91282CRW3",
+      "highRate": "4.627"
     },
     {
       "type": "Note",
