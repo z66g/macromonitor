@@ -15,6 +15,8 @@
 4. **외부/LLM 텍스트는 `escH()`로, 링크는 `safeUrl()`로** 감싸서 innerHTML에 넣는다 (index.html 전역 헬퍼).
 5. **cron 문자열은 `worker.js`의 `CRON` 상수 = `wrangler.toml`.** 불일치하면 해당 작업이 조용히 안 돈다 (2026-05~11 회귀 사례).
 6. 데이터 없음은 초록 '안정'이 아니라 회색 `n`('수신 실패')으로 표시.
+7. **방문자 요청이 업스트림을 몰아치지 않게.** 여러 종목·시리즈는 cron이 KV에 묶어 두고 사이트는 묶음 1건만 읽는다
+   (Yahoo → `/market`). 프론트 fetch는 전부 `fetchT`(타임아웃·재시도·동시 6건 제한)로, 일부가 빠진 섹션은 `markPartial`로 자동 재로드.
 
 ## 배포 패턴
 ```bash
@@ -45,17 +47,22 @@ git pull origin main --rebase && git push
 `CRON = '5,15,25,35,45,55 * * * *'` — 10분마다 깨어나 `CRON_JOBS` 표대로 실행:
 | 분 | 시각(UTC) | 작업 |
 |---|---|---|
-| :05 / :35 | 매시 | 뉴스 RSS → `news_cache_v1` |
+| :05 | 매시 | 뉴스 RSS → `news_cache_v1` |
+| :35 | 매시 | 뉴스 RSS + T4 온체인(`onchain_macro_v1`) |
+| :15 / :25 / :45 / :55 | 1·7·13·19시 외 | Yahoo 시세 스냅샷(33종목) → `market_snap_v1` |
 | :15 | 1·7·13·19시 | H.4.1 파싱 → liq + 국채수익률 |
-| :25 | 〃 | T2 |
+| :25 | 〃 | T2 + 시세 스냅샷 앞 절반 |
 | :45 | 〃 | T3 + 유동성 예측모델 + ICI |
-| :55 | 〃 | 캘린더 |
+| :55 | 〃 | 캘린더 + 시세 스냅샷 전체 |
+- 시세 스냅샷: `MARKET_TICKERS`(worker.js), 종목별 실패 시 직전 값 유지, 값이 그대로면 1시간에 한 번만 KV 쓰기.
+  사이트는 `/market` 1건 → 3mo·1mo 차트·현재가. 스냅샷에 없거나 6h 넘은 종목, 그 외 기간(6M·1Y 버튼)만 `/yahoo`·`/yahoo-chart` 실시간.
+  **사이트에 Yahoo 종목을 추가하면 `MARKET_TICKERS`에도 추가**(서브요청: 비갱신 시각 45건, :25 24건, :55 38건 예산 안에서).
 - 1회 실행당 서브요청 50건 한도 → 작업을 시각별로 분산. cron-job.org(:00/:30 GH Actions 트리거)와 겹치지 않게 함.
 - `force=1`도 캐시가 10분 이내면 재계산 안 함(`cacheFirst`) — 동시 새로고침 충돌 방지.
 
 ## KV 캐시 TTL (cron 주기 6h보다 길게)
 ```
-liq / t2 / t3 / calendar / liqTower / h41Html: 12h · yieldsHist: 24h · newsCache: 3h · onchain: 1h
+liq / t2 / t3 / calendar / liqTower / h41Html: 12h · yieldsHist: 24h · newsCache: 3h · onchain: 3h · market: 3일(종목별 fetchedAt)
 tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 영구): 400일
 ```
 
@@ -107,7 +114,7 @@ tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 �
 - Worker 안의 LLM 호출 코드는 사용하지 않음(CF egress 차단) — 라우트 제거됨
 
 ## 공개 엔드포인트 (읽기 전용)
-`/liq /liq-tower /t2 /t3 /calendar /yields-hist /h41-history /h41-html /ici /pipe3 /ofr-fsi /dxy /jpy
+`/market /liq /liq-tower /t2 /t3 /calendar /yields-hist /h41-history /h41-html /ici /pipe3 /ofr-fsi /dxy /jpy
 /yahoo /yahoo-chart /onchain-macro /news /news-digest /qra-status /auction-results /fred(허용 시리즈만)`
 
 ## API 차단 / 외부 변경 이력
@@ -122,6 +129,9 @@ tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 �
 - **KST 날짜**: `nowKST()` / `todayKSTStr()`. 로컬 자정 Date에 `toISOString()` 쓰지 말 것(KST 하루 밀림)
 - **Worker cron 비동기**: `ctx.waitUntil` 안에서 반드시 `await` (응답 후 종료로 유실)
 - **Chart.js**: 다시 그리는 차트는 `replaceChart(key, ctx, cfg)`
+- **프론트 데이터 로딩**: 새 fetch는 `fetchT`/`sharedFetch`(같은 URL 2분 공유)/`marketQuotes`·`marketChart`(스냅샷)만 사용,
+  `fetch()` 직접 호출 금지. 섹션 로더는 끝에서 `markPartial(key, 빠진게있나, 조용한재로드)` 호출
+  (6초·12초 뒤 자동 재시도 2회, 탭 재진입 시 `retryPartials`). OFR은 서버사이드 403이라 브라우저 직접 호출 유지
 - FRED `realtime_start`(=releasedAt)는 시리즈의 최근 발표/개정일 — 신선도 판정에 사용
 
 ## 환경변수 / Secrets

@@ -2965,12 +2965,120 @@ function replaceChart(key, ctx, cfg) {
 // ══════════════════════════════
 const WORKER = 'https://macrolens-worker.macrolens.workers.dev';
 
-function fetchT(url, ms=12000) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { signal: ctrl.signal, cache: 'no-store' }).finally(() => clearTimeout(t));
+// ── 공용 fetch: 타임아웃 + 일시 오류(네트워크·429·5xx) 재시도 + 동시 요청 제한 ──
+// 한 번에 수십 건을 쏘면 업스트림이 일부를 거절해 칸이 비던 문제(새로고침해야 채워짐) 방지.
+const _FETCH_MAX = 6;
+let _fetchActive = 0;
+const _fetchWait = [];
+const _acquireSlot = () => _fetchActive < _FETCH_MAX
+  ? (_fetchActive++, Promise.resolve())
+  : new Promise(res => _fetchWait.push(res));
+const _releaseSlot = () => { const next = _fetchWait.shift(); if (next) next(); else _fetchActive--; };
+const _sleep = ms => new Promise(r => setTimeout(r, ms));
+async function fetchT(url, ms = 12000, opts = {}) {
+  const retries = opts.retries ?? 2;
+  for (let a = 0; ; a++) {
+    await _acquireSlot();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    let resp = null, err = null;
+    try {
+      resp = await fetch(url, { headers: opts.headers, signal: ctrl.signal, cache: 'no-store' });
+    } catch (e) { err = e; }
+    finally { clearTimeout(timer); _releaseSlot(); }
+    const timedOut = err?.name === 'AbortError';
+    const retryable = err ? (!timedOut || a === 0) : (resp.status === 429 || resp.status >= 500);
+    if (!retryable || a >= retries) { if (err) throw err; return resp; }
+    await _sleep(800 * (a + 1) + Math.random() * 400);
+  }
 }
 function fetchWithTimeout(url, ms=10000) { return fetchT(url, ms); }
+// JSON 헬퍼 — 실패·HTTP 오류·{error}면 null (allSettled 결과 또는 Response 모두 허용)
+async function jsonOrNull(r) {
+  try {
+    const resp = r && 'status' in r && 'value' in r ? (r.status === 'fulfilled' ? r.value : null) : r;
+    if (!resp) return null;
+    const d = await resp.json();
+    return d && !d.error ? d : null;
+  } catch (e) { return null; }
+}
+
+// 여러 섹션이 같은 URL(/ici, /liq-tower 등)을 부를 때 2분간 한 번만 받아 공유
+const _shared = new Map();
+function sharedFetch(url, ms = 12000) {
+  let hit = _shared.get(url);
+  if (!hit || Date.now() - hit.at > 120000) {
+    const p = fetchT(url, ms).then(jsonOrNull);
+    hit = { at: Date.now(), p };
+    _shared.set(url, hit);
+    p.then(d => { if (!d && _shared.get(url) === hit) _shared.delete(url); });
+  }
+  return hit.p.then(d => _jsonResp(d || { error: '수신 실패' }));
+}
+
+// ── 시세 스냅샷 (/market) — Worker cron이 10~20분마다 Yahoo를 받아 KV에 저장한 것 ──
+// 페이지 전체가 한 번만 받아 공유. 스냅샷에 없거나 오래된 종목만 종목별 실시간 경로(/yahoo, /yahoo-chart)로 대체.
+const MARKET_STALE_MS = 6 * 3600 * 1000;
+let _mktPromise = null, _mktAt = 0;
+function getMarketSnap() {
+  if (_mktPromise && Date.now() - _mktAt < 5 * 60 * 1000) return _mktPromise;
+  _mktAt = Date.now();
+  _mktPromise = fetchT(`${WORKER}/market`, 12000).then(jsonOrNull).then(d => {
+    if (!d?.tickers || !Object.keys(d.tickers).length) _mktPromise = null;   // 비었으면 다음 호출 때 다시
+    return d;
+  });
+  return _mktPromise;
+}
+const _mktFresh = e => e && e.price != null && e.dates?.length && Date.now() - new Date(e.fetchedAt || 0).getTime() < MARKET_STALE_MS;
+const _jsonResp = d => new Response(JSON.stringify(d), { status: 200, headers: { 'Content-Type': 'application/json' } });
+// /yahoo?tickers=… 와 같은 모양의 Response 반환 (기존 호출부 그대로 사용)
+async function marketQuotes(tickers) {
+  const snap = await getMarketSnap();
+  const quotes = {}, missing = [];
+  for (const t of tickers) {
+    const e = snap?.tickers?.[t];
+    if (_mktFresh(e)) {
+      const { dates, closes, volumes, ...q } = e;
+      quotes[t] = q;
+    } else missing.push(t);
+  }
+  if (missing.length) {
+    const live = await fetchT(`${WORKER}/yahoo?tickers=${missing.map(encodeURIComponent).join(',')}`).then(jsonOrNull).catch(() => null);
+    for (const t of missing) quotes[t] = live?.quotes?.[t] || { ticker: t, error: '수신 실패', price: null };
+  }
+  return _jsonResp({ success: true, quotes, count: tickers.length, asOf: snap?.checkedAt || null });
+}
+// /yahoo-chart?ticker=…&range=… 와 같은 모양의 Response 반환. 3mo·1mo는 스냅샷, 그 외 기간은 실시간.
+async function marketChart(ticker, range = '3mo') {
+  if (range === '3mo' || range === '1mo') {
+    const e = (await getMarketSnap())?.tickers?.[ticker];
+    if (_mktFresh(e)) {
+      let { dates, closes, volumes } = e;
+      if (range === '1mo') {
+        const cut = new Date(dates[dates.length - 1] + 'T00:00:00Z');
+        cut.setUTCMonth(cut.getUTCMonth() - 1);
+        const from = dates.findIndex(d => d >= cut.toISOString().slice(0, 10));
+        if (from > 0) { dates = dates.slice(from); closes = closes.slice(from); volumes = volumes.slice(from); }
+      }
+      return _jsonResp({ ticker, range, name: e.name, currency: e.currency, count: dates.length, dates, closes, volumes });
+    }
+  }
+  return fetchT(`${WORKER}/yahoo-chart?ticker=${encodeURIComponent(ticker)}&range=${range}`);
+}
+
+// ── 일부 데이터가 빠진 채 그려진 섹션은 잠시 뒤 조용히 다시 받고(최대 2회), 탭 재진입 때도 다시 받는다 ──
+const _partial = {}, _partialTries = {}, _reloaders = {};
+function markPartial(key, missing, reload) {
+  if (reload) _reloaders[key] = reload;
+  _partial[key] = !!missing;
+  if (!missing) { _partialTries[key] = 0; return; }
+  const n = (_partialTries[key] = (_partialTries[key] || 0) + 1);
+  if (n > 2) return;
+  setTimeout(() => { if (_partial[key]) _reloaders[key]?.(); }, 6000 * n);
+}
+function retryPartials(keys) {
+  keys.forEach(k => { if (_partial[k]) { _partialTries[k] = 0; _reloaders[k]?.(); } });
+}
 
 // ── KST 공통 헬퍼 ──────────────────────────────────────
 // 브라우저 타임존 무관하게 항상 UTC+9 기준 반환
@@ -2998,10 +3106,12 @@ function goTab(n, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   currentTabIdx = n;
-  if (n === 1 && !t1Loaded) { t1Loaded = true; loadT1(); }
-  if (n === 2 && !t2Loaded) { t2Loaded = true; loadT2(); }
-  if (n === 3 && !t3Loaded) { t3Loaded = true; loadT3(); }
-  if (n === 4 && !t4Loaded) { t4Loaded = true; loadT4(); }
+  // 처음 들어오면 로드, 이미 로드됐지만 일부가 빠진 채였다면 빠진 섹션만 다시 받기
+  if (n === 0) retryPartials(['S1', 'S2', 'S3']);
+  if (n === 1) { if (!t1Loaded) { t1Loaded = true; loadT1(); } else retryPartials(['T1']); }
+  if (n === 2) { if (!t2Loaded) { t2Loaded = true; loadT2(); } else retryPartials(['T2']); }
+  if (n === 3) { if (!t3Loaded) { t3Loaded = true; loadT3(); } else retryPartials(['T3']); }
+  if (n === 4) { if (!t4Loaded) { t4Loaded = true; loadT4(); } else retryPartials(['T4']); }
 }
 
 // ══════════════════════════════
@@ -3009,12 +3119,6 @@ function goTab(n, btn) {
 // ══════════════════════════════
 // ══ 공통 ══
 
-function fetchT(url, ms=12000) {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), ms);
-  return fetch(url, { signal: ctrl.signal, cache: 'no-store' }).finally(() => clearTimeout(t));
-}
-function fetchWithTimeout(url, ms=10000) { return fetchT(url, ms); }
 
 // ══ Section 1 JS ══
 
@@ -3368,41 +3472,12 @@ async function loadDxyChart(range, btnEl) {
 // ──────────────────────────────
 // 데이터 로딩
 // ──────────────────────────────
-async function loadS1(force = false) {
-  showLoading();
+async function loadS1(force = false, silent = false) {
+  if (!silent) showLoading();
   try {
     const FRED_IDS = ['IORB','DTWEXBGS','WRMFNS'];
 
-    // FRED + Yahoo + H.4.1 병렬 (타임아웃 10초) — allSettled로 일부 실패 허용
-    const [yahooRes, vixHistRes, moveHistRes, h41HistRes, ...fredRes] = await Promise.allSettled([
-      fetchWithTimeout(`${WORKER}/yahoo?tickers=%5EVIX,%5EMOVE`),
-      fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EVIX&range=3mo`),
-      fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=%5EMOVE&range=3mo`),
-      fetchWithTimeout(`${WORKER}/h41-history?weeks=52${force ? '&force=1' : ''}`, 90000),
-      ...FRED_IDS.map(id =>
-        fetchWithTimeout(`${WORKER}/fred?series_id=${id}&limit=2&sort_order=desc`)
-      )
-    ]);
-
-    const _j = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
-    const yahooJson    = await _j(yahooRes);
-    const vixHistJson  = await _j(vixHistRes);
-    const moveHistJson = await _j(moveHistRes);
-    const h41HtmlJson  = null;  // h41-html 사용 중단 — h41-history series[0]으로 대체
-    const h41HistJson  = await _j(h41HistRes);
-    const fredRaws     = await Promise.all(fredRes.map(r => _j(r)));
-
-    // ICI는 별도로 실행 — 실패해도 나머지는 표시
-    let iciJson = null;
-    try {
-      const iciResp = await fetchWithTimeout(`${WORKER}/ici`, 15000);
-      iciJson = await iciResp.json();
-      if (iciJson.error) iciJson = null;
-    } catch(e) {
-      console.warn('ICI 로딩 실패 (비중단):', e.message);
-    }
-
-    // NY Fed + OFR 직접 호출 (CORS 허용, 병렬)
+    // NY Fed + OFR 직접 호출 (CORS 허용 — OFR은 서버사이드 요청을 403 차단하므로 브라우저에서)
     const NYFED_BASE = 'https://markets.newyorkfed.org';
     const OFR_BASE   = 'https://data.financialresearch.gov/v1';
     const _d151 = new Date(); _d151.setDate(_d151.getDate() - 151*7 - 14);
@@ -3411,40 +3486,37 @@ async function loadS1(force = false) {
     const _start8m = _d8m.toISOString().slice(0,10);
     const NYPD_MNS = 'NYPD-PD_SB_T_L30-A,NYPD-PD_SL_T_L30-A,NYPD-PD_SB_T_GE30-A,NYPD-PD_SL_T_GE30-A';
     const MMF_MNS  = 'MMF-MMF_TOT-M,MMF-MMF_T_TOT-M,MMF-MMF_RP_TOT-M,MMF-MMF_RP_wFR-M,MMF-MMF_RP_wDFI-M,MMF-MMF_RP_wFFI-M,MMF-MMF_RP_wFICC-M,MMF-MMF_BRA_TOT-M,MMF-MMF_AG_TOT-M';
+    const AJ = { headers: { Accept: 'application/json' } };
 
-    const [_sofrR, _rrpR, _srfR, _nypdR, _ofrMmfR] = await Promise.allSettled([
-      fetch(NYFED_BASE + '/api/rates/secured/sofr/last/1.json',         { headers:{ Accept:'application/json' }, signal: AbortSignal.timeout(15000) }),
-      fetch(NYFED_BASE + '/api/rp/reverserepo/propositions/search.json?limit=10', { headers:{ Accept:'application/json' }, signal: AbortSignal.timeout(15000) }),
+    // 전부 한 번에 병렬 (동시 요청 수는 fetchT가 제한) — allSettled로 일부 실패 허용
+    const [yahooRes, vixHistRes, moveHistRes, h41HistRes, iciRes,
+           _sofrR, _rrpR, _srfR, _nypdR, _ofrMmfR, _dxyR, _jpyR, _fsiR, _p3R, ...fredRes] = await Promise.allSettled([
+      marketQuotes(['^VIX', '^MOVE']),
+      marketChart('^VIX', '3mo'),
+      marketChart('^MOVE', '3mo'),
+      fetchWithTimeout(`${WORKER}/h41-history?weeks=52${force ? '&force=1' : ''}`, 90000),
+      sharedFetch(`${WORKER}/ici`, 15000),
+      fetchT(NYFED_BASE + '/api/rates/secured/sofr/last/1.json', 15000, AJ),
+      fetchT(NYFED_BASE + '/api/rp/reverserepo/propositions/search.json?limit=10', 15000, AJ),
       // SRF: NY Fed가 propositions/search 엔드포인트를 폐지(400) → 최근 결과 API 사용 (하루 오전·오후 2회 운용)
-      fetch(NYFED_BASE + '/api/rp/repo/all/results/last/14.json', { headers:{ Accept:'application/json' }, signal: AbortSignal.timeout(15000) }),
-      fetch(`${OFR_BASE}/series/multifull?mnemonics=${NYPD_MNS}&start_date=${_start151}&remove_nulls=true`, { headers:{ Accept:'application/json' }, signal: AbortSignal.timeout(15000) }),
-      fetch(`${OFR_BASE}/series/multifull?mnemonics=${MMF_MNS}&start_date=${_start8m}&remove_nulls=true`,   { headers:{ Accept:'application/json' }, signal: AbortSignal.timeout(15000) }),
-    ]);
-    const _sj = async r => { try { return r.status==='fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
-    const sofrJson   = await _sj(_sofrR);
-    const rrpJson    = await _sj(_rrpR);
-    const srfJson    = await _sj(_srfR);
-    const nypdJson   = await _sj(_nypdR);
-    const ofrMmfJson = await _sj(_ofrMmfR);
-
-    // Pipe2: DXY·JPY·OFR-FSI (Worker 경유, 병렬)
-    const [_dxyR, _jpyR, _fsiR] = await Promise.allSettled([
+      fetchT(NYFED_BASE + '/api/rp/repo/all/results/last/14.json', 15000, AJ),
+      fetchT(`${OFR_BASE}/series/multifull?mnemonics=${NYPD_MNS}&start_date=${_start151}&remove_nulls=true`, 15000, AJ),
+      fetchT(`${OFR_BASE}/series/multifull?mnemonics=${MMF_MNS}&start_date=${_start8m}&remove_nulls=true`, 15000, AJ),
       fetchWithTimeout(`${WORKER}/dxy`, 15000),
       fetchWithTimeout(`${WORKER}/jpy`, 10000),
       fetchWithTimeout(`${WORKER}/ofr-fsi`, 10000),
+      fetchWithTimeout(`${WORKER}/pipe3`, 15000),
+      ...FRED_IDS.map(id =>
+        fetchWithTimeout(`${WORKER}/fred?series_id=${id}&limit=2&sort_order=desc`)
+      )
     ]);
-    const _wj = async r => { try { return r.status==='fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
-    const dxyJson = await _wj(_dxyR);
-    const jpyJson = await _wj(_jpyR);
-    const fsiJson = await _wj(_fsiR);
 
-    // Pipe3: 신용·실물 리스크 (Worker /pipe3)
-    let pipe3Json = null;
-    try {
-      const _p3r = await fetchWithTimeout(`${WORKER}/pipe3`, 15000);
-      pipe3Json = await _p3r.json();
-      if (pipe3Json?.error) pipe3Json = null;
-    } catch(e) { console.warn('Pipe3 로딩 실패:', e.message); }
+    const [yahooJson, vixHistJson, moveHistJson, h41HistJson, iciJson,
+           sofrJson, rrpJson, srfJson, nypdJson, ofrMmfJson, dxyJson, jpyJson, fsiJson, pipe3Json] =
+      await Promise.all([yahooRes, vixHistRes, moveHistRes, h41HistRes, iciRes,
+                         _sofrR, _rrpR, _srfR, _nypdR, _ofrMmfR, _dxyR, _jpyR, _fsiR, _p3R].map(jsonOrNull));
+    const h41HtmlJson  = null;  // h41-html 사용 중단 — h41-history series[0]으로 대체
+    const fredRaws     = await Promise.all(fredRes.map(jsonOrNull));
 
     // FRED 응답 → series 맵
     const fs = {};
@@ -3493,10 +3565,14 @@ async function loadS1(force = false) {
       renderZScore(vixQ.price, moveQ.price, vixHistJson, moveHistJson);
     }
     showContent();
+    markPartial('S1', vixQ?.price == null || moveQ?.price == null || !vixHistJson || !moveHistJson || !h41HistJson
+      || !iciJson || !dxyJson || !jpyJson || !fsiJson || !pipe3Json || !sofrJson || !rrpJson || !srfJson || !nypdJson || !ofrMmfJson
+      || fredRaws.some(f => !f?.observations?.length), () => loadS1(false, true));
 
   } catch(e) {
     showError(e.message);
     document.getElementById('mainContent').style.display = 'flex';
+    markPartial('S1', true, () => loadS1(false, true));
   }
 }
 
@@ -4541,7 +4617,7 @@ function showContent() {
 function showError(msg) {
   document.getElementById('loadingState').style.display='none';
   document.getElementById('errorPanel').classList.add('show');
-  document.getElementById('errorMsg').innerHTML=`<strong>오류:</strong> ${msg}`;
+  document.getElementById('errorMsg').innerHTML=`<strong>오류:</strong> ${escH(msg)}`;
 }
 
 
@@ -4613,25 +4689,21 @@ let prices = {};
 // ══════════════════════════════
 // 데이터 로딩
 // ══════════════════════════════
-async function loadS2(force = false) {
-  showLoading2();
+async function loadS2(force = false, silent = false) {
+  if (!silent) showLoading2();
   try {
-    const yahooTickers = 'SPY,TLT,QQQ,DIA,GC%3DF,HG%3DF';
-    const [yahooRes, btcRes, tipsRes, iciRes, mmfRetailRes, mmfInstRes] = await Promise.allSettled([
-      fetchT(`${WORKER}/yahoo?tickers=${yahooTickers}`),
-      fetchT('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true'),
+    // BTC도 Yahoo 스냅샷(BTC-USD) — CoinGecko 브라우저 직접 호출(무료 한도 429) 제거
+    const S2_TICKERS = ['SPY', 'TLT', 'QQQ', 'DIA', 'GC=F', 'HG=F', 'BTC-USD'];
+    const [yahooRes, tipsRes, iciRes, mmfRetailRes] = await Promise.allSettled([
+      marketQuotes(S2_TICKERS),
       fetchT(`${WORKER}/fred?series_id=DFII10&limit=60&sort_order=desc`),
-      fetchT(`${WORKER}/ici`, 15000),
+      sharedFetch(`${WORKER}/ici`, 15000),
       // WRMFSL(Institutional)은 Fed가 2021-02 이후 발표 중단 → ICI history로 대체
       fetchT(`${WORKER}/fred?series_id=WRMFNS&limit=60&sort_order=desc`),
     ]);
 
-    const _sj2 = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
-    const yahooJson     = await _sj2(yahooRes);
-    const btcJson       = await _sj2(btcRes);
-    const tipsJson      = await _sj2(tipsRes);
-    const iciJson       = await _sj2(iciRes);
-    const mmfRetailJson = await _sj2(mmfRetailRes);
+    const [yahooJson, tipsJson, iciJson, mmfRetailJson] =
+      await Promise.all([yahooRes, tipsRes, iciRes, mmfRetailRes].map(jsonOrNull));
 
     const q = yahooJson?.quotes || {};   // Yahoo 실패해도 CSP(TIPS·MMF) 차트는 렌더
 
@@ -4642,7 +4714,7 @@ async function loadS2(force = false) {
       'DIA':  q['DIA']?.price,
       'GC=F': q['GC=F']?.price,
       'HG=F': q['HG=F']?.price,
-      'BTC':  btcJson?.bitcoin?.usd,
+      'BTC':  q['BTC-USD']?.price,
     };
 
     const pct24h = {
@@ -4652,16 +4724,19 @@ async function loadS2(force = false) {
       'DIA':  q['DIA']?.pctChange,
       'GC=F': q['GC=F']?.pctChange,
       'HG=F': q['HG=F']?.pctChange,
-      'BTC':  btcJson?.bitcoin?.usd_24h_change,
+      'BTC':  q['BTC-USD']?.pctChange,
     };
 
     renderRatioGrid(prices, pct24h);
     renderCSP(tipsJson, iciJson, mmfRetailJson);
     showContent2();
+    markPartial('S2', S2_TICKERS.some(t => q[t]?.price == null) || !tipsJson || !iciJson || !mmfRetailJson,
+      () => loadS2(false, true));
 
   } catch(e) {
     showError2(e.message);
     document.getElementById('mainContent2').style.display = 'flex';
+    markPartial('S2', true, () => loadS2(false, true));
   }
 }
 
@@ -4731,34 +4806,26 @@ function renderRatioGrid(prices, pct24h) {
   });
 }
 
-async function loadSparkline(pair) {
+async function loadSparkline(pair, retried = false) {
   const aT = pair.a.ticker;
   const bT = pair.b.ticker;
 
   try {
-    // BTC는 CoinGecko market_chart 사용
-    const [dataA, dataB] = await Promise.all([
-      aT === 'BTC'
-        ? fetchBtcHistory()
-        : loadYahooChart(aT, '1mo'),
-      bT === 'BTC'
-        ? fetchBtcHistory()
-        : loadYahooChart(bT, '1mo'),
-    ]);
+    const yt = t => t === 'BTC' ? 'BTC-USD' : t;   // BTC는 Yahoo BTC-USD (스냅샷)
+    const [dataA, dataB] = await Promise.all([loadYahooChart(yt(aT), '1mo'), loadYahooChart(yt(bT), '1mo')]);
 
     if (!dataA?.closes?.length || !dataB?.closes?.length) throw new Error('데이터 없음');
 
-    // 두 시리즈 길이 맞추기 (짧은 쪽 기준)
-    const len    = Math.min(dataA.closes.length, dataB.closes.length);
-    const ratios = [];
-    for (let i = dataA.closes.length - len; i < dataA.closes.length; i++) {
-      const bi = i - (dataA.closes.length - len) + (dataB.closes.length - len);
-      if (dataA.closes[i] && dataB.closes[bi]) {
-        ratios.push(+(dataA.closes[i] / dataB.closes[bi]).toFixed(6));
-      }
-    }
+    // 같은 날짜끼리 비율 (BTC는 주말에도 거래 → 길이로 맞추면 날짜가 어긋남)
+    const bByDate = new Map(dataB.dates.map((d, i) => [d, dataB.closes[i]]));
+    const ratios = [], days = [];
+    dataA.dates.forEach((d, i) => {
+      const a = dataA.closes[i], b = bByDate.get(d);
+      if (a && b) { ratios.push(+(a / b).toFixed(6)); days.push(d); }
+    });
+    if (ratios.length < 2) throw new Error('데이터 없음');
 
-    const labels = dataA.dates.slice(-len).map((d, i) => i % 5 === 0 ? d.slice(5) : '');
+    const labels = days.map((d, i) => i % 5 === 0 ? d.slice(5) : '');
     const isUp   = ratios[ratios.length-1] > ratios[0];
     const color  = isUp ? '#3FB950' : '#F85149';
     const fill   = isUp ? 'rgba(63,185,80,0.1)' : 'rgba(248,81,73,0.1)';
@@ -4784,32 +4851,21 @@ async function loadSparkline(pair) {
     });
   } catch(e) {
     const el = document.getElementById('spark_' + pair.id);
-    if (el) el.innerHTML = `<div class="rc-spark-loading">⚠️ ${e.message}</div>`;
+    if (el) el.innerHTML = `<div class="rc-spark-loading">⚠️ ${escH(e.message)}</div>`;
+    if (!retried) setTimeout(() => loadSparkline(pair, true), 5000);   // 일시 실패면 한 번 더
   }
 }
 
 async function loadYahooChart(ticker, range) {
   const key = `${ticker}_${range}`;
-  if (chartCache[key]) return chartCache[key];
-  const r = await fetchT(`${WORKER}/yahoo-chart?ticker=${encodeURIComponent(ticker)}&range=${range}`);
-  const d = await r.json();
-  if (d.error) throw new Error(d.error);
-  chartCache[key] = d;
-  return d;
-}
-
-async function fetchBtcHistory() {
-  const key = 'btc_30d';
-  if (chartCache[key]) return chartCache[key];
-  const r = await fetchT('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=30&interval=daily', 12000);
-  const d = await r.json();
-  const prices = d.prices || [];
-  const result = {
-    dates:  prices.map(p => new Date(p[0]).toISOString().slice(0,10)),
-    closes: prices.map(p => p[1]),
-  };
-  chartCache[key] = result;
-  return result;
+  if (!chartCache[key]) {   // 진행 중인 요청도 공유 (금처럼 여러 카드가 같은 종목을 쓸 때 중복 요청 방지)
+    chartCache[key] = marketChart(ticker, range).then(r => r.json()).then(d => {
+      if (d.error) throw new Error(d.error);
+      return d;
+    });
+    chartCache[key].catch(() => delete chartCache[key]);   // 실패는 캐시하지 않음
+  }
+  return chartCache[key];
 }
 
 // ══════════════════════════════
@@ -5121,34 +5177,19 @@ const STATUS_INTERP = {
 };
 
 // ── 데이터 로딩 ──
-async function loadS3(force = false) {
-  showLoading3();
+async function loadS3(force = false, silent = false) {
+  if (!silent) showLoading3();
   try {
-    // 11개 섹터 + 레버리지 ETF 차트 데이터 병렬 로드
+    // 11개 섹터 + 레버리지 ETF — 시세 스냅샷 1회 조회로 차트·현재가 모두 (없는 종목만 실시간 대체)
     const allTickers = [...SECTORS.map(s => s.ticker), 'TQQQ', 'SQQQ', 'UVXY'];
 
-    // Yahoo chart는 한 번에 하나씩이므로 병렬 fetch
-    const chartResults = await Promise.allSettled(
-      allTickers.map(t =>
-        fetchT(`${WORKER}/yahoo-chart?ticker=${encodeURIComponent(t)}&range=3mo`)
-          .then(r => r.json())
-          .then(d => ({ ticker: t, data: d }))
-      )
-    );
-
-    // 현재가 — 섹터(11개)와 레버리지(3개) 분리 호출 (Worker 최대 10개 제한)
-    const sectorTickerStr    = SECTORS.map(s => encodeURIComponent(s.ticker)).join(',');
-    const leverageTickerStr  = 'TQQQ,SQQQ,UVXY';
-
-    const [quoteRes, leverageQuoteRes] = await Promise.allSettled([
-      fetchT(`${WORKER}/yahoo?tickers=${sectorTickerStr}`),
-      fetchT(`${WORKER}/yahoo?tickers=${leverageTickerStr}`),
+    const [chartResults, quoteJson] = await Promise.all([
+      Promise.allSettled(allTickers.map(t =>
+        marketChart(t, '3mo').then(r => r.json()).then(d => ({ ticker: t, data: d })))),
+      marketQuotes(allTickers).then(jsonOrNull),
     ]);
-    const _sj3 = async r => { try { return r.status === 'fulfilled' ? await r.value.json() : null; } catch(e) { return null; } };
-    const quoteJson         = await _sj3(quoteRes);
-    const leverageQuoteJson = await _sj3(leverageQuoteRes);
-    const quotes         = quoteJson?.quotes        || {};
-    const leverageQuotes = leverageQuoteJson?.quotes || {};
+    const quotes         = quoteJson?.quotes || {};
+    const leverageQuotes = quotes;
 
     // 차트 데이터 파싱 — dates/closes/volumes 배열 → history 객체 배열
     const chartMap = {};
@@ -5206,6 +5247,7 @@ async function loadS3(force = false) {
     renderSectorSummary();
     renderLeverage(tqqqHist, sqqyHist, uvxyHist, leverageQuotes);
     showContent3();
+    markPartial('S3', allTickers.some(t => !chartMap[t]?.length || quotes[t]?.price == null), () => loadS3(false, true));
 
     // 빈 상태 상세 카드 높이를 차트 패널과 동일하게
     requestAnimationFrame(() => {
@@ -5220,6 +5262,7 @@ async function loadS3(force = false) {
     console.error(e);
     showError3(e.message);
     document.getElementById('mainContent3').style.display = 'flex';
+    markPartial('S3', true, () => loadS3(false, true));
   }
 }
 
@@ -5679,20 +5722,18 @@ async function loadT1(force = false) {
 
   try {
     // 병렬 fetch — /liq + NY Fed RRP + Yahoo 원자재 + 원자재 차트
-    const COMM_TICKERS = 'CL%3DF,BZ%3DF,NG%3DF,URA,HG%3DF,ALI%3DF,GC%3DF,SI%3DF,ZW%3DF,ZS%3DF,LBR%3DF,BDRY';
     const COMM_ARR     = ['CL=F','BZ=F','NG=F','URA','HG=F','ALI=F','GC=F','SI=F','ZW=F','ZS=F','LBR=F','BDRY'];
     const SPY_IDX      = COMM_ARR.length;   // index 12 — SPY chart
 
+    // 원자재 시세·3개월 차트는 시세 스냅샷 1회 조회로 (없는 종목만 실시간 대체)
     const [liqResp, towerResp, commResp, iciResp, yhResp, ...chartResps] = await Promise.allSettled([
       fetchWithTimeout(`${WORKER}/liq${fq}`, 20000),
-      fetchWithTimeout(`${WORKER}/liq-tower`, 15000),                 // NL 예측용 vampire drains
-      fetchWithTimeout(`${WORKER}/yahoo?tickers=${COMM_TICKERS}`, 12000),
-      fetchWithTimeout(`${WORKER}/ici${fq}`, 15000),
+      sharedFetch(`${WORKER}/liq-tower`, 15000),                       // NL 예측용 vampire drains (유동성 패널과 공유)
+      marketQuotes(COMM_ARR),
+      sharedFetch(`${WORKER}/ici`, 15000),
       fetchWithTimeout(`${WORKER}/yields-hist${fq}`, 20000),          // 국채 3년 시계열
-      ...COMM_ARR.map(t =>
-        fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=${encodeURIComponent(t)}&range=3mo`, 12000)
-      ),
-      fetchWithTimeout(`${WORKER}/yahoo-chart?ticker=SPY&range=3mo`, 12000),
+      ...COMM_ARR.map(t => marketChart(t, '3mo')),
+      marketChart('SPY', '3mo'),
     ]);
 
     const safeJson = async r => {
@@ -6855,10 +6896,14 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
     hide('t1-loading');
     const wrapEl = t1$('t1-wrapper');
     if (wrapEl) wrapEl.style.display = 'flex';
+    markPartial('T1', !towerJson || towerJson.error || !iciJson || iciJson.error || !yhJson || yhJson.error
+      || COMM_ARR.some(t => commJson?.quotes?.[t]?.price == null)
+      || chartJsons.some(c => !c || c.error || !c.closes?.length), () => loadT1());
 
   } catch(e) {
     hide('t1-loading');
     t1Loaded = false;   // 탭에 다시 들어오면 자동 재시도
+    markPartial('T1', true, () => { t1Loaded = true; loadT1(); });
     const errEl = t1$('t1-error');
     if (errEl) { errEl.style.display='block'; errEl.innerHTML = `⚠️ 로딩 실패: ${escH(e.message)} <button onclick="t1Loaded=true;loadT1(true)" style="margin-left:8px;font-size:10px;padding:3px 10px;border-radius:4px;border:0.5px solid #30363D;background:#21262D;color:#E6EDF3;cursor:pointer;">다시 시도</button>`; }
   }
@@ -7178,6 +7223,7 @@ async function loadT2(force = false) {
     const resp = await fetchWithTimeout(`${WORKER}/t2${fq}`, 25000);
     const d    = await resp.json();
     if (d.error) throw new Error(d.error);
+    markPartial('T2', false);
 
     const { corporate: corp, labor, consumer } = d;
 
@@ -7898,6 +7944,7 @@ Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인�
   } catch(e) {
     hide2('t2-loading');
     t2Loaded = false;   // 탭에 다시 들어오면 자동 재시도
+    markPartial('T2', true, () => { t2Loaded = true; loadT2(); });
     const errEl = t2$('t2-error');
     if (errEl) { errEl.style.display='block'; errEl.innerHTML = `⚠️ 로딩 실패: ${escH(e.message)} <button onclick="t2Loaded=true;loadT2(true)" style="margin-left:8px;font-size:10px;padding:3px 10px;border-radius:4px;border:0.5px solid #30363D;background:#21262D;color:#E6EDF3;cursor:pointer;">다시 시도</button>`; }
   }
@@ -7938,15 +7985,14 @@ let _ocRwaChart    = null;
 let _ocRwaHistChart= null;
 let _ocEtfCumChart = null;
 
-async function loadT4(force = false) {
+async function loadT4(force = false, silent = false) {
   const t4$ = id => document.getElementById(id);
   const showEl = id => { const e = t4$(id); if (e) e.style.display = 'flex'; };
   const hideEl = id => { const e = t4$(id); if (e) e.style.display = 'none'; };
   const showWrap = () => { const e = t4$('t4-wrapper'); if (e) { e.style.display = 'flex'; e.style.flexDirection = 'column'; } };
 
-  showEl('t4-loading');
+  if (!silent) { showEl('t4-loading'); hideEl('t4-wrapper'); }
   hideEl('t4-error');
-  hideEl('t4-wrapper');
 
   try {
     // 패널 1+3: Worker 경유
@@ -7954,28 +8000,9 @@ async function loadT4(force = false) {
       ? `${WORKER}/onchain-macro?force=1`
       : `${WORKER}/onchain-macro`;
 
-    // 패널 2: DefiLlama 브라우저 직접 (CORS 허용)
-    const [workerResp, llamaResp] = await Promise.allSettled([
-      fetchT(workerUrl, 20000),
-      fetch('https://api.llama.fi/protocols', { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(20000) }),
-    ]);
-
-    let workerData = {};
-    let rwaProtos  = [];
-
-    try {
-      if (workerResp.status === 'fulfilled') {
-        workerData = await workerResp.value.json();
-      }
-    } catch(e) { console.warn('[T4] worker error:', e); }
-
-    try {
-      if (llamaResp.status === 'fulfilled' && llamaResp.value.ok) {
-        const all = await llamaResp.value.json();
-        rwaProtos  = (all || []).filter(p => (p.category||'').toLowerCase() === 'rwa')
-                                .sort((a,b) => (b.tvl||0)-(a.tvl||0));
-      }
-    } catch(e) { console.warn('[T4] llama error:', e); }
+    // 패널 2(RWA)도 Worker가 DefiLlama를 받아 캐시(cron 매시 :35) — 브라우저가 수 MB 원본을 직접 받지 않음
+    const workerData = (await jsonOrNull(await fetchT(workerUrl, 20000).catch(() => null))) || {};
+    const rwaProtos  = [];
 
     renderOnchainMacro(workerData, rwaProtos);
     // ── T4 데이터 상태 기록 ──
@@ -7992,10 +8019,14 @@ async function loadT4(force = false) {
 
     hideEl('t4-loading');
     showWrap();
+    markPartial('T4', !workerData.stablecoin?.totalB || !workerData.rwa?.protocols?.length || !workerData.etf?.dailyFlows?.length,
+      () => loadT4(false, true));
   } catch(e) {
     hideEl('t4-loading');
     const errEl = t4$('t4-error');
     if (errEl) { errEl.textContent = '데이터 로딩 실패: ' + e.message; errEl.style.display = 'block'; }
+    t4Loaded = false;   // 탭에 다시 들어오면 자동 재시도
+    markPartial('T4', true, () => { t4Loaded = true; loadT4(); });
   }
 }
 
@@ -8496,8 +8527,9 @@ async function loadT3(force = false) {
 
   try {
     const url = `${WORKER}/t3${force ? '?force=1' : ''}`;
-    const res = await fetchT(url);
+    const res = await fetchT(url, 20000);
     const d   = await res.json();
+    if (!d?.error) markPartial('T3', false);
 
     // ── Row 1: DXY vs Broad Dollar 다이버전스 차트 ────────
     const dxyCtx = document.getElementById('t3-dxy-chart');
@@ -9033,6 +9065,7 @@ async function loadT3(force = false) {
   } catch(e) {
     hide3('t3-loading');
     t3Loaded = false;   // 탭에 다시 들어오면 자동 재시도
+    markPartial('T3', true, () => { t3Loaded = true; loadT3(); });
     const err = t3$('t3-error');
     if (err) { err.style.display='block'; err.innerHTML = `⚠️ 로딩 실패: ${escH(e.message)} <button onclick="t3Loaded=true;loadT3(true)" style="margin-left:8px;font-size:10px;padding:3px 10px;border-radius:4px;border:0.5px solid #30363D;background:#21262D;color:#E6EDF3;cursor:pointer;">다시 시도</button>`; }
   }
@@ -9074,69 +9107,15 @@ function twToggle(id) {
 }
 
 // ── 데이터 로딩 ─────────────────────────────────────────
-// ── 브라우저에서 재무부 DTS API 직접 호출 (CORS 완전 지원) ──
-async function fetchTreasuryDts() {
-  const BASE = 'https://api.fiscaldata.treasury.gov/services/api/v1/accounting/dts';
-  const get = async (table, fields, limit = 30) => {
-    try {
-      const url = `${BASE}/${table}/?fields=${fields}&sort=-record_date&limit=${limit}`;
-      const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
-      if (!r.ok) return [];
-      const d = await r.json();
-      return d.data || [];
-    } catch(e) { console.warn(`[DTS] ${table}:`, e.message); return []; }
-  };
-
-  const [tbl1raw, tbl3a, tbl4] = await Promise.all([
-    get('dts_table_1',  'record_date,account_type,open_today_bal,close_today_bal,deposits_withdrawn_closing_bal', 20),
-    get('dts_table_3a', 'record_date,transaction_type,today_amt', 50),
-    get('dts_table_4',  'record_date,tax_deposit_type,today_amt', 30),
-  ]);
-
-  // Federal Reserve Account 필터
-  const tbl1 = tbl1raw.filter(r => (r.account_type||'').toLowerCase().includes('federal reserve'));
-
-  // TGA 시리즈 (Millions → Billions)
-  const tgaSeries = tbl1.map(r => ({
-    date:    r.record_date,
-    open:    +((parseFloat(r.open_today_bal)  || 0) / 1000).toFixed(1),
-    close:   +((parseFloat(r.close_today_bal) || 0) / 1000).toFixed(1),
-    netFlow: +((parseFloat(r.deposits_withdrawn_closing_bal) || 0) / 1000).toFixed(1),
-  })).reverse();
-
-  // 순발행액 날짜별 집계
-  const imap = {};
-  for (const r of tbl3a) {
-    const d = r.record_date;
-    if (!imap[d]) imap[d] = { issued: 0, redeemed: 0 };
-    const amt = parseFloat(r.today_amt) || 0;
-    if ((r.transaction_type||'').toLowerCase().includes('issu'))   imap[d].issued   += amt;
-    if ((r.transaction_type||'').toLowerCase().includes('redeem')) imap[d].redeemed += amt;
-  }
-  const netIssuance = Object.entries(imap)
-    .sort((a,b) => b[0].localeCompare(a[0])).slice(0, 5)
-    .map(([date, v]) => ({
-      date,
-      netIssued: +((v.issued - v.redeemed) / 1000).toFixed(1),
-      issued:    +(v.issued   / 1000).toFixed(1),
-      redeemed:  +(v.redeemed / 1000).toFixed(1),
-    }));
-
-  // 세금 수납 (Withheld / Corporate)
-  const taxRecent = tbl4
-    .filter(r => { const t=(r.tax_deposit_type||'').toLowerCase(); return t.includes('withheld')||t.includes('corporate'); })
-    .slice(0, 6)
-    .map(r => ({ date: r.record_date, type: r.tax_deposit_type, amt: +((parseFloat(r.today_amt)||0)/1000).toFixed(1) }));
-
-  return { tgaLatest: tgaSeries.at(-1), tgaSeries, netIssuance, taxRecent };
-}
 
 async function loadLiqTower(force = false) {
   const loading = document.getElementById('tower-loading');
   if (loading) loading.style.display = 'block';
   try {
-    const r = await fetchT(`${WORKER}/liq-tower${force ? '?force=1' : ''}`, 20000);
+    const r = force ? await fetchT(`${WORKER}/liq-tower?force=1`, 20000)
+                    : await sharedFetch(`${WORKER}/liq-tower`, 20000);   // T1과 공유
     const d = await r.json();
+    if (d?.error) throw new Error(d.error);
     _towerData = d;
     if (loading) loading.style.display = 'none';
     renderTowerS1(d);
@@ -9152,9 +9131,10 @@ async function loadLiqTower(force = false) {
       ledTower.title = `Plumbing ${daysOld > 10 ? '갱신 지연' : '정상'} · ${savedAt ? new Date(savedAt).toLocaleDateString('ko-KR') : '방금'}`;
     }
   } catch(e) {
-    if (loading) loading.textContent = `⚠️ 로딩 실패: ${e.message}`;
+    if (loading) loading.textContent = `⚠️ 로딩 실패: ${e.message} — 패널을 다시 열면 재시도`;
     const ledTower = document.getElementById('led-tower');
     if (ledTower) { ledTower.style.background = '#F85149'; ledTower.title = 'Plumbing 로딩 실패'; }
+    towerLoaded = false;   // 패널을 다시 열면 재시도
   }
 }
 
@@ -11060,7 +11040,7 @@ async function loadAuctionPanel(force = false) {
   try {
     const [rRes, rUpcoming] = await Promise.allSettled([
       fetchT(RAW_RESULTS, 15000),
-      fetch(RAW_UPCOMING, { signal: AbortSignal.timeout(15000) }),
+      fetchT(RAW_UPCOMING, 15000),
     ]);
 
     if (rRes.status === 'fulfilled') {
@@ -11424,8 +11404,8 @@ async function loadNews(force = false) {
   try {
     const url = force ? `${WORKER}/news?force=1` : `${WORKER}/news`;
     const [resp, digestResp] = await Promise.allSettled([
-      fetch(url, { signal: AbortSignal.timeout(15000) }),
-      fetch(`${WORKER}/news-digest`, { signal: AbortSignal.timeout(10000) }),
+      fetchT(url, 15000),
+      fetchT(`${WORKER}/news-digest`, 10000),
     ]);
 
     if (resp.status === 'fulfilled' && resp.value.ok) {

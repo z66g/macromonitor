@@ -37,6 +37,7 @@ const KV_KEYS = {
   newsDigest:        'news_digest_v1',    // 핵심뉴스 (장마감/장시작)
   newsDigestHistory: 'news_digest_history_v1', // 다이제스트 누적 (배치 텔레그램용)
   tgaDts:            'tga_dts_v1',             // DTS 일별 TGA 잔고 (GitHub Actions)
+  market:            'market_snap_v1',         // Yahoo 시세·3개월 일봉 스냅샷 (cron 갱신, 사이트는 이것만 읽음)
 };
 // ── Cron — wrangler.toml [triggers] crons 와 반드시 동일하게 유지 ──
 // Cloudflare 무료 플랜은 '계정 전체' cron 5개 한도(다른 Worker와 공유) → cron 1개만 사용하고
@@ -45,12 +46,15 @@ const CRON = '5,15,25,35,45,55 * * * *';
 const REFRESH_HOURS = [1, 7, 13, 19];        // 6시간 갱신 시각 (UTC) = KST 10·16·22·04시
 // cron-job.org가 :00/:30에 GH Actions(KV 쓰기)를 트리거하므로 Worker는 그 분을 피함
 const CRON_JOBS = {
-  5:  'news', 35: 'news',                    // 매시 — 뉴스 RSS (~15건)
-  15: 'groupA',                              // 갱신 시각 — H.4.1 → liq + 수익률 (~27건)
-  25: 'groupB',                              // 갱신 시각 — T2 (~21건)
-  45: 'groupC',                              // 갱신 시각 — T3 + 유동성 예측모델 + ICI (~27건)
-  55: 'groupD',                              // 갱신 시각 — 캘린더
+  5:  'news',                                // 매시 — 뉴스 RSS (~15건)
+  35: 'newsOnchain',                         // 매시 — 뉴스 RSS + T4 온체인 (~15 + ~14건)
+  15: 'groupA',                              // 갱신 시각 — H.4.1 → liq + 수익률 (~27건)   · 그 외 시각: 시세 스냅샷
+  25: 'groupB',                              // 갱신 시각 — T2 (~21건) + 시세 절반(~17건) · 그 외 시각: 시세 스냅샷
+  45: 'groupC',                              // 갱신 시각 — T3 + 유동성 예측모델 + ICI (~27건) · 그 외 시각: 시세 스냅샷
+  55: 'groupD',                              // 갱신 시각 — 캘린더(~8건) + 시세 전체(~34건)    · 그 외 시각: 시세 스냅샷
 };
+// 시세 스냅샷(Yahoo) — 매시 :15/:25/:45/:55 (갱신 시각엔 :25 절반 + :55 전체) → 최대 지연 약 20~30분, 보통 10~20분.
+// 방문자 요청은 KV만 읽으므로 Yahoo 동시 요청 폭주(429)로 차트가 비는 일이 없다.
 
 // TTL은 cron 주기(6h)보다 길게 — 한 번 갱신이 실패/지연돼도 캐시 공백이 생기지 않도록
 const KV_TTL = {
@@ -62,7 +66,8 @@ const KV_TTL = {
   qraActive:  86400 * 95,
   qraPending: 86400 * 30,
   liqTower:   43200,
-  onchainMacro: 3600,
+  onchainMacro: 10800,   // cron이 매시 :35 갱신 — 몇 번 실패해도 캐시 공백 없게
+  market:       86400 * 3,   // 종목별로 직전 정상 값을 유지하므로 길게 (신선도는 종목별 fetchedAt으로 판정)
   h41Html:    43200,
   newsCache:  10800,   // 30분 cron 기준 여유 — 몇 번 실패해도 GH Actions(번역·다이제스트)가 캐시를 읽을 수 있게
   newsTransMap: 2592000,
@@ -104,6 +109,8 @@ const KV_VALIDATORS = {
   [KV_KEYS.liqTower]:   d => d?.fed?.h41 != null && (d?.vampire?.weeks?.length ?? 0) > 0,
   [KV_KEYS.h41Html]:    d => d?.success === true && d?.parseQuality !== 'failed',
   [KV_KEYS.newsCache]:  d => (d?.items?.length ?? 0) > 0,
+  [KV_KEYS.onchainMacro]: d => (d?.stablecoin?.totalB ?? 0) > 0 || (d?.rwa?.protocols?.length ?? 0) > 0 || (d?.etf?.dailyFlows?.length ?? 0) > 0,
+  [KV_KEYS.market]:     d => Object.values(d?.tickers || {}).some(v => v?.price != null),
 };
 const kvPut = async (env, key, data, ttl) => {
   const validate = KV_VALIDATORS[key];
@@ -138,6 +145,7 @@ export default {
       if (path.startsWith('/h41-html'))      return await h41HtmlParser(env, ctx, url.searchParams.get('force') === '1');
       if (path.startsWith('/dxy'))           return await dxyAnalysis();
       if (path.startsWith('/jpy'))           return await jpyCarryRisk();
+      if (path.startsWith('/market'))        return await marketSnapshot(env, ctx);
       if (path.startsWith('/yahoo-chart'))   return await yahooChart(url);
       if (path.startsWith('/yahoo'))         return await yahooProxy(url);
       if (path.startsWith('/ici'))           return await iciMMF(env, ctx);
@@ -181,7 +189,16 @@ export default {
       ctx.waitUntil(run('news', () => newsScheduledRefresh(env)));
       return;
     }
-    if (!job || !REFRESH_HOURS.includes(t.getUTCHours())) return;   // 갱신 시각이 아니면 아무것도 안 함
+    if (job === 'newsOnchain') {
+      ctx.waitUntil(Promise.all([run('news', () => newsScheduledRefresh(env)),
+                                 run('onchain', async () => kvPut(env, KV_KEYS.onchainMacro, await fetchOnchainMacro(), KV_TTL.onchainMacro))]));
+      return;
+    }
+    if (!job) return;
+    if (!REFRESH_HOURS.includes(t.getUTCHours())) {   // 갱신 시각이 아니면 시세 스냅샷만
+      ctx.waitUntil(run('market', () => refreshMarket(env, MARKET_TICKERS, 45)));
+      return;
+    }
     switch (job) {
       case 'groupA':
         ctx.waitUntil((async () => {
@@ -190,14 +207,20 @@ export default {
         })());
         return;
       case 'groupB':
-        ctx.waitUntil(run('t2', () => refreshT2(env)));
+        ctx.waitUntil((async () => {
+          await run('t2', () => refreshT2(env));
+          await run('market', () => refreshMarket(env, MARKET_TICKERS.slice(0, MARKET_HALF), 24));   // T2 ~21건 + 24 ≤ 50
+        })());
         return;
       case 'groupC':
         ctx.waitUntil(Promise.all([run('t3', () => refreshT3(env)), run('liqTower', () => refreshLiqTower(env)),
                                    run('ici', () => iciMMF(env, null))]));   // 방문자 없어도 주간 이력 누적
         return;
       case 'groupD':
-        ctx.waitUntil(run('calendar', async () => kvPut(env, KV_KEYS.calendar, await fetchCalendar(env), KV_TTL.calendar)));
+        ctx.waitUntil((async () => {
+          await run('calendar', async () => kvPut(env, KV_KEYS.calendar, await fetchCalendar(env), KV_TTL.calendar));
+          await run('market', () => refreshMarket(env, MARKET_TICKERS, 38));   // 캘린더 ~8건 + 38 ≤ 50
+        })());
         return;
     }
   }
@@ -2363,6 +2386,123 @@ async function h41Parser(env) {
   return json({ success: true, releaseDate, data });
 }
 
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// Yahoo 공용 — 429/5xx 일시 오류 재시도 + 일봉 파싱
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const YAHOO_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+  'Accept': 'application/json',
+};
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function yahooFetch(url, cacheTtl, retries = 2) {
+  for (let a = 0; ; a++) {
+    const resp = await fetch(url, { headers: YAHOO_HEADERS, cf: { cacheTtl } });
+    if (resp.ok || a >= retries || !(resp.status === 429 || resp.status >= 500)) return resp;
+    await sleep(600 * (a + 1));
+  }
+}
+// Yahoo chart 응답 → { name, currency, dates, closes, volumes, price, prevClose, ... } (일봉)
+function parseYahooDaily(data, ticker) {
+  const result     = data?.chart?.result?.[0];
+  const meta       = result?.meta;
+  const timestamps = result?.timestamp || [];
+  const closes     = result?.indicators?.quote?.[0]?.close  || [];
+  const volumes    = result?.indicators?.quote?.[0]?.volume || [];
+  if (!meta || !timestamps.length) return null;
+  // null 제거 + 같은 날짜 중복 봉(장중 갱신)은 마지막 것만
+  const byDate = new Map();
+  timestamps.forEach((ts, i) => {
+    const c = closes[i];
+    if (c === null || c === undefined) return;
+    byDate.set(new Date(ts * 1000).toISOString().slice(0, 10), { close: c, volume: volumes[i] ?? 0 });
+  });
+  const dates = [...byDate.keys()];
+  if (!dates.length) return null;
+  const rows  = [...byDate.values()];
+  const n     = rows.length;
+  const price = meta.regularMarketPrice ?? rows[n - 1].close;
+  const prev  = n >= 2 ? rows[n - 2].close : (meta.chartPreviousClose ?? null);   // 직전 거래일 종가
+  return {
+    ticker,
+    name:      meta.shortName || ticker,
+    currency:  meta.currency || '',
+    price,
+    prevClose: prev,
+    delta:     (price != null && prev) ? price - prev : null,
+    pctChange: (price != null && prev) ? (price - prev) / prev * 100 : null,
+    date:      dates[n - 1],
+    marketTime: meta.regularMarketTime ? new Date(meta.regularMarketTime * 1000).toISOString() : null,
+    dates,
+    closes:    rows.map(r => parseFloat(r.close.toFixed(4))),
+    volumes:   rows.map(r => r.volume),
+  };
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 시세 스냅샷 — cron이 Yahoo를 순차(동시 4건) 조회해 KV에 저장, 사이트는 /market 한 번만 읽음
+//   종목별로 실패하면 직전 정상 값 유지(fetchedAt으로 신선도 판정). 전부 실패하면 KV를 건드리지 않음.
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const MARKET_TICKERS = [
+  // 앞 절반 = 갱신 시각 :25에도 갱신되는 우선 종목 (T0 게이지·비율·T1 원자재 주요)
+  '^VIX', '^MOVE', 'SPY', 'TLT', 'QQQ', 'DIA', 'GC=F', 'HG=F', 'BTC-USD',
+  'CL=F', 'BZ=F', 'NG=F', 'SI=F', 'TQQQ', 'SQQQ', 'UVXY', 'URA',
+  // 뒤 절반
+  'XLK', 'XLV', 'XLF', 'XLY', 'XLP', 'XLE', 'XLU', 'XLI', 'XLB', 'XLRE', 'XLC',
+  'ALI=F', 'ZW=F', 'ZS=F', 'LBR=F', 'BDRY',
+];
+const MARKET_HALF  = 17;
+const MARKET_RANGE = '3mo';   // 사이트 초기 화면은 3mo·1mo만 사용 (그 외 기간 버튼은 /yahoo-chart 실시간)
+
+// budget = 이번 실행에서 쓸 Yahoo 요청 상한 (같은 cron 실행의 다른 작업과 합쳐 서브요청 50건을 넘지 않게)
+async function refreshMarket(env, tickers, budget = tickers.length + 8) {
+  const prev = (await kvGet(env, KV_KEYS.market)) || {};
+  const out  = { ...(prev.tickers || {}) };
+  let ok = 0, changed = false, used = 0;
+  const queue = tickers.map(t => ({ t, tries: 0 }));
+  const worker = async () => {
+    while (queue.length && used < budget) {
+      const job = queue.shift(), t = job.t;
+      try {
+        // URL을 /yahoo-chart(1h 엣지 캐시)와 다르게 → 오래된 엣지 캐시를 받지 않도록
+        const url  = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(t)}?interval=1d&range=${MARKET_RANGE}&includePrePost=false`;
+        used++;
+        const resp = await yahooFetch(url, 240, 0);
+        if (resp.status === 429 || resp.status >= 500) {
+          if (job.tries++ < 1) { await sleep(800); queue.push(job); continue; }   // 일시 오류 → 맨 뒤에서 1회 재시도
+        }
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const parsed = parseYahooDaily(await resp.json(), t);
+        if (!parsed) throw new Error('빈 응답');
+        const old = out[t];
+        if (!old || old.price !== parsed.price || old.date !== parsed.date) changed = true;
+        out[t] = { ...parsed, fetchedAt: new Date().toISOString() };
+        ok++;
+      } catch (e) {
+        console.error('market', t, e.message);
+      }
+    }
+  };
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  if (!ok) throw new Error(`시세 전부 실패 (${tickers.length}종목) — 기존 스냅샷 유지`);
+  // 장 마감 후 등 값이 그대로면 KV 쓰기 생략 (단 1시간에 한 번은 기록해 checkedAt 갱신)
+  const age = Date.now() - new Date(prev._savedAt || 0).getTime();
+  if (!changed && age < 3600 * 1000) return prev;
+  for (const k of Object.keys(out)) if (!MARKET_TICKERS.includes(k)) delete out[k];   // 목록에서 빠진 종목 정리
+  return kvPut(env, KV_KEYS.market, { tickers: out, range: MARKET_RANGE, checkedAt: new Date().toISOString() }, KV_TTL.market);
+}
+
+let _marketInitAt = 0;
+async function marketSnapshot(env, ctx) {
+  const snap = await kvGet(env, KV_KEYS.market);
+  if (snap?.tickers) return new Response(JSON.stringify(snap), { headers: CORS });   // 압축 없이 들여쓰면 3배 커짐
+  // 최초 배포 직후 등 스냅샷이 없을 때: 비어 있다고 알리고 백그라운드로 1회 생성 (사이트는 종목별 실시간 경로로 대체)
+  if (ctx?.waitUntil && Date.now() - _marketInitAt > 5 * 60 * 1000) {   // 같은 isolate에서 5분에 한 번만
+    _marketInitAt = Date.now();
+    ctx.waitUntil(refreshMarket(env, MARKET_TICKERS).catch(e => console.error('market init', e.message)));
+  }
+  return json({ tickers: {}, missing: true });
+}
+
 async function yahooProxy(url) {
   const raw = url.searchParams.get('tickers') || '';
   const tickers = raw.split(',')
@@ -2376,13 +2516,7 @@ async function yahooProxy(url) {
       // Yahoo Finance v8 crumbless endpoint (공개 quote)
       // interval=1m + range=1d → meta에 regularMarketChangePercent 포함
       const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1m&range=1d`;
-      const resp = await fetch(yahooUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-          'Accept': 'application/json',
-        },
-        cf: { cacheTtl: 60 }, // 1분 캐시 (장중 실시간)
-      });
+      const resp = await yahooFetch(yahooUrl, 60, 1); // 1분 캐시 (장중 실시간), 429/5xx 1회 재시도
       if (!resp.ok) throw new Error(`Yahoo HTTP ${resp.status}`);
       const data = await resp.json();
 
@@ -2447,13 +2581,7 @@ async function yahooChart(url) {
   const chartUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}`
     + `?interval=1d&range=${safeRange}`;
 
-  const resp = await fetch(chartUrl, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      'Accept': 'application/json',
-    },
-    cf: { cacheTtl: 3600 }, // 1h 캐시
-  });
+  const resp = await yahooFetch(chartUrl, 3600); // 1h 캐시, 429/5xx 재시도
 
   if (!resp.ok) {
     return json({ error: `Yahoo chart HTTP ${resp.status}`, ticker, range: safeRange }, 502);
@@ -2531,13 +2659,7 @@ async function dxyAnalysis() {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(TICKER)}`
     + `?interval=1d&range=1y`;
 
-  const resp = await fetch(url, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      'Accept': 'application/json',
-    },
-    cf: { cacheTtl: 3600 },
-  });
+  const resp = await yahooFetch(url, 3600);
 
   if (!resp.ok) return json({ error: `Yahoo DXY HTTP ${resp.status}` }, 502);
 
@@ -2630,10 +2752,7 @@ async function jpyCarryRisk() {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent('JPY=X')}`
     + `?interval=1d&range=1mo`;
 
-  const r = await fetch(url, {
-    headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' },
-    cf: { cacheTtl: 3600 },
-  });
+  const r = await yahooFetch(url, 3600);
   if (!r.ok) return json({ error: `Yahoo JPY=X HTTP ${r.status}` }, 502);
 
   const d      = await r.json();

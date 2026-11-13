@@ -97,6 +97,20 @@ def c_t3():
     add('T3 글로벌', st, f"빈 시리즈 {empty or '없음'} · 캐시 {h and round(h, 1)}h 전")
 
 
+def c_market():
+    d = get('/market')
+    tk = d.get('tickers') or {}
+    if not tk:
+        add('시세 스냅샷', 'fail', '스냅샷 없음 — Worker cron(시세) 확인. 사이트는 종목별 실시간 경로로 대체 중')
+        return
+    h = age_hours(d.get('_savedAt'))
+    ages = {t: age_hours(v.get('fetchedAt')) for t, v in tk.items()}
+    stale = sorted(t for t, a in ages.items() if a is None or a > 6)
+    # 값이 그대로면 1시간에 한 번만 기록 → 정상이어도 최대 ~1.3h. 3h 넘으면 cron이 멈춘 것
+    st = 'warn' if (h is None or h > 3 or len(stale) > len(tk) // 5) else 'ok'
+    add('시세 스냅샷', st, f"{len(tk)}종목 · 저장 {h and round(h, 1)}h 전 · 6h 넘은 종목 {stale or '없음'}")
+
+
 def c_calendar():
     d = get('/calendar')
     ev = d.get('events') or []
@@ -191,7 +205,7 @@ def c_actions():
     add('GitHub Actions 실패(24h)', 'warn' if fails else 'ok', detail)
 
 
-for name, fn in [('T1 순유동성', c_liq), ('T2 실물경제', c_t2), ('T3 글로벌', c_t3), ('이벤트 캘린더', c_calendar),
+for name, fn in [('T1 순유동성', c_liq), ('T2 실물경제', c_t2), ('T3 글로벌', c_t3), ('시세 스냅샷', c_market), ('이벤트 캘린더', c_calendar),
                  ('FOMC 일정 하드코딩', c_fomc_horizon), ('유동성 예측모델', c_tower), ('뉴스 수집·번역', c_news),
                  ('뉴스 다이제스트', c_digest), ('H.4.1 이력', c_h41), ('ICI MMF', c_ici),
                  ('경매 데이터', c_auctions), ('GitHub Actions', c_actions)]:
