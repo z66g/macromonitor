@@ -5,6 +5,7 @@
 - **백엔드**: Cloudflare Worker `macrolens-worker.macrolens.workers.dev` (무료 플랜)
 - **KV 네임스페이스**: `MMF_KV` (id `66c313c710a04a4eb04775b80a44f313`)
 - **로컬 작업 디렉토리**: `~/macromonitor`
+- **작업 이력·열린 일**: [`ops/HANDOFF.md`](ops/HANDOFF.md) — 새 세션은 여기부터 확인
 
 ## 운영 원칙 (2026-11 전체 점검 이후 — 반드시 지킬 것)
 1. **방문자 요청은 공유 상태를 바꾸지 않는다.** 인증 없는 쓰기/삭제/발송 엔드포인트를 만들지 말 것.
