@@ -43,7 +43,8 @@
         ],
         "researched_at": "2026-11-13T03:32:27Z",
         "model": "claude-opus-5-5"
-      }
+      },
+      "telegram_sent": true
     },
     {
       "security_type": "Bill",
@@ -192,7 +193,8 @@
         ],
         "researched_at": "2026-11-13T03:32:27Z",
         "model": "claude-opus-5-5"
-      }
+      },
+      "telegram_sent": true
     },
     {
       "security_type": "Note",
@@ -236,7 +238,8 @@
         ],
         "researched_at": "2026-11-13T03:32:27Z",
         "model": "claude-opus-5-5"
-      }
+      },
+      "telegram_sent": true
     },
     {
       "security_type": "Bill",
