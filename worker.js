@@ -189,7 +189,7 @@ export default {
     }
     if (job === 'newsOnchain') {
       ctx.waitUntil(Promise.all([run('news', () => newsScheduledRefresh(env)),
-                                 run('onchain', async () => kvPut(env, KV_KEYS.onchainMacro, await fetchOnchainMacro(), KV_TTL.onchainMacro))]));
+                                 run('onchain', () => refreshOnchain(env))]));
       return;
     }
     if (!job) return;
@@ -3664,10 +3664,24 @@ async function qraStatus(env) {
 async function onchainMacroCached(env, force = false, ctx) {
   const cached = await cacheFirst(env, KV_KEYS.onchainMacro, force);
   if (cached) return json(cached);
-  const data = await fetchOnchainMacro();
+  const data = await refreshOnchain(env, ctx);
+  return json(data);
+}
+
+// 새로 받은 결과에서 비어 있는 패널은 직전 정상 값으로 채움 (stale 표시) → 그 뒤 저장
+async function refreshOnchain(env, ctx) {
+  const [data, prev] = await Promise.all([fetchOnchainMacro(), kvGet(env, KV_KEYS.onchainMacro)]);
+  const ok = {
+    stablecoin: d => (d?.totalB ?? 0) > 0,
+    rwa:        d => (d?.protocols?.length ?? 0) > 0,
+    etf:        d => (d?.dailyFlows?.length ?? 0) > 0,
+  };
+  for (const [k, valid] of Object.entries(ok)) {
+    if (!valid(data[k]) && valid(prev?.[k])) data[k] = { ...prev[k], stale: true };
+  }
   const putPromise = kvPut(env, KV_KEYS.onchainMacro, data, KV_TTL.onchainMacro);
   if (ctx?.waitUntil) ctx.waitUntil(putPromise); else await putPromise;
-  return json(data);
+  return data;
 }
 
 async function fetchOnchainMacro() {
@@ -3682,51 +3696,53 @@ async function fetchOnchainMacro() {
     } catch(e) { return null; }
   };
 
-  // ── 패널 1: 스테이블코인 (CoinGecko) ─────────────────
-  const [cgPrice, cgHistory] = await Promise.all([
-    // 현재 시총
-    get('https://api.coingecko.com/api/v3/simple/price?ids=tether,usd-coin&vs_currencies=usd&include_market_cap=true'),
-    // 30일 역사 (USDT + USDC 개별)
-    Promise.all([
+  // ── 패널 1: 스테이블코인 — DefiLlama 우선, CoinGecko 대체 ─────────
+  // CoinGecko 무료 API는 Cloudflare Worker IP를 자주 거절(429/403) → 0으로 표시되던 문제.
+  // DefiLlama stablecoincharts: [{date(초), totalCirculatingUSD:{peggedUSD}}, ...] 일별 (USDT id 1, USDC id 2)
+  const llamaSeries = async (id) => {
+    const d = await get(`https://stablecoins.llama.fi/stablecoincharts/all?stablecoin=${id}`);
+    if (!Array.isArray(d)) return [];
+    return d.slice(-31).map(e => [
+      Number(e.date) * 1000,
+      e.totalCirculatingUSD?.peggedUSD ?? e.totalCirculating?.peggedUSD ?? 0,
+    ]).filter(([, v]) => v > 0);
+  };
+  let [usdtHistory, usdcHistory] = await Promise.all([llamaSeries(1), llamaSeries(2)]);
+  let stableSource = 'DefiLlama';
+  if (!usdtHistory.length || !usdcHistory.length) {
+    const [t, c] = await Promise.all([
       get('https://api.coingecko.com/api/v3/coins/tether/market_chart?vs_currency=usd&days=30&interval=daily'),
       get('https://api.coingecko.com/api/v3/coins/usd-coin/market_chart?vs_currency=usd&days=30&interval=daily'),
-    ]),
-  ]);
+    ]);
+    if (t?.market_caps?.length && c?.market_caps?.length) {
+      usdtHistory = t.market_caps; usdcHistory = c.market_caps; stableSource = 'CoinGecko';
+    }
+  }
 
-  // 30일 시계열 병합 (history는 price API보다 안정적 → 먼저 계산)
-  const usdtHistory = cgHistory[0]?.market_caps || [];
-  const usdcHistory = cgHistory[1]?.market_caps || [];
-  const stableHistory = usdtHistory.map((u, i) => {
-    const ts   = u[0];
-    const usdt = u[1] || 0;
-    const usdc = usdcHistory[i]?.[1] || 0;
-    const tot  = usdt + usdc;
+  // 날짜 기준 병합 (두 시계열 길이·시각이 다를 수 있음)
+  const usdcByDate = new Map(usdcHistory.map(([ts, v]) => [new Date(ts).toISOString().slice(0, 10), v]));
+  const stableHistory = usdtHistory.map(([ts, usdt]) => {
+    const date = new Date(ts).toISOString().slice(0, 10);
+    const usdc = usdcByDate.get(date) || 0;
+    const tot  = (usdt || 0) + usdc;
     return {
-      date:      new Date(ts).toISOString().slice(0, 10),
-      totalB:    +(tot  / 1e9).toFixed(1),
-      usdtB:     +(usdt / 1e9).toFixed(1),
-      usdcB:     +(usdc / 1e9).toFixed(1),
-      usdcPct:   tot > 0 ? +(usdc / tot * 100).toFixed(2) : 0,
+      date,
+      totalB:  +(tot  / 1e9).toFixed(1),
+      usdtB:   +((usdt || 0) / 1e9).toFixed(1),
+      usdcB:   +(usdc / 1e9).toFixed(1),
+      usdcPct: tot > 0 ? +(usdc / tot * 100).toFixed(2) : 0,
     };
-  });
+  }).filter(h => h.usdcB > 0);
 
-  // 현재 시총: price API 우선, rate-limit 등으로 0 반환 시 history 최신 항목으로 폴백
-  let usdtMcap = cgPrice?.tether?.['usd_market_cap']   ?? 0;
-  let usdcMcap = cgPrice?.['usd-coin']?.['usd_market_cap'] ?? 0;
-
-  if (usdtMcap === 0 && usdtHistory.length > 0)
-    usdtMcap = usdtHistory[usdtHistory.length - 1][1] || 0;
-  if (usdcMcap === 0 && usdcHistory.length > 0)
-    usdcMcap = usdcHistory[usdcHistory.length - 1][1] || 0;
-
-  const totalMcap = usdtMcap + usdcMcap;
-
+  const lastStable = stableHistory[stableHistory.length - 1];
   const stablecoin = {
-    totalB:      +(totalMcap / 1e9).toFixed(1),
-    usdtB:       +(usdtMcap  / 1e9).toFixed(1),
-    usdcB:       +(usdcMcap  / 1e9).toFixed(1),
-    usdcPct:     totalMcap > 0 ? +(usdcMcap / totalMcap * 100).toFixed(2) : 0,
-    history:     stableHistory,
+    totalB:   lastStable?.totalB  ?? 0,
+    usdtB:    lastStable?.usdtB   ?? 0,
+    usdcB:    lastStable?.usdcB   ?? 0,
+    usdcPct:  lastStable?.usdcPct ?? 0,
+    asOf:     lastStable?.date    ?? null,
+    source:   lastStable ? stableSource : null,
+    history:  stableHistory,
   };
 
   // ── 패널 2: RWA (DefiLlama) ───────────────────────────

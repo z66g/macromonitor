@@ -49,6 +49,8 @@
 - **Worker 시세 스냅샷**: cron이 33종목 3개월 일봉을 동시 4건씩 받아 `market_snap_v1`에 저장 → `/market` 1건으로 제공.
   종목별 실패 시 직전 값 유지, 전부 실패면 KV 유지, 값 그대로면 1시간에 한 번만 쓰기. 시세는 최대 10~20분(갱신 시각 ~30분) 지연 — 사용자 승인.
 - **T4 온체인**: 1시간 캐시 만료 후 첫 방문자가 DefiLlama·CoinGecko 14건을 기다리던 구조 → cron :35 매시 갱신, TTL 3h, 빈 결과 검증.
+- **T4 스테이블코인 $0B**: CoinGecko가 Worker IP를 거절 → DefiLlama `stablecoincharts`(USDT 1·USDC 2) 우선, CoinGecko 대체.
+  패널별(스테이블·RWA·ETF)로 실패 시 직전 정상 값 유지(`stale: true`, 화면에 "직전 값" 표시) — `refreshOnchain()`.
 - **프론트**: `fetchT`에 재시도(네트워크·429·5xx 2회, 타임아웃 1회)·동시 6건 제한. S1은 5단계 순차 → 한 번에 병렬.
   `/ici`·`/liq-tower` 공유(`sharedFetch`). 일부 빠진 섹션은 6·12초 뒤 조용히 자동 재로드, 탭 재진입 때도 다시.
 - **브라우저 직접 호출 정리**: CoinGecko(BTC) → 스냅샷 BTC-USD, DefiLlama 수 MB 원본 → Worker 데이터 사용,

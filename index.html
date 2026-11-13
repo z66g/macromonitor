@@ -1645,7 +1645,7 @@ body{
   <div id="loadingState2">
     <div class="loading-overlay">
       <div class="spinner"></div>
-      <span>Yahoo Finance + CoinGecko + FRED 데이터 수신 중...</span>
+      <span>Yahoo Finance + FRED 데이터 수신 중...</span>
     </div>
   </div>
 
@@ -2742,7 +2742,7 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
           <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i>
           <span class="pd-tip-box" style="width:340px;left:calc(100% + 8px);top:0;bottom:auto;transform:none;">
             <b style="color:#E6EDF3;font-size:11px;">💧 온체인 달러 배관</b><br>
-            <span style="font-size:9px;color:#8B949E;">Stablecoin Market Cap — CoinGecko</span>
+            <span style="font-size:9px;color:#8B949E;">Stablecoin Market Cap — DefiLlama</span>
             <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
 
             <b style="color:#CDD9E5;">📌 지표 의미</b><br>
@@ -2763,11 +2763,11 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
             <div style="margin:8px 0 4px;height:0.5px;background:#30363D;"></div>
 
             <b style="color:#CDD9E5;">⚠️ 한계</b><br>
-            USDT·USDC 외 BUSD·DAI·FDUSD 등 미포함. CoinGecko API rate-limit 시 전일 기준값으로 자동 대체.
+            USDT·USDC 외 BUSD·DAI·FDUSD 등 미포함. 유통량 기준(DefiLlama), 수신 실패 시 직전 정상 값 유지.
           </span>
           </span>
         </div>
-        <div style="font-size:11px;color:#8B949E;margin-top:4px;">USDT · USDC 총 시가총액 및 구성 비율 추적 — CoinGecko</div>
+        <div style="font-size:11px;color:#8B949E;margin-top:4px;">USDT · USDC 총 시가총액 및 구성 비율 추적 — <span id="oc-stable-src">DefiLlama</span></div>
       </div>
       <div style="display:flex;gap:12px;text-align:right;">
         <div>
@@ -8085,6 +8085,7 @@ function renderOnchainMacro(d, rwaProtos) {
     };
   }
 
+  setTxt('oc-stable-src', `${st.source || 'DefiLlama'}${st.asOf ? ' · ' + st.asOf : ''}${st.stale ? ' (최근 수신 실패 — 직전 값)' : ''}`);
   setTxt('oc-stable-total', fmtB(st.totalB, 0));
   setTxt('oc-usdc-pct', st.usdcPct != null ? st.usdcPct.toFixed(1) + '%' : '—');
   setTxt('oc-usdt', fmtB(st.usdtB, 0));
