@@ -72,6 +72,10 @@ for e in quarters:
     if not 20 <= len(ev) <= 1000:
         fail(f'{e["quarter"]} evidence_quote(원문 인용) 필요')
 
+if '--check' in sys.argv:                  # 에이전트 커밋 전 자체 검증용
+    print(f"✅ 검증 통과: {', '.join(e['quarter'] for e in quarters)} (발표 {ann})")
+    sys.exit(0)
+
 # ── KV 반영 (Cloudflare REST) ────────────────────────────
 token, account = os.environ['CLOUDFLARE_API_TOKEN'], os.environ['CLOUDFLARE_ACCOUNT_ID']
 base = f'https://api.cloudflare.com/client/v4/accounts/{account}/storage/kv/namespaces/{NS}/values/'

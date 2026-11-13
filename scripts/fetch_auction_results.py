@@ -66,6 +66,9 @@ for a in dated:
         'total_accepted': num(first(a, 'totalParAwardedInsideOfOfferingAmount', 'totalAccepted')),
         'total_tendered': num(first(a, 'totalParRecognizedInsideOfOfferingAmount', 'totalTendered')),
         'interest_rate': num(a.get('interestRate')),
+        'press_release':  (f"https://www.treasurydirect.gov/instit/annceresult/press/preanre/{auction_date(a)[:4]}/"
+                           f"{a['treasuryAuctionResultsPressReleaseFileName']}"
+                           if a.get('treasuryAuctionResultsPressReleaseFileName') else None),
         '_analysis': {
             'btc': num(a.get('bidToCoverRatio')),
             'high_yield': num(first(a, 'highYield', 'highRate', 'highInvestmentRate')),

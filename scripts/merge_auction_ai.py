@@ -85,7 +85,10 @@ for k, e in ai.items():
     applied += 1
     print(f"✅ 반영 {k}: tail={e.get('tail_bps')} wi={e.get('wi_rate')}")
 
-if applied:
+CHECK_ONLY = '--check' in sys.argv          # 에이전트 커밋 전 자체 검증용: 파일을 쓰지 않음
+if applied and not CHECK_ONLY:
     with open(RES_PATH, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-print(f'반영 {applied}건 / 거부 {rejected}건')
+print(f'반영 {applied}건 / 거부 {rejected}건' + (' (검증만, 파일 미변경)' if CHECK_ONLY else ''))
+if rejected and CHECK_ONLY:
+    sys.exit(1)
