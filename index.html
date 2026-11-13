@@ -281,7 +281,7 @@ body{
 .ps-status.n{background:#21262D;color:#8B949E;}
 .ps-status.a{background:#2D1F00;color:#F0B429;}
 .ps-status.r{background:#3D0000;color:#F85149;}
-.ps-status.k{background:#111;color:#aaa;border:0.5px solid #555;}
+.ps-status.k{background:#4A0000;color:#FF7B72;border:0.5px solid #F85149;}
 /* 펼침 힌트 화살표 */
 .ps-expand{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:16px;color:#484F58;transition:transform .2s,color .2s;line-height:1;}
 .pipe-seg.expanded .ps-expand{transform:translateX(-50%) rotate(180deg);color:#8B949E;}
@@ -301,7 +301,7 @@ body{
 .pipe-detail.n{border-color:#484F58;background:#0D1117;}
 .pipe-detail.a{border-color:#9E6A03;background:#100C02;}
 .pipe-detail.r{border-color:#B91C1C;background:#0F0404;}
-.pipe-detail.k{border-color:#555;background:#060606;}
+.pipe-detail.k{border-color:#F85149;background:#140303;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
 
 /* 상세 패널 — 지표 행 */
@@ -338,6 +338,11 @@ body{
 .pd-formula.n{border-left-color:#484F58;}
 .pd-formula.a{border-left-color:#9E6A03;}
 .pd-formula.r{border-left-color:#B91C1C;}
+/* k(위기) — r보다 한 단계 강한 빨강 (이전엔 회색 #aaa라 '수신 실패'와 구분이 안 됐음) */
+.pipe-seg.k{background:#4A0000;border-color:#F85149;}
+.pipe-arrow.k::before{border-left-color:#F85149;}
+.ps-label.k{color:#FF7B72;}
+.pd-formula.k{border-left-color:#F85149;}
 
 /* detail-rows: 카드 컨테이너 — 여기에 gap 적용 */
 [id$="-rows"]{
@@ -1309,7 +1314,7 @@ body{
 </div>
 
 <!-- ═══════ TAB NAV ═══════ -->
-<div class="tab-nav">
+<div class="tab-nav" role="tablist">
   <button class="tab-btn active" onclick="goTab(0,this)">거시경제 모니터</button>
   <button class="tab-btn" onclick="goTab(1,this)">유동성&amp;시장</button>
   <button class="tab-btn" onclick="goTab(2,this)">실물경제</button>
@@ -1411,7 +1416,7 @@ body{
     <div>
       <div class="ep-title">데이터 수신 실패</div>
       <div class="ep-body" id="errorMsg">—</div>
-      <button class="ep-retry" onclick="loadS1()">재시도</button>
+      <button class="ep-retry" onclick="loadS1()">다시 시도</button>
     </div>
   </div>
 
@@ -1495,7 +1500,7 @@ body{
       <div class="gauge-grid">
 
         <!-- VIX (2fr) -->
-        <div class="gauge-card" id="vixCard" onclick="toggleGaugeChart('vix','^VIX','VIX',this)" style="position:relative;">
+        <div class="gauge-card" id="vixCard" role="button" tabindex="0" aria-expanded="false" aria-controls="vixChartPanel" onclick="toggleGaugeChart('vix','^VIX','VIX',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="position:relative;">
           <span class="gc-expand-hint">▾</span>
           <div class="gc-label">VIX <span class="gc-ticker">^VIX</span></div>
           <div class="gc-full-name">CBOE Volatility Index</div>
@@ -1523,7 +1528,7 @@ body{
         </div>
 
         <!-- MOVE (2fr) -->
-        <div class="gauge-card" id="moveCard" onclick="toggleGaugeChart('move','^MOVE','MOVE',this)" style="position:relative;">
+        <div class="gauge-card" id="moveCard" role="button" tabindex="0" aria-expanded="false" aria-controls="moveChartPanel" onclick="toggleGaugeChart('move','^MOVE','MOVE',this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}" style="position:relative;">
           <span class="gc-expand-hint">▾</span>
           <div class="gc-label">MOVE <span class="gc-ticker">^MOVE</span></div>
           <div class="gc-full-name">ICE BofA MOVE Index (채권 변동성)</div>
@@ -1609,11 +1614,11 @@ body{
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:10px;font-weight:600;color:#8B949E;">VIX 히스토리 (^VIX · Yahoo Finance)</span>
           <div class="gc-chart-btns" id="vixRangeBtns">
-            <button class="gc-chart-btn" onclick="loadGaugeChart('vix','^VIX','1mo',this)">1M</button>
-            <button class="gc-chart-btn" onclick="loadGaugeChart('vix','^VIX','3mo',this)">3M</button>
-            <button class="gc-chart-btn active" onclick="loadGaugeChart('vix','^VIX','6mo',this)">6M</button>
-            <button class="gc-chart-btn" onclick="loadGaugeChart('vix','^VIX','1y',this)">1Y</button>
-            <button class="gc-chart-btn" onclick="loadGaugeChart('vix','^VIX','2y',this)">2Y</button>
+            <button class="gc-chart-btn" data-range="1mo" onclick="loadGaugeChart('vix','^VIX','1mo',this)">1M</button>
+            <button class="gc-chart-btn active" data-range="3mo" onclick="loadGaugeChart('vix','^VIX','3mo',this)">3M</button>
+            <button class="gc-chart-btn" data-range="6mo" onclick="loadGaugeChart('vix','^VIX','6mo',this)">6M</button>
+            <button class="gc-chart-btn" data-range="1y" onclick="loadGaugeChart('vix','^VIX','1y',this)">1Y</button>
+            <button class="gc-chart-btn" data-range="2y" onclick="loadGaugeChart('vix','^VIX','2y',this)">2Y</button>
           </div>
         </div>
         <div id="vixChartArea"><div class="gc-chart-loading">로딩 중...</div></div>
@@ -1624,11 +1629,11 @@ body{
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:10px;font-weight:600;color:#8B949E;">MOVE 히스토리 (^MOVE · Yahoo Finance)</span>
           <div class="gc-chart-btns" id="moveRangeBtns">
-            <button class="gc-chart-btn" onclick="loadGaugeChart('move','^MOVE','1mo',this)">1M</button>
-            <button class="gc-chart-btn" onclick="loadGaugeChart('move','^MOVE','3mo',this)">3M</button>
-            <button class="gc-chart-btn active" onclick="loadGaugeChart('move','^MOVE','6mo',this)">6M</button>
-            <button class="gc-chart-btn" onclick="loadGaugeChart('move','^MOVE','1y',this)">1Y</button>
-            <button class="gc-chart-btn" onclick="loadGaugeChart('move','^MOVE','2y',this)">2Y</button>
+            <button class="gc-chart-btn" data-range="1mo" onclick="loadGaugeChart('move','^MOVE','1mo',this)">1M</button>
+            <button class="gc-chart-btn active" data-range="3mo" onclick="loadGaugeChart('move','^MOVE','3mo',this)">3M</button>
+            <button class="gc-chart-btn" data-range="6mo" onclick="loadGaugeChart('move','^MOVE','6mo',this)">6M</button>
+            <button class="gc-chart-btn" data-range="1y" onclick="loadGaugeChart('move','^MOVE','1y',this)">1Y</button>
+            <button class="gc-chart-btn" data-range="2y" onclick="loadGaugeChart('move','^MOVE','2y',this)">2Y</button>
           </div>
         </div>
         <div id="moveChartArea"><div class="gc-chart-loading">로딩 중...</div></div>
@@ -1811,7 +1816,7 @@ body{
           <!-- 바 리스트 타이틀 -->
           <div class="sector-chart-title">
             AUM 자금 흐름 (5일 기준)
-            <span class="sector-chart-subtitle">최근 5일 평균 vs 이전 5일 평균 · 클릭하면 상세 분석 →</span>
+            <span class="sector-chart-subtitle">최근 5일 평균 vs 이전 5일 평균 · 탭/클릭하면 상세 분석</span>
           </div>
           <div id="sectorBarList" style="flex:1;">
             <!-- JS 동적 생성 -->
@@ -2506,7 +2511,7 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
         <div style="display:flex;align-items:center;gap:5px;margin-bottom:6px;">
           <span style="font-size:9px;font-weight:600;color:#656D76;">글로벌 수요 &amp; 자본 밸런스 — ⏳ 글로벌 유동성 1~3개월 선행</span>
           <span class="pd-tip-wrap"><i class="pd-tip-icon">?</i>
-            <span class="pd-tip-box" style="width:300px;left:0;bottom:calc(100% + 6px);top:auto;transform:none;">
+            <span class="pd-tip-box" style="width:300px;right:0;left:auto;bottom:calc(100% + 6px);top:auto;transform:none;">
               <b style="color:#E6EDF3;">선행 지표 구조 (1~3개월)</b><br><br>
               <span style="color:#A78BFA;font-weight:600;">EUR/USD</span><br>
               <span style="color:#8B949E;">달러 패권 약화·자본 확산. EUR 상승은 달러 독주가 끝나고 비미국 자산으로 글로벌 자본이 이동하는 신호입니다.</span><br><br>
@@ -3142,8 +3147,19 @@ function goTab(n, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   const t = document.getElementById('t' + n);
   if (t) t.classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+  if (!btn) btn = document.querySelectorAll('.tab-btn')[n];
+  if (btn) {
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    // 좁은 화면에서 탭 바가 가로 스크롤될 때 선택한 탭이 잘리지 않게 (가로로만 — 페이지 세로 위치는 그대로)
+    const nav = btn.closest('.tab-nav');
+    if (nav && nav.scrollWidth > nav.clientWidth) {
+      const nr = nav.getBoundingClientRect(), br = btn.getBoundingClientRect();
+      const dx = br.right > nr.right - 4 ? br.right - nr.right + 16 : br.left < nr.left + 4 ? br.left - nr.left - 16 : 0;
+      if (dx) nav.scrollBy({ left: dx, behavior: 'smooth' });
+    }
+  }
   currentTabIdx = n;
   // 처음 들어오면 로드, 이미 로드됐지만 일부가 빠진 채였다면 빠진 섹션만 다시 받기
   if (n === 0) retryPartials(['S1', 'S2', 'S3']);
@@ -3152,6 +3168,24 @@ function goTab(n, btn) {
   if (n === 3) { if (!t3Loaded) { t3Loaded = true; loadT3(); } else retryPartials(['T3']); }
   if (n === 4) { if (!t4Loaded) { t4Loaded = true; loadT4(); } else retryPartials(['T4']); }
 }
+
+// 탭 바: 오른쪽(왼쪽)으로 더 스크롤할 탭이 있으면 가장자리를 흐리게
+(function () {
+  const nav = document.querySelector('.tab-nav');
+  if (!nav) return;
+  let raf = 0;
+  const upd = () => {
+    raf = 0;
+    const max = nav.scrollWidth - nav.clientWidth;
+    nav.classList.toggle('fade-r', max > 2 && nav.scrollLeft < max - 2);
+    nav.classList.toggle('fade-l', max > 2 && nav.scrollLeft > 2);
+  };
+  const sched = () => { if (!raf) raf = requestAnimationFrame(upd); };
+  nav.addEventListener('scroll', sched, { passive: true });
+  window.addEventListener('resize', sched);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', sched); else sched();
+  window.addEventListener('load', sched);
+})();
 
 // ══════════════════════════════
 // subpage1 JS
@@ -3173,25 +3207,37 @@ const pipeDetails = [null, null, null, null];
 // ──────────────────────────────
 const gaugeChartInstances = {};
 const gaugeChartCache     = {};
+const _chartReq = {};   // 차트별 요청 번호 — 빠르게 기간을 바꿔 누를 때 늦게 온 이전 응답은 버린다
+const _isNarrow = () => window.matchMedia('(max-width: 599px)').matches;
+// 6개월 이하(1M·3M·6M)는 MM-DD, 그 외는 YYYY-MM 눈금 (6M에 YYYY-MM이면 같은 달이 두 번씩 찍힘)
+const _rangeTickFmt = range => (range === '1mo' || range === '3mo' || range === '6mo') ? d => (d || '').slice(5) : d => (d || '').slice(0, 7);
+
+function _closeGaugePanel(id) {
+  const panel = document.getElementById(id + 'ChartPanel');
+  const card  = document.getElementById(id + 'Card');
+  if (!panel) return;
+  panel.classList.remove('open');
+  if (card) { card.classList.remove('chart-open'); card.setAttribute('aria-expanded', 'false'); }
+  _chartReq[id] = (_chartReq[id] || 0) + 1;   // 진행 중이던 요청 무효화
+  if (gaugeChartInstances[id]) {
+    gaugeChartInstances[id].destroy();
+    delete gaugeChartInstances[id];
+  }
+}
 
 function toggleGaugeChart(id, ticker, label, cardEl) {
   const panel = document.getElementById(id + 'ChartPanel');
-  const isOpen = panel.classList.contains('open');
+  if (!panel) return;
+  if (panel.classList.contains('open')) { _closeGaugePanel(id); return; }
 
-  if (isOpen) {
-    panel.classList.remove('open');
-    cardEl.classList.remove('chart-open');
-    if (gaugeChartInstances[id]) {
-      gaugeChartInstances[id].destroy();
-      delete gaugeChartInstances[id];
-    }
-  } else {
-    panel.classList.add('open');
-    cardEl.classList.add('chart-open');
-    // 기본 range 6mo 로드
-    loadGaugeChart(id, ticker, '6mo',
-      document.querySelector(`#${id}RangeBtns .gc-chart-btn.active`));
-  }
+  // 좁은 화면: 차트 패널이 카드 아래로 떨어지므로 하나만 열고(아코디언) 열린 패널로 스크롤
+  if (_isNarrow()) ['vix', 'move'].filter(k => k !== id).forEach(_closeGaugePanel);
+  panel.classList.add('open');
+  if (cardEl) { cardEl.classList.add('chart-open'); cardEl.setAttribute('aria-expanded', 'true'); }
+  // 강조된 버튼의 기간으로 로드 (기본 3M — /market 스냅샷)
+  const btn = document.querySelector(`#${id}RangeBtns .gc-chart-btn.active`);
+  loadGaugeChart(id, ticker, btn?.dataset.range || '3mo', btn);
+  if (_isNarrow()) setTimeout(() => panel.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
 }
 
 async function loadGaugeChart(id, ticker, range, btnEl) {
@@ -3203,7 +3249,10 @@ async function loadGaugeChart(id, ticker, range, btnEl) {
   }
 
   const areaEl = document.getElementById(id + 'ChartArea');
+  const panel  = document.getElementById(id + 'ChartPanel');
   if (!areaEl) return;
+  const req = _chartReq[id] = (_chartReq[id] || 0) + 1;
+  const stale = () => req !== _chartReq[id] || !panel?.classList.contains('open');
 
   const cacheKey = `${ticker}_${range}`;
 
@@ -3213,20 +3262,21 @@ async function loadGaugeChart(id, ticker, range, btnEl) {
     delete gaugeChartInstances[id];
   }
 
-  // 캐시 없으면 로딩 표시 후 fetch
+  // 캐시 없으면 로딩 표시 후 fetch (1M·3M은 /market 스냅샷, 그 외 기간은 실시간)
   if (!gaugeChartCache[cacheKey]) {
     areaEl.innerHTML = '<div class="gc-chart-loading">📊 데이터 로딩 중...</div>';
     try {
-      const resp = await fetchWithTimeout(
-        `${WORKER}/yahoo-chart?ticker=${encodeURIComponent(ticker)}&range=${range}`, 12000);
+      const resp = await marketChart(ticker, range);
       const data = await resp.json();
       if (data.error) throw new Error(data.error);
+      if (!data.closes?.length) throw new Error('데이터 없음');
       gaugeChartCache[cacheKey] = data;
     } catch(e) {
-      areaEl.innerHTML = `<div class="gc-chart-loading">⚠️ ${e.message}</div>`;
+      if (req === _chartReq[id]) areaEl.innerHTML = `<div class="gc-chart-loading">⚠️ ${escH(e.message)}</div>`;
       return;
     }
   }
+  if (stale()) return;
 
   const data   = gaugeChartCache[cacheKey];
   const dates  = data.dates  || [];
@@ -3237,9 +3287,7 @@ async function loadGaugeChart(id, ticker, range, btnEl) {
     return;
   }
 
-  // 레이블 간격 (최대 8개)
-  const step = Math.max(1, Math.floor(dates.length / 8));
-  const labels = dates.map((d, i) => i % step === 0 ? d.slice(0, 7) : '');
+  const tickFmt = _rangeTickFmt(range);
 
   // 색상: VIX/MOVE 임계값 기준
   const THRESH_MAP = { '^VIX': 20, '^MOVE': 110 };
@@ -3252,10 +3300,10 @@ async function loadGaugeChart(id, ticker, range, btnEl) {
   const ctx = document.getElementById(id + 'ChartCanvas');
   if (!ctx) return;
 
-  gaugeChartInstances[id] = new Chart(ctx, {
+  gaugeChartInstances[id] = replaceChart('gauge_' + id, ctx, {
     type: 'line',
     data: {
-      labels,
+      labels: dates,
       datasets: [{
         data:            closes,
         borderColor:     lineColor,
@@ -3287,7 +3335,8 @@ async function loadGaugeChart(id, ticker, range, btnEl) {
       },
       scales: {
         x: {
-          ticks: { color: '#484F58', font: { size: 9 }, maxRotation: 0 },
+          ticks: { color: '#484F58', font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8,
+                   callback: function(v) { return tickFmt(this.getLabelForValue(v)); } },
           grid:  { color: '#21262D', lineWidth: 0.5 },
         },
         y: {
@@ -3299,44 +3348,79 @@ async function loadGaugeChart(id, ticker, range, btnEl) {
   });
 }
 
-// fetch에 타임아웃 추가 (기본 10초) — 공통 fetchWithTimeout alias 사용
-
 // ──────────────────────────────
-// DXY 인라인 차트 (Pipe2 DXY row 내부 — loadDxyChart 재활용, area ID만 다름)
-async function loadDxyInline(range, btnEl) {
-  if (btnEl) {
-    btnEl.closest('div').querySelectorAll('.gc-chart-btn')
-      .forEach(b => b.classList.remove('active'));
-    btnEl.classList.add('active');
+// DXY 인라인 차트 (Pipe2 DXY 행 내부)
+// 2년치를 한 번 받아 실제 50/200일 이동평균을 계산한 뒤, 고른 기간만 잘라 그린다.
+// renderPipe가 상세 행을 다시 그리면(새 영역) 사용자가 고른 기간을 유지한다.
+// ──────────────────────────────
+let _dxyInlineRange = '6mo';
+let _dxyInlineReq   = 0;
+const _DXY_MONTHS = { '1mo': 1, '3mo': 3, '6mo': 6, '1y': 12 };
+const _dxyInlineBtns = () => [...document.querySelectorAll('button[onclick*="loadDxyInline"]')];
+const _btnRange = b => (b.dataset.range || (b.getAttribute('onclick') || '').match(/'([^']+)'/)?.[1] || '');
+const _rollMean = (arr, n) => {
+  const out = new Array(arr.length).fill(null);
+  let s = 0;
+  for (let i = 0; i < arr.length; i++) {
+    s += arr[i];
+    if (i >= n) s -= arr[i - n];
+    if (i >= n - 1) out[i] = s / n;
   }
+  return out;
+};
+
+async function loadDxyInline(range, btnEl) {
   const areaEl = document.getElementById('dxyInlineChartArea');
   if (!areaEl) return;
+  if (!areaEl.dataset.dxyInit) {
+    // 새로 그려진 영역(renderPipe 재렌더·자동 로드) → 마지막으로 고른 기간 유지
+    areaEl.dataset.dxyInit = '1';
+    range = _dxyInlineRange;
+  } else if (range && _DXY_MONTHS[range]) {
+    _dxyInlineRange = range;
+  } else {
+    range = _dxyInlineRange;
+  }
+  _dxyInlineBtns().forEach(b => b.classList.toggle('active', _btnRange(b) === range));
 
-  const cacheKey = `DXY_${range}`;
+  const req = ++_dxyInlineReq;
+  const cacheKey = 'DXY_2y';
   if (!gaugeChartCache[cacheKey]) {
     areaEl.innerHTML = '<div class="gc-chart-loading">📊 DXY 로딩 중...</div>';
     try {
-      const resp = await fetchWithTimeout(
-        `${WORKER}/yahoo-chart?ticker=DX-Y.NYB&range=${range}`, 12000);
+      const resp = await fetchT(`${WORKER}/yahoo-chart?ticker=DX-Y.NYB&range=2y`, 12000);
       const data = await resp.json();
       if (data.error) throw new Error(data.error);
+      if (!data.closes?.length) throw new Error('데이터 없음');
       gaugeChartCache[cacheKey] = data;
     } catch(e) {
-      areaEl.innerHTML = `<div class="gc-chart-loading">⚠️ ${e.message}</div>`;
+      if (req === _dxyInlineReq && areaEl.isConnected) areaEl.innerHTML = `<div class="gc-chart-loading">⚠️ ${escH(e.message)}</div>`;
       return;
     }
   }
+  // 늦게 온 이전 응답이거나, 기다리는 동안 영역이 다시 그려졌으면 무시
+  if (req !== _dxyInlineReq || !areaEl.isConnected) return;
 
-  const data   = gaugeChartCache[cacheKey];
-  const dates  = data.dates  || [];
-  const closes = data.closes || [];
-  if (!closes.length) { areaEl.innerHTML = '<div class="gc-chart-loading">데이터 없음</div>'; return; }
+  const data    = gaugeChartCache[cacheKey];
+  const allD    = data.dates  || [];
+  const allC    = data.closes || [];
+  if (!allC.length) { areaEl.innerHTML = '<div class="gc-chart-loading">데이터 없음</div>'; return; }
 
-  const sma = (arr, n) => arr.length >= n ? arr.slice(arr.length-n).reduce((a,b)=>a+b,0)/n : null;
-  const ma50  = sma(closes, 50);
-  const ma200 = sma(closes, 200);
-  const step  = Math.max(1, Math.floor(dates.length / 8));
-  const labels = dates.map((d, i) => i % step === 0 ? d.slice(0,7) : '');
+  const ma50All  = _rollMean(allC, 50);
+  const ma200All = _rollMean(allC, 200);
+  const cut = new Date(allD[allD.length - 1] + 'T00:00:00Z');
+  cut.setUTCMonth(cut.getUTCMonth() - (_DXY_MONTHS[range] || 6));
+  const cutStr = cut.toISOString().slice(0, 10);
+  let from = allD.findIndex(d => d >= cutStr);
+  if (from < 0) from = 0;
+  const dates  = allD.slice(from);
+  const closes = allC.slice(from);
+  const ma50   = ma50All.slice(from);
+  const ma200  = ma200All.slice(from);
+  const last = a => { for (let i = a.length - 1; i >= 0; i--) if (a[i] != null) return a[i]; return null; };
+  const ma50Last = last(ma50), ma200Last = last(ma200);
+
+  const tickFmt = _rangeTickFmt(range);
   const latest = closes[closes.length-1];
   const lineColor = latest > 105 ? '#F85149' : latest > 103 ? '#F0B429' : '#0969DA';
   const fillColor = latest > 105 ? 'rgba(248,81,73,0.06)' : latest > 103 ? 'rgba(240,180,41,0.06)' : 'rgba(9,105,218,0.06)';
@@ -3354,155 +3438,26 @@ async function loadDxyInline(range, btnEl) {
     borderColor: lineColor, backgroundColor: fillColor,
     borderWidth: 1.8, fill: true, pointRadius: 0, pointHoverRadius: 4, tension: 0.3,
   }];
-  if (ma50  != null) datasets.push({ label:`50DMA (${ma50.toFixed(2)})`,  data: closes.map(()=>ma50),  borderColor:'#9A6700', borderWidth:1, borderDash:[5,4], fill:false, pointRadius:0, tension:0 });
-  if (ma200 != null) datasets.push({ label:`200DMA (${ma200.toFixed(2)})`, data: closes.map(()=>ma200), borderColor:'#CF222B', borderWidth:1, borderDash:[5,4], fill:false, pointRadius:0, tension:0 });
+  if (ma50Last  != null) datasets.push({ label:`50DMA (${ma50Last.toFixed(2)})`,  data: ma50,  borderColor:'#9A6700', borderWidth:1, borderDash:[5,4], fill:false, pointRadius:0, tension:0.2, spanGaps:false });
+  if (ma200Last != null) datasets.push({ label:`200DMA (${ma200Last.toFixed(2)})`, data: ma200, borderColor:'#CF222B', borderWidth:1, borderDash:[5,4], fill:false, pointRadius:0, tension:0.2, spanGaps:false });
 
-  gaugeChartInstances['dxyInline'] = new Chart(ctx, {
+  gaugeChartInstances['dxyInline'] = replaceChart('dxyInline', ctx, {
     type: 'line',
-    data: { labels, datasets },
+    data: { labels: dates, datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { mode:'index', intersect:false },
       plugins: {
         legend: { display:true, position:'top', labels:{ color:'#8B949E', font:{size:9,family:'-apple-system,sans-serif'}, boxWidth:12, padding:8, usePointStyle:true, pointStyle:'line' } },
-        tooltip: { backgroundColor:'#161B22', borderColor:'#30363D', borderWidth:1, titleColor:'#8B949E', bodyColor:'#E6EDF3', bodyFont:{family:'-apple-system,sans-serif',size:11}, callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}` } }
+        tooltip: { backgroundColor:'#161B22', borderColor:'#30363D', borderWidth:1, titleColor:'#8B949E', bodyColor:'#E6EDF3', bodyFont:{family:'-apple-system,sans-serif',size:11},
+                   filter: item => item.parsed.y != null,
+                   callbacks:{ label: ctx => ` ${ctx.dataset.label.split(' ')[0]}: ${ctx.parsed.y.toFixed(2)}` } }
       },
       scales: {
-        x: { ticks:{color:'#484F58',font:{size:9},maxRotation:0}, grid:{color:'#21262D',lineWidth:0.5} },
+        x: { ticks:{color:'#484F58',font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:8,
+                    callback: function(v) { return tickFmt(this.getLabelForValue(v)); }},
+             grid:{color:'#21262D',lineWidth:0.5} },
         y: { ticks:{color:'#484F58',font:{size:9}}, grid:{color:'#21262D',lineWidth:0.5} }
-      }
-    }
-  });
-}
-
-// DXY 독립 패널용 (게이지 섹션 — 현재 미사용, 보존)
-async function loadDxyChart(range, btnEl) { return loadDxyInline(range, btnEl); }
-// ──────────────────────────────
-async function loadDxyChart(range, btnEl) {
-  if (btnEl) {
-    btnEl.closest('.gc-chart-btns').querySelectorAll('.gc-chart-btn')
-      .forEach(b => b.classList.remove('active'));
-    btnEl.classList.add('active');
-  }
-  const areaEl = document.getElementById('dxyChartArea');
-  if (!areaEl) return;
-
-  const cacheKey = `DXY_${range}`;
-  if (!gaugeChartCache[cacheKey]) {
-    areaEl.innerHTML = '<div class="gc-chart-loading">📊 DXY 로딩 중...</div>';
-    try {
-      const resp = await fetchWithTimeout(
-        `${WORKER}/yahoo-chart?ticker=DX-Y.NYB&range=${range}`, 12000);
-      const data = await resp.json();
-      if (data.error) throw new Error(data.error);
-      gaugeChartCache[cacheKey] = data;
-    } catch(e) {
-      areaEl.innerHTML = `<div class="gc-chart-loading">⚠️ ${e.message}</div>`;
-      return;
-    }
-  }
-
-  const data   = gaugeChartCache[cacheKey];
-  const dates  = data.dates  || [];
-  const closes = data.closes || [];
-  if (!closes.length) {
-    areaEl.innerHTML = '<div class="gc-chart-loading">데이터 없음</div>';
-    return;
-  }
-
-  // 50/200 DMA 계산 (현재 dxyJson에서 재활용)
-  const sma = (arr, n) => arr.length >= n
-    ? arr.slice(arr.length - n).reduce((a,b)=>a+b,0)/n : null;
-  const ma50  = sma(closes, 50);
-  const ma200 = sma(closes, 200);
-
-  const step = Math.max(1, Math.floor(dates.length / 8));
-  const labels = dates.map((d, i) => i % step === 0 ? d.slice(0, 7) : '');
-
-  // DXY 색상: 103 초과 시 경계(주황), 105 초과 시 위험(빨강)
-  const latest = closes[closes.length - 1];
-  const lineColor = latest > 105 ? '#F85149' : latest > 103 ? '#F0B429' : '#0969DA';
-  const fillColor = latest > 105 ? 'rgba(248,81,73,0.06)' : latest > 103 ? 'rgba(240,180,41,0.06)' : 'rgba(9,105,218,0.06)';
-
-  if (gaugeChartInstances['dxy']) {
-    gaugeChartInstances['dxy'].destroy();
-    delete gaugeChartInstances['dxy'];
-  }
-
-  areaEl.innerHTML = '<div class="gc-chart-wrap"><canvas id="dxyChartCanvas"></canvas></div>';
-  const ctx = document.getElementById('dxyChartCanvas');
-  if (!ctx) return;
-
-  const datasets = [{
-    label: 'DXY',
-    data:            closes,
-    borderColor:     lineColor,
-    backgroundColor: fillColor,
-    borderWidth:     1.8,
-    fill:            true,
-    pointRadius:     0,
-    pointHoverRadius: 4,
-    tension:         0.3,
-  }];
-
-  // 50DMA 기준선 (전체 구간에 동일값 수평선)
-  if (ma50 != null) {
-    datasets.push({
-      label: `50DMA (${ma50.toFixed(2)})`,
-      data:        closes.map(() => ma50),
-      borderColor: '#9A6700',
-      borderWidth: 1,
-      borderDash:  [5, 4],
-      fill:        false,
-      pointRadius: 0,
-      tension:     0,
-    });
-  }
-  // 200DMA 기준선
-  if (ma200 != null) {
-    datasets.push({
-      label: `200DMA (${ma200.toFixed(2)})`,
-      data:        closes.map(() => ma200),
-      borderColor: '#CF222B',
-      borderWidth: 1,
-      borderDash:  [5, 4],
-      fill:        false,
-      pointRadius: 0,
-      tension:     0,
-    });
-  }
-
-  gaugeChartInstances['dxy'] = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          labels: {
-            color: '#8B949E',
-            font: { size: 9, family: '-apple-system,sans-serif' },
-            boxWidth: 12, padding: 8,
-            usePointStyle: true, pointStyle: 'line',
-          }
-        },
-        tooltip: {
-          backgroundColor: '#161B22',
-          borderColor:     '#30363D',
-          borderWidth:     1,
-          titleColor:      '#8B949E',
-          bodyColor:       '#E6EDF3',
-          bodyFont:        { family: '-apple-system,sans-serif', size: 11 },
-          callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}` }
-        }
-      },
-      scales: {
-        x: { ticks: { color:'#484F58', font:{size:9}, maxRotation:0 }, grid:{color:'#21262D',lineWidth:0.5} },
-        y: { ticks: { color:'#484F58', font:{size:9} }, grid:{color:'#21262D',lineWidth:0.5} }
       }
     }
   });
@@ -3630,6 +3585,8 @@ const SIG_STYLE = {
   k: { label:'위기',     color:'#F85149', bg:'#111111', pri:3 },
   n: { label:'수신 실패', color:'#8B949E', bg:'#21262D', pri:-1 },
 };
+// 파이프 헤더는 배관 은유(마찰·경색)를 유지 — 행 배지는 SIG_STYLE 라벨
+const PIPE_LABEL = { g:'안정', a:'마찰', r:'경색', k:'위기', n:'수신 실패' };
 // 행 신호 → 파이프 종합 신호. 전부 'n'이면 'n', 아니면 실제 신호 중 최악 + 'n' 섞임 여부
 function pipeAggregate(rows) {
   const sigs = rows.map(r => SIG_STYLE[r?.sig] ? r.sig : 'n');
@@ -4435,7 +4392,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
     if (i<3) setSigClass(document.getElementById('parr'+i), 'pipe-arrow', cls);
     setSigClass(document.getElementById('plbl'+i), 'ps-label', cls);
     const stsEl = document.getElementById('psts'+i);
-    if (stsEl) { stsEl.textContent = SIG_STYLE[cls].label; setSigClass(stsEl, 'ps-status', cls); }
+    if (stsEl) { stsEl.textContent = PIPE_LABEL[cls] || SIG_STYLE[cls].label; setSigClass(stsEl, 'ps-status', cls); }
     let partEl = document.getElementById('ppart'+i);
     if (!partEl) {
       partEl = document.createElement('div');
@@ -4524,22 +4481,29 @@ function buildDetailRows(i, detail, accentColor) {
 // ──────────────────────────────
 // 인라인 상세 패널 토글
 // ──────────────────────────────
-function toggleDetail(i) {
+function _setDetailOpen(i, open) {
   const seg    = document.getElementById('pipe'+i);
   const detail = document.getElementById('detail'+i);
+  if (!seg || !detail) return;
+  detail.classList.toggle('open', open);
+  seg.classList.toggle('expanded', open);
+  seg.setAttribute('aria-expanded', open ? 'true' : 'false');
+  // 마지막 파이프(3번)는 right, 첫 파이프(0번)는 left 모서리 처리
+  if (i===3) seg.style.borderBottomRightRadius = open ? '0' : '';
+  if (i===0) seg.style.borderBottomLeftRadius  = open ? '0' : '';
+}
+function toggleDetail(i) {
+  const detail = document.getElementById('detail'+i);
+  if (!detail) return;
   const isOpen = detail.classList.contains('open');
+  const narrow = _isNarrow();   // ≤599px: 구간이 세로로 쌓이고 상세는 4번 구간 아래에 붙는다
 
-  // 열기 / 닫기
-  detail.classList.toggle('open', !isOpen);
-  seg.classList.toggle('expanded', !isOpen);
-
-  // 마지막 파이프(3번)는 right 모서리 처리
-  if (i===3) {
-    seg.style.borderBottomRightRadius = isOpen?'':'0';
-  }
-  if (i===0) {
-    seg.style.borderBottomLeftRadius = isOpen?'':'0';
-  }
+  // 좁은 화면은 아코디언 — 하나만 열어 둔다
+  if (!isOpen && narrow) [0,1,2,3].filter(j => j !== i).forEach(j => {
+    if (document.getElementById('detail'+j)?.classList.contains('open')) _setDetailOpen(j, false);
+  });
+  _setDetailOpen(i, !isOpen);
+  if (!isOpen && narrow) setTimeout(() => detail.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
 }
 
 // ──────────────────────────────
@@ -4696,13 +4660,6 @@ function showError(msg) {
 
 // ── HVM 상태 (Section 1에서 전달받을 값, 개발 중 토글로 시뮬) ──
 let hvmActive = false;
-function toggleHVM() {
-  hvmActive = !hvmActive;
-  document.getElementById('hvmSimBtn').textContent = hvmActive ? 'ON' : 'OFF';
-  document.getElementById('hvmSimBtn').style.color  = hvmActive ? '#F85149' : '#8B949E';
-  document.getElementById('hvmOverlay').classList.toggle('active', hvmActive);
-  // 카드 dim 효과 제거 — 경고 배너만 표시
-}
 
 let cspChartOpen = false;
 let cspChartDrawn = false;
@@ -5140,7 +5097,8 @@ function showContent2() {
 function showError2(msg) {
   document.getElementById('loadingState2').style.display = 'none';
   document.getElementById('errorPanel2').classList.add('show');
-  document.getElementById('errorPanel2').textContent = '⚠️ ' + msg;
+  document.getElementById('errorPanel2').innerHTML =
+    `<div>⚠️ ${escH(msg)}</div><button class="ep-retry" onclick="loadS2(true)">다시 시도</button>`;
 }
 
 // ══ Section 3 JS ══
@@ -5381,6 +5339,8 @@ function renderSectorBars() {
     row.className = 'sector-row' + (selectedTicker === s.ticker ? ' selected' : '');
     row.id = 'sr_' + s.ticker;
     row.onclick = () => selectSector(s.ticker);
+    row.tabIndex = 0; row.setAttribute('role', 'button');
+    row.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSector(s.ticker); } };
 
     row.innerHTML = `
       <span class="sr-ticker">${s.ticker}</span>
@@ -5434,6 +5394,7 @@ async function selectSector(ticker) {
     if (row) row.classList.remove('selected');
     selectedTicker = null;
     const detail = document.getElementById('sectorDetail');
+    detail.classList.remove('mobile-visible');   // 모바일에서 빈 상자가 남지 않게
     detail.innerHTML = `
       <div class="sd-empty">
         <span style="font-size:24px;">←</span>
@@ -5742,7 +5703,8 @@ function showContent3() {
 function showError3(msg) {
   document.getElementById('loadingState3').style.display = 'none';
   document.getElementById('errorPanel3').classList.add('show');
-  document.getElementById('errorPanel3').textContent = '⚠️ ' + msg;
+  document.getElementById('errorPanel3').innerHTML =
+    `<div>⚠️ ${escH(msg)}</div><button class="ep-retry" onclick="loadS3(true)">다시 시도</button>`;
 }
 
 
@@ -8185,7 +8147,7 @@ async function loadT4(force = false, silent = false) {
   } catch(e) {
     hideEl('t4-loading');
     const errEl = t4$('t4-error');
-    if (errEl) { errEl.textContent = '데이터 로딩 실패: ' + e.message; errEl.style.display = 'block'; }
+    if (errEl) { errEl.innerHTML = `데이터 로딩 실패: ${escH(e.message)}<br><button class="ep-retry" onclick="t4Loaded=true;loadT4(true)">다시 시도</button>`; errEl.style.display = 'block'; }
     dsFailTab(4, 'T4 로딩 실패', _dsT4);   // 배지가 직전 '✅ 정상'으로 남지 않게
     t4Loaded = false;   // 탭에 다시 들어오면 자동 재시도
     markPartial('T4', true, () => { t4Loaded = true; loadT4(); });
@@ -8632,6 +8594,8 @@ async function initAll() {
 // ══════════════════════════════
 // T3 글로벌 — loadT3
 // ══════════════════════════════
+// T3 차트 눈금 글자 크기: 모바일 9px, 데스크톱 8px (7px는 읽기 어려움)
+const _t3TickSize = () => window.matchMedia('(max-width: 767px)').matches ? 9 : 8;
 async function loadT3(force = false) {
   { const _err = document.getElementById('t3-error'); if (_err) _err.style.display = 'none'; }   // 이전 오류 배너 정리
   const t3$ = id => document.getElementById(id);
@@ -8718,7 +8682,8 @@ async function loadT3(force = false) {
       };
 
       // 차트 그리기 함수
-      window._drawDxyChart = (range = '1Y') => {
+      window._drawDxyChart = (range = window._t3Range || '1Y') => {
+        window._t3Range = range;
         const cutoffDate = rangeStart(range);
         const filtered = dxySeries.filter(x => x.date >= cutoffDate);
         const xLabels = filtered.map(x => x.date);
@@ -8835,7 +8800,7 @@ async function loadT3(force = false) {
                 borderColor:'rgba(230,237,243,0.85)', borderWidth:2,
                 backgroundColor:'rgba(230,237,243,0.05)',
                 pointRadius:0, fill:true, tension:0.3, spanGaps:true,
-                yAxisID:'ySpy', hidden:true },
+                yAxisID:'ySpy', hidden:!window._t3SpyOn },
             ],
           },
           options: {
@@ -8849,14 +8814,14 @@ async function loadT3(force = false) {
                 callbacks:{ title: items => items[0]?.label ?? '' } },
             },
             scales:{
-              x:{ ticks:{color:'#484F58',font:{size:7},maxTicksLimit:8,maxRotation:0,
+              x:{ ticks:{color:'#484F58',font:{size:_t3TickSize()},maxTicksLimit:8,maxRotation:0,
                     callback: function(v) { return tickFmt(this.getLabelForValue(v)) ?? ''; }},
                   grid:{color:'rgba(48,54,61,0.5)',lineWidth:0.5} },
               yL:{ type:'linear', position:'left',
-                   ticks:{color:'#A78BFA',font:{size:7},callback:v=>v.toFixed(1)},
+                   ticks:{color:'#A78BFA',font:{size:_t3TickSize()},callback:v=>v.toFixed(1)},
                    grid:{color:'rgba(48,54,61,0.5)',lineWidth:0.5} },
               yR:{ type:'linear', position:'right',
-                   ticks:{color:'#F59E0B',font:{size:7},callback:v=>v.toFixed(1)},
+                   ticks:{color:'#F59E0B',font:{size:_t3TickSize()},callback:v=>v.toFixed(1)},
                    grid:{display:false} },
               ySpy:{ type:'linear', position:'right', display:false,
                      grid:{display:false} },
@@ -8865,30 +8830,36 @@ async function loadT3(force = false) {
         });
       };
 
-      // SPY 오버레이 토글
-      window.toggleSpyOverlay = (btn) => {
-        if (!window._t3DxyChart) return;
-        const chart = window._t3DxyChart;
-        const spyIdx = chart.data.datasets.findIndex(ds => ds.label === 'S&P 500');
-        if (spyIdx < 0) return;
-        const isVisible = chart.isDatasetVisible(spyIdx); // 현재 실제 표시 여부
-        chart.setDatasetVisibility(spyIdx, !isVisible);   // 반전
-        chart.update();
-        const nowActive = !isVisible; // toggle 후 보이는 상태
+      // SPY 오버레이 토글 — 켜짐 상태는 window._t3SpyOn 하나로 관리 (기간 변경·재로드로 차트를 다시 만들어도 버튼·범례와 일치)
+      const syncSpyUi = () => {
+        const on = !!window._t3SpyOn;
+        const btn = document.getElementById('t3-spy-toggle');
         if (btn) {
-          btn.style.borderColor = nowActive ? '#E6EDF3' : '#444C56';
-          btn.style.color       = nowActive ? '#E6EDF3' : '#656D76';
+          btn.style.borderColor = on ? '#E6EDF3' : '#444C56';
+          btn.style.color       = on ? '#E6EDF3' : '#656D76';
+          btn.setAttribute('aria-pressed', on ? 'true' : 'false');
         }
         const spyLeg = document.getElementById('t3-spy-legend');
-        if (spyLeg) spyLeg.style.display = nowActive ? 'flex' : 'none';
+        if (spyLeg) spyLeg.style.display = on ? 'flex' : 'none';
+      };
+      window.toggleSpyOverlay = () => {
+        window._t3SpyOn = !window._t3SpyOn;
+        const chart = window._t3DxyChart;
+        if (chart) {
+          const spyIdx = chart.data.datasets.findIndex(ds => ds.label === 'S&P 500');
+          if (spyIdx >= 0) { chart.setDatasetVisibility(spyIdx, window._t3SpyOn); chart.update(); }
+        }
+        syncSpyUi();
       };
 
-      // 초기 렌더: show 이후에 호출 (canvas가 visible 상태여야 함)
-      window._initDxyChart = () => window._drawDxyChart('1Y');
+      // 초기 렌더: show 이후에 호출 (canvas가 visible 상태여야 함). 조용한 재로드 때도 강조된 기간 그대로
+      const t3ActiveRange = () => document.querySelector('#t3-range-btns .t3-rbtn.active')?.textContent.trim() || window._t3Range || '1Y';
+      window._initDxyChart = () => { window._drawDxyChart(t3ActiveRange()); syncSpyUi(); };
       window.setT3Range = (range, btn) => {
-        document.querySelectorAll('.t3-rbtn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('#t3-range-btns .t3-rbtn').forEach(b => b.classList.remove('active'));
         if (btn) btn.classList.add('active');
         window._drawDxyChart(range);
+        syncSpyUi();
       };
     }
 
@@ -9142,14 +9113,14 @@ async function loadT3(force = false) {
               callbacks:{title:items=>items[0]?.label??''}},
           },
           scales:{
-            x:{ticks:{color:'#484F58',font:{size:7},maxTicksLimit:6,maxRotation:0,
+            x:{ticks:{color:'#484F58',font:{size:_t3TickSize()},maxTicksLimit:6,maxRotation:0,
                 callback:function(v){return tickFmt(this.getLabelForValue(v))??'';}},
                grid:{color:'rgba(48,54,61,0.5)',lineWidth:0.5}},
             yL:{type:'linear',position:'left',
-                ticks:{color:colorA,font:{size:7},callback:v=>v.toFixed(range==='1Y'?4:3)},
+                ticks:{color:colorA,font:{size:_t3TickSize()},callback:v=>v.toFixed(range==='1Y'?4:3)},
                 grid:{color:'rgba(48,54,61,0.5)',lineWidth:0.5}},
             yR:{type:'linear',position:'right',
-                ticks:{color:colorB,font:{size:7},callback:v=>v.toFixed(0)},
+                ticks:{color:colorB,font:{size:_t3TickSize()},callback:v=>v.toFixed(0)},
                 grid:{display:false}},
           }
         }
@@ -9225,8 +9196,10 @@ async function loadT3(force = false) {
     };
 
     show3('t3-b2');
-    window._drawAsiaChart('3Y');
-    window._drawEuroChart('3Y');
+    // 조용한 재로드 때도 강조된 기간 그대로
+    const engRange = e => document.querySelector(`#t3-${e}-range-btns .t3-rbtn.active`)?.textContent.trim() || '3Y';
+    window._drawAsiaChart(engRange('asia'));
+    window._drawEuroChart(engRange('euro'));
 
   } catch(e) {
     hide3('t3-loading');
@@ -10832,14 +10805,26 @@ body {
 </style>
 
 <script>
-/* ── 터치 기기 툴팁 오버레이 (모바일·태블릿 공통) ── */
+/* ── 터치 기기 툴팁 오버레이 (모바일·태블릿 공통) ──
+   hover로만 열리던 툴팁(.pd-tip-wrap '?', 비율 카드 '?', Divergence Detector 개수)을 탭하면
+   화면 가운데 오버레이로 보여 준다. document 하나에 위임 — 동적으로 그려진 툴팁도 따로 묶을 필요 없음
+   (예전엔 MutationObserver가 시계 갱신마다 문서 전체를 다시 훑었다). */
 (function() {
   /* hover 가능 기기(마우스 데스크톱): CSS hover 그대로 사용 */
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
+  /* 트리거 → 내용 상자 */
+  var TIPS = [
+    { trigger: '.pd-tip-wrap',     box: '.pd-tip-box' },
+    { trigger: '.rc-tooltip-wrap', box: '.rc-tooltip' },
+    { trigger: '.ss-div-item',     box: '.ss-div-tooltip' }
+  ];
+  var TRIGGER_SEL = TIPS.map(function(t) { return t.trigger; }).join(',');
+
   /* 오버레이 생성 (body 최상단 → transformed 부모 영향 없음) */
   var overlay = document.createElement('div');
   overlay.id = 'mobile-tip-overlay';
+  overlay.setAttribute('role', 'dialog');
   overlay.style.cssText = [
     'display:none',
     'position:fixed',
@@ -10849,55 +10834,63 @@ body {
     'background:#1C2128',
     'border:0.5px solid #444C56',
     'border-radius:8px',
-    'padding:12px 14px',
-    'font-size:10px',
+    'padding:12px 34px 12px 14px',
+    'font-size:11px',
     'color:#CDD9E5',
     'line-height:1.65',
     'z-index:99999',
     'max-width:calc(100vw - 32px)',
     'width:min(340px, calc(100vw - 48px))',
+    'max-height:80vh',
+    'overflow-y:auto',
+    'overscroll-behavior:contain',
+    '-webkit-overflow-scrolling:touch',
     'box-shadow:0 4px 24px rgba(0,0,0,.75)',
     'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
-    'pointer-events:none',
+    'pointer-events:auto',
     'word-break:keep-all',
+    'white-space:normal'
   ].join(';');
+  var closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.setAttribute('aria-label', '닫기');
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText = 'position:absolute;top:4px;right:4px;width:28px;height:28px;background:transparent;border:none;color:#8B949E;font-size:14px;line-height:1;cursor:pointer;font-family:inherit;';
+  var content = document.createElement('div');
+  overlay.appendChild(closeBtn);
+  overlay.appendChild(content);
   document.body.appendChild(overlay);
 
-  /* 오버레이 닫기 */
-  document.addEventListener('touchstart', function(e) {
-    if (!e.target.closest('.pd-tip-wrap')) {
-      overlay.style.display = 'none';
-    }
-  }, {passive: true});
+  var openTrigger = null;
+  function isOpen() { return overlay.style.display === 'block'; }
+  function hide() { overlay.style.display = 'none'; content.innerHTML = ''; openTrigger = null; }
+  function show(trigger, box) {
+    content.innerHTML = box.innerHTML || '';
+    if (!content.textContent.trim()) { hide(); return; }
+    overlay.style.display = 'block';
+    overlay.scrollTop = 0;
+    openTrigger = trigger;
+  }
+  closeBtn.addEventListener('click', function(e) { e.stopPropagation(); hide(); });
 
-  /* wrap 바인딩 */
-  function bindWrap(wrap) {
-    if (wrap._mTipBound) return;
-    wrap._mTipBound = true;
-    wrap.addEventListener('touchstart', function(e) {
-      var box = wrap.querySelector('.pd-tip-box');
-      if (!box) return;
-      overlay.innerHTML = box.innerHTML || box.textContent || '';
-      if (overlay.innerHTML.trim()) {
-        overlay.style.display = 'block';
+  /* 캡처 단계에서 처리 — '?'를 탭했을 때 부모 카드의 onclick(차트 열기 등)이 같이 동작하지 않게 */
+  document.addEventListener('click', function(e) {
+    if (overlay.contains(e.target)) return;               // 오버레이 안(링크 등)은 그대로
+    var trigger = e.target.closest && e.target.closest(TRIGGER_SEL);
+    if (trigger) {
+      var spec = TIPS.filter(function(t) { return trigger.matches(t.trigger); })[0];
+      var box = spec && trigger.querySelector(spec.box);
+      if (box) {
+        e.preventDefault();
         e.stopPropagation();
+        if (openTrigger === trigger && isOpen()) hide();
+        else show(trigger, box);
+        return;
       }
-    }, {passive: true});
-  }
-
-  function bindAll() {
-    document.querySelectorAll('.pd-tip-wrap').forEach(bindWrap);
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindAll);
-  } else {
-    bindAll();
-  }
-
-  /* 동적 생성 툴팁 대응 */
-  new MutationObserver(bindAll)
-    .observe(document.body, {childList: true, subtree: true});
+    }
+    if (isOpen()) hide();                                 // 바깥을 탭하면 닫기
+  }, true);
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') hide(); });
 })();
 </script>
 
@@ -11918,3 +11911,101 @@ function escHtml(str) {
 
 })();
 </script>
+
+<!-- ═══════ UI 정리 (기간 버튼·탭 바·터치 툴팁·탭 영역·다시 시도) — 앞 규칙보다 뒤에 두어 우선 ═══════ -->
+<style>
+/* 키보드 포커스 표시 */
+:focus-visible { outline: 1px solid #58A6FF; outline-offset: 2px; }
+button:focus:not(:focus-visible), a:focus:not(:focus-visible),
+[role="button"]:focus:not(:focus-visible) { outline: none; }
+
+/* 탭 바: 더 스크롤할 탭이 있으면 가장자리를 흐리게 (goTab 근처 스크립트가 fade-l/fade-r 토글) */
+.tab-nav.fade-r { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.tab-nav.fade-l { -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+.tab-nav.fade-l.fade-r { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+@media (max-width: 767px) {
+  /* body 좌우 여백(24px)까지 탭 바를 넓혀 390px 폭에서도 5개 탭이 다 보이게 */
+  .tab-nav {
+    margin-left:  calc(-1 * max(24px, env(safe-area-inset-left, 0px)));
+    margin-right: calc(-1 * max(24px, env(safe-area-inset-right, 0px)));
+    padding: 0 max(12px, env(safe-area-inset-left, 0px)) 0 max(12px, env(safe-area-inset-right, 0px)) !important;
+  }
+}
+@media (max-width: 480px) {
+  .tab-btn { padding: 10px 8px 4px !important; }
+}
+
+/* 기간(range) 버튼 공통 강조 — VIX/MOVE·DXY 인라인(.gc-chart-btn), T3(.t3-rbtn), 국채 시계열 기간 토글 */
+.gc-chart-btn.active,
+.t3-rbtn.active,
+#t1-yh-toggles button[style*="#0969DA"],
+#t1-yh-toggles button[style*="rgb(9, 105, 218)"] {
+  color: #F0B429 !important;
+  border-color: #F0B429 !important;
+  background: rgba(240,180,41,.12) !important;
+  font-weight: 600;
+}
+
+/* '다시 시도' 버튼 공통 모양 */
+.ep-retry,
+#t1-error button, #t2-error button, #t3-error button {
+  margin-top: 7px !important;
+  margin-left: 8px;
+  background: none !important;
+  border: 0.5px solid #9E6A03 !important;
+  border-radius: 4px !important;
+  padding: 3px 10px !important;
+  font-size: 10px !important;
+  color: #F0B429 !important;
+  cursor: pointer;
+  font-family: inherit;
+}
+.ep-retry:hover, #t1-error button:hover, #t2-error button:hover, #t3-error button:hover { background: #2D1F00 !important; }
+.error-panel .ep-retry { margin-left: 0; }
+
+/* 클릭 가능한 카드·행 */
+.gauge-card[role="button"], .sector-row[role="button"] { cursor: pointer; }
+
+/* 터치 기기: hover 툴팁은 끄고 탭 오버레이로 대체 (iOS는 cursor:pointer가 있어야 탭이 click으로 전달됨) */
+@media (hover: none) {
+  .rc-tooltip-wrap:hover .rc-tooltip,
+  .ss-div-item:hover .ss-div-tooltip { display: none !important; }
+  .pd-tip-wrap, .rc-tooltip-wrap, .ss-div-item { cursor: pointer; }
+}
+
+/* T3 KPI 카드 툴팁: 오른쪽 카드는 오른쪽 기준으로 펼쳐 화면 밖으로 넘치지 않게 */
+@media (min-width: 1024px) {
+  #t3-card-cnh .pd-tip-box, #t3-card-se .pd-tip-box { left: auto !important; right: 0 !important; }
+}
+@media (min-width: 481px) and (max-width: 1023px) {
+  #t3-card-cg .pd-tip-box, #t3-card-se .pd-tip-box { left: auto !important; right: 0 !important; }
+}
+
+/* 모바일: 탭 영역 28px 이상, 아주 작은 글자 키우기 */
+@media (max-width: 767px) {
+  .gc-chart-btn,
+  button[onclick*="loadDxyInline"],
+  .t3-rbtn,
+  #t1-yh-toggles button,
+  #t3-spy-toggle {
+    min-height: 28px !important;
+    min-width: 34px;
+    padding: 4px 9px !important;
+    font-size: 10px !important;
+    justify-content: center;
+  }
+  .gc-chart-btns, #t3-range-btns, #t3-asia-range-btns, #t3-euro-range-btns, #t1-yh-toggles { flex-wrap: wrap; gap: 4px !important; }
+  a[href*="tradingeconomics.com/united-states/"],
+  a[href*="atlantafed.org/research-and-data/data/gdpnow"] {
+    min-height: 28px !important;
+    min-width: 28px;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center;
+  }
+  /* '?' 아이콘: 보이는 크기는 그대로, 누를 수 있는 영역만 넓힘 */
+  .pd-tip-icon, .rc-info-btn { position: relative; }
+  .pd-tip-icon::before, .rc-info-btn::before { content: ''; position: absolute; inset: -8px; }
+  [style*="font-size:7px"] { font-size: 9px !important; }
+}
+</style>
