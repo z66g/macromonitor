@@ -1014,7 +1014,23 @@ body{
 /* 로딩 스피너 */
 </style>
 
-
+<style>
+/* ── 헤더 패널 버튼 LED (setLed) — unknown: 빈 링 / ok / warn / fail ── */
+.hdr-led{width:5px;height:5px;border-radius:50%;flex-shrink:0;box-sizing:border-box;display:inline-block;}
+.hdr-led[data-state="unknown"]{background:transparent;border:1px solid #484F58;}
+.hdr-led[data-state="ok"]{background:#3FB950;border:none;}
+.hdr-led[data-state="warn"]{background:#F0B429;border:none;}
+.hdr-led[data-state="fail"]{background:#F85149;border:none;}
+.cal-fail-note{font-size:9px;color:#F85149;padding:6px 0 2px;text-align:center;}
+/* ── 모바일 탭 영역: 헤더 패널 버튼·패널 ✕/↻/‹ ›·오늘 최소 28px ── */
+@media (max-width: 767px){
+  #controls-bar-inner .hdr-pbtn{min-height:28px !important;padding:4px 9px !important;}
+  #controls-bar-inner .hdr-pbtn > span:nth-child(2){font-size:10px !important;}
+  #hdr-refresh-btn{min-height:28px !important;min-width:28px !important;justify-content:center;}
+  .pnl-hbtn{min-height:28px !important;min-width:28px !important;padding:4px 8px !important;}
+  .pnl-today{min-height:28px !important;padding:4px 10px !important;font-size:10px !important;}
+}
+</style>
 </head>
 <body>
 
@@ -1181,17 +1197,17 @@ body{
   <!-- 헤더 -->
   <div style="display:flex;align-items:center;justify-content:space-between;
               padding:14px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
-    <div style="font-size:13px;font-weight:700;color:#E6EDF3;">News</div>
+    <div style="font-size:13px;font-weight:700;color:#E6EDF3;">뉴스</div>
     <div style="display:flex;align-items:center;gap:8px;">
       <div style="text-align:right;line-height:1.5;">
         <span id="news-updated" style="font-size:8px;color:#484F58;">—</span>
         <span style="font-size:8px;color:#30363D;">&nbsp;·&nbsp;</span>
         <span id="news-countdown" style="font-size:8px;color:#484F58;font-family:monospace;"></span>
       </div>
-      <button onclick="loadNews(true)" title="새로고침"
+      <button onclick="loadNews(true)" title="새로고침" class="pnl-hbtn"
         style="background:transparent;border:none;color:#484F58;
                cursor:pointer;font-size:13px;padding:2px;" id="news-refresh-btn">↻</button>
-      <button onclick="toggleNewsPanel()"
+      <button onclick="toggleNewsPanel()" class="pnl-hbtn" title="닫기"
         style="background:transparent;border:none;color:#484F58;
                cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
     </div>
@@ -1259,9 +1275,9 @@ body{
     <div style="font-size:13px;font-weight:700;color:#E6EDF3;">이벤트 캘린더</div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span id="cal-updated" style="font-size:8px;color:#484F58;"></span>
-      <button onclick="loadCalendar(true)" title="새로고침"
+      <button onclick="loadCalendar(true)" title="새로고침" class="pnl-hbtn"
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:13px;padding:2px;">↻</button>
-      <button onclick="toggleCalPanel()"
+      <button onclick="toggleCalPanel()" class="pnl-hbtn" title="닫기"
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
     </div>
   </div>
@@ -1269,15 +1285,15 @@ body{
   <div id="cal-mini" style="flex-shrink:0;padding:12px 18px;border-bottom:0.5px solid #21262D;">
     <!-- 월 네비게이션 -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <button onclick="calMonthMove(-1)"
+      <button onclick="calMonthMove(-1)" class="pnl-hbtn" title="이전 달"
         style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">‹</button>
       <div style="display:flex;align-items:center;gap:8px;">
         <span id="cal-month-label" style="font-size:11px;font-weight:700;color:#E6EDF3;"></span>
-        <button onclick="calGoToday()"
+        <button onclick="calGoToday()" class="pnl-today"
           style="font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;
                  background:#1A3448;color:#58A6FF;border:0.5px solid #0969DA;">오늘</button>
       </div>
-      <button onclick="calMonthMove(1)"
+      <button onclick="calMonthMove(1)" class="pnl-hbtn" title="다음 달"
         style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">›</button>
     </div>
     <!-- 요일 헤더 -->
@@ -1304,23 +1320,23 @@ body{
 <!-- ═══════ CONTROLS BAR (탭과 무관, 항상 표시) ═══════ -->
 <div id="controls-bar">
   <div id="controls-bar-inner">
-    <button id="hdr-news-btn" onclick="toggleNewsPanel()" title="News"
+    <button id="hdr-news-btn" class="hdr-pbtn" onclick="toggleNewsPanel()" title="뉴스"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
              display:flex;align-items:center;gap:4px;transition:all .2s;">
       <span style="font-size:11px;">📰</span>
       <span style="font-size:9px;">뉴스</span>
-      <span id="led-news" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
+      <span id="led-news" class="hdr-led" data-state="unknown" title="뉴스 확인 전"></span>
     </button>
-    <button id="hdr-cal-btn" onclick="toggleCalPanel()" title="이벤트 캘린더"
+    <button id="hdr-cal-btn" class="hdr-pbtn" onclick="toggleCalPanel()" title="이벤트 캘린더"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
              display:flex;align-items:center;gap:4px;transition:all .2s;">
       <span style="font-size:11px;">📅</span>
       <span style="font-size:9px;">캘린더</span>
-      <span id="led-cal" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
+      <span id="led-cal" class="hdr-led" data-state="unknown" title="캘린더 확인 전"></span>
     </button>
-    <button id="hdr-auction-btn" onclick="toggleAuctionPanel()" title="국채경매 분석"
+    <button id="hdr-auction-btn" class="hdr-pbtn" onclick="toggleAuctionPanel()" title="국채경매 분석"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
              display:flex;align-items:center;gap:4px;transition:all .2s;position:relative;">
@@ -1330,22 +1346,19 @@ body{
         style="display:none;position:absolute;top:-4px;right:-4px;
                background:#CF222B;color:#fff;font-size:8px;font-weight:700;
                border-radius:6px;padding:1px 4px;line-height:1.4;">N</span>
-      <span id="led-auction" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;"></span>
+      <span id="led-auction" class="hdr-led" data-state="unknown" title="국채경매 확인 전"></span>
     </button>
-    <button id="hdr-tower-btn" onclick="toggleLiqTower()" title="유동성 관제탑"
+    <button id="hdr-tower-btn" class="hdr-pbtn" onclick="toggleLiqTower()" title="유동성 예측모델"
       style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
              color:#8B949E;font-size:12px;padding:3px 8px;cursor:pointer;
              display:flex;align-items:center;gap:4px;transition:all .2s;">
-      <span style="font-size:11px;">🏛️</span>
+      <span style="font-size:11px;">💧</span>
       <span style="font-size:9px;">유동성 예측모델</span>
-      <span id="led-tower" style="width:5px;height:5px;border-radius:50%;background:#484F58;flex-shrink:0;" title="데이터 상태"></span>
+      <span id="led-tower" class="hdr-led" data-state="unknown" title="유동성 예측모델 확인 전"></span>
     </button>
     <div class="hdr-clock" id="clock">—</div>
     <div class="hdr-live">LIVE</div>
-    <div id="hdr-updated" style="font-size:9px;color:#484F58;display:none;">
-      갱신: <span id="hdr-updated-time">—</span>
-    </div>
-    <button id="hdr-refresh-btn" onclick="forceRefreshAll()" title="데이터 강제 새로고침"
+    <button id="hdr-refresh-btn" onclick="forceRefreshAll()" title="현재 탭 새로고침" aria-label="현재 탭 새로고침"
       style="background:transparent;border:none;
              color:#8B949E;font-size:14px;padding:3px 4px;cursor:pointer;
              display:flex;align-items:center;transition:color .2s;">
@@ -2564,31 +2577,31 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
       <span id="auction-updated" style="font-size:8px;color:#484F58;"></span>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button id="auc-refresh-btn" onclick="refreshAuctionPanel(this)" title="새로고침"
+      <button id="auc-refresh-btn" class="pnl-hbtn" onclick="refreshAuctionPanel(this)" title="새로고침"
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:13px;padding:2px;display:inline-block;">↻</button>
-      <button onclick="toggleAuctionPanel()"
+      <button onclick="toggleAuctionPanel()" class="pnl-hbtn" title="닫기"
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
     </div>
   </div>
   <!-- 미니 캘린더 -->
   <div style="flex-shrink:0;padding:12px 18px;border-bottom:0.5px solid #21262D;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <button onclick="aucCalMove(-1)"
+      <button onclick="aucCalMove(-1)" class="pnl-hbtn" title="이전 달"
         style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">‹</button>
       <div style="display:flex;align-items:center;gap:8px;">
         <span id="auc-cal-label" style="font-size:11px;font-weight:700;color:#E6EDF3;"></span>
-        <button onclick="aucCalGoToday()"
+        <button onclick="aucCalGoToday()" class="pnl-today"
           style="font-size:8px;padding:2px 6px;border-radius:3px;cursor:pointer;
                  background:#1A3448;color:#58A6FF;border:0.5px solid #0969DA;">오늘</button>
       </div>
-      <button onclick="aucCalMove(1)"
+      <button onclick="aucCalMove(1)" class="pnl-hbtn" title="다음 달"
         style="background:transparent;border:none;color:#8B949E;cursor:pointer;font-size:14px;padding:2px 6px;">›</button>
     </div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:4px;">
-      <span style="font-size:8px;color:#CF222B;">일</span>
+      <span style="font-size:8px;color:#F85149;">일</span>
       <span style="font-size:8px;color:#8B949E;">월</span><span style="font-size:8px;color:#8B949E;">화</span>
       <span style="font-size:8px;color:#8B949E;">수</span><span style="font-size:8px;color:#8B949E;">목</span>
-      <span style="font-size:8px;color:#8B949E;">금</span><span style="font-size:8px;color:#3FB950;">토</span>
+      <span style="font-size:8px;color:#8B949E;">금</span><span style="font-size:8px;color:#58A6FF;">토</span>
     </div>
     <div id="auc-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;"></div>
     <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
@@ -2628,13 +2641,13 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
   <div style="display:flex;align-items:center;justify-content:space-between;
               padding:14px 18px;border-bottom:0.5px solid #21262D;flex-shrink:0;">
     <div>
-      <div style="font-size:13px;font-weight:700;color:#E6EDF3;">The Plumbing</div>
-      <div style="font-size:9px;color:#484F58;margin-top:1px;">배관 흐름 예측 모델</div>
+      <div style="font-size:13px;font-weight:700;color:#E6EDF3;">유동성 예측모델</div>
+      <div style="font-size:9px;color:#484F58;margin-top:1px;">The Plumbing · 배관 흐름 예측</div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button onclick="refreshTower(this)" title="새로고침"
+      <button onclick="refreshTower(this)" title="새로고침" class="pnl-hbtn"
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:13px;padding:2px;">↻</button>
-      <button onclick="toggleLiqTower()"
+      <button onclick="toggleLiqTower()" class="pnl-hbtn" title="닫기"
         style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:16px;padding:2px;line-height:1;">✕</button>
     </div>
   </div>
@@ -5768,7 +5781,6 @@ async function loadT1(force = false) {
     };
 
     const liqJson    = await safeJson(liqResp);
-    if (liqJson?._savedAt) showLastUpdated(liqJson._savedAt);
     const towerJson  = await safeJson(towerResp);
     const commJson   = await safeJson(commResp);
     const iciJson    = await safeJson(iciResp);
@@ -6937,8 +6949,50 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
 
 // ══ 전체 초기화 ══
 // ══════════════════════════════
+// 헤더 슬라이드 패널 공용 헬퍼 (뉴스·캘린더·국채경매·유동성 예측모델)
+// ══════════════════════════════
+// ISO 시각 → "MM/DD HH:mm KST" (기기 타임존 무관: UTC 필드를 +9h 이동해서 읽음)
+function fmtKST(iso) {
+  const t = iso ? Date.parse(iso) : NaN;
+  if (!isFinite(t)) return '';
+  const k = new Date(t + 9 * 3600000), p = v => String(v).padStart(2, '0');
+  return `${p(k.getUTCMonth()+1)}/${p(k.getUTCDate())} ${p(k.getUTCHours())}:${p(k.getUTCMinutes())} KST`;
+}
+// 헤더 LED — 상태 규칙 하나: unknown(확인 전, 빈 링) / ok / warn(데이터 오래됨) / fail(수신 실패)
+const LED_LABEL = { unknown: '확인 전', ok: '정상', warn: '갱신 지연', fail: '수신 실패' };
+function setLed(id, state, title) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (!LED_LABEL[state]) state = 'unknown';
+  el.dataset.state = state;
+  el.style.background = '';   // 예전 인라인 색 제거 → CSS(.hdr-led[data-state]) 기준
+  el.title = title || LED_LABEL[state];
+}
+// "<패널명> <상태> · <데이터 시각 KST>" — 시각이 없으면 '시각 미상'
+function ledTitle(name, state, iso) {
+  return `${name} ${LED_LABEL[state] || ''} · ${fmtKST(iso) || '시각 미상'}`;
+}
+// 데이터 시각·임계로 ok/warn 판정 (시각 없음 = warn — 초록 '방금'으로 보이지 않게)
+function setLedByAge(id, name, iso, maxMs) {
+  const t = iso ? Date.parse(iso) : NaN;
+  const state = isFinite(t) && Date.now() - t <= maxMs ? 'ok' : 'warn';
+  setLed(id, state, ledTitle(name, state, iso));
+  return state;
+}
+// 헤더 패널 버튼 활성 표시 — 모든 열기/닫기 경로에서 같은 색
+function setPanelBtnActive(btnId, on) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.style.borderColor = on ? '#58A6FF' : '#30363D';
+  btn.style.color       = on ? '#58A6FF' : '#8B949E';
+}
+window.fmtKST = fmtKST; window.setLed = setLed; window.ledTitle = ledTitle;
+window.setLedByAge = setLedByAge; window.setPanelBtnActive = setPanelBtnActive;
+
+// ══════════════════════════════
 // 이벤트 캘린더 패널
 // ══════════════════════════════
+const CAL_STALE_MS = 24 * 3600000;   // 캘린더 _savedAt 24시간 초과 → warn
 let calData = [];
 let calActiveFilter = 'all';
 let calPanelOpen = false;
@@ -6953,22 +7007,19 @@ function toggleCalPanel() {
   calPanelOpen = !calPanelOpen;
   const panel   = document.getElementById('cal-panel');
   const overlay = document.getElementById('cal-overlay');
-  const btn     = document.getElementById('hdr-cal-btn');
   if (calPanelOpen) {
     window.closeOtherPanels?.('cal');
     const h = (window.visualViewport?.height || window.innerHeight) + 'px';
     panel.style.height = h;
     overlay.style.display = 'block';
     panel.style.transform = 'translateX(0)';
-    btn.style.borderColor = '#0969DA';
-    btn.style.color = '#58A6FF';
+    setPanelBtnActive('hdr-cal-btn', true);
     if (calData.length === 0) loadCalendar(false);
     else { renderCalMini(); renderCalWeek(); }
   } else {
     overlay.style.display = 'none';
     panel.style.transform = 'translateX(100%)';
-    btn.style.borderColor = '#30363D';
-    btn.style.color = '#8B949E';
+    setPanelBtnActive('hdr-cal-btn', false);
   }
 }
 
@@ -6999,32 +7050,36 @@ document.addEventListener('DOMContentLoaded', function() {
   }, { passive: false });
 });
 
+// 캘린더 로드 — 일반 로드는 sharedFetch(페이지 로드 직후 LED 확인과 공유), ↻는 force=1.
+// 실패하면 이미 그린 데이터는 그대로 두고 작은 실패 문구만 덧붙임 (데이터가 없을 때만 '로딩 실패').
+let _calSavedAt = null;
 async function loadCalendar(force = false) {
   const listEl = document.getElementById('cal-list');
-  listEl.innerHTML = '<div style="color:#484F58;font-size:11px;padding:20px 0;text-align:center;">로딩 중...</div>';
-  try {
-    const r = await fetchWithTimeout(`${WORKER}/calendar${force ? '?force=1' : ''}`, 15000);
-    const d = await r.json();
-    calData = d.events || [];
-    // fetchedAt: 워커의 KST 기준 오늘 날짜 → 프론트 today 기준으로 사용
-    window._calTodayStr = d.fetchedAt || new Date(new Date().getTime() + 9*60*60*1000).toISOString().slice(0,10);
-    const updEl = document.getElementById('cal-updated');
-    if (updEl && d._savedAt) {
-      const dt = new Date(d._savedAt);
-      updEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} 기준`;
+  const hadData = calData.length > 0;
+  if (!hadData && listEl) listEl.innerHTML = '<div style="color:#484F58;font-size:11px;padding:20px 0;text-align:center;">로딩 중...</div>';
+  const d = force
+    ? await fetchT(`${WORKER}/calendar?force=1`, 15000).then(jsonOrNull).catch(() => null)
+    : await sharedFetch(`${WORKER}/calendar`, 15000).then(jsonOrNull).catch(() => null);
+  if (!d || !Array.isArray(d.events)) {
+    setLed('led-cal', 'fail', ledTitle('캘린더', 'fail', _calSavedAt));
+    if (!listEl) return;
+    if (hadData) {
+      renderCalWeek();
+      listEl.insertAdjacentHTML('afterbegin', '<div class="cal-fail-note">⚠️ 새로고침 실패 — 이전 데이터 표시 중</div>');
+    } else {
+      listEl.innerHTML = '<div style="color:#F85149;font-size:11px;padding:20px 0;text-align:center;">로딩 실패 — ↻로 다시 시도</div>';
     }
-    renderCalMini();
-    renderCalWeek();
-    const ledCal = document.getElementById('led-cal');
-    if (ledCal) {
-      ledCal.style.background = '#3FB950';
-      ledCal.title = `캘린더 정상 · ${d._savedAt ? new Date(d._savedAt).toLocaleDateString('ko-KR') : '방금'}`;
-    }
-  } catch(e) {
-    listEl.innerHTML = '<div style="color:#F85149;font-size:11px;padding:20px 0;text-align:center;">로딩 실패</div>';
-    const ledCal = document.getElementById('led-cal');
-    if (ledCal) { ledCal.style.background = '#F85149'; ledCal.title = '캘린더 로딩 실패'; }
+    return;
   }
+  calData = d.events;
+  _calSavedAt = d._savedAt || null;
+  // fetchedAt: 워커의 KST 기준 오늘 날짜 → 프론트 today 기준으로 사용
+  window._calTodayStr = d.fetchedAt || todayKSTStr();
+  const updEl = document.getElementById('cal-updated');
+  if (updEl) updEl.textContent = _calSavedAt ? `${fmtKST(_calSavedAt)} 기준` : '';
+  setLedByAge('led-cal', '캘린더', _calSavedAt, CAL_STALE_MS);
+  renderCalMini();
+  renderCalWeek();
 }
 
 // 월 이동
@@ -7048,7 +7103,7 @@ function calGoToday() {
 // 날짜 클릭
 function calSelectDate(dateStr) {
   calSelectedDate = dateStr;
-  const d = new Date(dateStr);
+  const d = new Date(dateStr + 'T00:00:00');   // 'YYYY-MM-DD'만 넘기면 UTC로 해석돼 서반구에서 하루 밀림
   calViewYear  = d.getFullYear();
   calViewMonth = d.getMonth();
   renderCalMini();
@@ -7164,7 +7219,9 @@ function renderCalWeek() {
   const weekEvents = calData.filter(e => e.date >= wsStr && e.date <= weStr);
 
   if (weekEvents.length === 0) {
-    listEl.innerHTML = '<div style="color:#484F58;font-size:11px;padding:20px 0;text-align:center;">이번 주 예정 이벤트 없음</div>';
+    const _today = window._calTodayStr || todayKSTStr();
+    const _isThisWeek = _today >= wsStr && _today <= weStr;
+    listEl.innerHTML = `<div style="color:#484F58;font-size:11px;padding:20px 0;text-align:center;">${_isThisWeek ? '이번 주' : '이 주'} 예정 이벤트 없음</div>`;
     return;
   }
 
@@ -7207,13 +7264,13 @@ function renderCalWeek() {
         <div style="width:2px;height:26px;border-radius:1px;background:${impColor};flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:10px;font-weight:600;color:#E6EDF3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            ${icon ? `<span style="margin-right:3px;">${icon}</span>` : ''}${e.name}${estBadge}
+            ${icon ? `<span style="margin-right:3px;">${icon}</span>` : ''}${escH(e.name)}${estBadge}
           </div>
-          <div style="font-size:8px;color:${tagColor};margin-top:1px;">${e.tag}</div>
+          <div style="font-size:8px;color:${tagColor};margin-top:1px;">${escH(e.tag)}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;">
-          <div style="font-size:9px;font-weight:700;color:${ddayColor};">${e.dday || ''}</div>
-          ${e.released ? `<div style="font-size:9px;font-weight:600;color:${e.released.val > 0 ? '#F85149' : '#3FB950'};margin-top:1px;">${e.released.label}</div>` : ''}
+          <div style="font-size:9px;font-weight:700;color:${ddayColor};">${escH(e.dday || '')}</div>
+          ${e.released ? `<div style="font-size:9px;font-weight:600;color:${e.released.val > 0 ? '#F85149' : '#3FB950'};margin-top:1px;">${escH(e.released.label)}</div>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -7988,14 +8045,7 @@ async function refreshTower(btn) {
   if (btn.disabled) return;
   btn.disabled = true;
   btn.style.animation = 'spin 0.8s linear infinite';
-  btn.style.display = 'inline-block';
-  // spin 키프레임 (없으면 추가)
-  if (!document.getElementById('spin-kf')) {
-    const s = document.createElement('style');
-    s.id = 'spin-kf';
-    s.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
-    document.head.appendChild(s);
-  }
+  btn.style.display = 'inline-block';   // @keyframes spin은 전역 CSS에 있음
   try {
     await loadLiqTower(true);
   } finally {
@@ -8484,16 +8534,6 @@ function renderOnchainMacro(d, rwaProtos) {
 
 async function initAll() {
   await Promise.all([loadS1(), loadS2(), loadS3()]);
-}
-
-// KV savedAt → 헤더 갱신 시각 표시
-function showLastUpdated(isoStr) {
-  if (!isoStr) return;
-  const d = new Date(isoStr);
-  const fmt = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  const el = document.getElementById('hdr-updated');
-  const tm = document.getElementById('hdr-updated-time');
-  if (el && tm) { el.style.display = 'block'; tm.textContent = fmt; }
 }
 
 // 강제 새로고침 — 버튼 클릭 시 호출
@@ -9110,20 +9150,19 @@ function toggleLiqTower() {
   towerOpen = !towerOpen;
   const panel   = document.getElementById('tower-panel');
   const overlay = document.getElementById('tower-overlay');
-  const btn     = document.getElementById('hdr-tower-btn');
   if (towerOpen) {
     window.closeOtherPanels?.('tower');
     const h = (window.visualViewport?.height || window.innerHeight) + 'px';
     panel.style.height = h;
     overlay.style.display = 'block';
     panel.style.transform = 'translateX(0)';
-    if (btn) { btn.style.borderColor='#0969DA'; btn.style.color='#58A6FF'; }
+    setPanelBtnActive('hdr-tower-btn', true);
     if (!towerLoaded) { towerLoaded = true; loadLiqTower(false); }
-    checkQraStatus();
+    // QRA 배너는 페이지 로드 때 한 번만 확인 (열 때마다 부르면 오버레이 뒤에서 배너가 튀어나옴)
   } else {
     overlay.style.display = 'none';
     panel.style.transform = 'translateX(100%)';
-    if (btn) { btn.style.borderColor='#30363D'; btn.style.color='#8B949E'; }
+    setPanelBtnActive('hdr-tower-btn', false);
   }
 }
 
@@ -9135,32 +9174,37 @@ function twToggle(id) {
 
 // ── 데이터 로딩 ─────────────────────────────────────────
 
+// LED: _savedAt(없으면 fed.h41._savedAt) 10일 초과 또는 시각 미상 → warn
+const TOWER_STALE_MS = 10 * 86400000;
+const towerSavedAt = d => d?._savedAt ?? d?.fed?.h41?._savedAt ?? null;
+function setTowerLed(d) {
+  if (!d) { setLed('led-tower', 'fail', ledTitle('유동성 예측모델', 'fail', towerSavedAt(_towerData))); return; }
+  setLedByAge('led-tower', '유동성 예측모델', towerSavedAt(d), TOWER_STALE_MS);
+}
+// 페이지 로드 직후 LED만 가볍게 확인 — sharedFetch라 T1·패널 열기와 같은 요청을 공유
+async function checkTowerLed() {
+  const d = await sharedFetch(`${WORKER}/liq-tower`, 20000).then(jsonOrNull).catch(() => null);
+  if (!_towerData) setTowerLed(d);   // 패널이 이미 받았으면 그쪽 결과 유지
+}
+
 async function loadLiqTower(force = false) {
   const loading = document.getElementById('tower-loading');
-  if (loading) loading.style.display = 'block';
+  if (loading) { loading.style.display = 'block'; loading.textContent = '⟳ 로딩 중...'; }
   try {
     const r = force ? await fetchT(`${WORKER}/liq-tower?force=1`, 20000)
                     : await sharedFetch(`${WORKER}/liq-tower`, 20000);   // T1과 공유
-    const d = await r.json();
-    if (d?.error) throw new Error(d.error);
+    const d = await jsonOrNull(r);
+    if (!d) throw new Error('수신 실패');
     _towerData = d;
     if (loading) loading.style.display = 'none';
     renderTowerS1(d);
     renderTowerS2(d);
     renderTowerS3(d);
     renderTowerS4(d);
-    // LED 갱신
-    const ledTower = document.getElementById('led-tower');
-    if (ledTower) {
-      const savedAt = d._savedAt ?? d.fed?.h41?._savedAt ?? null;
-      const daysOld = savedAt ? (Date.now() - new Date(savedAt).getTime()) / 86400000 : 0;
-      ledTower.style.background = daysOld > 10 ? '#F0B429' : '#3FB950';
-      ledTower.title = `Plumbing ${daysOld > 10 ? '갱신 지연' : '정상'} · ${savedAt ? new Date(savedAt).toLocaleDateString('ko-KR') : '방금'}`;
-    }
+    setTowerLed(d);
   } catch(e) {
-    if (loading) loading.textContent = `⚠️ 로딩 실패: ${e.message} — 패널을 다시 열면 재시도`;
-    const ledTower = document.getElementById('led-tower');
-    if (ledTower) { ledTower.style.background = '#F85149'; ledTower.title = 'Plumbing 로딩 실패'; }
+    if (loading) loading.textContent = `⚠️ 로딩 실패: ${e.message} — ↻ 또는 패널을 다시 열면 재시도`;
+    setTowerLed(null);
     towerLoaded = false;   // 패널을 다시 열면 재시도
   }
 }
@@ -9877,6 +9921,7 @@ window.addEventListener('scroll', () => {
   if (btn) btn.style.display = window.scrollY > 300 ? 'flex' : 'none';
 });
 
+// 헤더 ↻ — 현재 보고 있는 탭만 강제 새로고침 (패널은 각자 ↻ 버튼)
 async function forceRefreshAll() {
   const btn  = document.getElementById('hdr-refresh-btn');
   const icon = document.getElementById('hdr-refresh-icon');
@@ -9885,14 +9930,7 @@ async function forceRefreshAll() {
   btn.disabled = true;
   btn.style.opacity = '0.5';
   icon.style.display = 'inline-block';
-  icon.style.animation = 'spin 1s linear infinite';
-
-  if (!document.getElementById('spin-style')) {
-    const s = document.createElement('style');
-    s.id = 'spin-style';
-    s.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
-    document.head.appendChild(s);
-  }
+  icon.style.animation = 'spin 1s linear infinite';   // @keyframes spin은 전역 CSS에 있음
 
   try {
     // 현재 활성 탭만 강제 새로고침
@@ -10981,7 +11019,10 @@ body, * {
 // ── 상수 ──────────────────────────────────────────────────────
 const WORKER = 'https://macrolens-worker.macrolens.workers.dev';
 const REFRESH_INTERVAL = 30 * 60 * 1000; // 30분
-const READ_KEY = 'np_read_v1';           // localStorage 키
+const READ_KEY = 'np_read_v2';           // localStorage 키 (v2: 기사 링크/제목 기준 — v1은 목록 순번이 섞여 있어 폐기)
+const READ_MAX = 500;                    // 읽음 기록은 최근 500건만 보관
+const NEWS_STALE_MS = 3 * 3600000;       // 뉴스 fetchedAt 3시간 초과 → LED warn
+const AUC_STALE_MS  = 4 * 86400000;      // 경매 updated 4일 초과 → LED warn
 
 // 카테고리 메타
 const CAT = {
@@ -10996,18 +11037,36 @@ const CAT = {
 let _allItems    = [];     // 전체 기사 배열
 let _timeFilter  = '24h';  // 시간 필터
 let _tabFilter   = 'all';  // 탭 필터
-let _readSet     = new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]'));
+// localStorage는 사생활 보호 모드·차단 설정에서 접근만 해도 예외 → 실패해도 IIFE 전체가 죽지 않게
+let _readSet = (() => {
+  try {
+    const arr = JSON.parse(localStorage.getItem(READ_KEY) || '[]');
+    return new Set(Array.isArray(arr) ? arr.slice(-READ_MAX) : []);
+  } catch (e) { return new Set(); }
+})();
+try { localStorage.removeItem('np_read_v1'); } catch (e) {}
 let _refreshTimer = null;
 let _countdownTimer = null;
 let _nextRefresh  = null;
 let _panelOpen    = false;
-let _expandedId   = null;  // 현재 펼쳐진 아이템 ID
+let _expandedId   = null;  // 현재 펼쳐진 기사 키(newsKey) — 목록 순번이 아니라 기사 기준
+let _newsFetchedAt = null; // 마지막으로 받은 뉴스의 fetchedAt
+let _newsFailed   = false; // 마지막 뉴스 수신 실패 여부
+let _digestLoaded = false;
+
+// 기사 고유 키 — 필터·새로고침으로 순서가 바뀌어도 같은 기사를 가리킴
+const newsKey = n => String(n?.link || n?.title || '');
+function markRead(key) {
+  if (!key) return;
+  _readSet.delete(key); _readSet.add(key);           // 최근 것이 뒤로
+  while (_readSet.size > READ_MAX) _readSet.delete(_readSet.values().next().value);
+  try { localStorage.setItem(READ_KEY, JSON.stringify([..._readSet])); } catch (e) {}
+}
 
 // ── 패널 토글 ─────────────────────────────────────────────────
 function toggleNewsPanel() {
   const panel   = document.getElementById('news-panel');
   const overlay = document.getElementById('news-overlay');
-  const btn     = document.getElementById('hdr-news-btn');
   _panelOpen = !_panelOpen;
 
   if (_panelOpen) {
@@ -11016,14 +11075,15 @@ function toggleNewsPanel() {
     panel.style.height = h;
     panel.style.transform   = 'translateX(0)';
     overlay.style.display   = 'block';
-    btn.style.borderColor   = '#58A6FF';
-    btn.style.color         = '#58A6FF';
-    if (_allItems.length === 0) loadNews(false);
+    setPanelBtnActive('hdr-news-btn', true);
+    startCountdown();
+    if (_allItems.length === 0 || !_digestLoaded || _newsFailed) loadNews(false);
+    else renderNews();
   } else {
     panel.style.transform   = 'translateX(100%)';
     overlay.style.display   = 'none';
-    btn.style.borderColor   = '#30363D';
-    btn.style.color         = '#8B949E';
+    setPanelBtnActive('hdr-news-btn', false);
+    stopCountdown();
   }
 }
 
@@ -11050,10 +11110,12 @@ let _aucPanelOpen  = false;
 let _aucLastSeenCusip = (() => { try { return localStorage.getItem('auc_last_seen_key') || ''; } catch(e) { return ''; } })();
 const _aucSaveSeen = k => { _aucLastSeenCusip = k; try { localStorage.setItem('auc_last_seen_key', k); } catch(e) {} };
 
-// 가장 최신 경매의 cusip (auction_date 내림차순, 동일 날짜면 cusip 기준)
+// 가장 최신 이표채 경매의 cusip (auction_date 내림차순, 동일 날짜면 cusip 기준)
+// Bills는 거의 매일 있어 N 뱃지가 매일 뜨던 문제 → 텔레그램과 같이 이표채만 대상
 function getLatestAuctionCusip(results) {
-  if (!results || results.length === 0) return null;
-  const sorted = [...results].sort((a, b) => {
+  const coupons = (results || []).filter(r => r && r.security_type !== 'Bill');
+  if (coupons.length === 0) return null;
+  const sorted = coupons.sort((a, b) => {
     const dCmp = (b.auction_date || '').localeCompare(a.auction_date || '');
     if (dCmp !== 0) return dCmp;
     return (b.cusip || '').localeCompare(a.cusip || '');
@@ -11083,6 +11145,7 @@ function buildAucDateMap(results, upcoming) {
   return map;
 }
 
+let _aucUpdated = null;
 async function loadAuctionPanel(force = false) {
   const RAW_RESULTS  = `${WORKER}/auction-results?limit=100${force ? '&force=1' : ''}`;
   const RAW_UPCOMING = `https://raw.githubusercontent.com/z66g/macromonitor/main/data/auctions.json${force ? '?t='+Date.now() : ''}`;
@@ -11093,22 +11156,22 @@ async function loadAuctionPanel(force = false) {
       fetchT(RAW_UPCOMING, 15000),
     ]);
 
-    if (rRes.status === 'fulfilled') {
-      const d = await rRes.value.json();
-      _aucData = d.results || [];
-      const upd = d.updated || '';
+    const d = await jsonOrNull(rRes);   // 네트워크 오류·HTTP 오류·{error} → null
+    if (d && Array.isArray(d.results)) {
+      _aucData = d.results;
+      _aucUpdated = d.updated || null;
       const updEl = document.getElementById('auction-updated');
-      if (updEl && upd) {
-        const dt = new Date(upd);
-        updEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} 기준`;
-      }
+      if (updEl) updEl.textContent = _aucUpdated ? `${fmtKST(_aucUpdated)} 기준` : '';
+      setLedByAge('led-auction', '국채경매', _aucUpdated, AUC_STALE_MS);
       // N 뱃지: 새 cusip(=새 경매 결과)이 등록되었을 때만 표시
       // - data.updated 기반은 backfill/timestamp만 갱신돼도 N이 떠서 부적합
       // - 첫 방문(localStorage 비어있음)은 silently 저장, N 표시 안 함
       const badge = document.getElementById('auction-n-badge');
       const latestCusip = getLatestAuctionCusip(_aucData);
+      // 예전 기준(Bill 포함)으로 저장된 키면 첫 방문처럼 조용히 갱신 — 배포 직후 N이 한꺼번에 뜨지 않게
+      const seenWasBill = _aucData.some(r => r.security_type === 'Bill' && `${r.cusip}|${r.auction_date}` === _aucLastSeenCusip);
       if (badge && latestCusip) {
-        if (!_aucLastSeenCusip || _aucPanelOpen) {
+        if (!_aucLastSeenCusip || seenWasBill || _aucPanelOpen) {
           // 첫 방문이거나 패널을 보고 있는 중 → 확인한 것으로 처리
           _aucSaveSeen(latestCusip);
           badge.style.display = 'none';
@@ -11116,39 +11179,42 @@ async function loadAuctionPanel(force = false) {
           badge.style.display = latestCusip !== _aucLastSeenCusip ? 'block' : 'none';
         }
       }
+    } else {
+      setLed('led-auction', 'fail', ledTitle('국채경매', 'fail', _aucUpdated));
     }
 
-    if (rUpcoming.status === 'fulfilled') {
-      const d = await rUpcoming.value.json();
-      _aucUpcoming = [...(d.upcoming || []), ...(d.auctioned || [])];
-    }
+    const u = await jsonOrNull(rUpcoming);
+    if (u) _aucUpcoming = [...(u.upcoming || []), ...(u.auctioned || [])];
 
-    console.log('[auction] data loaded:', (_aucData||[]).length, 'results,', (_aucUpcoming||[]).length, 'upcoming');
-    console.log('[auction] sample dates:', (_aucData||[]).slice(0,3).map(r=>r.auction_date));
     renderAucCal();
-    renderAucCards(_aucSelectedDate);
-    document.getElementById('led-auction').style.background = '#3FB950';
+    if (_aucData) renderAucCards(_aucSelectedDate);
+    else {
+      const el = document.getElementById('auc-card-list');
+      if (el) el.innerHTML = '<div style="color:#F85149;font-size:11px;text-align:center;padding:24px 0;">경매 데이터 수신 실패 — ↻로 다시 시도</div>';
+    }
   } catch(e) {
-    console.error('[auction panel]', e);
-    document.getElementById('led-auction').style.background = '#F85149';
+    console.warn('[auction panel]', e);
+    setLed('led-auction', 'fail', ledTitle('국채경매', 'fail', _aucUpdated));
   }
 }
 
 function toggleAuctionPanel() {
   const panel   = document.getElementById('auction-panel');
   const overlay = document.getElementById('auction-overlay');
-  const isOpen  = panel.style.transform === 'translateX(0%)';
 
-  if (isOpen) {
+  if (_aucPanelOpen) {
     panel.style.transform = 'translateX(100%)';
     overlay.style.display = 'none';
     _aucPanelOpen = false;
+    setPanelBtnActive('hdr-auction-btn', false);
   } else {
     // 열 때만 다른 패널을 닫는다 (닫을 때 실행하면 막 열린 패널을 다시 닫아 버림)
     window.closeOtherPanels('auction');
-    panel.style.transform = 'translateX(0%)';
+    panel.style.height = (window.visualViewport?.height || window.innerHeight) + 'px';
+    panel.style.transform = 'translateX(0)';
     overlay.style.display = 'block';
     _aucPanelOpen = true;
+    setPanelBtnActive('hdr-auction-btn', true);
 
     // N 뱃지 숨기고 읽음 처리 — 현재 최신 cusip을 lastSeen으로 저장
     const badge = document.getElementById('auction-n-badge');
@@ -11208,13 +11274,15 @@ function renderAucCal() {
       `<span style="width:4px;height:4px;border-radius:50%;background:${AUC_TYPE_COLOR[x.type]||'#484F58'};display:inline-block;"></span>`
     ).join('');
 
+    const dw = new Date(_aucCalYear, _aucCalMonth, d).getDay();
+    const dayCol = isSelected ? '#FFFFFF' : dw === 0 ? '#F85149' : dw === 6 ? '#58A6FF' : '#8B949E';
     html += `<div onclick="aucSelectDate('${ds}')"
       style="text-align:center;padding:3px 1px;cursor:${hasAuction?'pointer':'default'};
              border-radius:4px;
-             background:${isSelected ? '#1A3448' : 'transparent'};
-             border:${isToday ? '0.5px solid #58A6FF' : '0.5px solid transparent'};
-             opacity:${hasAuction ? '1' : '0.4'};">
-      <div style="font-size:9px;color:${(()=>{const dw=new Date(_aucCalYear,_aucCalMonth,d).getDay();return dw===0?'#CF222B':dw===6?'#3FB950':'#8B949E';})()};">
+             background:${isSelected ? '#0969DA' : 'transparent'};
+             border:${isToday && !isSelected ? '0.5px solid #0969DA' : '0.5px solid transparent'};
+             opacity:${hasAuction || isSelected ? '1' : '0.4'};">
+      <div style="font-size:9px;font-weight:${isToday || isSelected ? '700' : '400'};color:${dayCol};">
         ${d}</div>
       <div style="display:flex;justify-content:center;gap:1px;margin-top:1px;min-height:5px;">${dots}</div>
     </div>`;
@@ -11291,8 +11359,8 @@ function renderAucCards(dateStr) {
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:9px;font-weight:700;color:${col};
-                       background:${col}22;border-radius:3px;padding:1px 6px;">${typ}</span>
-          <span style="font-size:10px;color:#E6EDF3;font-weight:600;">${r.security_term || ''}</span>
+                       background:${col}22;border-radius:3px;padding:1px 6px;">${escH(typ)}</span>
+          <span style="font-size:10px;color:#E6EDF3;font-weight:600;">${escH(r.security_term || '')}</span>
         </div>
       </div>
       <!-- 핵심 수치 -->
@@ -11339,12 +11407,12 @@ function renderAucCards(dateStr) {
                 border-radius:6px;padding:10px 12px;margin-bottom:10px;opacity:0.7;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <span style="font-size:9px;font-weight:700;color:${col};
-                     background:${col}22;border-radius:3px;padding:1px 6px;">${typ}</span>
-        <span style="font-size:10px;color:#8B949E;">${u.term || u.securityTerm || ''}</span>
+                     background:${col}22;border-radius:3px;padding:1px 6px;">${escH(typ)}</span>
+        <span style="font-size:10px;color:#8B949E;">${escH(u.term || u.securityTerm || '')}</span>
         <span style="font-size:8px;color:#484F58;margin-left:auto;">결과 대기 중</span>
       </div>
       <div style="font-size:9px;color:#484F58;">
-        발행 예정 $${offerBn}B &nbsp;·&nbsp; 결제일 ${(u.issueDate||'').slice(0,10)||'—'}
+        발행 예정 $${offerBn}B &nbsp;·&nbsp; 결제일 ${escH((u.issueDate||'').slice(0,10))||'—'}
       </div>
     </div>`;
   });
@@ -11356,12 +11424,7 @@ async function refreshAuctionPanel(btn) {
   if (btn.disabled) return;
   btn.disabled = true;
   btn.style.animation = 'spin 0.8s linear infinite';
-  if (!document.getElementById('spin-kf')) {
-    const s = document.createElement('style');
-    s.id = 'spin-kf';
-    s.textContent = '@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
-    document.head.appendChild(s);
-  }
+  btn.style.display = 'inline-block';
   try {
     await loadAuctionPanel(true);
   } finally {
@@ -11373,14 +11436,29 @@ async function refreshAuctionPanel(btn) {
 window.refreshAuctionPanel = refreshAuctionPanel;
 window.toggleAuctionPanel = toggleAuctionPanel;
 // 슬라이드 패널은 한 번에 하나만 — 열리는 패널을 제외한 나머지를 각자의 토글로 닫는다
+// (except 없이 부르면 전부 닫음 — Esc 키). 닫힌 패널의 헤더 버튼은 항상 비활성 색으로 되돌림.
 window.closeOtherPanels = (except) => {
   if (except !== 'news'    && _panelOpen)    toggleNewsPanel();
   if (except !== 'auction' && _aucPanelOpen) toggleAuctionPanel();
   if (except !== 'cal'     && typeof calPanelOpen !== 'undefined' && calPanelOpen) toggleCalPanel();
   if (except !== 'tower'   && typeof towerOpen    !== 'undefined' && towerOpen)    toggleLiqTower();
+  [['news','hdr-news-btn'], ['auction','hdr-auction-btn'], ['cal','hdr-cal-btn'], ['tower','hdr-tower-btn']]
+    .forEach(([k, id]) => { if (k !== except) setPanelBtnActive(id, false); });
 };
-// 페이지 로드 시 경매 데이터를 미리 받아 N 뱃지 판단 (패널을 열어야만 뱃지가 갱신되던 문제)
-window.addEventListener('load', () => setTimeout(() => { if (!_aucData) loadAuctionPanel(); }, 4000));
+// Esc → 열린 패널 닫기
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' || e.key === 'Esc') window.closeOtherPanels();
+});
+// 페이지 로드 4~5초 뒤 네 패널 데이터를 가볍게 확인 → 처음 온 방문자도 LED가 실제 상태를 보여줌
+// (경매는 N 뱃지 판단 겸 전체 로드, 캘린더·유동성은 sharedFetch라 패널을 열면 같은 응답 재사용)
+window.addEventListener('load', () => {
+  setTimeout(() => { if (!_aucData) loadAuctionPanel(); }, 4000);
+  setTimeout(() => { if (!_allItems.length) checkNews(); }, 4300);
+  setTimeout(() => {
+    if (typeof calData !== 'undefined' && !calData.length) loadCalendar(false);
+    if (typeof checkTowerLed === 'function' && typeof _towerData !== 'undefined' && !_towerData) checkTowerLed();
+  }, 4600);
+});
 window.loadAuctionPanel   = loadAuctionPanel;
 window.aucCalMove         = aucCalMove;
 window.aucCalGoToday      = aucCalGoToday;
@@ -11392,6 +11470,7 @@ function newsTimeFilter(val, btn) {
   _timeFilter = val;
   document.querySelectorAll('.np-time-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  _expandedId = null;
   renderNews();
 }
 window.newsTimeFilter = newsTimeFilter;
@@ -11427,14 +11506,11 @@ function renderNewsDigest(digest) {
 
   if (!digest?.items?.length) { block.style.display = 'none'; return; }
 
-  if (timeEl && digest.generatedAt) {
-    const dt = new Date(digest.generatedAt);
-    timeEl.textContent = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')} KST 기준`;
-  }
+  if (timeEl) timeEl.textContent = digest.generatedAt ? `${fmtKST(digest.generatedAt)} 기준` : '';
 
   itemsEl.innerHTML = digest.items.map((item, i) =>
     `<div style="display:flex;gap:8px;${i > 0 ? 'padding-top:7px;border-top:0.5px solid #21262D;margin-top:7px;' : ''}">
-      <span style="font-size:11px;font-weight:700;color:#CF222B;flex-shrink:0;margin-top:1px;">${item.rank}</span>
+      <span style="font-size:11px;font-weight:700;color:#CF222B;flex-shrink:0;margin-top:1px;">${escH(item.rank)}</span>
       <div>
         <div style="font-size:11px;font-weight:600;color:#CDD9E5;line-height:1.4;margin-bottom:3px;">${escH(item.title)}</div>
         <div style="font-size:10px;color:#8B949E;line-height:1.4;">${escH(item.summary)}</div>
@@ -11447,44 +11523,49 @@ function renderNewsDigest(digest) {
 }
 
 // ── 데이터 로드 ───────────────────────────────────────────────
+// 수신 결과 반영 (패널 로드·첫 방문 LED 확인·30분 자동 갱신 공용). 실패해도 직전 기사는 유지.
+function applyNewsData(data) {
+  const updEl = document.getElementById('news-updated');
+  if (data && Array.isArray(data.items)) {
+    _allItems = data.items;
+    _newsFetchedAt = data.fetchedAt || null;
+    _newsFailed = false;
+    if (updEl) updEl.textContent = _newsFetchedAt ? `${fmtKST(_newsFetchedAt)} 갱신` : '';
+    setLedByAge('led-news', '뉴스', _newsFetchedAt, NEWS_STALE_MS);
+    // 펼친 기사가 새 목록에 없으면 접기 (다른 기사가 저절로 펼쳐지지 않게 — 키 기준)
+    if (_expandedId && !_allItems.some(n => newsKey(n) === _expandedId)) _expandedId = null;
+  } else {
+    _newsFailed = true;
+    if (updEl) updEl.textContent = _newsFetchedAt ? `${fmtKST(_newsFetchedAt)} 갱신 · 수신 실패` : '수신 실패';
+    setLed('led-news', 'fail', ledTitle('뉴스', 'fail', _newsFetchedAt));
+  }
+}
+const _newsUrl = force => force ? fetchT(`${WORKER}/news?force=1`, 15000).then(jsonOrNull)
+                                : sharedFetch(`${WORKER}/news`, 15000).then(jsonOrNull);
+// 패널이 닫혀 있을 때의 가벼운 확인 (/news 1건, 다이제스트 생략)
+async function checkNews() {
+  const data = await _newsUrl(false).catch(() => null);
+  applyNewsData(data);
+  if (_panelOpen) renderNews();
+  scheduleRefresh();
+}
 async function loadNews(force = false) {
   const btn = document.getElementById('news-refresh-btn');
   if (btn) { btn.style.opacity = '0.4'; btn.style.pointerEvents = 'none'; }
 
   try {
-    const url = force ? `${WORKER}/news?force=1` : `${WORKER}/news`;
-    const [resp, digestResp] = await Promise.allSettled([
-      fetchT(url, 15000),
-      fetchT(`${WORKER}/news-digest`, 10000),
+    const [data, digest] = await Promise.all([
+      _newsUrl(force).catch(() => null),
+      fetchT(`${WORKER}/news-digest`, 10000).then(jsonOrNull).catch(() => null),
     ]);
-
-    if (resp.status === 'fulfilled' && resp.value.ok) {
-      const data = await resp.value.json();
-      _allItems = (data.items || []);
-      const updEl = document.getElementById('news-updated');
-      if (updEl && data.fetchedAt) {
-        const dt = new Date(data.fetchedAt);
-        updEl.textContent = dt.toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'}) + ' 갱신';
-      }
-      const led = document.getElementById('led-news');
-      if (led) led.style.background = '#3FB950';
-    }
-
-    // 다이제스트 렌더
-    if (digestResp.status === 'fulfilled' && digestResp.value.ok) {
-      const digest = await digestResp.value.json();
-      renderNewsDigest(digest);
-    }
-
+    applyNewsData(data);
+    if (digest) { _digestLoaded = true; renderNewsDigest(digest); }
     renderNews();
-    scheduleRefresh();
-
   } catch(e) {
-    const led = document.getElementById('led-news');
-    if (led) led.style.background = '#F85149';
-    console.warn('[NewsPanel] 로드 실패:', e.message);
+    console.warn('[NewsPanel] 렌더 실패:', e.message);
   } finally {
     if (btn) { btn.style.opacity = '1'; btn.style.pointerEvents = ''; }
+    scheduleRefresh();
   }
 }
 window.loadNews = loadNews;
@@ -11511,21 +11592,28 @@ function renderNews() {
     }
   }
 
-  // 2. 시간 필터
+  // 2. 시간 필터 ('all' 버튼 = 7일)
   const now = Date.now();
-  if (_timeFilter !== 'all') {
-    const ms = _timeFilter === '24h' ? 86400000 : 259200000;
-    items = items.filter(n => {
-      if (!n.pubDate) return true;
-      return (now - new Date(n.pubDate).getTime()) <= ms;
-    });
-  }
+  const ms = { '24h': 86400000, '3d': 3 * 86400000, 'all': 7 * 86400000 }[_timeFilter] || 7 * 86400000;
+  items = items.filter(n => {
+    if (!n.pubDate) return true;
+    const t = new Date(n.pubDate).getTime();
+    return !isFinite(t) || (now - t) <= ms;
+  });
 
   // 건수 표시
   const countEl = document.getElementById('news-filtered-count');
   if (countEl) countEl.textContent = `${items.length}건`;
 
-  // 빈 상태
+  // 빈 상태 — 수신 자체가 실패한 경우는 '조건에 맞는 기사 없음'과 구분
+  if (!items.length && _newsFailed && !_allItems.length) {
+    list.innerHTML = `<div class="np-empty">
+      <div style="font-size:22px;">⚠️</div>
+      <div>뉴스 수신 실패 — 잠시 후 다시 시도</div>
+      <div style="font-size:10px;color:#30363D;">오른쪽 위 ↻로 다시 불러올 수 있습니다</div>
+    </div>`;
+    return;
+  }
   if (!items.length) {
     list.innerHTML = `<div class="np-empty">
       <div style="font-size:22px;">📭</div>
@@ -11555,8 +11643,9 @@ function renderNews() {
 
   list.innerHTML = items.map((n, idx) => {
     const dotColor   = SOURCE_COLOR_MAP[n.sourceId] || (CAT[n.cat]?.color) || '#8B949E';
-    const isRead     = _readSet.has(idx + '_' + n.title);
-    const isExpanded = (_expandedId === idx);
+    const key        = newsKey(n);
+    const isRead     = _readSet.has(key);
+    const isExpanded = !!key && _expandedId === key;
     const timeStr    = relTime(n.pubDate);
 
     return `
@@ -11604,33 +11693,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const n = items[idx];
     if (!n) return;
 
-    // 읽음 처리
-    const readKey = idx + '_' + n.title;
-    _readSet.add(readKey);
-    try { localStorage.setItem(READ_KEY, JSON.stringify([..._readSet])); } catch(err){}
+    // 읽음 처리 (기사 링크/제목 기준, 최근 500건)
+    const key = newsKey(n);
+    markRead(key);
 
     // 확장 토글
-    _expandedId = (_expandedId === idx) ? null : idx;
+    _expandedId = (_expandedId === key) ? null : key;
     renderNews();
   });
 });
 
 // ── 자동 새로고침 + 카운트다운 ───────────────────────────────
+// 30분마다: 패널이 열려 있으면 전체 로드, 닫혀 있으면 LED만 확인. 카운트다운은 패널이 열려 있을 때만.
 function scheduleRefresh() {
   if (_refreshTimer) clearTimeout(_refreshTimer);
-  if (_countdownTimer) clearInterval(_countdownTimer);
-
   _nextRefresh = Date.now() + REFRESH_INTERVAL;
-  _refreshTimer = setTimeout(() => loadNews(false), REFRESH_INTERVAL);
-
-  _countdownTimer = setInterval(() => {
-    const el = document.getElementById('news-countdown');
-    if (!el) return;
-    const left = Math.max(0, _nextRefresh - Date.now());
-    const m = Math.floor(left / 60000);
-    const s = Math.floor((left % 60000) / 1000);
-    el.textContent = `갱신까지 ${m}:${s.toString().padStart(2,'0')}`;
-  }, 1000);
+  _refreshTimer = setTimeout(() => { _panelOpen ? loadNews(false) : checkNews(); }, REFRESH_INTERVAL);
+  if (_panelOpen) updateCountdown();
+}
+function updateCountdown() {
+  const el = document.getElementById('news-countdown');
+  if (!el) return;
+  if (!_nextRefresh) { el.textContent = ''; return; }
+  const left = Math.max(0, _nextRefresh - Date.now());
+  const m = Math.floor(left / 60000);
+  const s = Math.floor((left % 60000) / 1000);
+  el.textContent = `갱신까지 ${m}:${s.toString().padStart(2,'0')}`;
+}
+function startCountdown() {
+  stopCountdown();
+  updateCountdown();
+  _countdownTimer = setInterval(updateCountdown, 1000);
+}
+function stopCountdown() {
+  if (_countdownTimer) clearInterval(_countdownTimer);
+  _countdownTimer = null;
 }
 
 // ── 유틸 ─────────────────────────────────────────────────────
@@ -11639,7 +11736,7 @@ function relTime(pubDate) {
   const diff = Date.now() - new Date(pubDate).getTime();
   if (diff < 0) return '방금';
   if (diff < 3600000)  return `${Math.floor(diff/60000)}분 전`;
-  if (diff < 86400000) return `${Math.floor(diff/3600000)}h 전`;
+  if (diff < 86400000) return `${Math.floor(diff/3600000)}시간 전`;
   return `${Math.floor(diff/86400000)}일 전`;
 }
 
