@@ -35,6 +35,9 @@
   QRA 원문은 `fetch-qra-source.yml`이 `data/qra_source.json`에 저장, 헬스체크는 `health-check.yml`(Actions)이 직접 실행.
 - 실측 검증(2026-11-13): 경매 3건 tail 반영·텔레그램 발송, QRA 11/2 발표(Q4 618/850, 2027Q1 800/1000) 반영, 헬스체크 이슈 자동화 동작.
 
+## 정리 (2026-11-13)
+- 미사용 파일 삭제: `auction_test.html`, `favicon*.svg`(사이트는 PNG 아이콘 사용), `package.json`/`package-lock.json`(미사용 xlsx 의존성), 미추적 `AGENTS.md`·`.claude/launch.json`.
+
 ## 이전 작업 요약 (2026-04~10)
 - TGA: H.4.1 TGA 기준 주간 순차입 계산, DTS 일별 TGA 파이프라인(`fetch-dts.yml` → KV `tga_dts_v1`)을 T1·유동성 패널·텔레그램에 사용, 1일·주간 변화 동시 표시.
 - 국채경매 텔레그램에서 Bills 제외. H.4.1 텔레그램 신호 방향 수정. 파비콘 = 홈 화면 아이콘 PNG.
@@ -47,7 +50,6 @@
 - [ ] 헬스체크 진단 에이전트(23:30 UTC)는 아직 이상 상황에서 실행된 적 없음 — 첫 warn/fail 때 `diagnosis`가 이슈에 붙는지 확인.
 - [ ] 다음 QRA(2027-02 초) 때 `fetch-qra-source.yml` → 에이전트 → `qra-apply.yml` 흐름이 사람 개입 없이 도는지 확인.
 - [ ] FOMC 하드코딩은 2027년까지 — 2027 하반기에 2028 일정 추가(헬스체크가 60일 전 경고).
-- [ ] 레포 밖 파일: `AGENTS.md`(Codex용, 내용이 오래됨·미추적), `.claude/launch.json`(로컬 미리보기). 필요하면 CLAUDE.md 기준으로 갱신하거나 삭제.
 
 ## 사용자가 정한 것 (바꾸기 전에 물어볼 것)
 - TGA는 FRED가 아니라 H.4.1(주간)·DTS(일별) 사용.
