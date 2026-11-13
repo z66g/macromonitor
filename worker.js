@@ -38,13 +38,18 @@ const KV_KEYS = {
   newsDigestHistory: 'news_digest_history_v1', // 다이제스트 누적 (배치 텔레그램용)
   tgaDts:            'tga_dts_v1',             // DTS 일별 TGA 잔고 (GitHub Actions)
 };
-// ── Cron 문자열 — wrangler.toml [triggers] crons 와 반드시 동일하게 유지 ──
-const CRON = {
-  news:   '5,35 * * * *',
-  groupA: '15 1,7,13,19 * * *',
-  groupB: '25 1,7,13,19 * * *',
-  groupC: '45 1,7,13,19 * * *',
-  groupD: '55 1,7,13,19 * * *',
+// ── Cron — wrangler.toml [triggers] crons 와 반드시 동일하게 유지 ──
+// Cloudflare 무료 플랜은 '계정 전체' cron 5개 한도(다른 Worker와 공유) → cron 1개만 사용하고
+// 실행 시각(UTC)으로 작업을 고른다. 한 번 실행당 서브요청 50건 한도도 지켜진다.
+const CRON = '5,15,25,35,45,55 * * * *';
+const REFRESH_HOURS = [1, 7, 13, 19];        // 6시간 갱신 시각 (UTC) = KST 10·16·22·04시
+// cron-job.org가 :00/:30에 GH Actions(KV 쓰기)를 트리거하므로 Worker는 그 분을 피함
+const CRON_JOBS = {
+  5:  'news', 35: 'news',                    // 매시 — 뉴스 RSS (~15건)
+  15: 'groupA',                              // 갱신 시각 — H.4.1 → liq + 수익률 (~27건)
+  25: 'groupB',                              // 갱신 시각 — T2 (~21건)
+  45: 'groupC',                              // 갱신 시각 — T3 + 유동성 예측모델 (~26건)
+  55: 'groupD',                              // 갱신 시각 — 캘린더
 };
 
 // TTL은 cron 주기(6h)보다 길게 — 한 번 갱신이 실패/지연돼도 캐시 공백이 생기지 않도록
@@ -170,27 +175,30 @@ export default {
     const run = async (name, fn) => {
       try { await fn(); } catch(e) { console.error(`cron ${name}:`, e.message); }
     };
-    switch (event.cron) {
-      case CRON.news:      // 매시 5·35분 — 뉴스 RSS (~15건)
-        ctx.waitUntil(run('news', () => newsScheduledRefresh(env)));
-        return;
-      case CRON.groupA:    // 6시간마다 :15 — H.4.1 → liq(H.4.1 KV 사용) + 수익률 (~27건)
+    if (event.cron !== CRON) console.error('cron 문자열 불일치:', event.cron, '— wrangler.toml과 CRON 상수를 맞추세요');
+    const t = new Date(event.scheduledTime);
+    const job = CRON_JOBS[t.getUTCMinutes()];
+    if (job === 'news') {
+      ctx.waitUntil(run('news', () => newsScheduledRefresh(env)));
+      return;
+    }
+    if (!job || !REFRESH_HOURS.includes(t.getUTCHours())) return;   // 갱신 시각이 아니면 아무것도 안 함
+    switch (job) {
+      case 'groupA':
         ctx.waitUntil((async () => {
           await run('h41Html', () => h41HtmlParser(env, null, true));
           await Promise.all([run('liq', () => refreshLiq(env)), run('yields', () => refreshYieldsHist(env))]);
         })());
         return;
-      case CRON.groupB:    // 6시간마다 :25 — T2 (~21건)
+      case 'groupB':
         ctx.waitUntil(run('t2', () => refreshT2(env)));
         return;
-      case CRON.groupC:    // 6시간마다 :45 — T3 + 유동성 예측모델 (~26건)
+      case 'groupC':
         ctx.waitUntil(Promise.all([run('t3', () => refreshT3(env)), run('liqTower', () => refreshLiqTower(env))]));
         return;
-      case CRON.groupD:    // 6시간마다 :55 — 캘린더 (단독)
+      case 'groupD':
         ctx.waitUntil(run('calendar', async () => kvPut(env, KV_KEYS.calendar, await fetchCalendar(env), KV_TTL.calendar)));
         return;
-      default:
-        console.error('알 수 없는 cron:', event.cron, '— wrangler.toml과 CRON 상수를 맞추세요');
     }
   }
 };
