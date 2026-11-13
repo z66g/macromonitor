@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-13T12:21:58.420758+00:00",
+  "updated": "2026-11-13T22:02:04.257498+00:00",
   "upcoming": [
     {
       "type": "Bill",
@@ -26,6 +26,70 @@
       "cusip": "912797VJ3"
     },
     {
+      "type": "Bill",
+      "term": "17-Week",
+      "auctionDate": "2026-11-18",
+      "issueDate": "2026-11-24",
+      "offeringAmt": 0.0,
+      "cusip": "912797XJ1"
+    },
+    {
+      "type": "Bill",
+      "term": "4-Week",
+      "auctionDate": "2026-11-19",
+      "issueDate": "2026-11-24",
+      "offeringAmt": 0.0,
+      "cusip": "912797WG8"
+    },
+    {
+      "type": "Bill",
+      "term": "8-Week",
+      "auctionDate": "2026-11-19",
+      "issueDate": "2026-11-24",
+      "offeringAmt": 0.0,
+      "cusip": "912797WQ6"
+    },
+    {
+      "type": "Bill",
+      "term": "13-Week",
+      "auctionDate": "2026-11-23",
+      "issueDate": "2026-11-27",
+      "offeringAmt": 0.0,
+      "cusip": "912797WC7"
+    },
+    {
+      "type": "Bill",
+      "term": "26-Week",
+      "auctionDate": "2026-11-23",
+      "issueDate": "2026-11-27",
+      "offeringAmt": 0.0,
+      "cusip": "912797XE2"
+    },
+    {
+      "type": "FRN",
+      "term": "1-Year 11-Month",
+      "auctionDate": "2026-11-24",
+      "issueDate": "2026-11-27",
+      "offeringAmt": 0.0,
+      "cusip": "91282CRS2"
+    },
+    {
+      "type": "Bill",
+      "term": "52-Week",
+      "auctionDate": "2026-11-24",
+      "issueDate": "2026-11-27",
+      "offeringAmt": 0.0,
+      "cusip": "912797XC6"
+    },
+    {
+      "type": "Bill",
+      "term": "6-Week",
+      "auctionDate": "2026-11-24",
+      "issueDate": "2026-11-27",
+      "offeringAmt": 0.0,
+      "cusip": "912797VS3"
+    },
+    {
       "type": "Bond",
       "term": "20-Year",
       "auctionDate": "2026-11-18",
@@ -40,6 +104,30 @@
       "issueDate": "2026-11-30",
       "offeringAmt": 19000000000.0,
       "cusip": "91282CRE3"
+    },
+    {
+      "type": "Note",
+      "term": "2-Year",
+      "auctionDate": "2026-11-23",
+      "issueDate": "2026-11-30",
+      "offeringAmt": 0.0,
+      "cusip": "91282CRY9"
+    },
+    {
+      "type": "Note",
+      "term": "5-Year",
+      "auctionDate": "2026-11-24",
+      "issueDate": "2026-11-30",
+      "offeringAmt": 0.0,
+      "cusip": "91282CRZ6"
+    },
+    {
+      "type": "Note",
+      "term": "7-Year",
+      "auctionDate": "2026-11-25",
+      "issueDate": "2026-11-30",
+      "offeringAmt": 0.0,
+      "cusip": "91282CSA0"
     }
   ],
   "auctioned": [
