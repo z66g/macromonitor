@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>MacroMonitor</title>
   <!-- Favicon -->
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -10645,6 +10645,24 @@ window.addEventListener('orientationchange', function() {
   .sent-change { flex-shrink: 0 !important; }
 }
 
+
+/* ════════════════════════════════════════
+   iOS 상태바(시계·배터리 줄)까지 페이지 배경으로
+   viewport-fit=cover로 화면 맨 위까지 그리고, 노치·다이내믹 아일랜드·홈 인디케이터
+   영역(safe-area)만큼은 여백으로 비워 내용이 가려지지 않게 한다. 일반 브라우저에선 inset=0이라 변화 없음.
+════════════════════════════════════════ */
+html { background: #0D1117; }
+body {
+  padding-top:    max(24px, env(safe-area-inset-top, 0px));
+  padding-left:   max(24px, env(safe-area-inset-left, 0px));
+  padding-right:  max(24px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
+}
+#news-panel, #cal-panel, #auction-panel, #tower-panel {
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
 </style>
 
 <script>
