@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-13T03:04:37.569428+00:00",
+  "updated": "2026-11-13T21:00:42.221373+00:00",
   "count": 157,
   "results": [
     {
@@ -14,6 +14,7 @@
       "total_accepted": 25000011800.0,
       "total_tendered": 59046096200.0,
       "interest_rate": 5.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261112_4.pdf",
       "_analysis": {
         "btc": 2.36,
         "high_yield": 5.441,
@@ -36,6 +37,7 @@
         "score_pct": 83
       },
       "summary": "🎯 총평: Average\n1. Tail: +0.4 bp. WI 5.437% 대비 5.441%로 소폭 tail이 나 30년물 금리 하방을 막았다.\n2. BTC: 2.36x vs 6avg 2.44x. 응찰률이 평균을 다소 밑돌아 수요는 미온적이었다.\n3. Indirect 68.1% vs 6avg 70.48%. 해외 수요는 평균보다 약간 약했다. PD 11.4% vs 6avg 9.5%. 딜러 인수가 평균을 웃돌아 부담이 다소 늘었다.\n4. 결론: 3·10·30년물이 모두 tail을 낸 5월 이후 첫 리펀딩 주간으로, 5.375% 쿠폰에도 장기물 수요가 미지근해 기간 프리미엄 상승 압력이 이어질 전망이다.",
+      "telegram_sent": true,
       "_ai": {
         "sources": [
           "https://www.newsquawk.com/headlines/us-sells-usd-25bln-of-30-year-bonds-tail-04bps-",
@@ -43,8 +45,7 @@
         ],
         "researched_at": "2026-11-13T03:32:27Z",
         "model": "claude-opus-5-5"
-      },
-      "telegram_sent": true
+      }
     },
     {
       "security_type": "Bill",
@@ -58,6 +59,7 @@
       "total_accepted": 75000002600.0,
       "total_tendered": 208356962600.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261112_3.pdf",
       "_analysis": {
         "btc": 2.78,
         "high_yield": 4.225,
@@ -93,6 +95,7 @@
       "total_accepted": 110000719900.0,
       "total_tendered": 274772559900.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261112_1.pdf",
       "_analysis": {
         "btc": 2.5,
         "high_yield": 4.08,
@@ -128,6 +131,7 @@
       "total_accepted": 115000742900.0,
       "total_tendered": 337926149900.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261112_2.pdf",
       "_analysis": {
         "btc": 2.94,
         "high_yield": 3.955,
@@ -163,6 +167,7 @@
       "total_accepted": 42000059700.0,
       "total_tendered": 103302679000.0,
       "interest_rate": 5.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261110_1.pdf",
       "_analysis": {
         "btc": 2.46,
         "high_yield": 5.02,
@@ -185,6 +190,7 @@
         "score_pct": 67
       },
       "summary": "🎯 총평: Average\n1. Tail: +1.0 bp. WI 5.010% 대비 5.020%로 2월 이후 가장 큰 tail이 나 10년물 5% 위 금리를 굳혔다.\n2. BTC: 2.46x vs 6avg 2.6x. 5월 이후 최저 응찰률로 수요 둔화가 분명했다.\n3. Indirect 61.2% vs 6avg 76.65%. 해외 수요가 전월 80.3%에서 급감해 2016년 이후 최대 낙폭을 기록했다. PD 9.8% vs 6avg 7.45%. 딜러 인수 비중이 5월 이후 최고로 올라 재고 부담이 커졌다 ⚠️.\n4. 결론: 뜨거운 10월 CPI 직후 해외 수요 이탈이 확인돼 기간 프리미엄 상승과 장기금리 5% 고착 위험이 커졌다.",
+      "telegram_sent": true,
       "_ai": {
         "sources": [
           "https://cryptobriefing.com/us-10-year-treasury-auction-sees-reduced-foreign-demand-highest-yield-tail/",
@@ -193,8 +199,7 @@
         ],
         "researched_at": "2026-11-13T03:32:27Z",
         "model": "claude-opus-5-5"
-      },
-      "telegram_sent": true
+      }
     },
     {
       "security_type": "Note",
@@ -208,6 +213,7 @@
       "total_accepted": 58000001800.0,
       "total_tendered": 146616022800.0,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261109_3.pdf",
       "_analysis": {
         "btc": 2.53,
         "high_yield": 4.627,
@@ -230,6 +236,7 @@
         "score_pct": 83
       },
       "summary": "🎯 총평: Average\n1. Tail: +0.5 bp. WI 4.622% 대비 4.627%로 소폭 tail이 나 단기물 금리에 약한 상방 압력을 남겼다.\n2. BTC: 2.53x vs 6avg 2.64x. 2025년 8월 이후 최저 응찰률로 수요가 평균을 밑돌았다.\n3. Indirect 55.5% vs 6avg 63.02%. 해외 수요는 약 15개월 만에 최저로 뚜렷이 위축됐다. PD 9.5% vs 6avg 12.2%. 직접응찰(35.0%)이 빈자리를 메워 딜러 부담은 오히려 가벼웠다.\n4. 결론: 해외 수요 공백을 국내 직접응찰이 막아낸 무난한 결과지만, 리펀딩 주간 첫 경매부터 tail이 나며 프런트엔드 금리 하락 여력이 제한됨을 보여줬다.",
+      "telegram_sent": true,
       "_ai": {
         "sources": [
           "https://247wallst.com/investing/2026/11/10/foreign-linked-buyers-took-their-smallest-share-of-a-3-year-treasury-auction-in-15-months/",
@@ -238,8 +245,7 @@
         ],
         "researched_at": "2026-11-13T03:32:27Z",
         "model": "claude-opus-5-5"
-      },
-      "telegram_sent": true
+      }
     },
     {
       "security_type": "Bill",
@@ -253,6 +259,7 @@
       "total_accepted": 95000192500.0,
       "total_tendered": 254071133700.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261109_1.pdf",
       "_analysis": {
         "btc": 2.67,
         "high_yield": 4.06,
@@ -288,6 +295,7 @@
       "total_accepted": 82001012500.0,
       "total_tendered": 239685055500.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261109_2.pdf",
       "_analysis": {
         "btc": 2.92,
         "high_yield": 4.145,
@@ -323,6 +331,7 @@
       "total_accepted": 100000769300.0,
       "total_tendered": 259168769300.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261109_4.pdf",
       "_analysis": {
         "btc": 2.59,
         "high_yield": 3.99,
@@ -358,6 +367,7 @@
       "total_accepted": 110000401400.0,
       "total_tendered": 294610810400.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261105_2.pdf",
       "_analysis": {
         "btc": 2.68,
         "high_yield": 3.975,
@@ -393,6 +403,7 @@
       "total_accepted": 115000594100.0,
       "total_tendered": 283336654100.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261105_1.pdf",
       "_analysis": {
         "btc": 2.46,
         "high_yield": 3.89,
@@ -428,6 +439,7 @@
       "total_accepted": 75000378200.0,
       "total_tendered": 244215706200.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261104_1.pdf",
       "_analysis": {
         "btc": 3.26,
         "high_yield": 4.09,
@@ -463,6 +475,7 @@
       "total_accepted": 100000626300.0,
       "total_tendered": 287676020000.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261103_1.pdf",
       "_analysis": {
         "btc": 2.88,
         "high_yield": 3.94,
@@ -498,6 +511,7 @@
       "total_accepted": 82000675500.0,
       "total_tendered": 236990644500.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261102_2.pdf",
       "_analysis": {
         "btc": 2.89,
         "high_yield": 4.15,
@@ -533,6 +547,7 @@
       "total_accepted": 95000513000.0,
       "total_tendered": 273600789800.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261102_1.pdf",
       "_analysis": {
         "btc": 2.88,
         "high_yield": 4.04,
@@ -568,6 +583,7 @@
       "total_accepted": 44000055600.0,
       "total_tendered": 108443203600.0,
       "interest_rate": 4.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261029_3.pdf",
       "_analysis": {
         "btc": 2.46,
         "high_yield": 4.894,
@@ -603,6 +619,7 @@
       "total_accepted": 110001116100.0,
       "total_tendered": 289630756100.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261029_2.pdf",
       "_analysis": {
         "btc": 2.63,
         "high_yield": 4.02,
@@ -638,6 +655,7 @@
       "total_accepted": 115000324600.0,
       "total_tendered": 356427197600.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261029_1.pdf",
       "_analysis": {
         "btc": 3.1,
         "high_yield": 3.91,
@@ -673,6 +691,7 @@
       "total_accepted": 30000024800.0,
       "total_tendered": 91641997700.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261028_1.pdf",
       "_analysis": {
         "btc": 3.05,
         "high_yield": null,
@@ -708,6 +727,7 @@
       "total_accepted": 75000228600.0,
       "total_tendered": 231332649000.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261028_2.pdf",
       "_analysis": {
         "btc": 3.08,
         "high_yield": 4.14,
@@ -743,6 +763,7 @@
       "total_accepted": 70000063600.0,
       "total_tendered": 162753892100.0,
       "interest_rate": 4.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261027_3.pdf",
       "_analysis": {
         "btc": 2.33,
         "high_yield": 4.845,
@@ -778,6 +799,7 @@
       "total_accepted": 54000228500.0,
       "total_tendered": 170041784500.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261027_1.pdf",
       "_analysis": {
         "btc": 3.15,
         "high_yield": 4.29,
@@ -813,6 +835,7 @@
       "total_accepted": 95000814000.0,
       "total_tendered": 268530739000.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261027_2.pdf",
       "_analysis": {
         "btc": 2.83,
         "high_yield": 3.95,
@@ -848,6 +871,7 @@
       "total_accepted": 69000106700.0,
       "total_tendered": 178622165700.0,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261026_3.pdf",
       "_analysis": {
         "btc": 2.59,
         "high_yield": 4.708,
@@ -883,6 +907,7 @@
       "total_accepted": 82000319200.0,
       "total_tendered": 215871459200.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261026_2.pdf",
       "_analysis": {
         "btc": 2.63,
         "high_yield": 4.21,
@@ -918,6 +943,7 @@
       "total_accepted": 95000167000.0,
       "total_tendered": 291862595100.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261026_1.pdf",
       "_analysis": {
         "btc": 3.07,
         "high_yield": 4.05,
@@ -953,6 +979,7 @@
       "total_accepted": 26000028500.0,
       "total_tendered": 62605441200.0,
       "interest_rate": 2.25,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261022_4.pdf",
       "_analysis": {
         "btc": 2.41,
         "high_yield": 2.367,
@@ -988,6 +1015,7 @@
       "total_accepted": 105000146900.0,
       "total_tendered": 270024196900.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261022_2.pdf",
       "_analysis": {
         "btc": 2.57,
         "high_yield": 4.015,
@@ -1023,6 +1051,7 @@
       "total_accepted": 110000060500.0,
       "total_tendered": 310101012500.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261022_1.pdf",
       "_analysis": {
         "btc": 2.82,
         "high_yield": 3.945,
@@ -1058,6 +1087,7 @@
       "total_accepted": 13000000900.0,
       "total_tendered": 35479550900.0,
       "interest_rate": 5.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261021_2.pdf",
       "_analysis": {
         "btc": 2.73,
         "high_yield": 5.469,
@@ -1093,6 +1123,7 @@
       "total_accepted": 75000201900.0,
       "total_tendered": 207229001900.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261021_1.pdf",
       "_analysis": {
         "btc": 2.76,
         "high_yield": 4.155,
@@ -1128,6 +1159,7 @@
       "total_accepted": 95000019700.0,
       "total_tendered": 260341982200.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261020_1.pdf",
       "_analysis": {
         "btc": 2.74,
         "high_yield": 3.975,
@@ -1163,6 +1195,7 @@
       "total_accepted": 82000116600.0,
       "total_tendered": 233093826600.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261019_1.pdf",
       "_analysis": {
         "btc": 2.84,
         "high_yield": 4.22,
@@ -1198,6 +1231,7 @@
       "total_accepted": 95000530000.0,
       "total_tendered": 262744982800.0,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261019_2.pdf",
       "_analysis": {
         "btc": 2.77,
         "high_yield": 4.095,
@@ -1233,6 +1267,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261015_1.pdf",
       "_analysis": {
         "btc": 2.26,
         "high_yield": 4.05,
@@ -1268,6 +1303,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261015_2.pdf",
       "_analysis": {
         "btc": 2.56,
         "high_yield": 4.0,
@@ -1303,6 +1339,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261014_1.pdf",
       "_analysis": {
         "btc": 2.79,
         "high_yield": 4.195,
@@ -1338,6 +1375,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261013_2.pdf",
       "_analysis": {
         "btc": 2.68,
         "high_yield": 4.085,
@@ -1373,6 +1411,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261013_1.pdf",
       "_analysis": {
         "btc": 2.76,
         "high_yield": 4.2,
@@ -1408,6 +1447,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261013_3.pdf",
       "_analysis": {
         "btc": 2.58,
         "high_yield": 3.98,
@@ -1443,6 +1483,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261008_3.pdf",
       "_analysis": {
         "btc": 2.54,
         "high_yield": 5.618,
@@ -1478,6 +1519,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261008_2.pdf",
       "_analysis": {
         "btc": 2.77,
         "high_yield": 3.98,
@@ -1513,6 +1555,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261007_2.pdf",
       "_analysis": {
         "btc": 2.77,
         "high_yield": 5.3,
@@ -1548,6 +1591,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261007_1.pdf",
       "_analysis": {
         "btc": 3.1,
         "high_yield": 4.105,
@@ -1583,6 +1627,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261006_2.pdf",
       "_analysis": {
         "btc": 2.62,
         "high_yield": 4.932,
@@ -1618,6 +1663,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261006_1.pdf",
       "_analysis": {
         "btc": 2.78,
         "high_yield": 3.945,
@@ -1653,6 +1699,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261005_2.pdf",
       "_analysis": {
         "btc": 2.79,
         "high_yield": 4.165,
@@ -1688,6 +1735,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261005_1.pdf",
       "_analysis": {
         "btc": 2.51,
         "high_yield": 4.05,
@@ -1723,6 +1771,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261001_2.pdf",
       "_analysis": {
         "btc": 2.7,
         "high_yield": 3.99,
@@ -1758,6 +1807,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260930_1.pdf",
       "_analysis": {
         "btc": 2.89,
         "high_yield": 4.115,
@@ -1793,6 +1843,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260929_2.pdf",
       "_analysis": {
         "btc": 3.07,
         "high_yield": 4.4,
@@ -1828,6 +1879,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260924_3.pdf",
       "_analysis": {
         "btc": 2.42,
         "high_yield": 5.085,
@@ -1863,6 +1915,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260923_3.pdf",
       "_analysis": {
         "btc": 2.21,
         "high_yield": 5.033,
@@ -1898,6 +1951,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260923_2.pdf",
       "_analysis": {
         "btc": 2.63,
         "high_yield": null,
@@ -1933,6 +1987,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260922_2.pdf",
       "_analysis": {
         "btc": 2.63,
         "high_yield": 4.787,
@@ -1968,6 +2023,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 2.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260917_3.pdf",
       "_analysis": {
         "btc": 2.24,
         "high_yield": 2.653,
@@ -2003,6 +2059,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260915_2.pdf",
       "_analysis": {
         "btc": 2.57,
         "high_yield": 5.42,
@@ -2038,6 +2095,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260910_3.pdf",
       "_analysis": {
         "btc": 2.61,
         "high_yield": 5.308,
@@ -2073,6 +2131,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260909_2.pdf",
       "_analysis": {
         "btc": 2.71,
         "high_yield": 4.834,
@@ -2108,6 +2167,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260908_3.pdf",
       "_analysis": {
         "btc": 2.72,
         "high_yield": 4.474,
@@ -2143,6 +2203,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260827_3.pdf",
       "_analysis": {
         "btc": 2.5,
         "high_yield": 4.512,
@@ -2178,6 +2239,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260826_3.pdf",
       "_analysis": {
         "btc": 2.37,
         "high_yield": 4.393,
@@ -2213,6 +2275,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260826_2.pdf",
       "_analysis": {
         "btc": 3.14,
         "high_yield": null,
@@ -2248,6 +2311,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260825_2.pdf",
       "_analysis": {
         "btc": 2.6,
         "high_yield": 4.204,
@@ -2283,6 +2347,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 2.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260820_3.pdf",
       "_analysis": {
         "btc": 2.82,
         "high_yield": 2.973,
@@ -2318,6 +2383,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260819_2.pdf",
       "_analysis": {
         "btc": 2.53,
         "high_yield": 5.204,
@@ -2353,6 +2419,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260813_3.pdf",
       "_analysis": {
         "btc": 2.39,
         "high_yield": 5.216,
@@ -2388,6 +2455,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260812_2.pdf",
       "_analysis": {
         "btc": 2.53,
         "high_yield": 4.683,
@@ -2423,6 +2491,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.25,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260811_2.pdf",
       "_analysis": {
         "btc": 2.71,
         "high_yield": 4.291,
@@ -2458,6 +2527,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260729_1.pdf",
       "_analysis": {
         "btc": 3.37,
         "high_yield": null,
@@ -2493,6 +2563,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260728_2.pdf",
       "_analysis": {
         "btc": 2.49,
         "high_yield": 4.473,
@@ -2528,6 +2599,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.25,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260727_2.pdf",
       "_analysis": {
         "btc": 2.66,
         "high_yield": 4.315,
@@ -2563,6 +2635,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260727_3.pdf",
       "_analysis": {
         "btc": 2.28,
         "high_yield": 4.408,
@@ -2598,6 +2671,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 2.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260723_3.pdf",
       "_analysis": {
         "btc": 2.3,
         "high_yield": 2.438,
@@ -2633,6 +2707,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260722_2.pdf",
       "_analysis": {
         "btc": 2.64,
         "high_yield": 5.163,
@@ -2668,6 +2743,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260709_3.pdf",
       "_analysis": {
         "btc": 2.44,
         "high_yield": 5.058,
@@ -2703,6 +2779,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260708_2.pdf",
       "_analysis": {
         "btc": 2.59,
         "high_yield": 4.58,
@@ -2738,6 +2815,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260707_3.pdf",
       "_analysis": {
         "btc": 2.6,
         "high_yield": 4.179,
@@ -2773,6 +2851,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.25,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260625_3.pdf",
       "_analysis": {
         "btc": 2.5,
         "high_yield": 4.26,
@@ -2808,6 +2887,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260624_3.pdf",
       "_analysis": {
         "btc": 2.35,
         "high_yield": 4.2,
@@ -2843,6 +2923,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260624_2.pdf",
       "_analysis": {
         "btc": 2.99,
         "high_yield": null,
@@ -2878,6 +2959,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260623_2.pdf",
       "_analysis": {
         "btc": 2.64,
         "high_yield": 4.189,
@@ -2913,6 +2995,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 1.25,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260618_3.pdf",
       "_analysis": {
         "btc": 2.61,
         "high_yield": 1.955,
@@ -2948,6 +3031,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260616_2.pdf",
       "_analysis": {
         "btc": 2.75,
         "high_yield": 4.927,
@@ -2983,6 +3067,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260611_3.pdf",
       "_analysis": {
         "btc": 2.33,
         "high_yield": 5.02,
@@ -3018,6 +3103,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260610_2.pdf",
       "_analysis": {
         "btc": 2.57,
         "high_yield": 4.538,
@@ -3053,6 +3139,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260609_3.pdf",
       "_analysis": {
         "btc": 2.64,
         "high_yield": 4.192,
@@ -3088,6 +3175,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.25,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260528_3.pdf",
       "_analysis": {
         "btc": 2.52,
         "high_yield": 4.29,
@@ -3123,6 +3211,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260527_3.pdf",
       "_analysis": {
         "btc": 2.34,
         "high_yield": 4.182,
@@ -3158,6 +3247,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260527_1.pdf",
       "_analysis": {
         "btc": 3.49,
         "high_yield": null,
@@ -3193,6 +3283,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260526_4.pdf",
       "_analysis": {
         "btc": 2.64,
         "high_yield": 4.071,
@@ -3228,6 +3319,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 1.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260521_4.pdf",
       "_analysis": {
         "btc": 2.52,
         "high_yield": 2.169,
@@ -3263,6 +3355,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260520_2.pdf",
       "_analysis": {
         "btc": 2.55,
         "high_yield": 5.122,
@@ -3298,6 +3391,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 5.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260513_2.pdf",
       "_analysis": {
         "btc": 2.3,
         "high_yield": 5.046,
@@ -3333,6 +3427,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260512_3.pdf",
       "_analysis": {
         "btc": 2.4,
         "high_yield": 4.468,
@@ -3368,6 +3463,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260511_3.pdf",
       "_analysis": {
         "btc": 2.54,
         "high_yield": 3.965,
@@ -3403,6 +3499,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260428_3.pdf",
       "_analysis": {
         "btc": 2.51,
         "high_yield": 4.175,
@@ -3438,6 +3535,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260428_1.pdf",
       "_analysis": {
         "btc": 3.52,
         "high_yield": null,
@@ -3473,6 +3571,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260427_1.pdf",
       "_analysis": {
         "btc": 2.65,
         "high_yield": 3.812,
@@ -3508,6 +3607,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260427_4.pdf",
       "_analysis": {
         "btc": 2.33,
         "high_yield": 3.955,
@@ -3543,6 +3643,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 1.25,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260423_3.pdf",
       "_analysis": {
         "btc": 2.57,
         "high_yield": 1.367,
@@ -3578,6 +3679,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260422_2.pdf",
       "_analysis": {
         "btc": 2.68,
         "high_yield": 4.883,
@@ -3613,6 +3715,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260409_3.pdf",
       "_analysis": {
         "btc": 2.39,
         "high_yield": 4.876,
@@ -3648,6 +3751,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260408_2.pdf",
       "_analysis": {
         "btc": 2.43,
         "high_yield": 4.282,
@@ -3683,6 +3787,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260407_2.pdf",
       "_analysis": {
         "btc": 2.68,
         "high_yield": 3.897,
@@ -3718,6 +3823,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.25,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260326_3.pdf",
       "_analysis": {
         "btc": 2.43,
         "high_yield": 4.255,
@@ -3753,6 +3859,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260325_3.pdf",
       "_analysis": {
         "btc": 2.29,
         "high_yield": 3.98,
@@ -3788,6 +3895,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260325_2.pdf",
       "_analysis": {
         "btc": 2.78,
         "high_yield": null,
@@ -3823,6 +3931,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260324_2.pdf",
       "_analysis": {
         "btc": 2.44,
         "high_yield": 3.936,
@@ -3858,6 +3967,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 1.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260319_3.pdf",
       "_analysis": {
         "btc": 2.47,
         "high_yield": 1.896,
@@ -3893,6 +4003,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260317_3.pdf",
       "_analysis": {
         "btc": 2.76,
         "high_yield": 4.817,
@@ -3928,6 +4039,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260312_3.pdf",
       "_analysis": {
         "btc": 2.45,
         "high_yield": 4.871,
@@ -3963,6 +4075,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260311_2.pdf",
       "_analysis": {
         "btc": 2.45,
         "high_yield": 4.217,
@@ -3998,6 +4111,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260310_2.pdf",
       "_analysis": {
         "btc": 2.55,
         "high_yield": 3.579,
@@ -4033,6 +4147,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260226_3.pdf",
       "_analysis": {
         "btc": 2.5,
         "high_yield": 3.79,
@@ -4068,6 +4183,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260225_3.pdf",
       "_analysis": {
         "btc": 2.32,
         "high_yield": 3.615,
@@ -4103,6 +4219,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260225_1.pdf",
       "_analysis": {
         "btc": 3.01,
         "high_yield": null,
@@ -4138,6 +4255,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260224_2.pdf",
       "_analysis": {
         "btc": 2.63,
         "high_yield": 3.455,
@@ -4173,6 +4291,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 2.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260219_3.pdf",
       "_analysis": {
         "btc": 2.75,
         "high_yield": 2.473,
@@ -4208,6 +4327,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260218_2.pdf",
       "_analysis": {
         "btc": 2.36,
         "high_yield": 4.664,
@@ -4243,6 +4363,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260212_3.pdf",
       "_analysis": {
         "btc": 2.66,
         "high_yield": 4.75,
@@ -4278,6 +4399,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260211_2.pdf",
       "_analysis": {
         "btc": 2.39,
         "high_yield": 4.177,
@@ -4313,6 +4435,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260210_2.pdf",
       "_analysis": {
         "btc": 2.62,
         "high_yield": 3.518,
@@ -4348,6 +4471,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260129_3.pdf",
       "_analysis": {
         "btc": 2.45,
         "high_yield": 4.018,
@@ -4383,6 +4507,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260128_1.pdf",
       "_analysis": {
         "btc": 3.16,
         "high_yield": null,
@@ -4418,6 +4543,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260127_2.pdf",
       "_analysis": {
         "btc": 2.34,
         "high_yield": 3.823,
@@ -4453,6 +4579,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260126_3.pdf",
       "_analysis": {
         "btc": 2.75,
         "high_yield": 3.58,
@@ -4488,6 +4615,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 1.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260122_3.pdf",
       "_analysis": {
         "btc": 2.38,
         "high_yield": 1.94,
@@ -4523,6 +4651,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260121_2.pdf",
       "_analysis": {
         "btc": 2.86,
         "high_yield": 4.846,
@@ -4558,6 +4687,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260113_2.pdf",
       "_analysis": {
         "btc": 2.42,
         "high_yield": 4.825,
@@ -4593,6 +4723,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260112_2.pdf",
       "_analysis": {
         "btc": 2.65,
         "high_yield": 3.609,
@@ -4628,6 +4759,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20260112_4.pdf",
       "_analysis": {
         "btc": 2.55,
         "high_yield": 4.173,
@@ -4663,6 +4795,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251224_4.pdf",
       "_analysis": {
         "btc": 2.51,
         "high_yield": 3.93,
@@ -4698,6 +4831,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251223_3.pdf",
       "_analysis": {
         "btc": 2.35,
         "high_yield": 3.747,
@@ -4733,6 +4867,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251223_4.pdf",
       "_analysis": {
         "btc": 3.75,
         "high_yield": null,
@@ -4768,6 +4903,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251222_3.pdf",
       "_analysis": {
         "btc": 2.54,
         "high_yield": 3.499,
@@ -4803,6 +4939,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 1.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251218_3.pdf",
       "_analysis": {
         "btc": 2.62,
         "high_yield": 1.433,
@@ -4838,6 +4975,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251217_2.pdf",
       "_analysis": {
         "btc": 2.67,
         "high_yield": 4.798,
@@ -4873,6 +5011,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251211_3.pdf",
       "_analysis": {
         "btc": 2.36,
         "high_yield": 4.773,
@@ -4908,6 +5047,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251209_2.pdf",
       "_analysis": {
         "btc": 2.55,
         "high_yield": 4.175,
@@ -4943,6 +5083,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251208_3.pdf",
       "_analysis": {
         "btc": 2.64,
         "high_yield": 3.614,
@@ -4978,6 +5119,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251126_3.pdf",
       "_analysis": {
         "btc": 2.46,
         "high_yield": 3.781,
@@ -5013,6 +5155,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251125_4.pdf",
       "_analysis": {
         "btc": 2.41,
         "high_yield": 3.562,
@@ -5048,6 +5191,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251125_3.pdf",
       "_analysis": {
         "btc": 3.03,
         "high_yield": null,
@@ -5083,6 +5227,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251124_3.pdf",
       "_analysis": {
         "btc": 2.68,
         "high_yield": 3.489,
@@ -5118,6 +5263,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 1.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251120_3.pdf",
       "_analysis": {
         "btc": 2.41,
         "high_yield": 1.843,
@@ -5153,6 +5299,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251119_2.pdf",
       "_analysis": {
         "btc": 2.41,
         "high_yield": 4.706,
@@ -5188,6 +5335,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251113_3.pdf",
       "_analysis": {
         "btc": 2.29,
         "high_yield": 4.694,
@@ -5223,6 +5371,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.0,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251112_2.pdf",
       "_analysis": {
         "btc": 2.43,
         "high_yield": 4.074,
@@ -5258,6 +5407,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251110_4.pdf",
       "_analysis": {
         "btc": 2.85,
         "high_yield": 3.579,
@@ -5293,6 +5443,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251029_1.pdf",
       "_analysis": {
         "btc": 3.63,
         "high_yield": null,
@@ -5328,6 +5479,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251028_3.pdf",
       "_analysis": {
         "btc": 2.46,
         "high_yield": 3.79,
@@ -5363,6 +5515,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.5,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251027_1.pdf",
       "_analysis": {
         "btc": 2.59,
         "high_yield": 3.504,
@@ -5398,6 +5551,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 3.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251027_4.pdf",
       "_analysis": {
         "btc": 2.38,
         "high_yield": 3.625,
@@ -5433,6 +5587,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 1.125,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251023_3.pdf",
       "_analysis": {
         "btc": 2.51,
         "high_yield": 1.182,
@@ -5468,6 +5623,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.875,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251022_2.pdf",
       "_analysis": {
         "btc": 2.73,
         "high_yield": 4.506,
@@ -5503,6 +5659,7 @@
       "total_accepted": null,
       "total_tendered": null,
       "interest_rate": 4.75,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251009_3.pdf",
       "_analysis": {
         "btc": 2.38,
         "high_yield": 4.734,
