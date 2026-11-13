@@ -1,0 +1,88 @@
+{
+  "checked_at": "2026-11-13T03:37:17+00:00",
+  "status": "warn",
+  "checks": [
+    {
+      "name": "T1 순유동성",
+      "status": "ok",
+      "detail": "NL $5795.11B score 0.92% asOf 2026-11-12 · {'walcl': 'H.4.1 reserve_credit (2026-11-12)', 'tga': 'DTS daily (2026-11-10)', 'rrp': 'FRED RRPONTSYD daily'}"
+    },
+    {
+      "name": "국채 수익률",
+      "status": "ok",
+      "detail": "DGS10 4.98 asOf 2026-11-10"
+    },
+    {
+      "name": "T2 실물경제",
+      "status": "ok",
+      "detail": "캐시 1.0h 전 · 실업률 2026-10 (발표 2026-11-06)"
+    },
+    {
+      "name": "T3 글로벌",
+      "status": "ok",
+      "detail": "빈 시리즈 없음 · 캐시 0.5h 전"
+    },
+    {
+      "name": "이벤트 캘린더",
+      "status": "ok",
+      "detail": "45건 · error=None"
+    },
+    {
+      "name": "FOMC 일정 하드코딩",
+      "status": "ok",
+      "detail": "마지막 등록일 2027-11-17 (369일 남음) — 60일 이내면 다음 해 일정 추가 필요"
+    },
+    {
+      "name": "유동성 예측모델",
+      "status": "ok",
+      "detail": "4주 예측 4주"
+    },
+    {
+      "name": "DTS TGA",
+      "status": "ok",
+      "detail": "최신 2026-11-10 $912.1B"
+    },
+    {
+      "name": "QRA",
+      "status": "warn",
+      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-08-03 (102일 전)"
+    },
+    {
+      "name": "뉴스 수집·번역",
+      "status": "ok",
+      "detail": "226건 · 번역 224건 (99%) · 수집 0.0h 전"
+    },
+    {
+      "name": "뉴스 다이제스트",
+      "status": "ok",
+      "detail": "생성 0.6h 전 · 3건"
+    },
+    {
+      "name": "H.4.1 이력",
+      "status": "ok",
+      "detail": "4주 · 최신 November 12, 2026"
+    },
+    {
+      "name": "ICI MMF",
+      "status": "ok",
+      "detail": "주차 2026-11-11 · 이력 23주"
+    },
+    {
+      "name": "경매 데이터 스키마",
+      "status": "ok",
+      "detail": "157건 · 갱신 2026-11-13T03:04"
+    },
+    {
+      "name": "경매 요약",
+      "status": "ok",
+      "detail": "요약 지연(2~14일): 없음"
+    },
+    {
+      "name": "GitHub Actions 실패(24h)",
+      "status": "warn",
+      "detail": [
+        "Deploy Cloudflare Worker (03:02Z)"
+      ]
+    }
+  ]
+}
