@@ -177,8 +177,18 @@ def c_auctions():
 def c_actions():
     since = (NOW - dt.timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M:%SZ')
     d = get(f'https://api.github.com/repos/{REPO}/actions/runs?status=failure&per_page=50&created=%3E{since}')
-    fails = [f"{r['name']} ({r['created_at'][11:16]}Z)" for r in d.get('workflow_runs', [])]
-    add('GitHub Actions 실패(24h)', 'warn' if fails else 'ok', fails or '없음')
+    fails, recovered, latest = [], [], {}
+    for r in d.get('workflow_runs', []):
+        wid = r['workflow_id']
+        if wid not in latest:   # 워크플로별 가장 최근 완료 실행 — 실패 이후 성공했으면 이미 복구된 것
+            runs = get(f'https://api.github.com/repos/{REPO}/actions/workflows/{wid}/runs?status=completed&per_page=1')
+            latest[wid] = (runs.get('workflow_runs') or [{}])[0].get('conclusion')
+        label = f"{r['name']} ({r['created_at'][11:16]}Z)"
+        (recovered if latest[wid] == 'success' else fails).append(label)
+    detail = fails or '없음'
+    if recovered:
+        detail = f"{detail} · 이후 성공으로 복구됨: {recovered}"
+    add('GitHub Actions 실패(24h)', 'warn' if fails else 'ok', detail)
 
 
 for name, fn in [('T1 순유동성', c_liq), ('T2 실물경제', c_t2), ('T3 글로벌', c_t3), ('이벤트 캘린더', c_calendar),

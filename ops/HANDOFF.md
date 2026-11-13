@@ -1,6 +1,6 @@
 # 작업 인계 노트 (새 세션 시작용)
 
-마지막 갱신: 2026-11-13 · 구조·원칙은 [CLAUDE.md](../CLAUDE.md)가 기준이고, 이 파일은 **무엇을 왜 바꿨는지와 지금 열려 있는 일**만 적는다.
+마지막 갱신: 2026-11-13 (07:40 UTC 상태 점검) · 구조·원칙은 [CLAUDE.md](../CLAUDE.md)가 기준이고, 이 파일은 **무엇을 왜 바꿨는지와 지금 열려 있는 일**만 적는다.
 
 ## 새 세션에서 시작하는 법
 1. `~/macromonitor`에서 새 세션을 연다 → CLAUDE.md는 자동으로 읽힌다.
@@ -38,6 +38,10 @@
 ## 정리 (2026-11-13)
 - 미사용 파일 삭제: `auction_test.html`, `favicon*.svg`(사이트는 PNG 아이콘 사용), `package.json`/`package-lock.json`(미사용 xlsx 의존성), 미추적 `AGENTS.md`·`.claude/launch.json`.
 
+## 상태 점검 (2026-11-13 07:40 UTC)
+- main = `031df06`, 최근 Actions 전부 성공(번역·다이제스트·Pages·QRA Apply·경매 병합·Health Check). 열린 이슈는 #1 하나.
+- `data/health.json`(03:39Z): Actions 실패 1건 외 15개 항목 모두 ok.
+
 ## 이전 작업 요약 (2026-04~10)
 - TGA: H.4.1 TGA 기준 주간 순차입 계산, DTS 일별 TGA 파이프라인(`fetch-dts.yml` → KV `tga_dts_v1`)을 T1·유동성 패널·텔레그램에 사용, 1일·주간 변화 동시 표시.
 - 국채경매 텔레그램에서 Bills 제외. H.4.1 텔레그램 신호 방향 수정. 파비콘 = 홈 화면 아이콘 PNG.
@@ -46,7 +50,9 @@
 - `asOf`(관측일)와 `releasedAt`(발표일) 분리해 신선도 판정.
 
 ## 열려 있는 일 / 지켜볼 것
-- [ ] [이슈 #1](https://github.com/z66g/macromonitor/issues/1) (health): 11/13 03:02Z 배포 실패 기록만 남음(이미 수정됨). 11/13 23:00 UTC 점검에서 자동 종료돼야 함 — 안 닫히면 `health_issue.py` 확인.
+- [ ] [이슈 #1](https://github.com/z66g/macromonitor/issues/1) (health): 11/13 03:02Z 배포 실패 기록만 남음(이미 수정됨).
+  24h 창 때문에 11/13 23:00 점검에서도 warn이 남는 문제 → `c_actions`가 '같은 워크플로의 최근 완료 실행이 성공이면 복구됨'으로 분류하도록 수정
+  (브랜치 `claude/handoff-status-review-2pe5sa`). **main 반영 후** 다음 23:00 UTC 점검에서 자동 종료되는지 확인.
 - [ ] 헬스체크 진단 에이전트(23:30 UTC)는 아직 이상 상황에서 실행된 적 없음 — 첫 warn/fail 때 `diagnosis`가 이슈에 붙는지 확인.
 - [ ] 다음 QRA(2027-02 초) 때 `fetch-qra-source.yml` → 에이전트 → `qra-apply.yml` 흐름이 사람 개입 없이 도는지 확인.
 - [ ] FOMC 하드코딩은 2027년까지 — 2027 하반기에 2028 일정 추가(헬스체크가 60일 전 경고).
