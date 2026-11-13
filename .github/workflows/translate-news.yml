@@ -173,6 +173,11 @@ jobs:
 
           # ★ 모든 batch 끝나고 한 번만 KV 저장 (중간 실패해도 다음 cron에서 미번역분 재처리됨)
           if new_translations > 0:
+              # 무한 증가 방지 (KV 값 25MB 한도): 현재 뉴스 항목 + 최근 추가분 4000건만 유지
+              current = {trans_key(it) for it in items if trans_key(it)}
+              keys = list(trans_map.keys())
+              keep = set(keys[-4000:]) | current
+              trans_map = {k: trans_map[k] for k in keys if k in keep}
               kv_put("news_trans_map_v1", trans_map, ttl=2592000)
               print(f"KV 저장: trans_map 총 {len(trans_map)}건 ({batch_count}개 배치, +{new_translations} 신규)")
           else:
