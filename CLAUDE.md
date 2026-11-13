@@ -1,196 +1,126 @@
 # MacroMonitor 프로젝트 컨텍스트
 
 ## 프로젝트 구조
-- **프론트엔드**: GitHub Pages `macromonitor.zbbg.kr` (레포: `github.com/z66g/macromonitor`)
-- **백엔드**: Cloudflare Worker `macrolens-worker.macrolens.workers.dev`
-- **KV 네임스페이스**: `MMF_KV` (binding: `MMF_KV`)
+- **프론트엔드**: GitHub Pages `macromonitor.zbbg.kr` (레포: `github.com/z66g/macromonitor`, 공개)
+- **백엔드**: Cloudflare Worker `macrolens-worker.macrolens.workers.dev` (무료 플랜)
+- **KV 네임스페이스**: `MMF_KV` (id `66c313c710a04a4eb04775b80a44f313`)
 - **로컬 작업 디렉토리**: `~/macromonitor`
 
-## 배포 패턴 (반드시 준수)
+## 운영 원칙 (2026-11 전체 점검 이후 — 반드시 지킬 것)
+1. **방문자 요청은 공유 상태를 바꾸지 않는다.** 인증 없는 쓰기/삭제/발송 엔드포인트를 만들지 말 것.
+   공유 값(QRA 등) 변경은 `data/*.json` 커밋 → 검증 워크플로 → KV 경로로만.
+2. **빈 결과로 정상 데이터를 덮어쓰지 않는다.** Worker는 `kvPut`의 `KV_VALIDATORS`, 스크립트는 조회 실패 시 예외로 종료.
+3. **LLM은 생성만, 전달은 결정적 파이프라인.** 에이전트/LLM 출력은 검증 스크립트를 통과해야 사이트·텔레그램에 반영.
+4. **외부/LLM 텍스트는 `escH()`로, 링크는 `safeUrl()`로** 감싸서 innerHTML에 넣는다 (index.html 전역 헬퍼).
+5. **cron 문자열은 `worker.js`의 `CRON` 상수 = `wrangler.toml`.** 불일치하면 해당 작업이 조용히 안 돈다 (2026-05~11 회귀 사례).
+6. 데이터 없음은 초록 '안정'이 아니라 회색 `n`('수신 실패')으로 표시.
+
+## 배포 패턴
 ```bash
 cd ~/macromonitor
-cp ~/Downloads/{file} .          # worker.js/index.html → 루트, .yml → .github/workflows/
-git add .
-git commit -m "..."
+git add <files> && git commit -m "..."
 git pull origin main --rebase && git push
 ```
-- Worker 변경 → `deploy-worker.yml` 자동 트리거
-- `worker.js` 먼저 배포 후 `index.html`
-- `git pull --rebase` 필수 (GitHub Actions 자동 커밋 충돌 방지)
+- `worker.js`/`wrangler.toml` 변경 → `deploy-worker.yml` 자동 배포
+- 봇이 `data/*.json`을 수시로 커밋하므로 `git pull --rebase` 필수. 워크플로는 `scripts/commit_data.sh` 사용(rebase+재시도)
+- 배포 전 확인: `node --check worker.js`, index.html 스크립트 블록 문법, CRON 일치
 
 ## 주요 파일
 - `worker.js` / `index.html` → 루트
-- `.github/workflows/*.yml` → GitHub Actions
-- `CLAUDE.md` → Claude Code 컨텍스트 (이 파일)
+- `scripts/` → 워크플로가 실행하는 Python (YAML heredoc/base64 대신 여기에 작성)
+  - `td_common.py` TreasuryDirect 공용(새 스키마 매핑) · `fetch_auction_results.py` · `fetch_auctions.py`
+  - `merge_auction_ai.py`(에이전트 결과 검증·병합, `--check`) · `send_auction_telegram.py`
+  - `apply_qra.py`(QRA 검증→KV, `--check`) · `health_check.py` · `commit_data.sh`
+- `ops/routines/*.md` → 클라우드 예약작업 에이전트 지침 (프롬프트를 레포에서 버전 관리)
+- `.github/workflows/*.yml`
 
-## 탭 구성
-- **T0 거시경제 모니터**: H.4.1 파싱, GDPNow, DXY, JPY, OFR FSI
-- **T1 유동성&시장**: FRED NL, MMF, 국채수익률, VIX, MOVE, 원자재
-- **T2 실물경제**: 지역 연준 PMI, 고용, 소비자
-- **T3 글로벌**: 글로벌 유동성, DXY, AUD/USD, EUR/USD
-- **T4 온체인**: 스테이블코인, RWA TVL, BTC ETF 플로우
+## 탭 / 패널
+- **T0** H.4.1 파이프 진단, VIX/MOVE, DXY, JPY, OFR FSI, CSP(TIPS·MMF=ICI)
+- **T1** NL 모멘텀(주 단위), NL 1~4주 예측, MMF 질, 국채수익률, 인플레 히트맵, 원자재
+- **T2** 지역 연준 PMI, 고용 파이프라인, 소비자 체력 · **T3** 글로벌 · **T4** 온체인
+- 슬라이드 패널 `news / cal / tower / auction` — **한 번에 하나만**(`window.closeOtherPanels`)
 
-## 슬라이드 패널
-- `news-panel`: 뉴스 패널
-- `cal-panel`: 이벤트 캘린더 (FRED 경제지표 일정)
-- `tower-panel`: 유동성 예측모델 (liqTower)
-- `auction-panel`: 국채경매 분석
-
-## H.4.1 파싱 핵심
-- `h41HistoryFetcher(url, weeksOverride)` — weeksOverride로 직접 주수 지정
-- `fetchH41HtmlData()` — h41HistoryFetcher(url, 3) 호출해 2주치 파싱
-- series에서 직접: reserve_balances, rrp(on_rrp_domestic), tga, loans, currency_circ, treasury_total
-- FRED 별도 호출: WDTGAL(other_draining)만
-- **순유동성 공식**: `reserve_credit - tga - on_rrp_domestic`
-
-## KV 캐시 키 & TTL
-```
-liq: 2h, h41Html: 6h, calendar: 6h, news: 3h, t2: 6h, t3: 6h, onchain: 1h
-newsDigest: 24h
-```
-
-## API 구성
-| API | Key | 용도 |
+## Worker cron (무료 플랜: 계정 전체 cron 5개 한도 → 1개만 사용)
+`CRON = '5,15,25,35,45,55 * * * *'` — 10분마다 깨어나 `CRON_JOBS` 표대로 실행:
+| 분 | 시각(UTC) | 작업 |
 |---|---|---|
-| Gemini | `GEMINI_API_KEY` | 뉴스 다이제스트·번역, QRA 검색, 국채경매 Tail·요약 |
-| Telegram | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | 알림 발송 |
+| :05 / :35 | 매시 | 뉴스 RSS → `news_cache_v1` |
+| :15 | 1·7·13·19시 | H.4.1 파싱 → liq + 국채수익률 |
+| :25 | 〃 | T2 |
+| :45 | 〃 | T3 + 유동성 예측모델 + ICI |
+| :55 | 〃 | 캘린더 |
+- 1회 실행당 서브요청 50건 한도 → 작업을 시각별로 분산. cron-job.org(:00/:30 GH Actions 트리거)와 겹치지 않게 함.
+- `force=1`도 캐시가 10분 이내면 재계산 안 함(`cacheFirst`) — 동시 새로고침 충돌 방지.
 
-- Gemini 모델: `gemini-2.5-flash` (유료 티어, 전 기능 통일)
-
-## 텔레그램 알림 구성 ★ 신규
-
-### 발송 채널
-- 개인 봇 → 브로드캐스트 채널 (구독자 채팅 불가 구조)
-- Secrets: GitHub (`TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`) + Cloudflare Worker 동일
-
-### 알림 1: 뉴스 다이제스트
-- **발송 주체**: Cloudflare Worker Cron (`0 */3 * * *`)
-- **로직**: `generateNewsDigest()` 완료 후 `await sendTelegramDigest(env, digest)` 호출
-- **헬퍼 함수**: `sendTelegram(env, text)`, `sendTelegramDigest(env, digest)` — worker.js 하단
-- **포맷**:
-  ```
-  📰 MacroMonitor 뉴스 | MM-DD HH:MM KST
-
-  1. 요약 텍스트
-  2. 요약 텍스트
-  3. 요약 텍스트
-
-  🔗 macromonitor.zbbg.kr
-  ```
-
-### 알림 2: 국채경매 결과
-- **발송 주체**: GitHub Actions `fetch-auction-results.yml` 마지막 step
-- **조건**: 오늘 날짜 + summary 완성 건만 발송 (없으면 스킵)
-- **포맷**:
-  ```
-  🏦 국채경매 결과 | {term} {type} | {date}
-
-  💪 총평 첫 줄
-
-  • Tail: -1.2bp ✅
-  • BTC: 2.68x (6avg 2.52x) ✅
-  • Indirect: 63.3% (6avg 59.1%)
-  • PD: 11.2% (6avg 13.8%) ✅
-  • 규모: $58.0B
-
-  🔗 macromonitor.zbbg.kr
-  ```
-
-### 알림 3: H.4.1 주간 유동성
-- **발송 주체**: GitHub Actions `h41-telegram.yml`
-- **스케줄**: 매주 목요일 22:00 UTC (금요일 07:00 KST) — H.4.1 릴리즈 후
-- **데이터 소스**: `/h41-history?weeks=2` 엔드포인트 → `raw[0]`(최신), `raw[1]`(전주) 비교
-- **단위**: 백만달러(M) 기준, `/1e6` → T, `/1e3` → B
-- **포맷**:
-  ```
-  📊 Fed H.4.1 주간 유동성 | April 09, 2026
-
-  • 연준총자산: $6.64T  Δ+17.4B 🟢
-  • 준비금:    $3.18T  Δ+0.12T 🟢
-  • TGA:       $697.1B  Δ-0.11T 🔴
-  • ON RRP:    $2.4B   Δ-0.8B 🔴
-  • 순유동성:  $5.94T  Δ+0.12T 🟢
-
-  → 유동성 순증 — 위험자산 우호 환경 🟢
-
-  🔗 macromonitor.zbbg.kr
-  ```
-
-## 국채경매 분석 파이프라인
-
-### GitHub Actions 워크플로우
-- `fetch-auction-results.yml`: 매일 UTC 16/17/18시 자동 실행 (평일)
-  - TreasuryDirect JSONP → 오늘 Note/Bond/TIPS 경매 감지
-  - Gemini tail 검색 (Search Grounding) + 요약 생성
-  - `data/auction_results.json` 저장 → commit/push
-  - **Telegram 발송** (오늘 summary 완성 건만)
-- `backfill-auction-summaries.yml`: 수동 실행, START/END 파라미터로 배치 처리
-- `h41-telegram.yml`: 매주 목요일 22:00 UTC H.4.1 유동성 알림
-
-### auction_results.json 구조
-```json
-{
-  "updated": "2026-04-13T...",
-  "count": N,
-  "results": [{
-    "security_type": "Note",
-    "security_term": "3-Year",
-    "auction_date": "2026-04-07",
-    "cusip": "91282CQJ3",
-    "offering_amt": 58000000000,
-    "summary": "🎯 총평: Strong\n1. Tail: ...",
-    "_analysis": {
-      "btc": 2.68, "btc_avg6": 2.52,
-      "tail_bps": -1.2, "high_yield": 3.897, "wi_rate": 3.909,
-      "pd_pct": 11.2, "pd_avg6": 13.8,
-      "in_pct": 63.3, "in_avg6": 59.1,
-      "grade": {"btc": "strong", "tail": "strong", "pd": "strong"}
-    }
-  }]
-}
+## KV 캐시 TTL (cron 주기 6h보다 길게)
+```
+liq / t2 / t3 / calendar / liqTower / h41Html: 12h · yieldsHist: 24h · newsCache: 3h · onchain: 1h
+tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 영구): 400일
 ```
 
-### Worker 엔드포인트
-- `/auction-results?limit=100` — GitHub raw에서 읽어 반환 (5분 캐시)
-- `/h41-history?weeks=N` — H.4.1 N주치 데이터 (raw 배열: 백만달러 단위)
-- `/h41-html` — H.4.1 최신 파싱 (data 키 안에 valueB/deltaB 구조)
-- `/news-digest-generate` — 뉴스 다이제스트 즉시 생성 + Telegram 발송
-- `/liq-tower` — 유동성 예측모델
+## H.4.1
+- `/h41-history`: `releaseDates.json`(실제 발표일, 휴일 이동 반영) + 발표분별 KV 영구 캐시, 1회 원격 조회 상한 40
+- **순유동성**: `reserve_credit − TGA − ON RRP` (NL 모멘텀: TGA=DTS 일별, 결측 시 H.4.1 TGA 대체, 7일 간격 기준점)
+- 부채구조 '기타'에 WDTGAL을 더하지 말 것 (WDTGAL = TGA 주평균 → 이중계산)
+- QT 드레인 = H.4.1 총자산 13주 평균 감소분 (만기 보유액 아님)
 
-## Gemini API 관련
-- 모델: `gemini-2.5-flash` 우선, 503/429 시 `gemini-2.0-flash` fallback
-- 요청 사이 8초 딜레이 (10 RPM 한도)
-- 무료 티어: 500 RPD / 10 RPM — 연속 호출 시 429 주의
-- GitHub Secrets: `GEMINI_API_KEY` 등록 필요
+## QRA (유동성 예측모델의 차입·TGA 목표)
+- `data/qra.json`(이번+다음 분기 `quarters[]`) → `qra-apply.yml` → `apply_qra.py` 검증(treasury.gov 원문·분기·범위·인용) → KV
+- Worker `normalizeQra()`가 현재 분기 값을 실행 시점에 선택. 사이트에서는 수정 불가(배너 닫기는 localStorage)
+- 소유자 수동 수정: GitHub에서 `data/qra.json` 편집·커밋 (`"applied_by": "manual"`)
 
-## API 차단 이슈
-- `fiscaldata.treasury.gov` → CF Worker IP 525 차단 → GitHub Actions 릴레이 사용
-- `www.federalreserve.gov/dts` (Akamai) → CF Worker + 브라우저 차단 → GitHub Actions 릴레이
-- `atlanta.federalreserve.org` RSS → 403 → FRED vintage API로 대체
+## 국채경매 파이프라인
+| 단계 | 주체 | 시각 |
+|---|---|---|
+| 수집·지표·6회평균 | `fetch-auction-results.yml` (cron-job.org dispatch `auction-results`) | KST 06:00 화-토 |
+| 예정 경매 목록 | `fetch-auctions.yml` (schedule `20 */4`) | 4시간마다 |
+| tail·WI 조사 + 요약 | **클라우드 에이전트** → `data/auction_ai.json` | KST 06:30 화-토 |
+| 검증·반영·텔레그램 | `auction-ai-merge.yml` (push 트리거 + 백업 schedule) | 에이전트 커밋 직후 |
+- TreasuryDirect 2026-10 스키마 변경: `competitiveAuctionCloseDate`, `*CompetitiveParAwarded` 등 → `td_common.py`
+- 병합 키 `cusip|경매일` (리오프닝은 원물과 cusip 동일). 요약·tail·`telegram_sent` 절대 삭제 안 함
+- PD/Direct/Indirect = 경쟁입찰 낙찰 기준 비중. 6회 평균은 같은 (종류, 원물 만기) 직전 6회
+- 텔레그램: 요약 완성 + 미발송 이표채만, HTML 이스케이프, 4096자 분할
+
+## 클라우드 예약작업 (claude.ai/code/routines, 커넥터 없음)
+| 이름 | 모델 | cron(UTC) | 지침 | 쓰는 파일 |
+|---|---|---|---|---|
+| 국채경매 분석 | Opus 5.5 | `30 21 * * 1-5` | `ops/routines/auction.md` | `data/auction_ai.json` |
+| QRA 감지 | Opus 5.5 | `0 22 * * 1,3` | `ops/routines/qra.md` | `data/qra.json` |
+| 일일 헬스체크 | Sonnet 5.5 | `30 23 * * *` | `ops/routines/health.md` | `data/health.json` → `health-alert.yml`이 GitHub 이슈 |
+
+## 텔레그램 (구독자 브로드캐스트 채널 — 운영 경고는 보내지 말 것, GitHub 이슈 사용)
+- 뉴스 다이제스트: Worker `/news-digest-send` (cron-job.org KST 06:00/21:00, ±20분·시간대당 1회만 동작)
+- 국채경매 결과: `auction-ai-merge.yml` → `send_auction_telegram.py`
+- H.4.1 주간 유동성: `h41-telegram.yml` (목 22:00 UTC) · 데일리 마켓: `daily-market-telegram.yml`
+
+## LLM
+- **Gemini 2.5 Flash** (GitHub Actions): 뉴스 번역 `translate-news.yml`(30분), 다이제스트 `generate-news-digest.yml`(3시간)
+  - 번역 맵은 현재 뉴스 + 최근 4000건만 유지 (KV 값 25MB 한도)
+- **Claude 클라우드 에이전트**: 경매 분석, QRA, 헬스체크 (위 표)
+- Worker 안의 LLM 호출 코드는 사용하지 않음(CF egress 차단) — 라우트 제거됨
+
+## 공개 엔드포인트 (읽기 전용)
+`/liq /liq-tower /t2 /t3 /calendar /yields-hist /h41-history /h41-html /ici /pipe3 /ofr-fsi /dxy /jpy
+/yahoo /yahoo-chart /onchain-macro /news /news-digest /qra-status /auction-results /fred(허용 시리즈만)`
+
+## API 차단 / 외부 변경 이력
+- `fiscaldata.treasury.gov` → CF Worker 525 → GitHub Actions 릴레이 (`fetch-dts.yml`)
+- NY Fed `rp/repo/propositions/search` 폐지 → `rp/repo/all/results/last/N.json` (하루 2회 운용, 날짜별 합산)
+- FRED `WRMFSL` 2021-02 폐지 → ICI 사용
+- 캘린더 FRED release ID: CPI 10, PPI 46, PCE 54, JOLTS 192, GDP 53, 소매 9, 주택착공 27, 미시간 91, 내구재 95, STLFSI 187
+- FOMC 일정은 `fetchFomcDates()` 하드코딩(2027년까지) — 헬스체크가 소진 60일 전 경고
 
 ## 주요 학습/원칙
-- **대형 HTML 편집**: str_replace 사용 (line-range 삭제는 구조 파괴 위험)
-- **YAML 안 Python**: base64 인코딩으로 삽입 (중괄호 충돌 방지)
 - **IIFE 안 함수**: `window.함수명 = 함수명` 으로 전역 노출 필수
-- **KST 날짜**: `nowKST()` / `todayKSTStr()` 전역 헬퍼 사용
-- **Worker Cron fire-and-forget 주의**: `sendTelegram` 같은 비동기 호출은 반드시 `await` 필요 (응답 반환 후 Worker 종료로 실행 안 됨)
-- **60 거래일 = 12주** H.4.1 데이터
-- **H.4.1 순유동성**: `reserve_credit - tga - on_rrp_domestic` (백만달러 기준)
-- **H.4.1 history 단위**: `raw[]` 배열은 백만달러(M), series는 십억달러(B)
-
-## 데이터 소스
-- H.4.1: `federalreserve.gov/releases/h41/` HTML 직접 파싱
-- FRED API: `api.stlouisfed.org` (FRED_API_KEY 필요)
-- TreasuryDirect JSONP: `treasurydirect.gov/TA_WS/securities/auctioned`
-- DefiLlama: CORS 개방 (RWA TVL)
-- GitHub Actions 릴레이: `data/auctions.json`, `data/auction_results.json`
+- **KST 날짜**: `nowKST()` / `todayKSTStr()`. 로컬 자정 Date에 `toISOString()` 쓰지 말 것(KST 하루 밀림)
+- **Worker cron 비동기**: `ctx.waitUntil` 안에서 반드시 `await` (응답 후 종료로 유실)
+- **Chart.js**: 다시 그리는 차트는 `replaceChart(key, ctx, cfg)`
+- FRED `realtime_start`(=releasedAt)는 시리즈의 최근 발표/개정일 — 신선도 판정에 사용
 
 ## 환경변수 / Secrets
 | 키 | 위치 |
 |---|---|
-| `FRED_API_KEY` | Cloudflare Worker (wrangler secret) |
-| ~~`ANTHROPIC_API_KEY`~~ | 제거됨 — Gemini로 통일 |
-| `GEMINI_API_KEY` | Cloudflare Worker + GitHub Actions |
-| `CLOUDFLARE_API_TOKEN` | GitHub Actions |
-| `TELEGRAM_BOT_TOKEN` | Cloudflare Worker + GitHub Actions |
-| `TELEGRAM_CHAT_ID` | Cloudflare Worker + GitHub Actions |
+| `FRED_API_KEY` | Cloudflare Worker |
+| `GEMINI_API_KEY` | GitHub Actions |
+| `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` | GitHub Actions |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | Cloudflare Worker + GitHub Actions |
