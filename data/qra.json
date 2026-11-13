@@ -1,0 +1,22 @@
+{
+  "announcement_date": "2026-11-02",
+  "source_url": "https://home.treasury.gov/news/press-releases/sb0675",
+  "pdf_url": null,
+  "quarters": [
+    {
+      "quarter": "2026 Q4",
+      "net_borrowing_billions": 618,
+      "end_cash_balance_billions": 850,
+      "evidence_quote": "During the October–December 2026 quarter, Treasury expects to borrow $618 billion in privately-held net marketable debt, assuming an end-of-December cash balance of $850 billion."
+    },
+    {
+      "quarter": "2027 Q1",
+      "net_borrowing_billions": 800,
+      "end_cash_balance_billions": 1000,
+      "evidence_quote": "During the January–March 2027 quarter, Treasury expects to borrow $800 billion in privately-held net marketable debt, assuming an end-of-March cash balance of $1.000 trillion."
+    }
+  ],
+  "verified_at": "2026-11-13T03:37:58Z",
+  "applied_by": "agent",
+  "model": "claude-opus-5-5"
+}
