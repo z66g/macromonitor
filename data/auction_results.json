@@ -26,16 +26,24 @@
         "btc_avg6": 2.44,
         "pd_avg6": 9.5,
         "in_avg6": 70.48,
-        "tail_bps": null,
-        "wi_rate": null,
+        "tail_bps": 0.4,
+        "wi_rate": 5.437,
         "grade": {
           "btc": "neutral",
-          "tail": null,
+          "tail": "strong",
           "pd": "strong"
         },
-        "score_pct": 75
+        "score_pct": 83
       },
-      "summary": null
+      "summary": "🎯 총평: Average\n1. Tail: +0.4 bp. WI 5.437% 대비 5.441%로 소폭 tail이 나 30년물 금리 하방을 막았다.\n2. BTC: 2.36x vs 6avg 2.44x. 응찰률이 평균을 다소 밑돌아 수요는 미온적이었다.\n3. Indirect 68.1% vs 6avg 70.48%. 해외 수요는 평균보다 약간 약했다. PD 11.4% vs 6avg 9.5%. 딜러 인수가 평균을 웃돌아 부담이 다소 늘었다.\n4. 결론: 3·10·30년물이 모두 tail을 낸 5월 이후 첫 리펀딩 주간으로, 5.375% 쿠폰에도 장기물 수요가 미지근해 기간 프리미엄 상승 압력이 이어질 전망이다.",
+      "_ai": {
+        "sources": [
+          "https://www.newsquawk.com/headlines/us-sells-usd-25bln-of-30-year-bonds-tail-04bps-",
+          "https://gokhshtein.com/news/2026-11-12-30-year-treasury-auction-yields-5441-weakest-demand-since"
+        ],
+        "researched_at": "2026-11-13T03:32:27Z",
+        "model": "claude-opus-5-5"
+      }
     },
     {
       "security_type": "Bill",
@@ -166,16 +174,25 @@
         "btc_avg6": 2.6,
         "pd_avg6": 7.45,
         "in_avg6": 76.65,
-        "tail_bps": null,
-        "wi_rate": null,
+        "tail_bps": 1.0,
+        "wi_rate": 5.01,
         "grade": {
           "btc": "neutral",
-          "tail": null,
+          "tail": "neutral",
           "pd": "strong"
         },
-        "score_pct": 75
+        "score_pct": 67
       },
-      "summary": null
+      "summary": "🎯 총평: Average\n1. Tail: +1.0 bp. WI 5.010% 대비 5.020%로 2월 이후 가장 큰 tail이 나 10년물 5% 위 금리를 굳혔다.\n2. BTC: 2.46x vs 6avg 2.6x. 5월 이후 최저 응찰률로 수요 둔화가 분명했다.\n3. Indirect 61.2% vs 6avg 76.65%. 해외 수요가 전월 80.3%에서 급감해 2016년 이후 최대 낙폭을 기록했다. PD 9.8% vs 6avg 7.45%. 딜러 인수 비중이 5월 이후 최고로 올라 재고 부담이 커졌다 ⚠️.\n4. 결론: 뜨거운 10월 CPI 직후 해외 수요 이탈이 확인돼 기간 프리미엄 상승과 장기금리 5% 고착 위험이 커졌다.",
+      "_ai": {
+        "sources": [
+          "https://cryptobriefing.com/us-10-year-treasury-auction-sees-reduced-foreign-demand-highest-yield-tail/",
+          "https://www.fixedincomenews.com.au/treasury-pays-5-on-new-10-year-notes-as-foreign-demand-cools-after-inflation-shock/",
+          "https://en.bloomingbit.io/feed/news/124134"
+        ],
+        "researched_at": "2026-11-13T03:32:27Z",
+        "model": "claude-opus-5-5"
+      }
     },
     {
       "security_type": "Note",
@@ -201,16 +218,25 @@
         "btc_avg6": 2.64,
         "pd_avg6": 12.2,
         "in_avg6": 63.02,
-        "tail_bps": null,
-        "wi_rate": null,
+        "tail_bps": 0.5,
+        "wi_rate": 4.622,
         "grade": {
           "btc": "neutral",
-          "tail": null,
+          "tail": "strong",
           "pd": "strong"
         },
-        "score_pct": 75
+        "score_pct": 83
       },
-      "summary": null
+      "summary": "🎯 총평: Average\n1. Tail: +0.5 bp. WI 4.622% 대비 4.627%로 소폭 tail이 나 단기물 금리에 약한 상방 압력을 남겼다.\n2. BTC: 2.53x vs 6avg 2.64x. 2025년 8월 이후 최저 응찰률로 수요가 평균을 밑돌았다.\n3. Indirect 55.5% vs 6avg 63.02%. 해외 수요는 약 15개월 만에 최저로 뚜렷이 위축됐다. PD 9.5% vs 6avg 12.2%. 직접응찰(35.0%)이 빈자리를 메워 딜러 부담은 오히려 가벼웠다.\n4. 결론: 해외 수요 공백을 국내 직접응찰이 막아낸 무난한 결과지만, 리펀딩 주간 첫 경매부터 tail이 나며 프런트엔드 금리 하락 여력이 제한됨을 보여줬다.",
+      "_ai": {
+        "sources": [
+          "https://247wallst.com/investing/2026/11/10/foreign-linked-buyers-took-their-smallest-share-of-a-3-year-treasury-auction-in-15-months/",
+          "https://primexbt.com/news/us-3-year-treasury-auction-draws-weak-demand-as-bid-cover-hits-lowest-since-augu/",
+          "https://www.investing.com/news/economy-news/us-3year-treasury-auction-draws-weak-demand-amid-yield-decline-93CH-5013059"
+        ],
+        "researched_at": "2026-11-13T03:32:27Z",
+        "model": "claude-opus-5-5"
+      }
     },
     {
       "security_type": "Bill",
