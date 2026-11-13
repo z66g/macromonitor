@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-11-13T03:39:32+00:00",
-  "status": "warn",
+  "checked_at": "2026-11-13T07:43:51+00:00",
+  "status": "ok",
   "checks": [
     {
       "name": "T1 순유동성",
@@ -15,12 +15,12 @@
     {
       "name": "T2 실물경제",
       "status": "ok",
-      "detail": "캐시 1.1h 전 · 실업률 2026-10 (발표 2026-11-06)"
+      "detail": "캐시 0.3h 전 · 실업률 2026-10 (발표 2026-11-06)"
     },
     {
       "name": "T3 글로벌",
       "status": "ok",
-      "detail": "빈 시리즈 없음 · 캐시 0.6h 전"
+      "detail": "빈 시리즈 없음 · 캐시 4.7h 전"
     },
     {
       "name": "이벤트 캘린더",
@@ -50,12 +50,12 @@
     {
       "name": "뉴스 수집·번역",
       "status": "ok",
-      "detail": "226건 · 번역 224건 (99%) · 수집 0.1h 전"
+      "detail": "226건 · 번역 223건 (99%) · 수집 0.1h 전"
     },
     {
       "name": "뉴스 다이제스트",
       "status": "ok",
-      "detail": "생성 0.6h 전 · 3건"
+      "detail": "생성 1.7h 전 · 3건"
     },
     {
       "name": "H.4.1 이력",
@@ -79,10 +79,8 @@
     },
     {
       "name": "GitHub Actions 실패(24h)",
-      "status": "warn",
-      "detail": [
-        "Deploy Cloudflare Worker (03:02Z)"
-      ]
+      "status": "ok",
+      "detail": "없음 · 이후 성공으로 복구됨: ['Deploy Cloudflare Worker (03:02Z)']"
     }
   ]
 }
