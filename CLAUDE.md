@@ -77,7 +77,8 @@ tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 �
   (클라우드 에이전트 세션은 treasury.gov 접속 불가 → Actions가 원문을 레포에 저장)
 - 에이전트가 원문에서 추출 → `data/qra.json`(이번+다음 분기 `quarters[]`) → `qra-apply.yml` → `apply_qra.py` 검증
   (인용문이 원문에 **글자 그대로** 있는지, 수치가 인용문 금액과 같은지, 분기·범위) → KV
-- Worker `normalizeQra()`가 현재 분기 값을 실행 시점에 선택. 사이트에서는 수정 불가(배너 닫기는 localStorage)
+- Worker `normalizeQra()`가 현재 분기 값을 실행 시점에 선택. `/qra-status`는 `{active}`만 반환(읽기 전용)
+- 사이트에서는 수정 불가. 반영 후 7일간 탭 위 안내 배너(닫기는 localStorage), 유동성 패널 QRA 카드에 적용 방식 캡션
 - 소유자 수동 수정: GitHub에서 `data/qra.json` 편집·커밋 (`"applied_by": "manual"`)
 
 ## 국채경매 파이프라인
@@ -111,7 +112,7 @@ tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 �
 - **Gemini 2.5 Flash** (GitHub Actions): 뉴스 번역 `translate-news.yml`(30분), 다이제스트 `generate-news-digest.yml`(3시간)
   - 번역 맵은 현재 뉴스 + 최근 4000건만 유지 (KV 값 25MB 한도)
 - **Claude 클라우드 에이전트**: 경매 분석, QRA, 헬스체크 (위 표)
-- Worker 안의 LLM 호출 코드는 사용하지 않음(CF egress 차단) — 라우트 제거됨
+- Worker 안에는 LLM 호출 코드가 없음(CF egress 차단 → 2026-11-13 코드까지 삭제). LLM 작업은 Actions·클라우드 에이전트에서만
 
 ## 공개 엔드포인트 (읽기 전용)
 `/market /liq /liq-tower /t2 /t3 /calendar /yields-hist /h41-history /h41-html /ici /pipe3 /ofr-fsi /dxy /jpy

@@ -79,6 +79,33 @@ html,body{
 #controls-bar{
   background:transparent;
 }
+#qra-banner{max-width:940px;margin:8px auto 0;padding:0 24px;box-sizing:border-box;}
+.qra-bn-card{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:#0D1F16;border:0.5px solid #238636;border-left:3px solid #3FB950;border-radius:8px;
+  padding:10px 12px 10px 14px;
+}
+.qra-bn-icon{font-size:16px;line-height:1;flex-shrink:0;}
+.qra-bn-text{flex:1 1 240px;min-width:0;}
+.qra-bn-title{font-size:12px;font-weight:700;color:#E6EDF3;}
+.qra-bn-body{font-size:11px;color:#C9D1D9;margin-top:2px;line-height:1.5;}
+.qra-bn-btns{display:flex;gap:6px;flex-wrap:wrap;}
+.qra-bn-btns a{
+  font-size:10px;padding:5px 10px;border-radius:5px;text-decoration:none;white-space:nowrap;
+  background:#161B22;border:0.5px solid #30363D;color:#58A6FF;
+}
+.qra-bn-btns a:hover{border-color:#58A6FF;}
+.qra-bn-close{
+  background:transparent;border:none;color:#8B949E;cursor:pointer;
+  font-size:14px;line-height:1;padding:6px;margin:-6px -4px -6px 0;flex-shrink:0;
+}
+.qra-bn-close:hover{color:#E6EDF3;}
+@media (max-width: 767px){
+  #qra-banner{padding:0;}
+  .qra-bn-card{position:relative;padding-right:34px;gap:8px 10px;}
+  .qra-bn-close{position:absolute;top:8px;right:8px;margin:0;}
+  .qra-bn-btns{flex-basis:100%;padding-left:26px;}
+}
 #controls-bar-inner{
   max-width:940px;margin:0 auto;padding:12px 24px 2px;
   display:flex;align-items:center;justify-content:flex-end;
@@ -1327,6 +1354,20 @@ body{
   </div>
 </div>
 
+<!-- ═══════ QRA 업데이트 안내 (반영 후 7일, 닫으면 이 브라우저에선 다시 안 뜸) ═══════
+     화면 아래 고정 배너는 모바일에서 잘리고 PC에선 눈에 안 띄어 → 탭 바로 위 본문 흐름 안에 배치 -->
+<div id="qra-banner" role="status" style="display:none;">
+  <div class="qra-bn-card">
+    <span class="qra-bn-icon">📢</span>
+    <div class="qra-bn-text">
+      <div id="qra-banner-title" class="qra-bn-title"></div>
+      <div id="qra-banner-body" class="qra-bn-body"></div>
+    </div>
+    <div id="qra-banner-btns" class="qra-bn-btns"></div>
+    <button class="qra-bn-close" onclick="qraBannerDismiss()" aria-label="닫기" title="닫기">✕</button>
+  </div>
+</div>
+
 <!-- ═══════ TAB 콘텐츠 ═══════ -->
 
 <!-- TAB 0: 거시경제 모니터 -->
@@ -2499,21 +2540,6 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
 
   </div><!-- /t3-wrapper -->
 </div><!-- /t3 -->
-
-<!-- QRA 알림 배너 -->
-<div id="qra-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
-  z-index:950;min-width:480px;max-width:600px;
-  background:#161B22;border:0.5px solid #30363D;border-radius:8px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.5);padding:14px 18px;">
-  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
-    <div style="flex:1;">
-      <div id="qra-banner-title" style="font-size:12px;font-weight:700;color:#E6EDF3;margin-bottom:4px;"></div>
-      <div id="qra-banner-body" style="font-size:10px;color:#8B949E;line-height:1.5;"></div>
-      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;" id="qra-banner-btns"></div>
-    </div>
-    <button onclick="qraBannerDismiss()" style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:16px;flex-shrink:0;padding:0;line-height:1;">✕</button>
-  </div>
-</div>
 
 <!-- 관제탑 패널 오버레이 -->
 <div id="tower-overlay" onclick="toggleLiqTower()"
@@ -9546,6 +9572,7 @@ function renderTowerS3(d) {
     if (qra) {
       const appliedIcon = qra.applied_by === 'manual' ? '✋' : '🤖';
       const appliedTip  = `${qra.applied_by === 'manual' ? '수동 적용' : '재무부 원문 검증 후 자동 적용'} · ${escH((qra.applied_at||'').slice(0,10))}`;
+      // 호버 말풍선은 접이식 섹션(overflow:hidden)에 잘리고 터치 기기에서 안 열림 → 카드 아래 캡션으로 항상 표시
       qraCard.innerHTML = `
         <div style="background:#0D1117;border:0.5px solid #238636;border-radius:5px;padding:7px 10px;margin-bottom:8px;">
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
@@ -9565,19 +9592,14 @@ function renderTowerS3(d) {
               <span style="font-size:7px;color:#484F58;">TGA</span>
               <span style="font-size:11px;font-weight:700;color:#E6EDF3;margin-left:3px;">$${escH(qra.tga_target_balance_billions)}B</span>
             </span>
-            <!-- 구분선 -->
-            <span style="color:#30363D;font-size:9px;">|</span>
-            <!-- 버튼들 + 적용 아이콘 -->
-            <span style="display:flex;align-items:center;gap:5px;margin-left:auto;">
+            <!-- 링크 -->
+            <span style="display:flex;align-items:center;gap:8px;margin-left:auto;">
               ${safeUrl(qra.source_url) ? `<a href="${escH(safeUrl(qra.source_url))}" target="_blank" rel="noopener" style="font-size:8px;color:#58A6FF;text-decoration:none;white-space:nowrap;">🔗 보도자료</a>` : ''}
               ${safeUrl(qra.pdf_url)    ? `<a href="${escH(safeUrl(qra.pdf_url))}" target="_blank" rel="noopener" style="font-size:8px;color:#58A6FF;text-decoration:none;white-space:nowrap;">📄 PDF</a>` : ''}
-              <span class="pd-tip-wrap" style="line-height:1;">
-                <span style="font-size:11px;cursor:default;">${appliedIcon}</span>
-                <span class="pd-tip-box" style="right:0;left:auto;transform:none;bottom:calc(100% + 6px);width:140px;text-align:left;">
-                  ${appliedTip}
-                </span>
-              </span>
             </span>
+          </div>
+          <div style="margin-top:5px;padding-top:5px;border-top:0.5px solid #21262D;font-size:8px;color:#656D76;">
+            ${appliedIcon} ${appliedTip}
           </div>
         </div>`;
     } else {
@@ -9789,15 +9811,13 @@ async function checkQraStatus() {
 
     const banner = document.getElementById('qra-banner');
     if (!banner) return;
-    const btnStyle = 'font-size:9px;padding:4px 10px;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:3px;';
-    document.getElementById('qra-banner-title').textContent = `✅ QRA 업데이트 — ${q.target_quarter ?? ''}`;
+    document.getElementById('qra-banner-title').textContent = `재무부 QRA 반영 — ${q.target_quarter ?? ''}`;
     document.getElementById('qra-banner-body').textContent =
-      `순차입 $${q.net_borrowing_billions ?? '—'}B · TGA 목표 $${q.tga_target_balance_billions ?? '—'}B (재무부 발표 원문 기준)`;
+      `분기 순차입 $${q.net_borrowing_billions ?? '—'}B · 분기말 TGA 목표 $${q.tga_target_balance_billions ?? '—'}B — 유동성 예측모델에 적용됨`;
     const src = safeUrl(q.source_url), pdf = safeUrl(q.pdf_url);
     document.getElementById('qra-banner-btns').innerHTML = `
-      ${src ? `<a href="${escH(src)}" target="_blank" rel="noopener" style="${btnStyle}background:#21262D;border:0.5px solid #30363D;color:#8B949E;">📄 보도자료</a>` : ''}
-      ${pdf ? `<a href="${escH(pdf)}" target="_blank" rel="noopener" style="${btnStyle}background:#21262D;border:0.5px solid #30363D;color:#8B949E;">📎 PDF</a>` : ''}
-      <button onclick="qraBannerDismiss()" style="${btnStyle}background:transparent;border:none;color:#484F58;">닫기</button>`;
+      ${src ? `<a href="${escH(src)}" target="_blank" rel="noopener">📄 보도자료</a>` : ''}
+      ${pdf ? `<a href="${escH(pdf)}" target="_blank" rel="noopener">📎 PDF</a>` : ''}`;
     banner.dataset.seenKey = seenKey;
     banner.style.display = 'block';
   } catch(e) { /* 배너 실패는 조용히 무시 */ }

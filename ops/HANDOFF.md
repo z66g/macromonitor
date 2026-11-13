@@ -57,6 +57,13 @@
 - 검증: 모의 Yahoo로 Worker cron 시뮬레이션, Playwright + 모의 Worker로 정상/스냅샷 없음/일시 503/지속 실패 시나리오.
   **실제 Yahoo·Worker로는 이 세션에서 접속 불가해 시험 못 함** → 배포 후 아래 '지켜볼 것' 확인.
 
+## QRA UI·Worker 정리 (2026-11-13)
+- QRA 안내 배너: 화면 하단 고정(min-width 480px → 모바일 잘림, PC에선 눈에 안 띔) → 탭 바로 아래 본문 흐름 안 카드, 반응형.
+- 유동성 패널 QRA 카드: 🤖 호버 말풍선(접이식 섹션 overflow:hidden에 잘림, 터치 기기에선 안 열림) → 카드 아래 캡션 상시 표시.
+- Worker 미사용 코드 약 800줄 삭제: Gemini QRA 추출·웹 적용/해제/디버그·`checkNewQra`, `qra_pending_v1`,
+  Gemini 번역·Haiku 다이제스트 생성, 디버그 함수(`calendarDebug`·`liqTowerDebug`·`newsTransDebug` 등), 폐기된 OFR 대체·DBnomics.
+  호출 그래프로 export(fetch·scheduled)에서 도달 불가한 함수만 골라 삭제. `/qra-status`는 이제 `{active}`만.
+
 ## 이전 작업 요약 (2026-04~10)
 - TGA: H.4.1 TGA 기준 주간 순차입 계산, DTS 일별 TGA 파이프라인(`fetch-dts.yml` → KV `tga_dts_v1`)을 T1·유동성 패널·텔레그램에 사용, 1일·주간 변화 동시 표시.
 - 국채경매 텔레그램에서 Bills 제외. H.4.1 텔레그램 신호 방향 수정. 파비콘 = 홈 화면 아이콘 PNG.
