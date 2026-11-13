@@ -41,7 +41,18 @@ git pull origin main --rebase && git push
 - **T0** H.4.1 파이프 진단, VIX/MOVE, DXY, JPY, OFR FSI, CSP(TIPS·MMF=ICI)
 - **T1** NL 모멘텀(주 단위), NL 1~4주 예측, MMF 질, 국채수익률, 인플레 히트맵, 원자재
 - **T2** 지역 연준 PMI, 고용 파이프라인, 소비자 체력 · **T3** 글로벌 · **T4** 온체인
-- 슬라이드 패널 `news / cal / tower / auction` — **한 번에 하나만**(`window.closeOtherPanels`)
+- 슬라이드 패널 `news / cal / tower / auction` — **한 번에 하나만**(`window.closeOtherPanels`, Esc로 닫기)
+
+## UI 상태 표시 규칙 (2026-11 UI 점검)
+- **헤더 LED**: `setLed(id, state)` 하나로 — `unknown`(빈 링, 확인 전) / `ok` / `warn`(데이터 오래됨) / `fail`(수신 실패).
+  로드 4~5초 후 4개 모두 가볍게 확인. 임계: 뉴스 3h · 캘린더 24h · 경매 4일 · 예측모델 10일. 시각 없으면 warn(초록 금지)
+- **패널 버튼 활성**: `setPanelBtnActive(btnId, on)` — 모든 열기/닫기 경로에서 같은 색(#58A6FF)
+- **신호 색**: `SIG_STYLE` g 안정 · a 주의 · r 위험 · k 위기 · n 수신 실패(회색). 입력이 없으면 반드시 `'n'`
+  (규칙 첫 줄을 `x == null ? 'n'`로). 파이프 헤더만 배관 용어 `PIPE_LABEL`(안정·마찰·경색·위기). 일부 행만 'n'이면 최악 신호 + '일부 수신 실패'
+- **데이터 상태 배지**: `dsSet`의 asOf는 **데이터 날짜**(오늘 날짜로 채우지 말 것), 'market'·'daily' 신선도는 KST 영업일 문자열 비교.
+  로더 catch에서 `dsFailTab()` 호출. 값이 없으면 `$0`/`+0.0%` 대신 `—`
+- **시각 표기**: `fmtKST(iso)` → "MM/DD HH:mm KST" (getHours/toLocaleTimeString 금지 — 기기 시간대)
+- 모바일(≤767px) 탭 대상 최소 28px, 7px 글자는 9px로 (끝의 공용 style 블록)
 
 ## Worker cron (무료 플랜: 계정 전체 cron 5개 한도 → 1개만 사용)
 `CRON = '5,15,25,35,45,55 * * * *'` — 10분마다 깨어나 `CRON_JOBS` 표대로 실행:
