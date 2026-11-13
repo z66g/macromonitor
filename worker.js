@@ -134,7 +134,7 @@ export default {
     try {
       if (path.startsWith('/fred'))          return await fredProxy(url, env);
       if (path.startsWith('/ofr-fsi'))       return await ofrFsi(env);
-      if (path.startsWith('/h41-history'))   return await h41HistoryFetcher(url);
+      if (path.startsWith('/h41-history'))   return await h41HistoryFetcher(url, null, env);
       if (path.startsWith('/h41-html'))      return await h41HtmlParser(env, ctx, url.searchParams.get('force') === '1');
       if (path.startsWith('/dxy'))           return await dxyAnalysis();
       if (path.startsWith('/jpy'))           return await jpyCarryRisk();
@@ -247,14 +247,13 @@ async function fetchCalendar(env) {
     // 10: NFP → 매월 첫째 금요일 수학 계산 (buildMarketEvents)
     // 33: ISM 제조업 → 매월 첫 영업일 수학 계산 (buildMarketEvents)
     // 57: ISM 서비스 → 매월 셋째 영업일 수학 계산 (buildMarketEvents)
-    138: { nameKo: '구인이직보고서 (JOLTS)',         imp: 'medium', tag: '고용',   series:'JTSJOL',          fmt:'val'  },
-    31:  { nameKo: 'GDP 성장률',                    imp: 'high',   tag: '성장',   series:'A191RL1Q225SBEA', fmt:'val'  },
-    56:  { nameKo: '소매판매',                      imp: 'medium', tag: '성장',   series:'RSAFS',           fmt:'mom'  },
-    175: { nameKo: 'FOMC 의사록',                   imp: 'high',   tag: '연준',   series:null,              fmt:null   },
-    237: { nameKo: '주택착공',                      imp: 'medium', tag: '주택',   series:'HOUST',           fmt:'val'  },
-    82:  { nameKo: '소비자심리 (미시간)',            imp: 'medium', tag: '경기',   series:'UMCSENT',         fmt:'val'  },
-    113: { nameKo: '내구재 주문',                   imp: 'medium', tag: '성장',   series:'DGORDER',         fmt:'mom'  },
-    313: { nameKo: '세인트루이스 FSI',               imp: 'medium', tag: '신용',   series:'STLFSI4',         fmt:'val'  },
+    192: { nameKo: '구인이직보고서 (JOLTS)',         imp: 'medium', tag: '고용',   series:'JTSJOL',          fmt:'val'  },
+    53:  { nameKo: 'GDP 성장률',                    imp: 'high',   tag: '성장',   series:'A191RL1Q225SBEA', fmt:'val'  },
+    9:   { nameKo: '소매판매',                      imp: 'medium', tag: '성장',   series:'RSAFS',           fmt:'mom'  },
+    27:  { nameKo: '주택착공',                      imp: 'medium', tag: '주택',   series:'HOUST',           fmt:'val'  },
+    91:  { nameKo: '소비자심리 (미시간)',            imp: 'medium', tag: '경기',   series:'UMCSENT',         fmt:'val'  },
+    95:  { nameKo: '내구재 주문',                   imp: 'medium', tag: '성장',   series:'DGORDER',         fmt:'mom'  },
+    187: { nameKo: '세인트루이스 FSI',               imp: 'medium', tag: '신용',   series:'STLFSI4',         fmt:'val'  },
   };
 
   // 발표 데이터 fetch 헬퍼 (D-DAY 이벤트용)
@@ -280,10 +279,9 @@ async function fetchCalendar(env) {
         const mom = ((cur - prev) / Math.abs(prev) * 100).toFixed(1);
         return { label: `MoM ${mom >= 0 ? '+' : ''}${mom}%`, val: parseFloat(mom) };
       } else {
-        const unit = seriesId === 'ICSA' || seriesId === 'JTSJOL' ? '만' : '';
-        const dispVal = (seriesId === 'ICSA' || seriesId === 'JTSJOL')
-          ? (cur / 1000).toFixed(1) + '만 건'
-          : cur.toFixed(1);
+        // ICSA 단위 = 건(219,000 → 21.9만), JTSJOL 단위 = 천 건(7,523 → 752.3만)
+        const man = seriesId === 'ICSA' ? cur / 10000 : seriesId === 'JTSJOL' ? cur / 10 : null;
+        const dispVal = man != null ? man.toFixed(1) + '만 건' : cur.toFixed(1);
         return { label: dispVal, val: cur };
       }
     } catch(e) { return null; }
@@ -381,7 +379,7 @@ async function fetchCalendar(env) {
 // 형태: "Jan. 28-29" 또는 "Apr. 29*" (단일) 등
 // FOMC 실제 회의 날짜 (성명서 발표일 = 두 번째 날 기준)
 // 연준 공식 일정: federalreserve.gov/monetarypolicy/fomccalendars.htm
-// ※ JS 렌더링 사이트라 동적 파싱 불가 → 매년 1월 수동 업데이트
+// ※ 연준이 다음 해 일정을 발표하면(보통 여름) 추가. 헬스체크 에이전트가 소진 30일 전 경고.
 function fetchFomcDates() {
   return [
     // 2025
@@ -390,6 +388,9 @@ function fetchFomcDates() {
     // 2026
     '2026-01-28','2026-03-18','2026-04-29','2026-06-17',
     '2026-07-29','2026-09-16','2026-10-28','2026-12-09',
+    // 2027 (공식 일정: 1/26-27, 3/16-17, 4/27-28, 6/8-9, 7/27-28, 9/14-15, 10/26-27, 11/16-17)
+    '2027-01-27','2027-03-17','2027-04-28','2027-06-09',
+    '2027-07-28','2027-09-15','2027-10-27','2027-11-17',
   ];
 }
 function usMarketHolidays(year) {
@@ -413,7 +414,7 @@ function usMarketHolidays(year) {
   const variable = [
     nthWeekday(year, 1, 1, 3),  // MLK Day: 1월 셋째 월
     nthWeekday(year, 2, 1, 3),  // Presidents Day: 2월 셋째 월
-    nthWeekday(year, 5, 1, 4),  // Memorial Day: 5월 마지막 월 (근사치)
+    (() => { const d = new Date(Date.UTC(year, 5, 0)); while (d.getUTCDay() !== 1) d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); })(),  // Memorial Day: 5월 마지막 월
     nthWeekday(year, 9, 1, 1),  // Labor Day: 9월 첫째 월
     nthWeekday(year, 11, 4, 4), // Thanksgiving: 11월 넷째 목
   ];
@@ -693,6 +694,14 @@ function buildMarketEvents(fromDate, toDate, fomcDates = []) {
         estimated: false,
       });
     }
+    // 의사록: 회의 3주 후 공개 (연준 관행)
+    const minutes = new Date(Date.parse(dateStr) + 21 * 86400000).toISOString().slice(0, 10);
+    if (minutes >= fromDate && minutes <= toDate) {
+      events.push({
+        date: minutes, dday: null, name: `FOMC 의사록 공개 (${dateStr.slice(5)} 회의)`,
+        imp: 'high', tag: '연준', category: 'fed', weight: 2, estimated: false,
+      });
+    }
   }
 
   return events;
@@ -919,7 +928,7 @@ async function t2DataEndpoint(env, force = false) {
     .map(d => ({ date: d.date.slice(0,7), value: d.value }));
 
   const ic4wsaCur    = ic4wsa[0]?.value ?? null;
-  const ic4wsaYearAgo = ic4wsa.length >= 52 ? (ic4wsa[51]?.value ?? null) : null;
+  const ic4wsaYearAgo = ic4wsa.length >= 53 ? (ic4wsa[52]?.value ?? null) : null;   // 52주 전
   const ic4wsaYoy    = (ic4wsaCur != null && ic4wsaYearAgo != null && ic4wsaYearAgo > 0)
     ? +((ic4wsaCur - ic4wsaYearAgo) / ic4wsaYearAgo * 100).toFixed(1) : null;
   const icsaLatest   = icsa[0]?.value ?? null;
@@ -941,7 +950,7 @@ async function t2DataEndpoint(env, force = false) {
     ? Math.round((nfpDeltas[0] + nfpDeltas[1] + nfpDeltas[2]) / 3) : null;
   const nfpCB   = nfpLatest != null && nfpLatest < 0;
   const nfpSeries = nfpDeltas.slice().reverse().map((v, i) => ({
-    date: payems[nfpDeltas.length - i]?.date?.slice(0,7) ?? '',
+    date: payems[nfpDeltas.length - 1 - i]?.date?.slice(0,7) ?? '',   // reverse 후 i번째 = nfpDeltas[n-1-i] = payems[n-1-i]의 달
     value: v,
   }));
 
@@ -1012,12 +1021,11 @@ async function t2DataEndpoint(env, force = false) {
       cpiMomArr.push({ date: cpiT2[i].date, value: +((c - p) / p * 100).toFixed(2) });
     else break;
   }
-  // Real Core MoM: 인덱스 기반 정렬 (발표일 차이 보정)
-  const realCoreMomArr = [];
-  const rcMaxLen = Math.min(rsxfsMom.length, cpiMomArr.length);
-  for (let i = 0; i < rcMaxLen; i++) {
-    realCoreMomArr.push({ date: rsxfsMom[i].date, value: +(rsxfsMom[i].value - cpiMomArr[i].value).toFixed(2) });
-  }
+  // Real Core MoM: 같은 달끼리 매칭 (CPI가 소매판매보다 며칠 먼저 나와 인덱스로 맞추면 한 달 어긋남)
+  const cpiMomByMonth = Object.fromEntries(cpiMomArr.map(c => [c.date.slice(0, 7), c.value]));
+  const realCoreMomArr = rsxfsMom
+    .filter(r => cpiMomByMonth[r.date.slice(0, 7)] != null)
+    .map(r => ({ date: r.date, value: +(r.value - cpiMomByMonth[r.date.slice(0, 7)]).toFixed(2) }));
   const realCoreCur  = realCoreMomArr[0]?.value ?? null;
   const realCore3MMA = realCoreMomArr.length >= 3
     ? +((realCoreMomArr[0].value + realCoreMomArr[1].value + realCoreMomArr[2].value) / 3).toFixed(2) : null;
@@ -1623,8 +1631,8 @@ async function iciRaw() {
 //    Fed 아카이브: federalreserve.gov/releases/h41/YYYYMMDD/
 //    그래프용 시계열 생성
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-async function h41HistoryFetcher(url, weeksOverride = null) {
-  const weeks  = weeksOverride ?? Math.min(parseInt(url.searchParams.get('weeks') || '12'), 52);
+async function h41HistoryFetcher(url, weeksOverride = null, env = null) {
+  const weeks  = weeksOverride ?? Math.min(Math.max(parseInt(url.searchParams.get('weeks') || '12', 10) || 12, 1), 52);
   const debug  = url.searchParams.get('debug') === '1';
 
   // ── STEP 1: Fed H.4.1 인덱스에서 실제 릴리즈 URL 목록 수집 ──
@@ -1633,7 +1641,22 @@ async function h41HistoryFetcher(url, weeksOverride = null) {
   let releaseUrls = [];
   const urlAttempts = [];
 
+  // 실제 발표일 목록 — 추수감사절·성탄절 등으로 밀린 발표일도 정확 (정적 HTML에는 링크가 없음)
   try {
+    const rdResp = await fetch('https://www.federalreserve.gov/releases/h41/releaseDates.json', {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MacroMonitor/1.0)' }, cf: { cacheTtl: 3600 },
+    });
+    if (rdResp.ok) {
+      const rd = await rdResp.json();
+      const dates = rd.flatMap(y => (y.Months || []).flatMap(m => m.Dates || []))
+        .filter(d => /^\d{8}$/.test(d)).sort().reverse().slice(0, weeks);
+      releaseUrls = dates.map(d => ({ date: d, url: `https://www.federalreserve.gov/releases/h41/${d}/` }));
+    }
+  } catch(e) {
+    urlAttempts.push({ step: 'releaseDates', error: e.message });
+  }
+
+  if (!releaseUrls.length) try {
     const idxResp = await fetch(INDEX_URL, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MacroMonitor/1.0)' },
       cf: { cacheTtl: 3600 },
@@ -1827,12 +1850,25 @@ async function h41HistoryFetcher(url, weeksOverride = null) {
     }
   };
 
-  // 배치 fetch (8개씩)
-  const results = [];
-  for (let i = 0; i < releaseUrls.length; i += 8) {
-    const batch = await Promise.all(releaseUrls.slice(i, i+8).map(parseMetrics));
-    results.push(...batch);
+  // 지난 H.4.1 발표분은 바뀌지 않으므로 발표일별로 KV에 영구 캐시 → 새 발표분만 원격 조회.
+  // 1회 실행당 원격 조회 상한(서브요청 50건 한도) — 남은 주는 다음 요청에서 채워짐.
+  const REL_KEY = d => `h41_rel_v1_${d}`;
+  const MAX_REMOTE = 40;
+  const cachedRel = env?.MMF_KV
+    ? await Promise.all(releaseUrls.map(r => env.MMF_KV.get(REL_KEY(r.date), { type: 'json' }).catch(() => null)))
+    : releaseUrls.map(() => null);
+  const missing = releaseUrls.filter((_, i) => !cachedRel[i]).slice(0, MAX_REMOTE);
+  const fetched = {};
+  for (let i = 0; i < missing.length; i += 8) {
+    const batch = await Promise.all(missing.slice(i, i+8).map(parseMetrics));
+    for (const r of batch) {
+      fetched[r.date] = r;
+      if (env?.MMF_KV && r && !r.error && r.reserve_balances != null) {
+        await env.MMF_KV.put(REL_KEY(r.date), JSON.stringify(r), { expirationTtl: 86400 * 400 }).catch(() => {});
+      }
+    }
   }
+  const results = releaseUrls.map((r, i) => cachedRel[i] || fetched[r.date]).filter(Boolean);
 
   const valid = results.filter(r => r && !r.error && r.reserve_balances != null);
   const B = v => v ? +(v/1000).toFixed(1) : null;
@@ -3401,7 +3437,7 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
       [key, toKv(await fetchFredObs(id, 3, unitM))]
     )),
     fetchFredObs('WALCL', 15, true),
-    fetchH41HtmlData(),
+    fetchH41HtmlData(env),
   ]);
 
   const kv = Object.fromEntries(stdResults.filter(([,v]) => v));
@@ -3454,12 +3490,12 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
 }
 
 // ── H.4.1 HTML 통합 파싱 (loans + maturity + currency) ─────
-async function fetchH41HtmlData() {
+async function fetchH41HtmlData(env) {
   // h41HistoryFetcher(weeks=2)로 H.4.1 HTML 파싱 데이터 전체 활용
   // reserve_balances / rrp / tga / loans / currency / treasury_total 모두 포함
   try {
     // h41HistoryFetcher 직접 호출 (3주치: cur/prev/delta 확보)
-    const resp = await h41HistoryFetcher(new URL('https://dummy'), 3);
+    const resp = await h41HistoryFetcher(new URL('https://dummy'), 3, env);
     const data = await resp.json();
     const s    = data?.series;
     if (!s) return { loans:null, maturity:null, currency:null, treasury_total:null,
