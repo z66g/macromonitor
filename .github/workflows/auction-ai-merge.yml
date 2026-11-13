@@ -1,0 +1,40 @@
+name: Auction AI Merge + Telegram
+
+# 클라우드 에이전트가 data/auction_ai.json을 push하면:
+#   1) 검증 후 auction_results.json에 반영 (검증 실패 항목은 버림)
+#   2) 요약 완성 + 미발송 이표채만 텔레그램 발송 (telegram_sent로 중복 방지)
+# GITHUB_TOKEN 커밋은 다른 워크플로를 트리거하지 않으므로 루프 없음.
+on:
+  push:
+    branches: [main]
+    paths: [data/auction_ai.json]
+  schedule:
+    - cron: '50 22 * * 1-5'     # 백업: push 트리거 누락 대비 (KST 07:50 화-토)
+  workflow_dispatch:
+
+concurrency:
+  group: auction-results
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate + merge agent results
+        run: python3 scripts/merge_auction_ai.py
+      - name: Commit merged results
+        run: |
+          bash scripts/commit_data.sh "chore: merge auction AI analysis [$(date -u '+%Y-%m-%d %H:%M UTC')]" data/auction_results.json
+      - name: Telegram (요약 완성 + 미발송 건만)
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 scripts/send_auction_telegram.py
+      - name: Commit sent flags
+        if: always()
+        run: |
+          bash scripts/commit_data.sh "chore: mark auction telegram sent" data/auction_results.json

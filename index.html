@@ -3508,8 +3508,9 @@ async function loadS1(force = false) {
       ? dsSet('ofr_fsi',   new Date().toISOString().slice(0,10))
       : dsNull('ofr_fsi');
     renderDataStatus(0);
-    renderVIX(vixQ);
-    renderMOVE(moveQ);
+    // 가격이 없으면(Yahoo 일시 실패) 게이지만 건너뛰고 나머지 섹션은 계속 렌더
+    if (vixQ?.price != null)  renderVIX(vixQ);
+    if (moveQ?.price != null) renderMOVE(moveQ);
     if (vixQ?.price && moveQ?.price) {
       renderZScore(vixQ.price, moveQ.price, vixHistJson, moveHistJson);
     }
@@ -4650,7 +4651,7 @@ async function loadS2(force = false) {
     const iciJson       = await _sj2(iciRes);
     const mmfRetailJson = await _sj2(mmfRetailRes);
 
-    const q = yahooJson.quotes || {};
+    const q = yahooJson?.quotes || {};   // Yahoo 실패해도 CSP(TIPS·MMF) 차트는 렌더
 
     prices = {
       'SPY':  q['SPY']?.price,

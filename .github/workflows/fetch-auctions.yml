@@ -2,84 +2,23 @@ name: Fetch Treasury Auctions
 
 on:
   schedule:
-    - cron: '0 */4 * * *'
+    - cron: '20 */4 * * *'      # :00/:30 혼잡 시각 회피
   workflow_dispatch:
+
+concurrency:
+  group: fetch-auctions
+  cancel-in-progress: false
 
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Fetch Treasury Auction Data
+      - name: Fetch upcoming / auctioned (TreasuryDirect)
+        run: python3 scripts/fetch_auctions.py
+      - name: Commit
         run: |
-          mkdir -p data
-
-          # JSONP → JSON 변환 Python 스크립트
-          python3 << 'PYEOF'
-          import urllib.request, json, re, os
-
-          BASE = 'https://www.treasurydirect.gov/TA_WS/securities'
-          HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; MacroMonitor/1.0)'}
-
-          def fetch_jsonp(endpoint, sec_type):
-              url = f'{BASE}/{endpoint}?format=jsonp&limitByTerm=true&type={sec_type}&callback=cb'
-              try:
-                  req = urllib.request.Request(url, headers=HEADERS)
-                  with urllib.request.urlopen(req, timeout=15) as r:
-                      text = r.read().decode('utf-8')
-                  # cb([...]) → [...]
-                  m = re.search(r'cb\s*\(\s*(\[[\s\S]*\])\s*\)', text)
-                  if m:
-                      return json.loads(m.group(1))
-              except Exception as e:
-                  print(f'Error {endpoint}/{sec_type}: {e}')
-              return []
-
-          upcoming = []
-          for t in ['Bill', 'Note', 'Bond', 'TIPS', 'FRN']:
-              items = fetch_jsonp('upcoming', t)
-              print(f'upcoming/{t}: {len(items)}건')
-              upcoming += items
-
-          auctioned = []
-          for t in ['Bill', 'Note', 'Bond']:
-              items = fetch_jsonp('auctioned', t)
-              print(f'auctioned/{t}: {len(items)}건')
-              auctioned += items
-
-          def clean(a, kind):
-              base = {
-                  'type':        a.get('securityType', ''),
-                  'term':        a.get('securityTerm', ''),
-                  'auctionDate':(a.get('auctionDate') or '')[:10],
-                  'issueDate':  (a.get('issueDate')   or '')[:10],
-                  'offeringAmt': float(a.get('offeringAmount') or 0),
-                  'cusip':       a.get('cusip', ''),
-              }
-              if kind == 'auctioned':
-                  base['highRate'] = a.get('highRate') or a.get('highYield')
-              return base
-
-          result = {
-              'updated':  __import__('datetime').datetime.utcnow().isoformat() + 'Z',
-              'upcoming': sorted([clean(a,'upcoming')  for a in upcoming],  key=lambda x: x['issueDate']),
-              'auctioned':sorted([clean(a,'auctioned') for a in auctioned], key=lambda x: x['auctionDate'], reverse=True)[:20],
-          }
-
-          with open('data/auctions.json', 'w') as f:
-              json.dump(result, f, indent=2)
-
-          print(f"완료: upcoming {len(result['upcoming'])}건 / auctioned {len(result['auctioned'])}건")
-          PYEOF
-
-      - name: Commit and Push
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/auctions.json
-          git diff --staged --quiet || git commit -m "chore: update auctions [$(date -u '+%Y-%m-%d %H:%M UTC')]"
-          git push
+          bash scripts/commit_data.sh "chore: update auctions [$(date -u '+%Y-%m-%d %H:%M UTC')]" data/auctions.json

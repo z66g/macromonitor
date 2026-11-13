@@ -38,18 +38,28 @@ const KV_KEYS = {
   newsDigestHistory: 'news_digest_history_v1', // 다이제스트 누적 (배치 텔레그램용)
   tgaDts:            'tga_dts_v1',             // DTS 일별 TGA 잔고 (GitHub Actions)
 };
+// ── Cron 문자열 — wrangler.toml [triggers] crons 와 반드시 동일하게 유지 ──
+const CRON = {
+  news:   '5,35 * * * *',
+  groupA: '15 1,7,13,19 * * *',
+  groupB: '25 1,7,13,19 * * *',
+  groupC: '45 1,7,13,19 * * *',
+  groupD: '55 1,7,13,19 * * *',
+};
+
+// TTL은 cron 주기(6h)보다 길게 — 한 번 갱신이 실패/지연돼도 캐시 공백이 생기지 않도록
 const KV_TTL = {
-  liq:        7200,
+  liq:        43200,
   yieldsHist: 86400,
-  calendar:   21600,
-  t2:         7200,
-  t3:         7200,
+  calendar:   43200,
+  t2:         43200,
+  t3:         43200,
   qraActive:  86400 * 95,
   qraPending: 86400 * 30,
-  liqTower:   3600 * 6,
+  liqTower:   43200,
   onchainMacro: 3600,
-  h41Html:    3600 * 6,
-  newsCache:  3600,
+  h41Html:    43200,
+  newsCache:  10800,   // 30분 cron 기준 여유 — 몇 번 실패해도 GH Actions(번역·다이제스트)가 캐시를 읽을 수 있게
   newsTransMap: 2592000,
   newsDigest:        86400,              // 24h
   newsDigestHistory: 86400 * 2,          // 48h (하루 2회 발송 사이 안전 보장)
@@ -59,7 +69,32 @@ const kvGet = async (env, key) => {
   try { return await env.MMF_KV.get(key, { type: 'json' }); }
   catch(e) { return null; }
 };
+// ── 저장 전 검증: 업스트림 장애로 비거나 깨진 결과가 정상 캐시를 덮어쓰지 않도록 ──
+// 검증 실패 시 KV를 건드리지 않고(이전 정상 값 유지) 호출자에게 데이터만 반환한다.
+const countSeries = (o, acc = { total: 0, empty: 0 }) => {
+  if (Array.isArray(o) || !o || typeof o !== 'object') return acc;
+  for (const [k, v] of Object.entries(o)) {
+    if (k === 'series' && Array.isArray(v)) { acc.total++; if (!v.length) acc.empty++; }
+    else countSeries(v, acc);
+  }
+  return acc;
+};
+const KV_VALIDATORS = {
+  [KV_KEYS.liq]:        d => d?.yields?.dgs10?.current != null && d?.inflation?.cpi?.current != null,
+  [KV_KEYS.t2]:         d => !d?.error && d?.labor?.unrate?.current != null && d?.consumer?.umcsent?.current != null,
+  [KV_KEYS.t3]:         d => { const c = countSeries(d); return c.total > 0 && c.empty <= 1; },
+  [KV_KEYS.calendar]:   d => !d?.error && (d?.events?.length ?? 0) > 0,
+  [KV_KEYS.yieldsHist]: d => (d?.labels?.length ?? 0) > 0,
+  [KV_KEYS.liqTower]:   d => d?.fed?.h41 != null && (d?.vampire?.weeks?.length ?? 0) > 0,
+  [KV_KEYS.h41Html]:    d => d?.success === true && d?.parseQuality !== 'failed',
+  [KV_KEYS.newsCache]:  d => (d?.items?.length ?? 0) > 0,
+};
 const kvPut = async (env, key, data, ttl) => {
+  const validate = KV_VALIDATORS[key];
+  if (validate && !validate(data)) {
+    console.error('[KV PUT SKIP] 검증 실패 — 기존 캐시 유지:', key);
+    return data;
+  }
   try {
     const payload = { ...data, _savedAt: new Date().toISOString() };
     await env.MMF_KV.put(key, JSON.stringify(payload), { expirationTtl: ttl });
@@ -128,28 +163,35 @@ export default {
     }
   },
 
-  // Cron 트리거 — FRED 데이터 주기적 갱신 (LLM 호출은 GitHub Actions로 이전됨)
+  // Cron 트리거 — wrangler.toml의 CRON 문자열과 반드시 일치해야 함 (CRON 상수 참조)
+  // 한 번의 실행당 서브요청 50건 한도(무료 플랜) 때문에 갱신 작업을 4개 시각으로 분산.
+  // cron-job.org가 :00/:30에 GH Actions(KV 쓰기)를 트리거하므로 Worker는 그 시각을 피함.
   async scheduled(event, env, ctx) {
-    // ── 30분마다: 뉴스 RSS 수집 (번역은 GH Actions translate-news) ────
-    if (event.cron === '*/30 * * * *') {
-      ctx.waitUntil(newsScheduledRefresh(env));
-      return;
+    const run = async (name, fn) => {
+      try { await fn(); } catch(e) { console.error(`cron ${name}:`, e.message); }
+    };
+    switch (event.cron) {
+      case CRON.news:      // 매시 5·35분 — 뉴스 RSS (~15건)
+        ctx.waitUntil(run('news', () => newsScheduledRefresh(env)));
+        return;
+      case CRON.groupA:    // 6시간마다 :15 — H.4.1 → liq(H.4.1 KV 사용) + 수익률 (~27건)
+        ctx.waitUntil((async () => {
+          await run('h41Html', () => h41HtmlParser(env, null, true));
+          await Promise.all([run('liq', () => refreshLiq(env)), run('yields', () => refreshYieldsHist(env))]);
+        })());
+        return;
+      case CRON.groupB:    // 6시간마다 :25 — T2 (~21건)
+        ctx.waitUntil(run('t2', () => refreshT2(env)));
+        return;
+      case CRON.groupC:    // 6시간마다 :45 — T3 + 유동성 예측모델 (~26건)
+        ctx.waitUntil(Promise.all([run('t3', () => refreshT3(env)), run('liqTower', () => refreshLiqTower(env))]));
+        return;
+      case CRON.groupD:    // 6시간마다 :55 — 캘린더 (단독)
+        ctx.waitUntil(run('calendar', async () => kvPut(env, KV_KEYS.calendar, await fetchCalendar(env), KV_TTL.calendar)));
+        return;
+      default:
+        console.error('알 수 없는 cron:', event.cron, '— wrangler.toml과 CRON 상수를 맞추세요');
     }
-
-    // ── 3시간 크론(0 */3 * * *)은 GH Actions generate-news-digest가 담당 ────
-    // ── 수요일 크론(0 15 * * 3)은 GH Actions check-qra가 담당 ────
-    // → 두 크론은 wrangler.toml에서도 제거됨
-
-    // ── 매일 새벽 1시: 일반 데이터 갱신 ──────────────────
-    ctx.waitUntil(Promise.all([
-      h41HtmlParser(env, ctx, true).catch(e => console.error('cron h41Html:', e.message)),
-      refreshLiq(env),
-      refreshYieldsHist(env),
-      refreshT2(env),
-      refreshT3(env),
-      fetchCalendar(env).then(data => kvPut(env, KV_KEYS.calendar, data, KV_TTL.calendar)),
-      refreshLiqTower(env),
-    ]));
   }
 };
 
@@ -2206,7 +2248,7 @@ async function h41HtmlParser(env, ctx, forceRefresh = false) {
   if (ctx?.waitUntil) {
     ctx.waitUntil(kvPut(env, KV_KEYS.h41Html, resultPayload, KV_TTL.h41Html));
   } else {
-    kvPut(env, KV_KEYS.h41Html, resultPayload, KV_TTL.h41Html).catch(() => {});
+    await kvPut(env, KV_KEYS.h41Html, resultPayload, KV_TTL.h41Html);  // cron 경로: 반드시 await
   }
 
   return json({
@@ -4228,6 +4270,10 @@ async function newsScheduledRefresh(env) {
   try {
     // 1. RSS 파싱 (LLM 호출 없음)
     const data = await newsFetchAll(env);
+    if (!data?.items?.length) {   // RSS 전체 실패 시 기존 캐시 유지
+      console.error('[News Cron] RSS 0건 — 기존 캐시 유지');
+      return;
+    }
 
     // 2. 기존 번역맵 적용 (GH Actions가 채워놓은 번역본을 items에 merge)
     const transMap = await newsLoadTransMap(env);
