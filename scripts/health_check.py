@@ -8,6 +8,7 @@
 """
 import datetime as dt
 import json
+import os
 import re
 import sys
 import urllib.request
@@ -25,8 +26,10 @@ def add(name, status, detail):
 
 def get(path, timeout=60):
     url = path if path.startswith('http') else WORKER + path
-    req = urllib.request.Request(url, headers={'User-Agent': 'MacroMonitor-HealthCheck/1.0',
-                                               'Accept': 'application/json'})
+    headers = {'User-Agent': 'MacroMonitor-HealthCheck/1.0', 'Accept': 'application/json'}
+    if 'api.github.com' in url and os.environ.get('GH_TOKEN'):
+        headers['Authorization'] = f"Bearer {os.environ['GH_TOKEN']}"   # 러너 공유 IP의 비인증 한도 회피
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read().decode('utf-8'))
 

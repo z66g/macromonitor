@@ -1,0 +1,26 @@
+name: Fetch QRA Source
+
+# 재무부 최신 'Marketable Borrowing Estimates' 원문 → data/qra_source.json
+# (클라우드 에이전트 세션은 treasury.gov 접근 불가 → Actions가 원문을 레포에 저장, 에이전트는 이 파일로 추출)
+on:
+  schedule:
+    - cron: '30 20 * * 1,3'     # 재무부 발표(월 15:00 ET) 직후 · QRA 에이전트(22:00 UTC)보다 먼저
+  workflow_dispatch:
+
+concurrency:
+  group: fetch-qra-source
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch Treasury financing estimates release
+        run: python3 scripts/fetch_qra_source.py
+      - name: Commit
+        run: |
+          bash scripts/commit_data.sh "chore: QRA 원문 [$(date -u '+%Y-%m-%d')]" data/qra_source.json

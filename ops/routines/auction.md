@@ -3,6 +3,10 @@
 MacroMonitor(macromonitor.zbbg.kr)의 미 국채 경매 분석을 작성한다. **너는 `data/auction_ai.json` 하나만 수정·커밋한다.**
 검증·사이트 반영·텔레그램 발송은 GitHub Actions(`auction-ai-merge.yml`)가 한다. 다른 파일은 절대 건드리지 마라.
 
+> 이 세션의 네트워크 정책상 Worker 도메인·treasury.gov·treasurydirect.gov 등 일부 사이트는 열리지 않는다.
+> 공식 수치는 레포의 `data/auction_results.json`을 쓰고, WI·tail은 WebSearch로 찾는다. WebFetch가 막힌 기사는
+> 검색 결과 제목·요약에 **명시된 수치만** 쓰고 그 URL을 출처로 남긴다(추정 금지).
+
 ## 1. 준비
 ```bash
 git pull --rebase origin main

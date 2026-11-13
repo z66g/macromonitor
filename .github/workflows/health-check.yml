@@ -1,0 +1,33 @@
+name: Health Check
+
+# 매일 결정적 헬스체크 (네트워크 필요 → Actions에서 실행) → data/health.json 커밋 → 이상 시 GitHub 이슈.
+# 이상이 있으면 30분 뒤 클라우드 에이전트가 원인을 진단해 이슈에 덧붙인다.
+on:
+  schedule:
+    - cron: '0 23 * * *'        # KST 08:00
+  workflow_dispatch:
+
+concurrency:
+  group: health-issue
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run health check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/health_check.py --out data/health.json
+      - name: Commit
+        run: |
+          bash scripts/commit_data.sh "chore: 헬스체크 $(python3 -c "import json;print(json.load(open('data/health.json'))['status'])") [$(date -u '+%Y-%m-%d')]" data/health.json
+      - name: Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/health_issue.py

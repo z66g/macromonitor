@@ -51,6 +51,17 @@ if not src.startswith('https://') or not (host == 'treasury.gov' or host.endswit
     fail('source_url은 treasury.gov https 원문이어야 함')
 if q.get('pdf_url') and not str(q['pdf_url']).startswith('https://'):
     fail('pdf_url은 https')
+# 원문 대조: GitHub Actions가 받아 둔 재무부 원문(data/qra_source.json)과 같은 발표면 인용문을 글자 그대로 확인
+def norm(x):
+    return re.sub(r'\s+', ' ', str(x).replace('\u2013', '-').replace('\u2014', '-')).strip()
+
+
+src_text = ''
+if os.path.exists('data/qra_source.json'):
+    srcj = json.load(open('data/qra_source.json', encoding='utf-8'))
+    if srcj.get('url', '').rstrip('/') == src.rstrip('/'):
+        src_text = norm(srcj.get('text', ''))
+
 quarters = q.get('quarters')
 if not isinstance(quarters, list) or not 1 <= len(quarters) <= 2:
     fail('quarters는 1~2개')
@@ -71,6 +82,14 @@ for e in quarters:
     ev = e.get('evidence_quote') or ''
     if not 20 <= len(ev) <= 1000:
         fail(f'{e["quarter"]} evidence_quote(원문 인용) 필요')
+    if src_text and norm(ev) not in src_text:
+        fail(f'{e["quarter"]} evidence_quote가 data/qra_source.json 원문에 그대로 없음 — 지어낸 인용 차단')
+    nums_in_quote = {int(x.replace(',', '')) for x in re.findall(r'\$([\d,]+) billion', ev)}
+    trn = re.search(r'\$(\d+(?:\.\d+)?) trillion', ev)
+    if trn:
+        nums_in_quote.add(round(float(trn.group(1)) * 1000))
+    if src_text and not {round(nb), round(cb)} <= nums_in_quote:
+        fail(f'{e["quarter"]} 수치({nb}, {cb})가 인용문 안의 금액과 다름: {sorted(nums_in_quote)}')
 
 if '--check' in sys.argv:                  # 에이전트 커밋 전 자체 검증용
     print(f"✅ 검증 통과: {', '.join(e['quarter'] for e in quarters)} (발표 {ann})")

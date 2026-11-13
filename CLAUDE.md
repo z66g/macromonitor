@@ -65,7 +65,10 @@ tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 �
 - QT 드레인 = H.4.1 총자산 13주 평균 감소분 (만기 보유액 아님)
 
 ## QRA (유동성 예측모델의 차입·TGA 목표)
-- `data/qra.json`(이번+다음 분기 `quarters[]`) → `qra-apply.yml` → `apply_qra.py` 검증(treasury.gov 원문·분기·범위·인용) → KV
+- `fetch-qra-source.yml`(월·수 20:30 UTC)이 재무부 'Financing Estimates' 원문 → `data/qra_source.json`
+  (클라우드 에이전트 세션은 treasury.gov 접속 불가 → Actions가 원문을 레포에 저장)
+- 에이전트가 원문에서 추출 → `data/qra.json`(이번+다음 분기 `quarters[]`) → `qra-apply.yml` → `apply_qra.py` 검증
+  (인용문이 원문에 **글자 그대로** 있는지, 수치가 인용문 금액과 같은지, 분기·범위) → KV
 - Worker `normalizeQra()`가 현재 분기 값을 실행 시점에 선택. 사이트에서는 수정 불가(배너 닫기는 localStorage)
 - 소유자 수동 수정: GitHub에서 `data/qra.json` 편집·커밋 (`"applied_by": "manual"`)
 
@@ -86,7 +89,10 @@ tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 �
 |---|---|---|---|---|
 | 국채경매 분석 | Opus 5.5 | `30 21 * * 1-5` | `ops/routines/auction.md` | `data/auction_ai.json` |
 | QRA 감지 | Opus 5.5 | `0 22 * * 1,3` | `ops/routines/qra.md` | `data/qra.json` |
-| 일일 헬스체크 | Sonnet 5.5 | `30 23 * * *` | `ops/routines/health.md` | `data/health.json` → `health-alert.yml`이 GitHub 이슈 |
+| 헬스체크 진단 | Sonnet 5.5 | `30 23 * * *` | `ops/routines/health.md` | `data/health.json`의 `diagnosis` → `health-alert.yml` |
+- 결정적 헬스체크 자체는 `health-check.yml`(Actions, 23:00 UTC)이 실행·커밋·이슈 처리. 에이전트는 이상 시 진단만.
+- **클라우드 세션 네트워크 제약**: Worker 도메인·treasury.gov·treasurydirect.gov 접속 불가(2026-11 확인).
+  외부 데이터가 필요하면 Actions가 받아 `data/`에 저장하고 에이전트는 파일을 읽는 구조로 만들 것.
 
 ## 텔레그램 (구독자 브로드캐스트 채널 — 운영 경고는 보내지 말 것, GitHub 이슈 사용)
 - 뉴스 다이제스트: Worker `/news-digest-send` (cron-job.org KST 06:00/21:00, ±20분·시간대당 1회만 동작)
