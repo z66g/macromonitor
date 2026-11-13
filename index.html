@@ -3513,6 +3513,7 @@ async function loadDxyChart(range, btnEl) {
 // ──────────────────────────────
 async function loadS1(force = false, silent = false) {
   if (!silent) showLoading();
+  const _dsT0 = Date.now();
   try {
     const FRED_IDS = ['IORB','DTWEXBGS','WRMFNS'];
 
@@ -3582,20 +3583,21 @@ async function loadS1(force = false, silent = false) {
     iciJson && !iciJson.error
       ? dsSet('t0_ici',    iciJson.weekEnded?.slice(0,10) ?? null)
       : dsNull('t0_ici',   'ICI MMF 수신 실패');
+    // 날짜는 '가져온 날'이 아니라 각 응답의 최신 관측일 (그래야 갱신 지연을 잡아낸다)
     pipe3Json && !pipe3Json.error
-      ? dsSet('pipe3',     pipe3Json.asOf ?? new Date().toISOString().slice(0,10))
+      ? dsSet('pipe3',     pipe3Json.igOas?.asOf ?? pipe3Json.cccHy?.asOf ?? pipe3Json.asOf ?? null)
       : dsNull('pipe3');
-    dxyJson && !dxyJson.error
-      ? dsSet('dxy',       new Date().toISOString().slice(0,10))
+    dxyJson && !dxyJson.error && dxyJson.currentPrice != null
+      ? dsSet('dxy',       dxyJson.asOf ?? null)
       : dsNull('dxy');
-    jpyJson && !jpyJson.error
-      ? dsSet('jpy',       new Date().toISOString().slice(0,10))
+    jpyJson && !jpyJson.error && jpyJson.jpy?.current != null
+      ? dsSet('jpy',       jpyJson.asOf ?? null)
       : dsNull('jpy');
-    fsiJson && !fsiJson.error
-      ? dsSet('ofr_fsi',   new Date().toISOString().slice(0,10))
+    fsiJson && !fsiJson.error && fsiJson.total?.current != null
+      ? dsSet('ofr_fsi',   fsiJson.asOf ?? null)
       : dsNull('ofr_fsi');
-    vixQ?.price  != null ? dsSet('vix',  vixQ.date  || todayKSTStr()) : dsNull('vix',  'Yahoo VIX 미수신');
-    moveQ?.price != null ? dsSet('move', moveQ.date || todayKSTStr()) : dsNull('move', 'Yahoo MOVE 미수신');
+    vixQ?.price  != null ? dsSet('vix',  vixQ.date  ?? null) : dsNull('vix',  'Yahoo VIX 미수신');
+    moveQ?.price != null ? dsSet('move', moveQ.date ?? null) : dsNull('move', 'Yahoo MOVE 미수신');
     renderDataStatus(0);
     // 가격이 없으면(Yahoo 일시 실패) 게이지만 건너뛰고 나머지 섹션은 계속 렌더
     if (vixQ?.price != null)  renderVIX(vixQ);
@@ -3611,6 +3613,7 @@ async function loadS1(force = false, silent = false) {
   } catch(e) {
     showError(e.message);
     document.getElementById('mainContent').style.display = 'flex';
+    dsFailTab(0, 'T0 로딩 실패', _dsT0);   // 배지가 직전 '✅ 정상'으로 남지 않게
     markPartial('S1', true, () => loadS1(false, true));
   }
 }
@@ -3618,6 +3621,30 @@ async function loadS1(force = false, silent = false) {
 // ──────────────────────────────
 // 파이프 렌더
 // ──────────────────────────────
+// ── 파이프 신호 공통 정의 — 파이프 헤더·행 배지·값 색이 같은 표를 쓴다
+//    'n' = 수신 실패(회색). 데이터가 없으면 절대 초록 '안정'으로 보이지 않게 한다 (운영 원칙 6)
+const SIG_STYLE = {
+  g: { label:'안정',     color:'#3FB950', bg:'#0D3321', pri:0 },
+  a: { label:'주의',     color:'#F0B429', bg:'#2D1F00', pri:1 },
+  r: { label:'위험',     color:'#F85149', bg:'#3D0000', pri:2 },
+  k: { label:'위기',     color:'#F85149', bg:'#111111', pri:3 },
+  n: { label:'수신 실패', color:'#8B949E', bg:'#21262D', pri:-1 },
+};
+// 행 신호 → 파이프 종합 신호. 전부 'n'이면 'n', 아니면 실제 신호 중 최악 + 'n' 섞임 여부
+function pipeAggregate(rows) {
+  const sigs = rows.map(r => SIG_STYLE[r?.sig] ? r.sig : 'n');
+  const real = sigs.filter(s => s !== 'n');
+  if (!real.length) return { sig: 'n', partial: false };
+  const sig = real.reduce((w, s) => SIG_STYLE[s].pri > SIG_STYLE[w].pri ? s : w, real[0]);
+  return { sig, partial: real.length < sigs.length };
+}
+// 신호 클래스(g/a/r/k/n)만 교체 — 'open'·'expanded' 등 다른 상태 클래스는 유지
+function setSigClass(el, base, cls) {
+  if (!el) return;
+  el.classList.remove('g', 'a', 'r', 'k', 'n');
+  el.classList.add(base, cls);
+}
+
 function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJson, ofrMmfJson, dxyJson, jpyJson, fsiJson, pipe3Json) {
   // ── h41Hist.series: 함수 스코프로 선언 (Pipe0 IIFE + 외부 참조 모두 접근 가능) ──
   const hs = h41Hist?.series || {};
@@ -3657,7 +3684,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
 
   // ── SOFR-IORB 신호 (일반: >5bp 위험 />3bp 주의 | MoT: >2bp 위험 />0bp 주의)
   const spBp      = spread!=null ? spread*100 : null;
-  const spreadSig = spBp==null ? 'g'
+  const spreadSig = spBp==null ? 'n'
     : motMode!=null
       ? (spBp>2?'r':spBp>0?'a':'g')
       : (spBp>5?'r':spBp>3?'a':'g');
@@ -3669,8 +3696,8 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   for (const o of srfOps) srfByDay[o.operationDate] = (srfByDay[o.operationDate] ?? 0) + (o.totalAmtAccepted ?? 0);
   const srfDays     = Object.keys(srfByDay).sort().reverse().slice(0, 5);
   const srfUsedDays = srfDays.filter(d => srfByDay[d] > 0).length;
-  const srfLatestB  = srfDays[0] ? srfByDay[srfDays[0]] / 1e9 : 0;
-  const srfSig = srfUsedDays>=3||srfLatestB>1 ? 'r' : srfLatestB>0 ? 'a' : 'g';
+  const srfLatestB  = srfDays[0] ? srfByDay[srfDays[0]] / 1e9 : null;   // 수신 실패·빈 응답 → null ($0 아님)
+  const srfSig = srfLatestB==null ? 'n' : srfUsedDays>=3||srfLatestB>1 ? 'r' : srfLatestB>0 ? 'a' : 'g';
 
   // ── OFR NYPD Dealer Net Position + WSS (151주 fetch, 52주 Z-score)
   function parseOFRSeries(data, m) {
@@ -3696,8 +3723,8 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   const zB=bLat?zCalc(bLat.net,bills52.map(d=>d.net)):null;
   const zC=cLat?zCalc(cLat.net,coupons52.map(d=>d.net)):null;
   const wss=(zB!=null&&zC!=null)?0.2*zB+0.8*zC:null;
-  const dealerSig=(zC!=null&&zC>2.0)?'r':wss==null?'g':wss>1.5?'a':'g';
-  const dealerLevel=(zC!=null&&zC>2.0)?'위기':wss==null?'—':wss>1.5?'주의':wss>0?'중립':'여유';
+  const dealerSig=(zC!=null&&zC>2.0)?'r':wss==null?'n':wss>1.5?'a':'g';
+  const dealerLevel=(zC!=null&&zC>2.0)?'위기':wss==null?'수신 실패':wss>1.5?'주의':wss>0?'중립':'여유';
 
   // ── MoT 배지 HTML
   const motBadgeHtml = motMode==null ? '' : (()=>{
@@ -3771,7 +3798,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
       return (rc!=null&&t!=null&&r!=null) ? rc-t-r : null;
     });
     const lpi_z  = nl_curr!=null ? zScore(nl_curr, nlHist) : null;
-    const lpi_sig = lpi_z==null?'g': lpi_z<-2.0?'r': lpi_z<-1.5?'a':'g';
+    const lpi_sig = lpi_z==null?'n': lpi_z<-2.0?'r': lpi_z<-1.5?'a':'g';
 
     // ────────────────────────────────────
     // ② 지급준비금 잠식 속도 (Reserve Absorption Velocity)
@@ -3791,7 +3818,8 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
     const ma4       = ratios4w.length>0 ? ratios4w.reduce((a,b)=>a+b,0)/ratios4w.length : null;
     const ratios12w = Array.from({length:12},(_,i)=>ratioAt(i)).filter(v=>v!=null);
     const abs_z     = ratio_now!=null ? zScore(ratio_now, ratios12w) : null;
-    const abs_sig   = (ma4!=null&&ma4>1.5)||(abs_z!=null&&abs_z>2.0) ? 'r'
+    const abs_sig   = (ma4==null&&abs_z==null) ? 'n'
+                    : (ma4!=null&&ma4>1.5)||(abs_z!=null&&abs_z>2.0) ? 'r'
                     : (ma4!=null&&ma4>1.0)||(abs_z!=null&&abs_z>1.5) ? 'a' : 'g';
 
     // ────────────────────────────────────
@@ -3805,13 +3833,14 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
     const buf_z    = buf_curr!=null ? zScore(buf_curr, bufHist) : null;
     // 신호 (우선순위 순)
     let buf_sig;
-    if      (buf_T!=null&&buf_T<3.0&&buf_z!=null&&buf_z<-3.0) buf_sig='k';
+    if      (buf_T==null&&buf_z==null) buf_sig='n';
+    else if (buf_T!=null&&buf_T<3.0&&buf_z!=null&&buf_z<-3.0) buf_sig='k';
     else if ((buf_T!=null&&buf_T<3.0)||(buf_z!=null&&buf_z<-2.0)) buf_sig='r';
     else if ((buf_T!=null&&buf_T<3.2)||(buf_z!=null&&buf_z<-1.5)) buf_sig='a';
     else buf_sig='g';
 
     // ── Pipe0 종합 스코어 (최악 기준) ──
-    const sigSc = {g:1,a:4,r:8,k:10};
+    const sigSc = {n:0,g:1,a:4,r:8,k:10};
     const p0score = Math.max(sigSc[lpi_sig], sigSc[abs_sig], sigSc[buf_sig]);
 
     pipeDetails[0] = {
@@ -3935,12 +3964,12 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
       {
         name: 'SRF Usage (Standing Repo Facility)',
         tip: '연준 SRF 일일 실사용량. 잔액 발생은 단기 레포 금리가 SRF 금리 이상으로 상승했음을 의미하며, 자금시장 압박의 직접 신호입니다.',
-        val: (srfJson===null ? '수신 실패' : srfLatestB>0 ? '$'+srfLatestB.toFixed(3)+'B 사용중' : '$0 (미사용중)') +
+        val: (srfLatestB==null ? '— (수신 실패)' : srfLatestB>0 ? '$'+srfLatestB.toFixed(3)+'B 사용중' : '$0 (미사용중)') +
           (srfUsedDays>0 ? ` · 최근 5일 중 ${srfUsedDays}일 사용` : ''),
         sig: srfSig,
         formula:
-          `SRF 당일 잔액: ${srfLatestB>0?fB3(srfLatestB):'$0 (미사용중)'}\n`+
-          `최근 5영업일 중 사용일: ${srfUsedDays}일\n\n`+
+          `SRF 당일 잔액: ${srfLatestB==null?'—':srfLatestB>0?fB3(srfLatestB):'$0 (미사용중)'}\n`+
+          `최근 5영업일 중 사용일: ${srfLatestB==null?'—':srfUsedDays+'일'}\n\n`+
           `신호 기준:\n`+
           `  위험: 잔액 > $1B  OR  5일 중 3일 이상 사용\n`+
           `  주의: 잔액 > $0 (사용중)\n`+
@@ -3950,7 +3979,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
       {
         name: 'Primary Dealer Net Position',
         tip: '딜러 국채 순매입(SB−SL). Bills(단기) + Coupons(장기) Z-score를 가중합산한 WSS로 밸런스시트 압박을 측정합니다. Coupons 가중 0.8은 자본규제 부담이 장기물에 집중되기 때문입니다.',
-        val: nypdJson==null ? '데이터 로딩 실패'
+        val: (nypdJson==null || (wss==null && zC==null)) ? '— (수신 실패)'
           : `WSS ${wss!=null?wss.toFixed(3):'—'} · Bills Z-score ${zB!=null?zB.toFixed(2):'—'} · Coupons Z-score ${zC!=null?zC.toFixed(2):'—'}`,
         sig: dealerSig,
         badgeText: dealerLevel,   // 상태 배지: 여유/중립/주의/위기
@@ -3975,7 +4004,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
               ? ` (${loansDeltaB >= 0 ? '+$' : '-$'}${Math.abs(loansDeltaB).toFixed(1)}B ${loansDeltaB > 0 ? '↑' : loansDeltaB < 0 ? '↓' : '→'})`
               : '') +
             (loansConsec3 ? ' · 3주 연속 증가' : '')
-          : '데이터 로딩 중',
+          : '— (수신 실패)',
         sig: loansSig,
         badgeText: loansLevel,
         formula:
@@ -4008,9 +4037,9 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
     return items.map(({label, value, sigFn})=>{
       const s=sigFn(value);
       // 다크 테마 색상 — pd-badge 클래스와 동일
-      const c   = s==='r'?'#F85149':s==='a'?'#F0B429':'#3FB950';
-      const bg  = s==='r'?'#3D0000':s==='a'?'#2D1F00':'#0D3321';
-      const lbl = s==='r'?'위험':s==='a'?'주의':'정상';
+      const c   = SIG_STYLE[s]?.color ?? SIG_STYLE.n.color;
+      const bg  = SIG_STYLE[s]?.bg    ?? SIG_STYLE.n.bg;
+      const lbl = s==='g' ? '정상' : (SIG_STYLE[s]?.label ?? SIG_STYLE.n.label);
       const pct = value!=null?Math.min(100,Math.max(2,(Math.abs(value)/MAX)*100)):0;
       const sign = value!=null?(value>=0?'+':''):'';
       const valStr = value!=null?sign+value.toFixed(4):'—';
@@ -4044,11 +4073,14 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   const dxyIs50Above200 = (dxy50 != null && dxy200 != null) ? dxy50 > dxy200 : null;
   const dxyGapAbs = dxyGap != null ? Math.abs(dxyGap) : null;  // 이격도 절댓값 (방향 무관)
 
-  const dxySig = (dxyIs50Above200 && dxyCurrent != null && dxyCurrent > 105) ? 'r'  // 골든크로스 + 고레벨
-    : (!dxyIs50Above200 && dxyGapAbs != null && dxyGapAbs <= 1.0)             ? 'a'  // 데드크로스지만 크로스 임박
-    : (dxyCurrent != null && dxyCurrent > 103)                                ? 'a'  // DXY 고레벨 단독
+  // 현재가 없음 → 'n'. 이동평균이 없으면 '중립' 판정 근거가 없으므로 고레벨 경계 외에는 'n'
+  const dxySig = dxyCurrent == null ? 'n'
+    : (dxyIs50Above200 && dxyCurrent > 105)                                   ? 'r'  // 골든크로스 + 고레벨
+    : (dxyIs50Above200 === false && dxyGapAbs != null && dxyGapAbs <= 1.0)    ? 'a'  // 데드크로스지만 크로스 임박
+    : (dxyCurrent > 103)                                                      ? 'a'  // DXY 고레벨 단독
+    : dxyIs50Above200 == null                                                 ? 'n'
     : 'g';
-  const dxyLevel = dxySig === 'r' ? '달러강세' : dxySig === 'a' ? '경계' : '중립';
+  const dxyLevel = dxySig === 'r' ? '달러강세' : dxySig === 'a' ? '경계' : dxySig === 'n' ? '수신 실패' : '중립';
 
   // ── ② 금융 스트레스 및 조달 여건 (FRED: STLFSI4 + NFCI + NFCICREDIT)
   const stlCur    = fsiJson?.total?.current    ?? null;  // STLFSI4
@@ -4091,10 +4123,12 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   const jpyHV10d    = jpyJson?.jpyHV?.hv10d    ?? null;  // 연율화 역사적 변동성 % (JYVIX 대체)
   const mcWarning   = jpyJson?.marginCallWarning ?? false;
   const jpyAsOf     = jpyJson?.asOf            ?? null;
+  // 경보 조건은 하나만 있어도 판정, '정상'은 두 지표가 모두 있어야 판정 (없으면 'n')
   const jpySig = (jpyRoC != null && jpyRoC <= -3.0) || (jpyHV10d != null && jpyHV10d >= 20) ? 'r'
     : (jpyRoC != null && jpyRoC <= -1.5) || (jpyHV10d != null && jpyHV10d >= 15) ? 'a'
+    : (jpyRoC == null || jpyHV10d == null) ? 'n'
     : 'g';
-  const jpyLevel = jpySig === 'r' ? '마진콜' : jpySig === 'a' ? '감시' : '정상';
+  const jpyLevel = jpySig === 'r' ? '마진콜' : jpySig === 'a' ? '감시' : jpySig === 'n' ? '수신 실패' : '정상';
 
   // ── ④ Custody & FIMA 패닉버튼 신호
   //   위험: FIMA > 0 ($1이라도) OR 커스터디 WoW < -$30B
@@ -4107,16 +4141,17 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   // FIMA Repo: 자산(Assets) 측 "Repurchase agreements > Foreign official"
   // Worker가 recOrZero로 파싱 → 미사용 시 valueB=0 반환
   // fima: h41Hist.series 사용
-  const fimaB       = hs.fima_repo?.[0] ?? 0;
+  const fimaB       = hs.fima_repo?.[0] ?? null;   // 수신 실패 → null ('$0'으로 표시하지 않음)
   const fimaDlt     = (hs.fima_repo?.[0] != null && hs.fima_repo?.[1] != null)
     ? +(hs.fima_repo[0] - hs.fima_repo[1]).toFixed(1) : null;
-  const fimaIsZero  = fimaB === 0;
-  const fimaActive  = fimaB >= 0.01;  // $10M 이상만 실제 사용 판정 (부동소수점/소규모 노이즈 제외)
+  const fimaActive  = fimaB != null && fimaB >= 0.01;  // $10M 이상만 실제 사용 판정 (부동소수점/소규모 노이즈 제외)
+  const fimaTxt     = fimaB == null ? '—' : fimaActive ? '⚠️ $'+fimaB.toFixed(1)+'B 사용중' : '$0 (미사용)';
   const custodyWoW  = custodyDlt;
   const custodySig  = (fimaActive || (custodyWoW != null && custodyWoW < -30)) ? 'r'
     : (custodyWoW != null && custodyWoW < -10) ? 'a'
+    : (custodyWoW == null || fimaB == null) ? 'n'
     : 'g';
-  const custodyLevel = custodySig === 'r' ? '패닉' : custodySig === 'a' ? '주의' : '정상';
+  const custodyLevel = custodySig === 'r' ? '패닉' : custodySig === 'a' ? '주의' : custodySig === 'n' ? '수신 실패' : '정상';
 
   const fmtPct = v => v != null ? (v >= 0 ? '+' : '') + v.toFixed(2) + '%' : '—';
   const fmtB3  = v => v != null ? '$' + Math.abs(v).toFixed(1) + 'B' : '—';
@@ -4130,7 +4165,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
         val: dxyCurrent != null
           ? `DXY ${dxyCurrent.toFixed(2)}  vs 50DMA ${dxySpd50!=null?fmtPct(dxySpd50):'—'} / 200DMA ${dxySpd200!=null?fmtPct(dxySpd200):'—'}` +
             (dxyCross ? `  ⚡ ${dxyCross === 'DEAD' ? '데드크로스' : '골든크로스'}` : '')
-          : '데이터 로딩 중',
+          : '— (수신 실패)',
         sig: dxySig,
         badgeText: dxyLevel,
         chartHtml: `<div style="margin:4px 0 2px;">
@@ -4162,7 +4197,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
         tip: 'St. Louis Fed FSI(STLFSI4)와 Chicago Fed NFCI 기반. Z-score 지표로 0이 장기 평균. STLFSI4 양수=스트레스 발생, NFCI 양수=금융여건 역사적 평균보다 긴축 = 달러 유동성 수축.',
         val: stlCur != null
           ? `${fsiInterpLabel}  (STLFSI4 ${fmtFsi(stlCur)} · NFCI ${fmtFsi(nfciCur)} · Credit ${fmtFsi(crdtCur)})`
-          : '데이터 로딩 중 (FRED 주간)',
+          : '— (수신 실패 · FRED 주간)',
         sig: fsiSig,
         badgeText: fsiLevel,
         chartHtml: makeFsiBar([
@@ -4193,7 +4228,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
           ? `USD/JPY ${jpyRate.toFixed(2)} · 5일 변화 ${fmtPct(jpyRoC)}` +
             (jpyHV10d != null ? ` · 10d HV ${jpyHV10d.toFixed(2)}%` : '') +
             (mcWarning ? ' · ⚠️ 마진콜 경보' : '')
-          : '데이터 로딩 중',
+          : '— (수신 실패)',
         sig: jpySig,
         badgeText: jpyLevel,
         formula:
@@ -4214,8 +4249,8 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
         val: custodyB != null
           ? `커스터디 $${custodyB.toFixed(1)}B` +
             (custodyDlt != null ? ` (Δ ${custodyDlt >= 0 ? '+' : ''}${custodyDlt.toFixed(1)}B)` : '') +
-            ` · FIMA Repo ${fimaB >= 0.01 ? '⚠️ $'+fimaB.toFixed(1)+'B 사용중' : '$0 (미사용)'}`
-          : 'H.4.1 데이터 로딩 중',
+            ` · FIMA Repo ${fimaTxt}`
+          : '— (H.4.1 수신 실패)',
         sig: custodySig,
         badgeText: custodyLevel,
         formula:
@@ -4223,7 +4258,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
           `  현재: ${custodyB!=null?'$'+custodyB.toFixed(1)+'B':'—'}\n`+
           `  전주 대비: ${custodyDlt!=null?(custodyDlt>=0?'+':'')+custodyDlt.toFixed(1)+'B':'—'}\n\n`+
           `FIMA Repo (H.4.1 자산 Table1 — Repurchase agreements > Foreign official):\n`+
-          `  현재: ${fimaB >= 0.01 ? '⚠️ $'+fimaB.toFixed(1)+'B (사용중)' : '$0 (미사용)'}\n`+
+          `  현재: ${fimaTxt}\n`+
           `  ※ 평상시 $0. $1이라도 발생 = 외국 CB가 시장에서 달러 조달 불가 → 연준 비상 차입\n\n`+
           `신호 기준:\n`+
           `  패닉: FIMA > $0 (1달러라도 사용)  OR  커스터디 WoW < -$30B\n`+
@@ -4305,7 +4340,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
         tip: '은행 대출담당자 서베이 — 기업 대출 기준 강화 순비율(%). 양수=문턱 높임. 20% 초과 시 신용 창출 본격 위축, 실물 경기 4~6개월 선행 지표.',
         val: sloosVal != null
           ? `SLOOS ${sloosVal.toFixed(1)}%  ${fmtSloosDate(sloosOf, p3sloos?.releaseDate)}`
-          : '분기 데이터 로딩 중',
+          : '— (수신 실패 · 분기)',
         sig: sigSloos, badgeText: lblSloos,
         formula:
           `SLOOS C&I 현재: ${sloosVal?.toFixed(1)??'—'}%  (${sloosOf??'—'})\n`+
@@ -4323,7 +4358,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
         val: igOasVal != null
           ? `IG OAS ${fmtOas(igOasVal)}  ${fmtAsOf(igOasOf, '일별')}` +
             (creDqVal != null ? `  ·  CRE 연체율 ${creDqVal.toFixed(2)}%  ${fmtAsOf(creDqOf, '분기')}` : '')
-          : '데이터 로딩 중',
+          : '— (수신 실패)',
         sig: sigIg, badgeText: lblIg,
         formula:
           `[메인] IG 회사채 OAS (BAMLC0A0CM):\n`+
@@ -4340,7 +4375,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
         tip: '정크본드 최하위 등급(CCC 이하) 스프레드. 1,000bp(10%) 돌파는 좀비 기업 연쇄 부도 사이클 진입 신호. 금융위기 때 2,500bp 이상 기록.',
         val: cccHyVal != null
           ? `CCC HY OAS ${cccHyVal.toFixed(2)}%  ${fmtAsOf(cccHyOf, '일별')}`
-          : '데이터 로딩 중',
+          : '— (수신 실패)',
         sig: sigCcc, badgeText: lblCcc,
         formula:
           `CCC & Lower HY OAS (BAMLH0A3HYC):\n`+
@@ -4362,7 +4397,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
           ? (sovTrack === 1
               ? `한국 CDS ${sovVal.toFixed(1)}bp  ${fmtAsOf(sovAsOf, '일별')}`
               : `EM HY OAS ${fmtOas(sovVal)}  ${fmtAsOf(p3sov?.emHy?.asOf, '일별')}  (백업 — 한국 CDS 응답 실패)`)
-          : '데이터 로딩 중',
+          : '— (수신 실패)',
         sig: sigSov, badgeText: lblSov,
         formula:
           (sovTrack === 1
@@ -4387,34 +4422,35 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 렌더링 — Pipe0와 동일한 pipeSigs 통합 루프
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  const sigPri   = {k:3, r:2, a:1, g:0, n:-1};
-  const sigColor = {g:'#3FB950', a:'#F0B429', r:'#F85149', k:'#F85149', n:'#8B949E'};
-  const statusMap = { g:'안정', a:'마찰', r:'경색', k:'위기', n:'데이터 없음' };
+  // 파이프 종합: 행이 모두 'n'이면 'n', 아니면 실제 신호 중 최악. 'n'이 섞이면 헤더에 "일부 수신 실패" 표시
+  const pipeAgg = [0,1,2,3].map(i => pipeAggregate(pipeDetails[i]?.rows || []));
+  const pipeSigs = pipeAgg.map(a => a.sig);
 
-  // 각 파이프의 최악 sig: Pipe0은 score 기반 sig, 나머지는 rows에서 도출
-  const pipeSigs = [0,1,2,3].map(i => {
-    if (i===0) {
-      // Pipe0: pipeDetails[0].rows의 sig 기반 (score 아님)
-      const rows = pipeDetails[0]?.rows || [];
-      return rows.reduce((w, r) => sigPri[r.sig]>sigPri[w] ? r.sig : w, 'n');
-    }
-    const rows = pipeDetails[i]?.rows || [];
-    return rows.reduce((w, r) => sigPri[r.sig]>sigPri[w] ? r.sig : w, 'n');   // 모두 수신 실패면 '데이터 없음'
-  });
-
-  pipeSigs.forEach((sig, i) => {
+  pipeAgg.forEach(({ sig, partial }, i) => {
     const cls = sig;
     const seg = document.getElementById('pipe'+i);
-    seg.className = `pipe-seg ${cls}`;
-    if (i<3) document.getElementById('parr'+i).className = `pipe-arrow ${cls}`;
-    document.getElementById('plbl'+i).className = `ps-label ${cls}`;
+    if (!seg) return;
+    // className을 통째로 바꾸면 'expanded'/'open'이 지워져 조용한 재로드(markPartial) 때 펼친 패널이 닫힘 → 신호 클래스만 교체
+    setSigClass(seg, 'pipe-seg', cls);
+    if (i<3) setSigClass(document.getElementById('parr'+i), 'pipe-arrow', cls);
+    setSigClass(document.getElementById('plbl'+i), 'ps-label', cls);
     const stsEl = document.getElementById('psts'+i);
-    if (stsEl) { stsEl.textContent = statusMap[cls]; stsEl.className = `ps-status ${cls}`; }
+    if (stsEl) { stsEl.textContent = SIG_STYLE[cls].label; setSigClass(stsEl, 'ps-status', cls); }
+    let partEl = document.getElementById('ppart'+i);
+    if (!partEl) {
+      partEl = document.createElement('div');
+      partEl.id = 'ppart'+i;
+      partEl.style.cssText = 'font-size:8px;color:#8B949E;margin:-2px 0 4px;';
+      const inds = seg.querySelector('.ps-inds');
+      if (inds) inds.after(partEl); else seg.appendChild(partEl);
+    }
+    partEl.textContent = partial ? '⚠ 일부 수신 실패' : '';
+    partEl.style.display = partial ? '' : 'none';
     const detailEl  = document.getElementById('detail'+i);
     const formulaEl = document.getElementById('detail'+i+'-formula');
-    if (detailEl)  detailEl.className  = `pipe-detail ${cls}`;
-    if (formulaEl) formulaEl.className = `pd-formula ${cls}`;
-    buildDetailRows(i, pipeDetails[i], sigColor[cls]);
+    if (detailEl)  setSigClass(detailEl, 'pipe-detail', cls);
+    if (formulaEl) setSigClass(formulaEl, 'pd-formula', cls);
+    buildDetailRows(i, pipeDetails[i], SIG_STYLE[cls].color);
     // Pipe2: DXY 인라인 차트 자동 로드 (rows 삽입 후 DOM 생성 시점)
     if (i === 2) {
       setTimeout(() => {
@@ -4436,10 +4472,6 @@ function buildDetailRows(i, detail, accentColor) {
   const container = document.getElementById('detail'+i+'-rows');
   if (!container) return;
 
-  const sigColor  = {g:'#3FB950', a:'#F0B429', r:'#F85149', k:'#aaa', n:'#8B949E'};
-  const badgeCls  = {g:'g', a:'a', r:'r', k:'k', n:'n'};
-  const badgeLabel= {g:'양호', a:'주의', r:'위험', k:'위기', n:'수신 실패'};
-
   container.innerHTML = detail.rows.map(r => {
     // 링크 타입 행 (다른 pipe 에서 사용)
     if (r.link) {
@@ -4459,8 +4491,8 @@ function buildDetailRows(i, detail, accentColor) {
         </div>`;
     }
 
-    const sc  = r.sig || 'g';
-    const col = sigColor[sc] || '#3FB950';
+    const sc  = SIG_STYLE[r.sig] ? r.sig : 'n';   // sig 누락/미지정 → 수신 실패(회색)
+    const col = SIG_STYLE[sc].color;
     const tipHtml = r.tip
       ? `<span class="pd-tip-wrap"><i class="pd-tip-icon">?</i><span class="pd-tip-box">${r.tip}</span></span>`
       : '';
@@ -4474,7 +4506,7 @@ function buildDetailRows(i, detail, accentColor) {
       <div class="pd-row-card">
         <div class="pd-row-top">
           <span class="pd-name">${r.name}${extraHtml}${tipHtml}</span>
-          <span class="pd-badge ${badgeCls[sc]||'g'}">${r.badgeText||badgeLabel[sc]||'양호'}</span>
+          <span class="pd-badge ${sc}">${sc==='n' ? SIG_STYLE.n.label : (r.badgeText||SIG_STYLE[sc].label)}</span>
         </div>
         <div class="pd-row-val" style="color:${col}">${r.val}</div>
         ${chartHtml}
@@ -4792,19 +4824,23 @@ function renderRatioGrid(prices, pct24h) {
     if (!pA || !pB) return;
 
     const ratio    = pA / pB;
-    const chgA     = pct24h[pair.a.ticker] || 0;
-    const chgB     = pct24h[pair.b.ticker] || 0;
-    const ratioChg = chgA - chgB; // 비율의 24h 변화율 (단순 차이)
+    // 변화율이 없으면 0%(중립)로 꾸미지 않고 '—'·회색 (수신 실패)
+    const chgA     = pct24h[pair.a.ticker] ?? null;
+    const chgB     = pct24h[pair.b.ticker] ?? null;
+    const chgMiss  = chgA == null || chgB == null;
+    const ratioChg = chgMiss ? null : chgA - chgB; // 비율의 24h 변화율 (단순 차이)
 
-    const interp = pair.interpFn(ratioChg);
+    const interp  = chgMiss ? { cls:'', label:'수신 실패' } : pair.interpFn(ratioChg);
+    const missSty = chgMiss ? 'style="color:#8B949E;background:#21262D;"' : '';
 
     // Relative Strength: A 상승분 vs B 상승분 (0~100%)
-    const maxChg = Math.max(Math.abs(chgA), Math.abs(chgB), 0.01);
-    const rsA = Math.round(Math.max(0, chgA / maxChg) * 100);
-    const rsB = Math.round(Math.max(0, -chgB / maxChg) * 100);
+    const maxChg = Math.max(Math.abs(chgA ?? 0), Math.abs(chgB ?? 0), 0.01);
+    const rsA = chgA == null ? 0 : Math.round(Math.max(0, chgA / maxChg) * 100);
+    const rsB = chgB == null ? 0 : Math.round(Math.max(0, -chgB / maxChg) * 100);
+    const fPct = v => v == null ? '—' : v.toFixed(2) + '%';
 
-    const chgSign  = ratioChg >= 0 ? '+' : '';
-    const chgClass = ratioChg > 0.3 ? 'up' : ratioChg < -0.3 ? 'dn' : 'flat';
+    const chgSign  = ratioChg != null && ratioChg >= 0 ? '+' : '';
+    const chgClass = ratioChg == null ? 'flat' : ratioChg > 0.3 ? 'up' : ratioChg < -0.3 ? 'dn' : 'flat';
 
     const card = document.createElement('div');
     card.className = 'ratio-card' + (hvmActive ? ' hvm-dim' : '');
@@ -4823,11 +4859,11 @@ function renderRatioGrid(prices, pct24h) {
       </div>
       <div style="font-size:8px;color:#484F58;margin-bottom:6px;">${pair.label}</div>
       <div style="display:flex;align-items:baseline;gap:6px;">
-        <span class="rc-ratio ${interp.cls}">${ratio.toFixed(4)}</span>
-        <span class="rc-change ${chgClass}">${chgSign}${ratioChg.toFixed(2)}%</span>
+        <span class="rc-ratio ${interp.cls}" ${chgMiss ? 'style="color:#8B949E;"' : ''}>${ratio.toFixed(4)}</span>
+        <span class="rc-change ${chgClass}">${ratioChg == null ? '—' : chgSign + ratioChg.toFixed(2) + '%'}</span>
       </div>
       <div class="rc-rs-wrap">
-        <div class="rc-rs-label"><span>${pair.a.name} ${chgA.toFixed(2)}%</span><span>${pair.b.name} ${chgB.toFixed(2)}%</span></div>
+        <div class="rc-rs-label"><span>${pair.a.name} ${fPct(chgA)}</span><span>${pair.b.name} ${fPct(chgB)}</span></div>
         <div class="rc-rs-bar">
           <div class="rc-rs-fill-a" style="width:${rsA}%;"></div>
           <div class="rc-rs-fill-b" style="width:${rsB}%;"></div>
@@ -4836,7 +4872,7 @@ function renderRatioGrid(prices, pct24h) {
       <div class="rc-spark" id="spark_${pair.id}">
         <div class="rc-spark-loading">스파크라인 로딩중...</div>
       </div>
-      <div class="rc-interp ${interp.cls}">${interp.label}</div>
+      <div class="rc-interp ${interp.cls}" ${missSty}>${interp.label}</div>
     `;
     grid.appendChild(card);
 
@@ -4936,29 +4972,47 @@ function renderCSP(tipsJson, iciJson, mmfRetailJson) {
   const iciTotal   = iciJson?.total   ?? null;
   const iciChangeB = iciJson?.changeB ?? null;
 
+  // 값 없음 = 회색 '수신 실패' (inline 색은 성공 시 지워서 클래스 색이 다시 적용되게)
+  const N_BADGE = 'background:#21262D;color:#8B949E;';
   const tipsBadge = document.getElementById('tipsBadge');
-  if (tipsLatest !== null) {
+  if (tipsBadge && tipsLatest !== null) {
     const tc = tipsLatest >= 2 ? 'tips-high' : tipsLatest >= 1 ? 'tips-mid' : 'tips-low';
     tipsBadge.className   = `csp-badge ${tc}`;
+    tipsBadge.style.cssText = '';
     tipsBadge.textContent = `TIPS 10Y ${tipsLatest.toFixed(2)}%`;
+  } else if (tipsBadge) {
+    tipsBadge.className   = 'csp-badge';
+    tipsBadge.style.cssText = N_BADGE;
+    tipsBadge.textContent = 'TIPS 수신 실패';   // '로딩중'으로 남지 않게
   }
   const mmfBadge = document.getElementById('mmfBadge');
-  if (iciTotal !== null) {
-    const mc = (iciChangeB ?? 0) >= 0 ? 'mmf-in' : 'mmf-out';
-    mmfBadge.className   = `csp-badge ${mc}`;
-    mmfBadge.textContent = `MMF $${iciTotal.toFixed(2)}T (${(iciChangeB ?? 0) > 0 ? '+' : ''}${(iciChangeB ?? 0).toFixed(1)}B/주)`;
+  if (mmfBadge && iciTotal !== null) {
+    // 주간 변화가 없으면 '+0.0B'(유입)로 꾸미지 않고 '—'
+    const mc = iciChangeB == null ? '' : iciChangeB >= 0 ? 'mmf-in' : 'mmf-out';
+    mmfBadge.className   = `csp-badge ${mc}`.trim();
+    mmfBadge.style.cssText = iciChangeB == null ? N_BADGE : '';
+    mmfBadge.textContent = iciChangeB == null
+      ? `MMF $${iciTotal.toFixed(2)}T (Δ —)`
+      : `MMF $${iciTotal.toFixed(2)}T (${iciChangeB > 0 ? '+' : ''}${iciChangeB.toFixed(1)}B/주)`;
+  } else if (mmfBadge) {
+    mmfBadge.className   = 'csp-badge';
+    mmfBadge.style.cssText = N_BADGE;
+    mmfBadge.textContent = 'MMF 수신 실패';   // '로딩중'으로 남지 않게
   }
 
   // ── 압력 지수 ──
   const tipsScore = tipsLatest !== null ? (tipsLatest >= 2 ? 7 : tipsLatest >= 1 ? 4 : tipsLatest >= 0 ? 2 : 0) : 0;
   const mmfScore  = (iciChangeB ?? 0) > 50 ? 3 : (iciChangeB ?? 0) > 0 ? 2 : (iciChangeB ?? 0) > -20 ? 1 : 0;
   const pressure  = Math.min(10, tipsScore + mmfScore);
-  const pColor    = pressure >= 7 ? '#F85149' : pressure >= 4 ? '#F0B429' : '#3FB950';
-  const pLabel    = pressure >= 7 ? '고압 — 현금 대피 강화' : pressure >= 4 ? '중간 — 유동성 감시' : '저압 — 위험자산 우호';
+  // 입력이 빠지면 0점으로 계산돼 초록 '저압'으로 보이던 문제 → 회색 '수신 실패'
+  const pMissing  = tipsLatest === null || iciChangeB == null;
+  const pColor    = pMissing ? '#8B949E' : pressure >= 7 ? '#F85149' : pressure >= 4 ? '#F0B429' : '#3FB950';
+  const pLabel    = pMissing ? `수신 실패 (${tipsLatest === null ? 'TIPS' : 'MMF Δ'} 미수신)`
+    : pressure >= 7 ? '고압 — 현금 대피 강화' : pressure >= 4 ? '중간 — 유동성 감시' : '저압 — 위험자산 우호';
 
-  document.getElementById('cspPressureFill').style.width      = `${pressure * 10}%`;
+  document.getElementById('cspPressureFill').style.width      = pMissing ? '0%' : `${pressure * 10}%`;
   document.getElementById('cspPressureFill').style.background = pColor;
-  document.getElementById('cspPressureVal').textContent       = pressure.toFixed(1);
+  document.getElementById('cspPressureVal').textContent       = pMissing ? '—' : pressure.toFixed(1);
   document.getElementById('cspPressureVal').style.color       = pColor;
   document.getElementById('cspPressureLabel').textContent     = pLabel;
   document.getElementById('cspPressureLabel').style.color     = pColor;
@@ -5063,7 +5117,7 @@ function renderCSP(tipsJson, iciJson, mmfRetailJson) {
     : '—';
   const line2 = `② MMF 총자산 (ICI): $${iciTotal?.toFixed(2) ?? '—'}T  |  주간 변화: ${chgStr} — ${chgDesc}`;
 
-  const line3 = `③ 현금 대피 압력: ${pressure.toFixed(1)}/10 — ${pLabel}`;
+  const line3 = `③ 현금 대피 압력: ${pMissing ? "—" : pressure.toFixed(1)}/10 — ${pLabel}`;
 
   document.getElementById('cspInterp').innerHTML =
     [line1, line2, line3].map(l => `<div style="margin-bottom:3px;">${l}</div>`).join('');
@@ -5451,7 +5505,7 @@ async function selectSector(ticker) {
     <div class="sd-header">
       <div class="sd-ticker">${ticker}</div>
       <div class="sd-name">${d.label} · ${d.name}</div>
-      ${d.price ? `<div style="font-size:10px;font-family:monospace;color:#8B949E;margin-top:2px;">$${d.price.toFixed(2)}  <span style="color:${(d.pctChange??0)>=0?'#1A7F5A':'#CF222B'}">${(d.pctChange??0)>=0?'+':''}${(d.pctChange??0).toFixed(2)}%</span></div>` : ''}
+      ${d.price ? `<div style="font-size:10px;font-family:monospace;color:#8B949E;margin-top:2px;">$${d.price.toFixed(2)}  <span style="color:${d.pctChange==null?'#8B949E':d.pctChange>=0?'#1A7F5A':'#CF222B'}">${d.pctChange==null?'—':(d.pctChange>=0?'+':'')+d.pctChange.toFixed(2)+'%'}</span></div>` : ''}
     </div>
 
     <!-- 스파크라인 -->
@@ -5702,9 +5756,11 @@ const t1ChartInst = {};
 const t1$  = id => document.getElementById(id);
 const t1F2 = v  => v != null ? v.toFixed(2) : '—';
 const t1F1 = v  => v != null ? v.toFixed(1) : '—';
-const t1Dt = (v, unit='', dec=2) => {
+// inv=true: 증가가 유동성 악재(MMF 현금 파킹·RRP 흡수)인 지표 → 증가 빨강, 감소 초록
+const t1Dt = (v, unit='', dec=2, inv=false) => {
   if (v == null) return '<span style="color:#484F58">—</span>';
-  const c = v > 0 ? '#3FB950' : v < 0 ? '#F85149' : '#8B949E';
+  const up = inv ? '#F85149' : '#3FB950', dn = inv ? '#3FB950' : '#F85149';
+  const c = v > 0 ? up : v < 0 ? dn : '#8B949E';
   const s = v > 0 ? '+' : '';
   return `<span style="color:${c}">${s}${v.toFixed(dec)}${unit}</span>`;
 };
@@ -5758,6 +5814,7 @@ async function loadT1(force = false) {
   const fq = force ? '?force=1' : '';
   const show = (...ids) => ids.forEach(id => { const el = t1$(id); if (el) el.style.display = 'block'; });
   const hide = (...ids) => ids.forEach(id => { const el = t1$(id); if (el) el.style.display = 'none'; });
+  const _dsT1 = Date.now();
 
   try {
     // 병렬 fetch — /liq + NY Fed RRP + Yahoo 원자재 + 원자재 차트
@@ -5797,12 +5854,19 @@ async function loadT1(force = false) {
     iciJson && !iciJson.error
       ? dsSet('ici',       iciJson.weekEnded?.slice(0,10) ?? null)
       : dsNull('ici');
-    yhJson && !yhJson.error
-      ? dsSet('yields',    yhJson.asOf ?? null)
+    // 국채 수익률: Worker asOf는 조회일이므로 시계열 마지막 관측일 사용
+    yhJson && !yhJson.error && yhJson.labels?.length
+      ? dsSet('yields',    yhJson.labels[yhJson.labels.length - 1])
       : dsNull('yields');
-    commJson && !commJson.error
-      ? dsSet('comm', new Date().toISOString().slice(0,10))
-      : dsNull('comm', 'Yahoo 원자재 미수신');
+    // 원자재: marketQuotes는 항상 success → 종목별 가격 유무로 판정, 날짜는 받은 종목 중 최신 관측일
+    {
+      const cq = commJson?.quotes || {};
+      const got = COMM_ARR.filter(t => cq[t]?.price != null);
+      const commDate = got.map(t => cq[t].date).filter(Boolean).sort().pop() ?? null;
+      if (!got.length) dsNull('comm', 'Yahoo 원자재 미수신');
+      else if (got.length < COMM_ARR.length) dsWarn('comm', commDate, `${COMM_ARR.length - got.length}개 종목 미수신`);
+      else dsSet('comm', commDate);
+    }
     renderDataStatus(1);
 
     if (!liqJson || liqJson.error) throw new Error(liqJson?.error || '/liq 응답 오류');
@@ -5826,7 +5890,9 @@ async function loadT1(force = false) {
     };
     const nlCfg = nlRegime ? NLM_CFG[nlRegime] : null;
     const nlScoreStr = nlScore != null ? `${nlScore >= 0 ? '+' : ''}${nlScore.toFixed(2)}%` : '—';
-    const fmtB4 = v => v != null ? `$${v.toLocaleString(undefined,{minimumFractionDigits:1,maximumFractionDigits:1})}B` : '—';
+    // null >= 0 은 true → 값 없음이 초록으로 보이던 문제. null은 회색
+    const momCol = v => v == null ? '#8B949E' : v >= 0 ? '#3FB950' : '#F85149';
+    const fmtB4 =v => v != null ? `$${v.toLocaleString(undefined,{minimumFractionDigits:1,maximumFractionDigits:1})}B` : '—';
 
     t1$('t1-nlm').innerHTML = `
       <div style="background:${nlCfg?.bg ?? '#161B22'};border:0.5px solid ${nlCfg?.border ?? '#30363D'};border-radius:8px;padding:14px 16px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;">
@@ -5967,11 +6033,11 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
           <div style="background:rgba(0,0,0,0.25);border-radius:5px;padding:7px 8px;">
             <div style="font-size:8px;color:#8B949E;margin-bottom:3px;">NL Score</div>
-            <div style="font-size:15px;font-weight:700;font-family:'SF Mono',monospace;color:${nlScore >= 0 ? '#3FB950' : '#F85149'};">${fmtMom(nlScore)}</div>
+            <div style="font-size:15px;font-weight:700;font-family:'SF Mono',monospace;color:${momCol(nlScore)};">${fmtMom(nlScore)}</div>
           </div>
           <div style="background:rgba(0,0,0,0.25);border-radius:5px;padding:7px 8px;">
             <div style="font-size:8px;color:#8B949E;margin-bottom:3px;">S&amp;P 500 4주</div>
-            <div style="font-size:15px;font-weight:700;font-family:'SF Mono',monospace;color:${spy4wMom >= 0 ? '#3FB950' : '#F85149'};">${fmtMom(spy4wMom)}</div>
+            <div style="font-size:15px;font-weight:700;font-family:'SF Mono',monospace;color:${momCol(spy4wMom)};">${fmtMom(spy4wMom)}</div>
           </div>
         </div>
         <!-- 4가지 상태 가이드 -->
@@ -5984,7 +6050,12 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
             ⚫ <span style="color:#8B949E;font-weight:600;">정상 하락</span>&nbsp;&nbsp;&nbsp;&nbsp;— NL↓ &amp; SPY↓ · 유동성 축소 따른 조정, 관망
           </div>
         </div>
-      </div>` : `<div></div>`;
+      </div>` : `
+      <div style="background:#161B22;border:0.5px solid #484F58;border-radius:8px;padding:12px 14px;height:100%;box-sizing:border-box;">
+        <div style="font-size:10px;font-weight:600;color:#8B949E;letter-spacing:.05em;text-transform:uppercase;margin-bottom:10px;">시장 괴리 추적기</div>
+        <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;background:#21262D;color:#8B949E;">수신 실패</span>
+        <div style="font-size:9px;color:#8B949E;margin-top:8px;">NL Score ${fmtMom(nlScore)} · S&amp;P 500 4주 ${fmtMom(spy4wMom)} — 국면 판별 불가</div>
+      </div>`;
 
     // ── NL 1~4주 예측 계산 ────────────────────────────────────────
     {
@@ -6049,10 +6120,10 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
                        background:${nlRegime==='risk_on'?'rgba(26,127,90,0.08)':nlRegime==='risk_off'?'rgba(207,34,43,0.08)':'#161B22'};border:0.5px solid ${nlRegime==='risk_on'?'#238636':nlRegime==='risk_off'?'#B91C1C':'#30363D'};border-radius:7px;">
             <div style="font-size:8px;color:#656D76;font-weight:600;text-transform:uppercase;letter-spacing:.05em;">현재</div>
             <div style="font-size:18px;font-weight:700;font-family:'SF Mono',monospace;
-                        color:${nlScore >= 0 ? '#3FB950' : '#F85149'};">
+                        color:${momCol(nlScore)};">
               ${nlScoreStr}
             </div>
-            <div style="font-size:8px;color:#8B949E;">$${nlCurB?.toLocaleString(undefined,{maximumFractionDigits:1})}B</div>
+            <div style="font-size:8px;color:#8B949E;">${nlCurB != null ? '$' + nlCurB.toLocaleString(undefined,{maximumFractionDigits:1}) + 'B' : '—'}</div>
             <div style="font-size:8px;padding:1px 6px;border-radius:2px;margin-top:2px;display:inline-block;
                         background:${nlRegime === 'risk_on' ? '#0D3321' : nlRegime === 'risk_off' ? '#3D0000' : '#21262D'};
                         color:${nlRegime === 'risk_on' ? '#3FB950' : nlRegime === 'risk_off' ? '#F85149' : '#8B949E'};">
@@ -6207,7 +6278,7 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
           <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;font-family:'SF Mono',monospace;">
             <span style="color:#8B949E;">4주 누적 자금 이동 (4W Rolling Δ)</span>
             <span style="color:#484F58;">|</span>
-            <span>Δ MMF: <strong style="color:${mmf4wDelta == null ? '#484F58' : mmf4wDelta >= 0 ? '#3FB950' : '#F85149'};">${fmtGB(mmf4wDelta)}</strong></span>
+            <span>Δ MMF: <strong style="color:${mmf4wDelta == null ? '#484F58' : mmf4wDelta > 0 ? '#F85149' : mmf4wDelta < 0 ? '#3FB950' : '#8B949E'};">${fmtGB(mmf4wDelta)}</strong></span>
             <span style="color:#484F58;">|</span>
             <span>Δ 은행예금: <strong style="color:${bd4wDelta == null ? '#484F58' : bd4wDelta >= 0 ? '#3FB950' : '#F85149'};">${fmtGB(bd4wDelta)}</strong></span>
             <span style="color:#484F58;">|</span>
@@ -6232,13 +6303,13 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
           <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:8px 10px;">
             <div style="font-size:9px;color:#8B949E;margin-bottom:3px;">MMF 총잔고 (${iciJson?.weekEnded ?? mmf.total.asOf ?? '—'})</div>
             <div style="font-size:15px;font-weight:700;font-family:'SF Mono',monospace;color:#E6EDF3;">${iciJson?.total != null ? '$'+iciJson.total.toFixed(3)+'T' : (mmf.total.current != null ? '$'+(mmf.total.current/1000).toFixed(3)+'T' : '—')}</div>
-            <div style="font-size:9px;margin-top:2px;">WoW ${t1Dt(iciJson?.changeB ?? mmfDelta,'B',1)}</div>
+            <div style="font-size:9px;margin-top:2px;">WoW ${t1Dt(iciJson?.changeB ?? mmfDelta,'B',1,true)}</div>
             <div style="font-size:8px;color:#484F58;margin-top:2px;">소매+기관 합산 (ICI)</div>
           </div>
           <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:8px 10px;">
             <div style="font-size:9px;color:#8B949E;margin-bottom:3px;">ON RRP (${rrpAsOf ?? '—'})</div>
             <div style="font-size:15px;font-weight:700;font-family:'SF Mono',monospace;color:#E6EDF3;">${rrpCur != null ? '$'+rrpCur.toFixed(1)+'B' : '—'}</div>
-            <div style="font-size:9px;margin-top:2px;">5d ${t1Dt(rrpDeltaW,'B',1)}</div>
+            <div style="font-size:9px;margin-top:2px;">5d ${t1Dt(rrpDeltaW,'B',1,true)}</div>
             <div style="font-size:8px;color:#484F58;margin-top:2px;">RRPONTSYD (FRED)</div>
           </div>
           <div style="background:rgba(0,0,0,0.2);border-radius:6px;padding:8px 10px;">
@@ -6940,6 +7011,7 @@ WALCL 주간 발표 특성상 최대 7일 시차 존재. 단기 이벤트(FOMC·
 
   } catch(e) {
     hide('t1-loading');
+    dsFailTab(1, 'T1 로딩 실패', _dsT1);   // 배지가 직전 '✅ 정상'으로 남지 않게
     t1Loaded = false;   // 탭에 다시 들어오면 자동 재시도
     markPartial('T1', true, () => { t1Loaded = true; loadT1(); });
     const errEl = t1$('t1-error');
@@ -7301,6 +7373,7 @@ async function loadT2(force = false) {
   const show2 = id => { const e = document.getElementById(id); if(e) e.style.display='block'; };
   const hide2 = id => { const e = document.getElementById(id); if(e) e.style.display='none'; };
   const t2$ = id => document.getElementById(id);
+  const _dsT2 = Date.now();
 
   try {
     const resp = await fetchWithTimeout(`${WORKER}/t2${fq}`, 25000);
@@ -7497,10 +7570,12 @@ Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인�
     const uR = labor.unrate   ?? {};
 
     // 신호 레벨 → 색상
+    // 'n' = 수신 실패(회색). 알 수 없는 레벨도 초록이 아니라 회색
     const sigColors = lvl => {
       if (lvl === 'cb'  || lvl === 'red')   return { val:'#F85149', bd:'#B91C1C', bg:'#0D1117', badge:'rgba(248,81,73,0.15)' };
       if (lvl === 'amber') return { val:'#F0B429', bd:'#9E6A03', bg:'#0D1117', badge:'rgba(240,180,41,0.15)' };
-      return                  { val:'#3FB950', bd:'#238636', bg:'#0D1117', badge:'rgba(63,185,80,0.15)' };
+      if (lvl === 'green') return { val:'#3FB950', bd:'#238636', bg:'#0D1117', badge:'rgba(63,185,80,0.15)' };
+      return                  { val:'#8B949E', bd:'#484F58', bg:'#0D1117', badge:'#21262D' };
     };
     const sigBadge = (lvl, txt) => {
       const c = sigColors(lvl);
@@ -7509,34 +7584,38 @@ Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인�
     };
 
     // Stage 1 신호
-    const s1Lvl   = jL.decline3m ? 'amber' : 'green';
-    const s1Badge = sigBadge(s1Lvl, jL.decline3m ? '🟡 3개월 연속 하락' : '🟢 정상');
+    const s1Lvl   = jL.current == null ? 'n' : jL.decline3m ? 'amber' : 'green';
+    const s1Badge = sigBadge(s1Lvl, s1Lvl==='n' ? '수신 실패' : jL.decline3m ? '🟡 3개월 연속 하락' : '🟢 정상');
 
     // Stage 2 신호
-    const s2Lvl   = tH.consecNeg ? 'red' : (tH.delta != null && tH.delta < 0 ? 'amber' : 'green');
-    const s2Badge = sigBadge(s2Lvl, s2Lvl==='red' ? '🔴 해고 전조' : s2Lvl==='amber' ? '🟡 감소 중' : '🟢 정상');
+    const s2Lvl   = tH.current == null ? 'n' : tH.consecNeg ? 'red' : (tH.delta != null && tH.delta < 0 ? 'amber' : tH.delta == null ? 'n' : 'green');
+    const s2Badge = sigBadge(s2Lvl, s2Lvl==='red' ? '🔴 해고 전조' : s2Lvl==='amber' ? '🟡 감소 중' : s2Lvl==='n' ? '수신 실패' : '🟢 정상');
 
     // Stage 3 신호 (서킷브레이커 우선)
     const s3Lvl   = ic4.circuitBreaker ? 'cb'
-      : (ic4.yoy != null && ic4.yoy >= 10) ? 'red'
-      : (ic4.yoy != null && ic4.yoy >= 5)  ? 'amber' : 'green';
+      : ic4.yoy == null ? 'n'
+      : ic4.yoy >= 10 ? 'red'
+      : ic4.yoy >= 5  ? 'amber' : 'green';
     const s3Badge = sigBadge(s3Lvl==='cb'?'red':s3Lvl,
       s3Lvl==='cb'    ? '🚨 서킷브레이커'
       : s3Lvl==='red' ? '🔴 YoY +10% 급증'
-      : s3Lvl==='amber'? '🟡 증가 추세' : '🟢 정상');
+      : s3Lvl==='amber'? '🟡 증가 추세'
+      : s3Lvl==='n'   ? '수신 실패' : '🟢 정상');
 
     // Stage 4 신호 (서킷브레이커 우선)
     const s4Lvl   = pM.circuitBreaker ? 'cb'
-      : (pM.mma3 != null && pM.mma3 < 100)  ? 'red'
-      : (pM.mma3 != null && pM.mma3 < 150)  ? 'amber' : 'green';
+      : pM.mma3 == null ? 'n'
+      : pM.mma3 < 100   ? 'red'
+      : pM.mma3 < 150   ? 'amber' : 'green';
     const s4Badge = sigBadge(s4Lvl==='cb'?'red':s4Lvl,
       s4Lvl==='cb'    ? '🚨 서킷브레이커'
       : s4Lvl==='red' ? '🔴 3MMA < 100K'
-      : s4Lvl==='amber'? '🟡 둔화 감시' : '🟢 정상');
+      : s4Lvl==='amber'? '🟡 둔화 감시'
+      : s4Lvl==='n'   ? '수신 실패' : '🟢 정상');
 
     // Stage 5 신호
-    const s5Lvl   = sH.triggered ? 'red' : (sH.current != null && sH.current >= 0.3 ? 'amber' : 'green');
-    const s5Badge = sigBadge(s5Lvl, s5Lvl==='red' ? '🔴 침체 확정' : s5Lvl==='amber' ? '🟡 경계 구간' : '🟢 안전');
+    const s5Lvl   = sH.triggered ? 'red' : sH.current == null ? 'n' : (sH.current >= 0.3 ? 'amber' : 'green');
+    const s5Badge = sigBadge(s5Lvl, s5Lvl==='red' ? '🔴 침체 확정' : s5Lvl==='amber' ? '🟡 경계 구간' : s5Lvl==='n' ? '수신 실패' : '🟢 안전');
 
     // 숫자 포맷
     const fJ  = jL.current != null ? (jL.current/1000).toFixed(2)+'M' : '—';
@@ -7653,8 +7732,11 @@ Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인�
     const cSig = sig => {
       if (sig === 'red')    return { val:'#F85149', bd:'#B91C1C', bg:'#0D1117', badgeBg:'rgba(248,81,73,0.15)' };
       if (sig === 'yellow') return { val:'#F0B429', bd:'#9E6A03', bg:'#0D1117', badgeBg:'rgba(240,180,41,0.15)' };
-      return                       { val:'#3FB950', bd:'#238636', bg:'#0D1117', badgeBg:'rgba(63,185,80,0.15)' };
+      if (sig === 'green')  return { val:'#3FB950', bd:'#238636', bg:'#0D1117', badgeBg:'rgba(63,185,80,0.15)' };
+      return                       { val:'#8B949E', bd:'#484F58', bg:'#0D1117', badgeBg:'#21262D' };   // 'n' 수신 실패
     };
+    // 값이 없으면 Worker가 sig:'green'을 주더라도 'n' (빈 배열 기본값이 green)
+    const consSig = o => (o?.current == null) ? 'n' : (['red','yellow','green'].includes(o.sig) ? o.sig : 'n');
     const cBadge = (sig, txt) => {
       const c = cSig(sig);
       return `<span style="font-size:8px;font-weight:700;padding:2px 7px;border-radius:3px;
@@ -7677,28 +7759,28 @@ Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인�
     };
 
     // Stage 1: 소비자 심리 (미시간만)
-    const umcSig  = cons.umcsent?.sig ?? 'green';
+    const umcSig  = consSig(cons.umcsent);
     t2$('t2-cs-umc').innerHTML = consCard({
       label: '미시간 소비자 신뢰', asOf: cons.umcsent?.asOf, sig: umcSig,
-      badge: cBadge(umcSig, umcSig==='red'?'🔴 YoY -10%':umcSig==='yellow'?'🟡 3M 하락':'🟢 안정'),
+      badge: cBadge(umcSig, umcSig==='red'?'🔴 YoY -10%':umcSig==='yellow'?'🟡 3M 하락':umcSig==='n'?'수신 실패':'🟢 안정'),
       mainVal: cons.umcsent?.current?.toFixed(1) ?? '—',
       subVal: cons.umcsent?.mma3 != null ? `3MMA ${cons.umcsent.mma3.toFixed(1)}` : null,
       heat: heatRow('YoY', cons.umcsent?.yoy, 1, '%', false),
       sparkId: 't2-cs-umc-spark',
     });
     // Stage 2: 소비자 체력
-    const psaSig = cons.psavert?.sig ?? 'green';
-    const delSig = cons.delinq?.sig ?? 'green';
+    const psaSig = consSig(cons.psavert);
+    const delSig = consSig(cons.delinq);
     t2$('t2-cs-psavert').innerHTML = consCard({
       label: '개인 저축률', asOf: cons.psavert?.asOf, sig: psaSig,
-      badge: cBadge(psaSig, psaSig==='red'?'🔴 비상금 고갈':psaSig==='yellow'?'🟡 주의':'🟢 안정'),
+      badge: cBadge(psaSig, psaSig==='red'?'🔴 비상금 고갈':psaSig==='yellow'?'🟡 주의':psaSig==='n'?'수신 실패':'🟢 안정'),
       mainVal: cons.psavert?.current != null ? cons.psavert.current.toFixed(1)+'%' : '—',
       subVal: cons.psavert?.mma3 != null ? `3MMA ${cons.psavert.mma3.toFixed(1)}%` : null,
       heat: heatRow('MoM', cons.psavert?.delta, 1, '%p', false),
     });
     t2$('t2-cs-delinq').innerHTML = consCard({
       label: '신용카드 연체율', asOf: cons.delinq?.asOf, sig: delSig,
-      badge: cBadge(delSig, delSig==='red'?'🔴 임계점 돌파':delSig==='yellow'?'🟡 주의':'🟢 안정'),
+      badge: cBadge(delSig, delSig==='red'?'🔴 임계점 돌파':delSig==='yellow'?'🟡 주의':delSig==='n'?'수신 실패':'🟢 안정'),
       mainVal: cons.delinq?.current != null ? cons.delinq.current.toFixed(2)+'%' : '—',
       subVal: cons.delinq?.prev != null ? `전기 ${cons.delinq.prev.toFixed(2)}%` : null,
       heat: heatRow('YoY', cons.delinq?.yoyDelta, 2, '%p', true),
@@ -7914,14 +7996,14 @@ Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인�
     if (divCbEl) divCbEl.style.display = cons.divCB ? 'block' : 'none';
 
     // Stage 3: 실질 소매판매
-    const retailSig = cons.realRetail?.sig ?? 'green';
+    const retailSig = consSig(cons.realRetail);
     const rMain = cons.realRetail?.current != null
       ? (cons.realRetail.current >= 0 ? '+' : '') + cons.realRetail.current.toFixed(2) + '%' : '—';
     const rSub  = cons.realRetail?.mma3 != null
       ? `3MMA ${cons.realRetail.mma3 >= 0 ? '+' : ''}${cons.realRetail.mma3.toFixed(2)}%` : null;
     t2$('t2-cs-retail').innerHTML = consCard({
       label: '실질 핵심 소매판매', asOf: cons.realRetail?.asOf, sig: retailSig,
-      badge: cBadge(retailSig, retailSig==='red'?'🔴 소비 붕괴':retailSig==='yellow'?'🟡 일시 위축':'🟢 실질 성장'),
+      badge: cBadge(retailSig, retailSig==='red'?'🔴 소비 붕괴':retailSig==='yellow'?'🟡 일시 위축':retailSig==='n'?'수신 실패':'🟢 실질 성장'),
       mainVal: rMain, subVal: rSub,
       heat: heatRow('명목', cons.realRetail?.nominalMom, 2, '%', false),
       sparkId: 't2-cs-retail-spark',
@@ -8000,19 +8082,19 @@ Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인�
     // ── T2 데이터 상태 기록 ──
     // asOf=데이터 월(표시용), releasedAt=FRED 발표일(신선도 판정용)
     const _t2d = d ?? {};
-    _t2d.corporate?.gdpNow
+    _t2d.corporate?.gdpNow?.current != null
       ? dsSet('t2_corp',     _t2d.corporate.gdpNow.asOf, true, '', _t2d.corporate.gdpNow.releasedAt)
       : dsNull('t2_corp');
-    _t2d.labor?.jolts
+    _t2d.labor?.jolts?.current != null
       ? dsSet('t2_labor',    _t2d.labor.jolts.asOf, true, '', _t2d.labor.jolts.releasedAt)
       : dsNull('t2_labor');
-    _t2d.consumer?.umcsent
+    _t2d.consumer?.umcsent?.current != null
       ? dsSet('t2_consumer', _t2d.consumer.umcsent.asOf, true, '', _t2d.consumer.umcsent.releasedAt)
       : dsNull('t2_consumer');
-    _t2d.consumer?.psavert
+    _t2d.consumer?.psavert?.current != null
       ? dsSet('t2_psavert',  _t2d.consumer.psavert.asOf, true, '', _t2d.consumer.psavert.releasedAt)
       : dsNull('t2_psavert');
-    _t2d.consumer?.delinq
+    _t2d.consumer?.delinq?.current != null
       ? dsSet('t2_delinq',   _t2d.consumer.delinq.asOf, true, '', _t2d.consumer.delinq.releasedAt)
       : dsNull('t2_delinq');
     renderDataStatus(2);
@@ -8026,6 +8108,7 @@ Atlanta Fed 페이지에서 <b>GDP 구성 요소 기여도 차트</b>를 확인�
 
   } catch(e) {
     hide2('t2-loading');
+    dsFailTab(2, 'T2 로딩 실패', _dsT2);   // 배지가 직전 '✅ 정상'으로 남지 않게
     t2Loaded = false;   // 탭에 다시 들어오면 자동 재시도
     markPartial('T2', true, () => { t2Loaded = true; loadT2(); });
     const errEl = t2$('t2-error');
@@ -8069,6 +8152,7 @@ async function loadT4(force = false, silent = false) {
 
   if (!silent) { showEl('t4-loading'); hideEl('t4-wrapper'); }
   hideEl('t4-error');
+  const _dsT4 = Date.now();
 
   try {
     // 패널 1+3: Worker 경유
@@ -8082,14 +8166,15 @@ async function loadT4(force = false, silent = false) {
 
     renderOnchainMacro(workerData, rwaProtos);
     // ── T4 데이터 상태 기록 ──
+    // 날짜 = 데이터 관측일. RWA는 TVL 히스토리 마지막 날짜, 없으면 Worker 수집 시각(_savedAt) — 오늘 날짜를 지어내지 않음
     workerData.stablecoin?.totalB
-      ? dsSet('oc_stable', workerData.stablecoin.asOf ?? new Date().toISOString().slice(0,10))
+      ? dsSet('oc_stable', workerData.stablecoin.asOf ?? null)
       : dsNull('oc_stable');
     rwaProtos.length > 0 || workerData.rwa?.protocols?.length
-      ? dsSet('oc_rwa',    new Date().toISOString().slice(0,10))
+      ? dsSet('oc_rwa',    workerData.rwa?.history?.at(-1)?.date ?? (workerData.rwa?.stale ? null : workerData._savedAt) ?? null)
       : dsNull('oc_rwa');
     workerData.etf?.dailyFlows?.length
-      ? dsSet('oc_etf',    workerData.etf.dailyFlows[0]?.date ?? new Date().toISOString().slice(0,10))
+      ? dsSet('oc_etf',    workerData.etf.dailyFlows[0]?.date ?? null)
       : dsNull('oc_etf');
     renderDataStatus(4);
 
@@ -8101,6 +8186,7 @@ async function loadT4(force = false, silent = false) {
     hideEl('t4-loading');
     const errEl = t4$('t4-error');
     if (errEl) { errEl.textContent = '데이터 로딩 실패: ' + e.message; errEl.style.display = 'block'; }
+    dsFailTab(4, 'T4 로딩 실패', _dsT4);   // 배지가 직전 '✅ 정상'으로 남지 않게
     t4Loaded = false;   // 탭에 다시 들어오면 자동 재시도
     markPartial('T4', true, () => { t4Loaded = true; loadT4(); });
   }
@@ -8135,11 +8221,15 @@ function renderOnchainMacro(d, rwaProtos) {
     };
   }
 
-  setTxt('oc-stable-src', `${st.source || 'DefiLlama'}${st.asOf ? ' · ' + st.asOf : ''}${st.stale ? ' (최근 수신 실패 — 직전 값)' : ''}`);
-  setTxt('oc-stable-total', fmtB(st.totalB, 0));
-  setTxt('oc-usdc-pct', st.usdcPct != null ? st.usdcPct.toFixed(1) + '%' : '—');
-  setTxt('oc-usdt', fmtB(st.usdtB, 0));
-  setTxt('oc-usdc', fmtB(st.usdcB, 0));
+  // Worker는 수신 실패 시 totalB·usdtB·usdcPct를 0으로 채움 → 총액 0은 '없음'으로 보고 '—'
+  const stOk = (st.totalB ?? 0) > 0;
+  setTxt('oc-stable-src', stOk
+    ? `${st.source || 'DefiLlama'}${st.asOf ? ' · ' + st.asOf : ''}${st.stale ? ' (최근 수신 실패 — 직전 값)' : ''}`
+    : '수신 실패');
+  setTxt('oc-stable-total', stOk ? fmtB(st.totalB, 0) : '—');
+  setTxt('oc-usdc-pct', stOk && st.usdcPct != null ? st.usdcPct.toFixed(1) + '%' : '—');
+  setTxt('oc-usdt', stOk && st.usdtB ? fmtB(st.usdtB, 0) : '—');
+  setTxt('oc-usdc', stOk && st.usdcB ? fmtB(st.usdcB, 0) : '—');
 
   // 복합 차트
   const stCtx = document.getElementById('oc-stable-chart');
@@ -8202,7 +8292,7 @@ function renderOnchainMacro(d, rwaProtos) {
   rwaList.forEach(p => p.pct = rwaTotal > 0 ? +(p.tvlB/rwaTotal*100).toFixed(1) : 0);
 
   const rwaTotalEl = document.getElementById('oc-rwa-total');
-  if (rwaTotalEl) rwaTotalEl.textContent = '$' + rwaTotal.toFixed(2) + 'B';
+  if (rwaTotalEl) rwaTotalEl.textContent = rwaList.length ? '$' + rwaTotal.toFixed(2) + 'B' : '—';   // 프로토콜 없음 → '$0.00B' 대신 '—'
 
   // 자산 유형 분류 (이름 키워드 기반)
   const GOLD_KW    = ['gold','xaut','paxg'];
@@ -8250,7 +8340,7 @@ function renderOnchainMacro(d, rwaProtos) {
   const tbillSum = tbills.reduce((s,p) => s + p.tvlB, 0);
 
   const tbillTotalEl = document.getElementById('oc-tbill-total');
-  if (tbillTotalEl) tbillTotalEl.textContent = '$' + tbillSum.toFixed(2) + 'B';
+  if (tbillTotalEl) tbillTotalEl.textContent = rwaList.length ? '$' + tbillSum.toFixed(2) + 'B' : '—';
 
   const tbillEl = document.getElementById('oc-tbill-list');
   if (tbillEl) {
@@ -8519,11 +8609,13 @@ function renderOnchainMacro(d, rwaProtos) {
     const cum2El = document.getElementById('oc-etf-cum2');
     if (cum2El) { cum2El.textContent = '$' + lastCum.toFixed(1) + 'B'; cum2El.style.color = lineColor; }
     // 최근 1일 순유입
-    const latestNet2 = etf.latestNet || 0;
+    // Worker latestNet은 값이 없을 때도 0 → 최신 일자 행의 netFlow를 직접 확인, 없으면 '—'·회색
+    const latestNet2 = etf.dailyFlows?.[0]?.netFlow ?? null;
     const latestEl2  = document.getElementById('oc-etf-latest');
     if (latestEl2) {
-      latestEl2.textContent = (latestNet2 >= 0 ? '+' : '') + '$' + Math.abs(latestNet2).toFixed(3) + 'B';
-      latestEl2.style.color  = latestNet2 >= 0 ? '#3FB950' : '#F85149';
+      latestEl2.textContent = latestNet2 == null ? '—'
+        : (latestNet2 >= 0 ? '+' : '-') + '$' + Math.abs(latestNet2).toFixed(3) + 'B';
+      latestEl2.style.color  = latestNet2 == null ? '#8B949E' : latestNet2 > 0 ? '#3FB950' : latestNet2 < 0 ? '#F85149' : '#8B949E';
     }
     const rangeEl = document.getElementById('oc-etf-cum-range');
     if (rangeEl) rangeEl.textContent = cLabels[0] + ' ~ ' + cLabels[cLabels.length-1] + ' (' + flows.length + '거래일)';
@@ -8551,7 +8643,8 @@ async function loadT3(force = false) {
     red:    { bg:'#0D1117', bd:'#B91C1C', val:'#F85149', badge:'rgba(248,81,73,0.15)' },
     yellow: { bg:'#0D1117', bd:'#9E6A03', val:'#F0B429', badge:'rgba(240,180,41,0.15)' },
     green:  { bg:'#0D1117', bd:'#238636', val:'#3FB950', badge:'rgba(63,185,80,0.15)'  },
-  }[sig] || { bg:'#161B22', bd:'#30363D', val:'#E6EDF3', badge:'rgba(255,255,255,0.08)' });
+    n:      { bg:'#0D1117', bd:'#484F58', val:'#8B949E', badge:'#21262D' },   // 수신 실패
+  }[sig] || { bg:'#0D1117', bd:'#484F58', val:'#8B949E', badge:'#21262D' });   // 알 수 없는 신호도 회색
 
   const sigBadge = (sig, txt) => {
     const c = sigCol(sig);
@@ -8592,11 +8685,14 @@ async function loadT3(force = false) {
     </div>`;
   };
 
+  const _dsT3 = Date.now();
   try {
     const url = `${WORKER}/t3${force ? '?force=1' : ''}`;
     const res = await fetchT(url, 20000);
     const d   = await res.json();
-    if (!d?.error) markPartial('T3', false);
+    // {error} 응답을 성공으로 처리하면 catch·markPartial이 안 돌고 배지는 '정상'이 됨 → 예외로
+    if (!d || d.error) throw new Error(d?.error || '/t3 응답 오류');
+    markPartial('T3', false);
 
     // ── Row 1: DXY vs Broad Dollar 다이버전스 차트 ────────
     const dxyCtx = document.getElementById('t3-dxy-chart');
@@ -8807,14 +8903,15 @@ async function loadT3(force = false) {
       return { cur: +cur.toFixed(4), prv: +prv.toFixed(4), dir: cur > prv ? 'up' : cur < prv ? 'down' : 'flat' };
     };
     const gsr = d.gsr || {};
+    const gsrSig = gsr.current == null ? 'n' : (['red','yellow','green'].includes(gsr.sig) ? gsr.sig : 'n');
     const gsrSpreadColor = (gsr.spread ?? 0) > 0 ? '#F85149' : '#3FB950';
     const gsrSpreadArrow = (gsr.spread ?? 0) > 0 ? '▲' : '▼';
     t3$('t3-card-gsr').innerHTML = kpiCard({
       label: '금/은 비율 (GSR)',
       role:  '실물 침체 조기 경보기',
-      sig:   gsr.sig || 'green',
-      badge: sigBadge(gsr.sig||'green',
-        gsr.sig==='red' ? '🔴 안전자산 도피' : '🟢 안정'),
+      sig:   gsrSig,
+      badge: sigBadge(gsrSig,
+        gsrSig==='red' ? '🔴 안전자산 도피' : gsrSig==='green' ? '🟢 안정' : gsrSig==='yellow' ? '🟡 관찰' : '수신 실패'),
       mainVal: gsr.current?.toFixed(1) ?? '—',
       sub: gsr.dma200 ? `200DMA ${gsr.dma200.toFixed(1)}` : null,
       heat: gsr.spread != null ? `<div style="margin-top:auto;padding-top:6px;border-top:0.5px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:5px;">
@@ -8829,7 +8926,7 @@ async function loadT3(force = false) {
     const cgMma3 = cg.mma3 ?? calcMma3(cg.series);
     const cgCur  = cg.current ?? null;
     const cgSpread = cgMma3 && cgCur ? +((cgCur - cgMma3.cur) / cgMma3.cur * 100).toFixed(2) : (cg.spread ?? null);
-    const cgSig2 = cgCur && cgMma3 ? (cgCur > cgMma3.cur ? 'green' : 'red') : (cg.sig || 'yellow');
+    const cgSig2 = cgCur == null ? 'n' : cgMma3 ? (cgCur > cgMma3.cur ? 'green' : 'red') : (cg.sig || 'n');
     const cgSpreadColor = (cgSpread ?? 0) > 0 ? '#3FB950' : '#F85149';
     const cgSpreadArrow = (cgSpread ?? 0) > 0 ? '▲' : '▼';
     t3$('t3-card-cg').innerHTML = kpiCard({
@@ -8837,7 +8934,7 @@ async function loadT3(force = false) {
       role:  '글로벌 성장 & 장기금리 프록시',
       sig:   cgSig2,
       badge: sigBadge(cgSig2,
-        cgSig2==='red' ? '🔴 수축 압력' : cgSig2==='green' ? '🟢 성장 팽창' : '🟡 혼조'),
+        cgSig2==='red' ? '🔴 수축 압력' : cgSig2==='green' ? '🟢 성장 팽창' : cgSig2==='yellow' ? '🟡 혼조' : '수신 실패'),
       mainVal: cgCur != null ? (cgCur * 1000).toFixed(2) : '—',
       sub: cgMma3 ? `3MMA ${(cgMma3.cur*1000).toFixed(2)}` : null,
       heat: cgSpread != null ? `<div style="margin-top:auto;padding-top:6px;border-top:0.5px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:5px;">
@@ -8852,7 +8949,7 @@ async function loadT3(force = false) {
     const cnhMma3 = cnh.mma3 ?? calcMma3(cnh.series);
     const cnhCur  = cnh.current ?? null;
     const cnhSpread = cnhMma3 && cnhCur ? +((cnhCur - cnhMma3.cur) / cnhMma3.cur * 100).toFixed(2) : (cnh.spread ?? null);
-    const cnhSig2 = cnhCur && cnhMma3 ? (cnhCur > cnhMma3.cur ? 'red' : 'green') : (cnh.sig || 'yellow');
+    const cnhSig2 = cnhCur == null ? 'n' : cnhMma3 ? (cnhCur > cnhMma3.cur ? 'red' : 'green') : (cnh.sig || 'n');
     const cnhSpreadColor = (cnhSpread ?? 0) > 0 ? '#F85149' : '#3FB950';
     const cnhSpreadArrow = (cnhSpread ?? 0) > 0 ? '▲' : '▼';
     t3$('t3-card-cnh').innerHTML = kpiCard({
@@ -8860,7 +8957,7 @@ async function loadT3(force = false) {
       role:  '신흥국 유동성 밸브',
       sig:   cnhSig2,
       badge: sigBadge(cnhSig2,
-        cnhSig2==='red' ? '🔴 위안화 약세' : cnhSig2==='green' ? '🟢 위안화 강세' : '🟡 관찰'),
+        cnhSig2==='red' ? '🔴 위안화 약세' : cnhSig2==='green' ? '🟢 위안화 강세' : cnhSig2==='yellow' ? '🟡 관찰' : '수신 실패'),
       mainVal: cnhCur?.toFixed(4) ?? '—',
       sub: cnhMma3 ? `3MMA ${cnhMma3.cur.toFixed(4)}` : null,
       heat: cnhSpread != null ? `<div style="margin-top:auto;padding-top:6px;border-top:0.5px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:5px;">
@@ -8875,7 +8972,7 @@ async function loadT3(force = false) {
     const seMma3 = se.mma3 ?? calcMma3(se.series);
     const seCur  = se.current ?? null;
     const seSpread = seMma3 && seCur ? +((seCur - seMma3.cur) / seMma3.cur * 100).toFixed(2) : (se.spread ?? null);
-    const seSig2 = seCur && seMma3 ? (seCur > seMma3.cur ? 'yellow' : 'green') : (se.sig || 'yellow');
+    const seSig2 = seCur == null ? 'n' : seMma3 ? (seCur > seMma3.cur ? 'yellow' : 'green') : (se.sig || 'n');
     const seSpreadColor = (seSpread ?? 0) > 0 ? '#F0B429' : '#3FB950';
     const seSpreadArrow = (seSpread ?? 0) > 0 ? '▲' : '▼';
     t3$('t3-card-se').innerHTML = kpiCard({
@@ -8883,7 +8980,7 @@ async function loadT3(force = false) {
       role:  '글로벌 자본 이동 나침반',
       sig:   seSig2,
       badge: sigBadge(seSig2,
-        seSig2==='yellow' ? '🟡 미국 쏠림' : '🟢 자본 확산'),
+        seSig2==='yellow' ? '🟡 미국 쏠림' : seSig2==='green' ? '🟢 자본 확산' : seSig2==='red' ? '🔴 경계' : '수신 실패'),
       mainVal: seCur?.toFixed(2) ?? '—',
       sub: seMma3 ? `3MMA ${seMma3.cur.toFixed(2)}` : null,
       heat: seSpread != null ? `<div style="margin-top:auto;padding-top:6px;border-top:0.5px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:5px;">
@@ -8894,17 +8991,19 @@ async function loadT3(force = false) {
     });
 
     // ── T3 데이터 상태 기록 ──
+    // 날짜 = 각 시계열의 마지막 관측일 (가져온 날짜가 아님)
+    const _lastDate = ser => ser?.length ? ser[ser.length - 1]?.date ?? null : null;
     d?.dxy?.series?.length
-      ? dsSet('t3_dxy',     new Date().toISOString().slice(0,10))
+      ? dsSet('t3_dxy',     _lastDate(d.dxy.series))
       : dsNull('t3_dxy');
-    d
-      ? dsSet('t3_main',    d._savedAt?.slice(0,10) ?? new Date().toISOString().slice(0,10))
+    d && !d.error
+      ? dsSet('t3_main',    d._savedAt?.slice(0,10) ?? null)
       : dsNull('t3_main');
     d?.asiaEngine?.aud?.series?.length
-      ? dsSet('t3_factory', new Date().toISOString().slice(0,10))
+      ? dsSet('t3_factory', d.asiaEngine.aud.latest?.date ?? _lastDate(d.asiaEngine.aud.series))
       : dsNull('t3_factory');
     d?.euroEngine?.eurusd?.series?.length
-      ? dsSet('t3_demand',  new Date().toISOString().slice(0,10))
+      ? dsSet('t3_demand',  d.euroEngine.eurusd.latest?.date ?? _lastDate(d.euroEngine.eurusd.series))
       : dsNull('t3_demand');
     renderDataStatus(3);
 
@@ -9131,6 +9230,7 @@ async function loadT3(force = false) {
 
   } catch(e) {
     hide3('t3-loading');
+    dsFailTab(3, 'T3 로딩 실패', _dsT3);   // 배지가 직전 '✅ 정상'으로 남지 않게
     t3Loaded = false;   // 탭에 다시 들어오면 자동 재시도
     markPartial('T3', true, () => { t3Loaded = true; loadT3(); });
     const err = t3$('t3-error');
@@ -9209,6 +9309,9 @@ async function loadLiqTower(force = false) {
   }
 }
 
+// 타워 섹션 LED의 '수신 실패' 회색 — 모든 섹션 공통
+const TW_LED_N = '#484F58';
+
 // ── S1: H.4.1 연준 상태 진단 ─────────────────────────────
 function renderTowerS1(d) {
   const fed  = d.fed || {};
@@ -9220,7 +9323,7 @@ function renderTowerS1(d) {
   const anomaly = h41.walcl_anomaly || {};
   const ledColor = anomaly.status === 'SPIKE_WARNING' ? '#F85149'
     : anomaly.status === 'WATCH' ? '#F0B429'
-    : res == null ? '#656D76' : res < 2500 ? '#F85149' : res < 3000 ? '#F0B429' : '#3FB950';
+    : res == null ? TW_LED_N : res < 2500 ? '#F85149' : res < 3000 ? '#F0B429' : '#3FB950';
   if (ledEl) ledEl.style.color = ledColor;
 
   // 데이터 날짜 헤더에 표시
@@ -9470,11 +9573,21 @@ function renderTowerS2(d) {
     ? dtsSeries.map(o => ({ date: o.date, value: o.close }))  // 이미 $B
     : (d.fed?.tgaSeries || []).map(o => ({ date: o.date, value: +(o.value / 1000).toFixed(1) }));
 
-  // LED 색상: TGA 급등 = 유동성 흡수 경고
-  const ledColor = tgaDelta != null
-    ? (tgaDelta > 30 ? '#F85149' : tgaDelta > 10 ? '#F0B429' : '#3FB950')
-    : '#484F58';
-  if (ledEl) ledEl.style.color = ledColor;
+  // LED 색상: TGA 급등 = 유동성 흡수 경고 (증가만 경고 — 감소는 시장으로 유동성 유입)
+  //   전일(DTS 1일) Δ와 주간 Δ는 크기가 달라 임계값을 따로 둔다
+  //   전일: ≥ +$40B 빨강 / ≥ +$15B 주황 · 주간: ≥ +$60B 빨강 / ≥ +$25B 주황
+  const tgaDayD  = tga.source === 'DTS' ? tgaDelta : null;
+  const tgaWeekD = tgaWeekDelta ?? (tga.source !== 'DTS' ? tgaDelta : null);
+  const lvDay  = tgaDayD  == null ? -1 : tgaDayD  >= 40 ? 2 : tgaDayD  >= 15 ? 1 : 0;
+  const lvWeek = tgaWeekD == null ? -1 : tgaWeekD >= 60 ? 2 : tgaWeekD >= 25 ? 1 : 0;
+  const lv = Math.max(lvDay, lvWeek);
+  const ledColor = lv < 0 ? TW_LED_N : ['#3FB950', '#F0B429', '#F85149'][lv];
+  if (ledEl) {
+    ledEl.style.color = ledColor;
+    ledEl.title = lv < 0 ? 'TGA 수신 실패'
+      : `TGA ${lvDay >= lvWeek && tgaDayD != null ? `전일 Δ ${tgaDayD >= 0 ? '+' : ''}${tgaDayD.toFixed(1)}B (기준 +15/+40B)`
+                                                  : `주간 Δ ${tgaWeekD >= 0 ? '+' : ''}${tgaWeekD.toFixed(1)}B (기준 +25/+60B)`}`;
+  }
 
   const fmtB  = v => v != null ? '$' + Math.abs(v).toFixed(1) + 'B' : '—';
   const fmtDelta = (v, redWhenPositive=true) => {
@@ -9609,7 +9722,8 @@ function renderTowerS3(d) {
   const auctions = d.auctions || [];
   const qra      = d.qraActive;
   const ledEl    = document.getElementById('tw-s3-led');
-  if (ledEl) ledEl.style.color = qra ? '#3FB950' : '#F0B429';
+  // QRA 없음 → 회색(수신 실패) · 현재 분기 QRA 있음 → 초록 · 지난/다음 분기 것만 있음 → 주황
+  if (ledEl) ledEl.style.color = !qra ? TW_LED_N : qra.quarter_match === false ? '#F0B429' : '#3FB950';
 
   // QRA 카드
   const qraCard = document.getElementById('tw-qra-card');
@@ -9680,11 +9794,13 @@ function renderTowerS4(d) {
   const weeks = vamp.weeks || [];
   const ledEl = document.getElementById('tw-s4-led');
   const hasAlert = weeks.some(w => w.isDangerZone);
-  if (ledEl) ledEl.style.color = hasAlert ? '#F85149' : '#3FB950';
+  if (ledEl) ledEl.style.color = !weeks.length ? TW_LED_N : hasAlert ? '#F85149' : '#3FB950';   // 예측 없음 → 회색
 
   const wEl = document.getElementById('tw-bill-weight');
   if (wEl && vamp.billWeightLabel) {
-    wEl.textContent = '* ON RRP $' + (vamp.rrpBn||0).toFixed(0) + 'B 반영 → T-Bill 흡수 가중치 ' + vamp.billWeightLabel;
+    // 값 없음은 '$0B'가 아니라 '—' (실제 $0.2B 같은 소액은 그대로 표시)
+    const rrpTxt = vamp.rrpBn == null ? '—' : '$' + vamp.rrpBn.toFixed(vamp.rrpBn < 10 ? 1 : 0) + 'B';
+    wEl.textContent = '* ON RRP ' + rrpTxt + ' 반영 → T-Bill 흡수 가중치 ' + vamp.billWeightLabel;
   }
 
   const alertEl = document.getElementById('tw-danger-alert');
@@ -10789,45 +10905,79 @@ body {
 <script>
 // ── 데이터 신선도 기준 (일 단위) ──────────────────
 const FRESHNESS = {
-  daily:       { warn: 3,   label: '일간'   },
-  market:      { warn: 1,   label: '시장일간' }, // 영업일 기준 체크
+  daily:       { warn: 2,   label: '일간'   },   // 영업일 기준: 2영업일 넘게 지나면 지연
+  market:      { warn: 1,   label: '시장일간' }, // 직전 미국 영업일(월→금) 이후 데이터면 정상
   etf_flow:    { warn: 4,   label: 'ETF플로우' }, // 주중 3일·주말 4일 지연 허용
   weekly:      { warn: 10,  label: '주간'   },
+  weekly_lag:  { warn: 14,  label: '주간'   },   // 관측 주 다음 주에 발표되는 주간 시리즈(STLFSI4·NFCI)
   monthly:     { warn: 45,  label: '월간'   },
   quarterly:   { warn: 100, label: '분기'   },
   event:       { warn: 95,  label: '이벤트' },
 };
 
-// 전일 영업일 계산 (오늘 제외, 주말 건너뜀)
-// ETF 데이터는 T+1 발표 → 어제 영업일 데이터가 최신
-function prevBusinessDay() {
-  // KST 기준 전영업일
-  const d = nowKST();
-  d.setUTCDate(d.getUTCDate() - 1);
-  while (d.getUTCDay() === 0 || d.getUTCDay() === 6) {
-    d.setUTCDate(d.getUTCDate() - 1);
-  }
+// ── 날짜 문자열 유틸 (모두 'YYYY-MM-DD' 문자열로 계산 — 시각·시간대 섞임 방지) ──
+// 오늘 = KST 날짜(nowKST()의 UTC 필드). 'YYYY-MM'(월간 지표)은 그 달 1일로 본다.
+function _dsUTC(ymd) {
+  const [y, m, d] = String(ymd).slice(0, 10).split('-').map(Number);
+  return Date.UTC(y, (m || 1) - 1, d || 1);
+}
+function _dsAddDays(ymd, n) { return new Date(_dsUTC(ymd) + n * 86400000).toISOString().slice(0, 10); }
+function _dsWeekend(ymd) { const w = new Date(_dsUTC(ymd)).getUTCDay(); return w === 0 || w === 6; }
+function _dsDayStr(ymd) { return new Date(_dsUTC(ymd)).toISOString().slice(0, 10); }
+// 직전 영업일(오늘 제외, 주말 건너뜀) — 월요일이면 금요일
+function prevBusinessDayStr(today = todayKSTStr()) {
+  let d = _dsAddDays(today, -1);
+  while (_dsWeekend(d)) d = _dsAddDays(d, -1);
   return d;
 }
+// 달력일 차이 (b − a)
+function dsCalDays(a, b) { return Math.round((_dsUTC(b) - _dsUTC(a)) / 86400000); }
+// 영업일 차이: a 다음 날부터 b까지(b 포함) 평일 수
+function dsBizDays(a, b) {
+  const cal = dsCalDays(a, b);
+  if (cal <= 0) return 0;
+  if (cal > 60) return Math.round(cal * 5 / 7);
+  let n = 0;
+  for (let d = _dsAddDays(a, 1); d <= _dsDayStr(b); d = _dsAddDays(d, 1)) if (!_dsWeekend(d)) n++;
+  return n;
+}
+// 날짜 정규화 → 'YYYY-MM-DD' (월간은 'YYYY-MM' 유지). "November 12, 2026" 같은 형식도 변환, 못 읽으면 null
+function dsNormDate(v) {
+  if (v == null || v === '') return null;
+  const pad = n => String(n).padStart(2, '0');
+  if (typeof v === 'number' || v instanceof Date) {
+    const d = new Date(v);
+    return isNaN(d) ? null : new Date(d.getTime() + 9 * 3600000).toISOString().slice(0, 10);   // KST 날짜
+  }
+  const str = String(v).trim();
+  let m = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return (+m[2] >= 1 && +m[2] <= 12 && +m[3] >= 1 && +m[3] <= 31) ? m[0] : null;
+  m = str.match(/^(\d{4})-(\d{2})$/);
+  if (m) return (+m[2] >= 1 && +m[2] <= 12) ? str : null;
+  const d = new Date(str);
+  if (isNaN(d)) return null;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
-// ── 신선도 판단 ───────────────────────────────────
-function dsFreshness(key, freq) {
-  const s = _dataStatus[key];
+// ── 신선도 판단 (순수 함수: 상태 s, 주기, 오늘 KST 날짜) ──
+function dsFreshnessOf(s, freq, today = todayKSTStr()) {
   if (!s) return null;           // 아직 로드 전
   if (!s.ok || !s.asOf) return 'error';
+  if (s.partial) return 'warn';  // 일부만 수신
 
   if (freq === 'market') {
-    // 영업일 기준: 전일 영업일 이후 데이터면 정상 (월요일 조회 → 금요일 데이터 = 정상)
-    const asOfDate = new Date(s.asOf);
-    asOfDate.setHours(0, 0, 0, 0);
-    return asOfDate >= prevBusinessDay() ? 'ok' : 'warn';
+    // 직전 미국 영업일 이후 데이터면 정상 (월요일 조회 → 금요일 데이터 = 정상)
+    return _dsDayStr(s.asOf) >= prevBusinessDayStr(today) ? 'ok' : 'warn';
   }
-
+  if (freq === 'daily') {
+    // 영업일 기준 — 월요일에 금요일 종가는 1영업일(정상)
+    return dsBizDays(s.asOf, today) > FRESHNESS.daily.warn ? 'warn' : 'ok';
+  }
   // 발표일(releasedAt)이 있으면 그것 기준, 없으면 데이터 날짜(asOf) 기준
   const threshold = FRESHNESS[freq]?.warn ?? 10;
-  const days = (Date.now() - new Date(s.releasedAt ?? s.asOf).getTime()) / 86400000;
-  return days > threshold ? 'warn' : 'ok';
+  return dsCalDays(s.releasedAt ?? s.asOf, today) > threshold ? 'warn' : 'ok';
 }
+function dsFreshness(key, freq) { return dsFreshnessOf(_dataStatus[key], freq); }
 const TAB_INDICATORS = {
   0: [ // T0: 거시경제 모니터
     { key:'h41_hist',   label:'H.4.1 (연준 H.4.1 52주)', freq:'weekly'    },
@@ -10835,7 +10985,7 @@ const TAB_INDICATORS = {
     { key:'pipe3',      label:'신용/실물 리스크',         freq:'daily'     },
     { key:'dxy',        label:'DXY 달러인덱스',           freq:'daily'     },
     { key:'jpy',        label:'JPY 엔화',                 freq:'daily'     },
-    { key:'ofr_fsi',    label:'OFR 금융스트레스',         freq:'daily'     },
+    { key:'ofr_fsi',    label:'OFR 금융스트레스',         freq:'weekly_lag' },  // STLFSI4·NFCI 주간(관측일 금요일, 다음 주 발표)
     { key:'vix',        label:'VIX',                      freq:'daily'     },
     { key:'move',       label:'MOVE',                     freq:'daily'     },
   ],
@@ -10870,16 +11020,28 @@ const TAB_INDICATORS = {
 const _dataStatus = {};  // { key: { asOf, ok, note } }
 
 function dsSet(key, asOf, ok = true, note = '', releasedAt = null) {
-  // asOf: 데이터 실제 월/일 (사용자 표시용)
+  // asOf: 데이터 실제 날짜(관측일) — 가져온 날짜가 아님. 'YYYY-MM-DD'로 정규화(못 읽으면 null → 수신 실패 취급)
   // releasedAt: 발표 일자 (신선도 판정용, 없으면 asOf로 fallback)
-  _dataStatus[key] = { asOf, releasedAt, ok, note, ts: new Date() };
+  const d = dsNormDate(asOf);
+  _dataStatus[key] = { asOf: d, releasedAt: dsNormDate(releasedAt), ok,
+    note: note || (d == null ? '데이터 날짜 없음' : ''), partial: false, ts: Date.now() };
+}
+// 일부만 수신(예: 원자재 12종 중 일부) → ⚠️ 표시
+function dsWarn(key, asOf, note) {
+  dsSet(key, asOf, true, note);
+  _dataStatus[key].partial = true;
 }
 function dsNull(key, note = '수신 실패') {
-  _dataStatus[key] = { asOf: null, ok: false, note, ts: new Date() };
+  _dataStatus[key] = { asOf: null, ok: false, note, ts: Date.now() };
 }
-
-// ── 신선도 판단 ───────────────────────────────────
-// 발표일(releasedAt)이 있으면 그것 기준, 없으면 asOf 기준
+// 탭 로더가 예외로 끝났을 때: 이번 시도(since 이후)에 기록되지 않은 지표를 전부 수신 실패로 → 배지 갱신
+function dsFailTab(tabIdx, msg = '로딩 실패', since = 0) {
+  for (const ind of (TAB_INDICATORS[tabIdx] || [])) {
+    const s = _dataStatus[ind.key];
+    if (!s || !(s.ts >= since)) dsNull(ind.key, msg);
+  }
+  renderDataStatus(tabIdx);
+}
 
 // ── 패널 렌더 ─────────────────────────────────────
 function renderDataStatus(tabIdx) {
@@ -10898,18 +11060,23 @@ function renderDataStatus(tabIdx) {
       icon = '⏳'; color = '#656D76'; dateStr = '로딩 중'; note = '';
     } else if (fresh === 'error') {
       icon = '❌'; color = '#F85149'; dateStr = '수신 실패';
-      note = s.note && s.note !== '수신 실패' ? s.note.slice(0,30) : '';
+      note = s.note && s.note !== '수신 실패' ? escH(String(s.note).slice(0,30)) : '';
       errCount++;
     } else if (fresh === 'warn') {
       icon = '⚠️'; color = '#F0B429';
-      const refDate = s.releasedAt ?? s.asOf;
-      const days = Math.round((Date.now() - new Date(refDate).getTime()) / 86400000);
-      dateStr = s.asOf ? s.asOf.slice(0,10) : '—';
-      note = `발표 ${days}일 전`;
+      dateStr = s.asOf || '—';
+      if (s.partial) {
+        note = escH(String(s.note || '일부 미수신').slice(0,30));
+      } else {
+        // 발표일(releasedAt)로 판정한 경우만 '발표', 나머지는 데이터 날짜 기준
+        const useRel = s.releasedAt && !['daily','market'].includes(ind.freq);
+        const days = dsCalDays(useRel ? s.releasedAt : s.asOf, todayKSTStr());
+        note = `${useRel ? '발표' : '데이터'} ${days}일 전`;
+      }
       warnCount++;
     } else {
       icon = '✅'; color = '#3FB950';
-      dateStr = s.asOf ? s.asOf.slice(0,10) : '정상';
+      dateStr = s.asOf || '정상';
       note = FRESHNESS[ind.freq]?.label ?? '';
     }
 
@@ -10923,7 +11090,9 @@ function renderDataStatus(tabIdx) {
 
   const summaryColor = errCount > 0 ? '#F85149' : warnCount > 0 ? '#F0B429' : '#3FB950';
   const summaryIcon  = errCount > 0 ? '❌' : warnCount > 0 ? '⚠️' : '✅';
-  const summaryText  = errCount > 0
+  const summaryText  = (errCount > 0 && warnCount > 0)
+    ? `${errCount}개 수신 실패 · ⚠️ ${warnCount}개 갱신 지연`
+    : errCount > 0
     ? `${errCount}개 수신 실패`
     : warnCount > 0
     ? `${warnCount}개 갱신 지연`
