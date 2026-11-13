@@ -82,5 +82,13 @@
       "status": "ok",
       "detail": "없음 · 이후 성공으로 복구됨: ['Deploy Cloudflare Worker (03:02Z)']"
     }
+  ],
+  "diagnosis": [
+    {
+      "check": "헬스체크 실행 여부",
+      "likely_cause": "마지막 점검(checked_at 2026-11-13T07:43Z)이 약 16시간 전이고 23:00 UTC 정기 실행 결과가 38분 지난 현재까지 커밋되지 않음 — 오늘 점검이 실행되지 않음(지연 또는 실패 가능).",
+      "suggested_fix": ".github/workflows/health-check.yml의 schedule/최근 실행 로그와 cron-job.org 트리거를 확인.",
+      "confidence": "medium"
+    }
   ]
 }
