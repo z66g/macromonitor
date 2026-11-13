@@ -10663,6 +10663,17 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+/* iOS Safari는 화면 위에 닿는 고정 요소의 배경색으로 상태바를 칠하고, 그 요소가 사라져도 색을 되돌리지 않는다.
+   패널 뒤 어둡게 하는 오버레이(rgba 검정 40%)가 그 색(#070A0D)으로 상태바를 바꿔 놓던 원인 →
+   오버레이는 배경색 없이 backdrop-filter로 어둡게, 모바일 전폭 패널은 페이지와 같은 배경색. */
+#news-overlay, #cal-overlay, #tower-overlay, #auction-overlay {
+  background: transparent !important;
+  -webkit-backdrop-filter: brightness(0.6);
+  backdrop-filter: brightness(0.6);
+}
+@media (max-width: 767px) {
+  #news-panel, #cal-panel, #auction-panel { background: #0D1117 !important; }
+}
 </style>
 
 <script>
