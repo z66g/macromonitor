@@ -1,0 +1,24 @@
+name: QRA Apply
+
+# data/qra.json(클라우드 에이전트 또는 소유자 커밋) → 검증 → KV 반영. QRA를 바꾸는 유일한 경로.
+on:
+  push:
+    branches: [main]
+    paths: [data/qra.json]
+  workflow_dispatch:
+
+concurrency:
+  group: qra-apply
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate + write KV
+        env:
+          CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: python3 scripts/apply_qra.py

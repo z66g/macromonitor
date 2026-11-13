@@ -48,7 +48,7 @@ const CRON_JOBS = {
   5:  'news', 35: 'news',                    // 매시 — 뉴스 RSS (~15건)
   15: 'groupA',                              // 갱신 시각 — H.4.1 → liq + 수익률 (~27건)
   25: 'groupB',                              // 갱신 시각 — T2 (~21건)
-  45: 'groupC',                              // 갱신 시각 — T3 + 유동성 예측모델 (~26건)
+  45: 'groupC',                              // 갱신 시각 — T3 + 유동성 예측모델 + ICI (~27건)
   55: 'groupD',                              // 갱신 시각 — 캘린더
 };
 
@@ -74,6 +74,17 @@ const kvGet = async (env, key) => {
   try { return await env.MMF_KV.get(key, { type: 'json' }); }
   catch(e) { return null; }
 };
+// ── 캐시 우선 조회 — force=1(새로고침)이어도 캐시가 FORCE_MIN_AGE 이내면 재계산하지 않음 ──
+// 여러 방문자가 동시에 새로고침해도 공유 캐시를 연달아 덮어쓰거나 FRED 한도를 소진하지 않도록.
+const FORCE_MIN_AGE_MS = 10 * 60 * 1000;
+const cacheFirst = async (env, key, force) => {
+  const cached = await kvGet(env, key);
+  if (!cached) return null;
+  if (!force) return cached;
+  const age = Date.now() - new Date(cached._savedAt || 0).getTime();
+  return age < FORCE_MIN_AGE_MS ? cached : null;
+};
+
 // ── 저장 전 검증: 업스트림 장애로 비거나 깨진 결과가 정상 캐시를 덮어쓰지 않도록 ──
 // 검증 실패 시 KV를 건드리지 않고(이전 정상 값 유지) 호출자에게 데이터만 반환한다.
 const countSeries = (o, acc = { total: 0, empty: 0 }) => {
@@ -123,34 +134,24 @@ export default {
     try {
       if (path.startsWith('/fred'))          return await fredProxy(url, env);
       if (path.startsWith('/ofr-fsi'))       return await ofrFsi(env);
-      if (path.startsWith('/ofr'))           return await ofrFallback(url, env);
       if (path.startsWith('/h41-history'))   return await h41HistoryFetcher(url);
       if (path.startsWith('/h41-html'))      return await h41HtmlParser(env, ctx, url.searchParams.get('force') === '1');
-      if (path.startsWith('/h41'))           return await h41Parser(env);
       if (path.startsWith('/dxy'))           return await dxyAnalysis();
       if (path.startsWith('/jpy'))           return await jpyCarryRisk();
       if (path.startsWith('/yahoo-chart'))   return await yahooChart(url);
       if (path.startsWith('/yahoo'))         return await yahooProxy(url);
-      if (path.startsWith('/ici-raw'))       return await iciRaw();    // 디버그 (ICI 파싱 점검용)
       if (path.startsWith('/ici'))           return await iciMMF(env, ctx);
       if (path.startsWith('/pipe3'))         return await pipe3CreditRisk(env, ctx);
       // ⚠️ 더 구체적인 경로를 반드시 먼저 — /liq-tower가 /liq보다 앞에
-      if (path.startsWith('/liq-tower-debug')) return await liqTowerDebug(env);
       if (path.startsWith('/liq-tower'))     return await liqTowerCached(env, force, ctx);
       if (path.startsWith('/liq'))           return await liqCached(env, force, ctx);
       if (path.startsWith('/yields-hist'))   return await yieldsHistCached(env, force, ctx);
-      if (path.startsWith('/calendar-debug'))  return await calendarDebug(env);
       if (path.startsWith('/calendar'))      return await calendarEndpoint(env, force, ctx);
       if (path.startsWith('/t2'))            return await t2Cached(env, force, ctx);
       if (path.startsWith('/t3'))            return await t3Cached(env, force, ctx);
       if (path.startsWith('/onchain-macro')) return await onchainMacroCached(env, force, ctx);
-      // QRA 엔드포인트 — /qra-apply, /qra-preview 등 구체적인 것 먼저
-      if (path.startsWith('/qra-debug'))     return await qraDebug(env);
-      if (path.startsWith('/qra-trigger'))   return await qraTrigger(env);
+      // QRA는 읽기 전용 — 갱신은 클라우드 에이전트 → data/qra.json → GitHub Actions → KV
       if (path.startsWith('/qra-status'))    return await qraStatus(env);
-      if (path.startsWith('/qra-preview'))   return await qraPreview(env);
-      if (path.startsWith('/qra-apply'))     return await qraApply(request, env);
-      if (path.startsWith('/qra-dismiss'))   return await qraDismiss(env);
       if (path.startsWith('/auction-results'))  return await auctionResults(url);
 
       // ── 뉴스 다이제스트 ────────────────────────────────────
@@ -158,8 +159,6 @@ export default {
       if (path.startsWith('/news-digest'))           return await newsDigestEndpoint(env);
 
       // ── 뉴스 피드 ──────────────────────────────────────────
-      if (path.startsWith('/news-trans-debug')) return await newsTransDebug(env);
-      if (path.startsWith('/news-trans-flush')) return await newsTransFlush(env);
       if (path.startsWith('/news'))             return await newsEndpoint(env, force, ctx); // force=1 시 캐시 무시
 
       return json({ error: 'Unknown route' }, 404);
@@ -194,7 +193,8 @@ export default {
         ctx.waitUntil(run('t2', () => refreshT2(env)));
         return;
       case 'groupC':
-        ctx.waitUntil(Promise.all([run('t3', () => refreshT3(env)), run('liqTower', () => refreshLiqTower(env))]));
+        ctx.waitUntil(Promise.all([run('t3', () => refreshT3(env)), run('liqTower', () => refreshLiqTower(env)),
+                                   run('ici', () => iciMMF(env, null))]));   // 방문자 없어도 주간 이력 누적
         return;
       case 'groupD':
         ctx.waitUntil(run('calendar', async () => kvPut(env, KV_KEYS.calendar, await fetchCalendar(env), KV_TTL.calendar)));
@@ -205,10 +205,8 @@ export default {
 
 // ── KV-first 래퍼 ─────────────────────────────────────
 async function liqCached(env, force = false, ctx) {
-  if (!force) {
-    const cached = await kvGet(env, KV_KEYS.liq);
-    if (cached) return json(cached);
-  }
+  const cached = await cacheFirst(env, KV_KEYS.liq, force);
+  if (cached) return json(cached);
   const resp = await liqDataEndpoint(env);
   const data = await resp.json();  // clone 불필요 — 아래서 json(data)로 반환
   const putPromise = kvPut(env, KV_KEYS.liq, data, KV_TTL.liq);
@@ -217,10 +215,8 @@ async function liqCached(env, force = false, ctx) {
 }
 
 async function yieldsHistCached(env, force = false, ctx) {
-  if (!force) {
-    const cached = await kvGet(env, KV_KEYS.yieldsHist);
-    if (cached) return json(cached);
-  }
+  const cached = await cacheFirst(env, KV_KEYS.yieldsHist, force);
+  if (cached) return json(cached);
   const resp = await yieldsHistory(env);
   const data = await resp.json();
   const putPromise = kvPut(env, KV_KEYS.yieldsHist, data, KV_TTL.yieldsHist);
@@ -230,10 +226,8 @@ async function yieldsHistCached(env, force = false, ctx) {
 
 // ── Cron 갱신 함수 ────────────────────────────────────
 async function calendarEndpoint(env, force = false, ctx) {
-  if (!force) {
-    const cached = await kvGet(env, KV_KEYS.calendar);
-    if (cached) return json(cached);
-  }
+  const cached = await cacheFirst(env, KV_KEYS.calendar, force);
+  if (cached) return json(cached);
   const data = await fetchCalendar(env);
   const putPromise = kvPut(env, KV_KEYS.calendar, data, KV_TTL.calendar);
   if (ctx?.waitUntil) ctx.waitUntil(putPromise); else await putPromise;
@@ -736,10 +730,8 @@ function buildFomcBlackout(fromDate, toDate, fomcDates = []) {
 }
 
 async function t2Cached(env, force = false, ctx) {
-  if (!force) {
-    const cached = await kvGet(env, KV_KEYS.t2);
-    if (cached) return json(cached);
-  }
+  const cached = await cacheFirst(env, KV_KEYS.t2, force);
+  if (cached) return json(cached);
   const resp = await t2DataEndpoint(env, force);
   const data = await resp.json();
   const putPromise = kvPut(env, KV_KEYS.t2, data, KV_TTL.t2);
@@ -1139,10 +1131,8 @@ async function refreshT2(env) {
 
 // ── T3 Global ───────────────────────────────────────────
 async function t3Cached(env, force = false, ctx) {
-  if (!force) {
-    const cached = await kvGet(env, KV_KEYS.t3);
-    if (cached) return json(cached);
-  }
+  const cached = await cacheFirst(env, KV_KEYS.t3, force);
+  if (cached) return json(cached);
   const body = await t3GlobalData(env, force);
   const putPromise = kvPut(env, KV_KEYS.t3, body, KV_TTL.t3);
   if (ctx?.waitUntil) ctx.waitUntil(putPromise); else await putPromise;
@@ -1386,17 +1376,20 @@ async function refreshYieldsHist(env) {
 // 1. FRED API 프록시
 //    GET /fred?series_id=SOFR&limit=30&sort_order=desc
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+// 프론트엔드가 실제로 쓰는 시리즈만 허용 — 임의 파라미터 주입·FRED 키 남용 차단
+const FRED_PROXY_ALLOW = new Set(['DFII10', 'WRMFNS', 'IORB', 'DTWEXBGS', 'WALCL']);
 async function fredProxy(url, env) {
-  const seriesId  = url.searchParams.get('series_id');
-  const limit     = url.searchParams.get('limit')      || '60';
-  const sortOrder = url.searchParams.get('sort_order') || 'desc';
-  const units     = url.searchParams.get('units')      || '';
+  const seriesId  = (url.searchParams.get('series_id') || '').toUpperCase();
+  const limit     = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '60', 10) || 60, 1), 1000);
+  const sortOrder = url.searchParams.get('sort_order') === 'asc' ? 'asc' : 'desc';
+  const units     = ['lin', 'chg', 'ch1', 'pch', 'pc1', 'pca'].includes(url.searchParams.get('units'))
+    ? url.searchParams.get('units') : '';
 
-  if (!seriesId) return json({ error: 'series_id required' }, 400);
+  if (!FRED_PROXY_ALLOW.has(seriesId)) return json({ error: 'series_id not allowed' }, 400);
 
   const apiKey = env.FRED_API_KEY;
   let fredUrl  = `https://api.stlouisfed.org/fred/series/observations`
-    + `?series_id=${seriesId}`
+    + `?series_id=${encodeURIComponent(seriesId)}`
     + `&api_key=${apiKey}`
     + `&file_type=json`
     + `&limit=${limit}`
@@ -1574,23 +1567,22 @@ async function iciMMF(env, ctx) {
     savedAt:   new Date().toISOString().slice(0, 10),
   };
 
-  // 중복 방지: weekEnded가 같으면 업데이트, 없으면 앞에 추가
+  // 같은 주가 있으면 수정치 반영, 없으면 추가 → 주차 내림차순 정렬 (최신이 index 0)
+  const strip = h => JSON.stringify({ ...h, savedAt: undefined });
   const exists = kvHistory.findIndex(h => h.weekEnded === newEntry.weekEnded);
-  if (exists >= 0) {
-    kvHistory[exists] = newEntry;  // 수정치(revision) 반영
-  } else {
-    kvHistory.unshift(newEntry);   // 최신이 index 0
-  }
+  const changed = exists < 0 || strip(kvHistory[exists]) !== strip(newEntry);
+  if (exists >= 0) kvHistory[exists] = newEntry;
+  else kvHistory.push(newEntry);
+  kvHistory = kvHistory
+    .sort((a, b) => new Date(b.weekEnded) - new Date(a.weekEnded))
+    .slice(0, 52);                                   // 최대 52주 보관
 
-  // 최대 52주 보관 (1년)
-  kvHistory = kvHistory.slice(0, 52);
-
-  // ── Step 5: KV 저장 — ctx.waitUntil로 응답 후에도 완료 보장 ──
-  if (env?.MMF_KV) {
+  // ── Step 5: 값이 바뀐 경우에만 저장 (방문자 요청마다 공유 이력을 다시 쓰지 않도록) ──
+  if (changed && env?.MMF_KV) {
     const putPromise = env.MMF_KV.put(KV_KEY, JSON.stringify(kvHistory), {
       expirationTtl: 60 * 60 * 24 * 400,
     }).catch(e => console.error('[KV PUT ERROR] iciMMF', e.message));
-    if (ctx?.waitUntil) ctx.waitUntil(putPromise);
+    if (ctx?.waitUntil) ctx.waitUntil(putPromise); else await putPromise;   // cron 경로는 await
   }
 
   // ── Step 6: 반환 ──
@@ -1900,10 +1892,8 @@ async function h41HtmlParser(env, ctx, forceRefresh = false) {
   const FED_URL = 'https://www.federalreserve.gov/releases/h41/current/';
 
   // ── KV 캐시 확인 (force=1 아닐 때) ──
-  if (!forceRefresh) {
-    const cached = await kvGet(env, KV_KEYS.h41Html);
-    if (cached) return json(cached);
-  }
+  const cachedH41 = await cacheFirst(env, KV_KEYS.h41Html, forceRefresh);
+  if (cachedH41) return json(cachedH41);
 
   let html;
   try {
@@ -2909,7 +2899,8 @@ async function liqDataEndpoint(env) {
         const date = cached.releaseDate
           ? new Date(cached.releaseDate).toISOString().slice(0, 10)
           : cached._savedAt?.slice(0, 10) ?? null;
-        return { value: valB, date };
+        const tgaVal = cached.data.tga?.val ?? cached.data.tga_t2?.val;   // DTS 결측 시 대체용
+        return { value: valB, date, tgaB: tgaVal != null ? +(tgaVal / 1000).toFixed(2) : null };
       } catch { return null; }
     })(),
     // DTS 일별 TGA — KV에서 읽기 (GitHub Actions가 저장)
@@ -2940,45 +2931,39 @@ async function liqDataEndpoint(env) {
   });
 
   // ── Net Liquidity Momentum 계산 ──
-  // 총자산: H.4.1 reserve_credit ($B, 단일 최신값 — 주간 변동 작음)
-  // TGA:    DTS daily close ($B) — 일별 변동이 NL 핵심 드라이버
-  // RRP:    FRED RRPONTSYD ($B, 일별) — 기존 유지
-  //
-  // RRP 날짜(일별)를 앵커로, DTS TGA 매칭 → 순유동성 시계열 구성
+  // NL = 연준 총자산(H.4.1 reserve_credit, 주간) − TGA(DTS 일별) − ON RRP(FRED 일별)
+  // 기준점: 최신 RRP 관측일부터 7일 간격 6개 → current = 0주, 4주 평균 = 1~4주 전 (실제 주 단위)
+  // TGA: 기준일 이전 가장 가까운 DTS 값. DTS 키가 비었으면 H.4.1 TGA로 대체 (전체 null 방지)
   const walclB = h41Data?.value ?? null;          // H.4.1 단일값 $B
   const dtsSeries = tgaDtsData?.series || [];     // [{date, close}] 오름차순, $B
   const tgaDailyDesc = dtsSeries.slice().reverse().map(d => ({ date: d.date, value: d.close }));
+  const shiftDays = (iso, n) => new Date(Date.parse(iso) - n * 86400000).toISOString().slice(0, 10);
 
   const nlTimeSeries = [];
-  if (walclB != null) {
-    // RRP 일별 시계열을 앵커로 (최신 6개)
-    for (let i = 0; i < Math.min(rrpSeries.length, 6); i++) {
-      const rrpEntry = rrpSeries[i];
-      if (!rrpEntry || rrpEntry.value == null) continue;
-
-      const anchorDate = rrpEntry.date;
-      const rrpB = rrpEntry.value;
-
-      // DTS TGA에서 앵커 이전/당일 가장 최신값 매칭
-      const matchedTga = tgaDailyDesc.find(r => r.date <= anchorDate);
-      const tgaB = matchedTga?.value ?? null;
-
-      if (tgaB != null) {
-        nlTimeSeries.push({
-          date:   anchorDate,
-          walcl:  +walclB.toFixed(2),
-          tga:    +tgaB.toFixed(2),
-          rrp:    +rrpB.toFixed(2),
-          nl:     +(walclB - tgaB - rrpB).toFixed(2),
-        });
-      }
+  let tgaFallbackUsed = false;
+  if (walclB != null && rrpSeries.length) {
+    for (let w = 0; w < 6; w++) {
+      const anchorDate = shiftDays(rrpSeries[0].date, w * 7);
+      const rrpEntry = rrpSeries.find(r => r.date <= anchorDate && r.value != null);
+      if (!rrpEntry) continue;
+      let tgaB = tgaDailyDesc.find(r => r.date <= anchorDate)?.value ?? null;
+      if (tgaB == null && w === 0 && h41Data?.tgaB != null) { tgaB = h41Data.tgaB; tgaFallbackUsed = true; }
+      if (tgaB == null) continue;
+      nlTimeSeries.push({
+        date:   anchorDate,
+        walcl:  +walclB.toFixed(2),
+        tga:    +tgaB.toFixed(2),
+        rrp:    +rrpEntry.value.toFixed(2),
+        nl:     +(walclB - tgaB - rrpEntry.value).toFixed(2),
+      });
     }
   }
 
-  // 현재 NL + 4주 평균 + Momentum Score
+  // 현재 NL + 직전 4주 평균 + Momentum Score
   const nlCurrent = nlTimeSeries[0]?.nl ?? null;
-  const nl4wAvg   = nlTimeSeries.length >= 5
-    ? +(nlTimeSeries.slice(1, 5).reduce((s, d) => s + d.nl, 0) / 4).toFixed(2)
+  const prior = nlTimeSeries.slice(1, 5);
+  const nl4wAvg   = prior.length >= 3
+    ? +(prior.reduce((s, d) => s + d.nl, 0) / prior.length).toFixed(2)
     : null;
   const nlScore   = (nlCurrent != null && nl4wAvg != null && Math.abs(nl4wAvg) > 1)
     ? +((nlCurrent - nl4wAvg) / Math.abs(nl4wAvg) * 100).toFixed(2)
@@ -3051,7 +3036,7 @@ async function liqDataEndpoint(env) {
       asOf:       nlTimeSeries[0]?.date   ?? null,
       sources: {
         walcl: h41Data?.value ? `H.4.1 reserve_credit (${h41Data.date ?? '?'})` : 'unavailable',
-        tga:   tgaDailyDesc.length ? `DTS daily (${tgaDailyDesc[0]?.date ?? '?'})` : 'unavailable',
+        tga:   tgaFallbackUsed ? `H.4.1 (DTS 결측 대체)` : tgaDailyDesc.length ? `DTS daily (${tgaDailyDesc[0]?.date ?? '?'})` : 'unavailable',
         rrp:   'FRED RRPONTSYD daily',
       },
     },
@@ -3230,10 +3215,8 @@ function json(data, status = 200) {
 // 유동성 관제탑 — 통합 데이터 (H.4.1 + FRED + QRA + Auctions)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function liqTowerCached(env, force = false, ctx) {
-  if (!force) {
-    const cached = await kvGet(env, KV_KEYS.liqTower);
-    if (cached) return json(cached);
-  }
+  const cached = await cacheFirst(env, KV_KEYS.liqTower, force);
+  if (cached) return json(cached);
   const data = await fetchLiqTowerData(env);
   const putPromise = kvPut(env, KV_KEYS.liqTower, data, KV_TTL.liqTower);
   if (ctx?.waitUntil) ctx.waitUntil(putPromise); else await putPromise;
@@ -3354,7 +3337,8 @@ async function fetchLiqTowerData(env) {
     }
   }
 
-  const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive, h41Tower?.maturity ?? null, tgaCurrentBn);
+  const vampire4w = buildVampireModel(auctions, rrpBn, billWeight, qraActive, h41Tower?.maturity ?? null, tgaCurrentBn,
+                                     h41Tower?.walcl_anomaly?.avg_13w_delta ?? null);
 
   return {
     _savedAt: new Date().toISOString(),
@@ -3374,7 +3358,7 @@ async function fetchLiqTowerData(env) {
       rrpBn,
       weeks: vampire4w,
     },
-    qraActive,
+    qraActive: normalizeQra(qraActive),
   };
 }
 
@@ -3384,7 +3368,7 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
   if (!apiKey) return null;
 
   const IDS_STD = {
-    WDTGAL: { key: 'other_draining', unitM: true },  // 기타 드레인 (Millions)
+    // WDTGAL은 TGA 주평균이라 '기타'로 더하면 TGA가 이중 계산됨 → 제거
   };
 
   const fetchFredObs = async (id, limit, unitM) => {
@@ -3451,7 +3435,7 @@ async function fetchH41ForTower(env, preloadedSeries = {}) {
   const rrpV  = kv.rrp?.cur              ?? 0;
   const tgaV  = kv.tga?.cur             ?? 0;
   const curr  = h41HtmlResult?.currency ?? 0;
-  const otherV= kv.other_draining?.cur   ?? 0;
+  const otherV= 0;   // (구) WDTGAL = TGA 중복 → 제외
   const totL  = +(res + rrpV + tgaV + curr + otherV).toFixed(1);
   const bufCur = +(res + rrpV).toFixed(1);
   const bufPrev = (kv.reserve_balances?.prev!=null && kv.rrp?.prev!=null)
@@ -3529,7 +3513,36 @@ async function fetchH41HtmlData() {
 }
 
 // ── TGA 뱀파이어 4주 추정 모델 ──────────────────────────
-function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData, tgaCurrentBn = null) {
+// ── QRA 정규화 — 재무부 QRA는 '이번 분기 + 다음 분기' 두 추정치를 발표한다 ──
+// 새 형식(quarters 배열)이면 날짜 기준 해당 분기 항목을 고르고, 구 형식(단일 값)이면 분기 일치 여부만 표시.
+function quarterLabel(d) {
+  return `${d.getUTCFullYear()} Q${Math.floor(d.getUTCMonth() / 3) + 1}`;
+}
+function qraForQuarter(raw, label) {
+  if (!raw) return null;
+  if (Array.isArray(raw.quarters)) {
+    const e = raw.quarters.find(x => x.quarter === label);
+    return e ? { net: e.net_borrowing_billions, cash: e.end_cash_balance_billions, quarter: e.quarter } : null;
+  }
+  return raw.target_quarter === label
+    ? { net: raw.net_borrowing_billions, cash: raw.tga_target_balance_billions, quarter: raw.target_quarter } : null;
+}
+function normalizeQra(raw, now = new Date()) {
+  if (!raw) return null;
+  const cur = qraForQuarter(raw, quarterLabel(now));
+  const first = Array.isArray(raw.quarters) ? raw.quarters[0] : null;
+  const shown = cur ?? (first ? { net: first.net_borrowing_billions, cash: first.end_cash_balance_billions, quarter: first.quarter }
+                              : { net: raw.net_borrowing_billions, cash: raw.tga_target_balance_billions, quarter: raw.target_quarter });
+  return {
+    ...raw,
+    target_quarter:              shown.quarter,
+    net_borrowing_billions:      shown.net,
+    tga_target_balance_billions: shown.cash,
+    quarter_match:               !!cur,          // false면 현재 분기용 QRA가 아님(다음 발표 대기)
+  };
+}
+
+function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData, tgaCurrentBn = null, qtWeeklyBn = null) {
   const now = new Date();
   const weeks = [];
 
@@ -3537,37 +3550,31 @@ function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData,
   const currentQ = Math.floor(now.getUTCMonth() / 3);       // 0,1,2,3
   const quarterEnd = new Date(Date.UTC(now.getUTCFullYear(), (currentQ + 1) * 3, 0)); // 분기 말일
   const remainingDays = Math.max(1, (quarterEnd - now) / 86400000);
-  const remainingWeeks = Math.max(1, Math.ceil(remainingDays / 7));
+  const remainingWeeks = Math.max(2, Math.ceil(remainingDays / 7));   // 분기말 1주 남았을 때 갭 전체가 한 주로 몰리지 않도록
 
-  // ── weeklyNet: TGA 갭 기반 동적 계산 (QRA fallback) ──
-  // TGA 갭 = 목표잔고(QRA) − 실제잔고(H.4.1) → 남은 주수로 나눠 주간 순차입 추정
-  // TGA가 목표 이하면 캐치업 압력 반영, 이상이면 차입 압력 감소
-  const tgaTarget = qraActive?.tga_target_balance_billions ?? null;
-  const qraFlat   = qraActive?.net_borrowing_billions
-    ? +(qraActive.net_borrowing_billions / 13).toFixed(1) : 30;
+  // ── weeklyNet: TGA 갭 기반 동적 계산 ──
+  // 현재 분기용 QRA(분기말 현금 목표)가 있을 때만 갭 사용. 다른 분기 QRA를 쓰지 않는다.
+  const curQ  = qraForQuarter(qraActive, quarterLabel(now));
+  const nextQ = qraForQuarter(qraActive, quarterLabel(new Date(Date.UTC(now.getUTCFullYear(), (currentQ + 1) * 3, 1))));
+  const qraFlat = curQ?.net != null ? +(curQ.net / 13).toFixed(1) : 30;
 
   let weeklyNet, weeklyNetSource;
-
-  if (tgaTarget != null && tgaCurrentBn != null) {
-    const tgaGap = tgaTarget - tgaCurrentBn;
+  if (curQ?.cash != null && tgaCurrentBn != null) {
+    const tgaGap = curQ.cash - tgaCurrentBn;
     const gapBased = +(Math.max(0, tgaGap) / remainingWeeks).toFixed(1);
-    weeklyNet = Math.max(gapBased, +(qraFlat * 0.5).toFixed(1));  // QRA 50%를 하한
+    weeklyNet = Math.min(Math.max(gapBased, +(qraFlat * 0.5).toFixed(1)), +(qraFlat * 3).toFixed(1));  // 0.5~3배 범위
     weeklyNetSource = 'tga_gap';
   } else {
     weeklyNet = qraFlat;
-    weeklyNetSource = qraActive ? 'qra_flat' : 'fallback';
+    weeklyNetSource = curQ ? 'qra_flat' : (qraActive ? 'qra_stale' : 'fallback');
   }
+  const nextWeeklyNet = nextQ?.net != null ? +(nextQ.net / 13).toFixed(1) : qraFlat;
+  const quarterEndStr = quarterEnd.toISOString().slice(0, 10);
 
-  // ── H.4.1 만기 데이터 → 주차별 QT 동적 계산 ─────────
-  const within15d = maturityData?.treasury_within_15d ?? null; // $B
-  const d16_90d   = maturityData?.treasury_d16_90d    ?? null; // $B
-
-  const qtByWeek = [
-    within15d != null ? +(within15d / 2).toFixed(1) : 15,  // Week1: ≤15일 ÷ 2
-    within15d != null ? +(within15d / 2).toFixed(1) : 15,  // Week2: 동일
-    d16_90d   != null ? +(d16_90d   / 10).toFixed(1) : 15, // Week3: 16~90일 ÷ 10
-    d16_90d   != null ? +(d16_90d   / 10).toFixed(1) : 15, // Week4: 동일
-  ];
+  // ── QT 롤오프: 연준 총자산의 최근 13주 평균 주간 감소분 (만기분은 대부분 재투자되므로 만기액 ≠ QT) ──
+  // 대차대조표가 늘고 있으면(QT 종료·준비금 관리 매입) 0
+  const qtWeekly = qtWeeklyBn != null ? +Math.max(0, -qtWeeklyBn).toFixed(1) : 0;
+  const qtByWeek = [qtWeekly, qtWeekly, qtWeekly, qtWeekly];
 
   for (let w = 0; w < 4; w++) {
     const weekStart = new Date(now);
@@ -3577,6 +3584,7 @@ function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData,
 
     const wsStr = weekStart.toISOString().slice(0,10);
     const weStr = weekEnd.toISOString().slice(0,10);
+    const weekNet = wsStr > quarterEndStr ? nextWeeklyNet : weeklyNet;   // 분기 경계 넘으면 다음 분기 기준
 
     // 해당 주 경매 결제 필터링 (Gross 비율 계산용)
     const weekAuctions = auctions.filter(a => {
@@ -3609,12 +3617,12 @@ function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData,
     if (totalGross > 0) {
       const billRatio   = billGross   / totalGross;
       const couponRatio = couponGross / totalGross;
-      netBillAbsorb  = +(weeklyNet * billRatio).toFixed(1);
-      netCouponDrain = +(weeklyNet * couponRatio).toFixed(1);
+      netBillAbsorb  = +(weekNet * billRatio).toFixed(1);
+      netCouponDrain = +(weekNet * couponRatio).toFixed(1);
     } else {
       // 경매 없는 주: 전체를 50/50 추정
-      netBillAbsorb  = +(weeklyNet * 0.5).toFixed(1);
-      netCouponDrain = +(weeklyNet * 0.5).toFixed(1);
+      netBillAbsorb  = +(weekNet * 0.5).toFixed(1);
+      netCouponDrain = +(weekNet * 0.5).toFixed(1);
     }
 
     // ── QT (H.4.1 만기 동적) ─────────────────────────────
@@ -3639,16 +3647,16 @@ function buildVampireModel(auctions, rrpBn, billWeight, qraActive, maturityData,
         govOutflow:   +govOutflow.toFixed(1),            // 정부 지출
       },
       meta: {
-        weeklyNet,
+        weeklyNet: weekNet,
         weeklyNetSource,
-        tgaGap:      tgaTarget != null && tgaCurrentBn != null ? +(tgaTarget - tgaCurrentBn).toFixed(1) : null,
-        tgaTarget,
+        tgaGap:      curQ?.cash != null && tgaCurrentBn != null ? +(curQ.cash - tgaCurrentBn).toFixed(1) : null,
+        tgaTarget: curQ?.cash ?? null,
         tgaCurrent:  tgaCurrentBn,
         remainingWeeks,
         qraFlat,
         billRatio:    totalGross > 0 ? +(billGross/totalGross*100).toFixed(0) : 50,
         couponRatio:  totalGross > 0 ? +(couponGross/totalGross*100).toFixed(0) : 50,
-        maturitySource: maturityData ? 'H.4.1' : 'fallback',
+        maturitySource: qtWeeklyBn != null ? 'H.4.1 13주 평균' : 'unavailable',
         qraSource:      qraActive ? 'QRA' : 'fallback',
       },
       auctionDetail,
@@ -3666,7 +3674,7 @@ async function qraStatus(env) {
     kvGet(env, KV_KEYS.qraActive),
     kvGet(env, KV_KEYS.qraPending),
   ]);
-  return json({ active, pending });
+  return json({ active: normalizeQra(active), pending });
 }
 
 async function qraPreview(env) {
@@ -3962,10 +3970,8 @@ async function qraTrigger(env) {
 // 온체인 매크로 타워 (Stablecoin + RWA + BTC ETF)
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 async function onchainMacroCached(env, force = false, ctx) {
-  if (!force) {
-    const cached = await kvGet(env, KV_KEYS.onchainMacro);
-    if (cached) return json(cached);
-  }
+  const cached = await cacheFirst(env, KV_KEYS.onchainMacro, force);
+  if (cached) return json(cached);
   const data = await fetchOnchainMacro();
   const putPromise = kvPut(env, KV_KEYS.onchainMacro, data, KV_TTL.onchainMacro);
   if (ctx?.waitUntil) ctx.waitUntil(putPromise); else await putPromise;
@@ -4161,11 +4167,22 @@ async function newsDigestEndpoint(env) {
   const digest = await kvGet(env, KV_KEYS.newsDigest);
   return json(digest || { items: [], generatedAt: null, type: null });
 }
+// cron-job.org가 KST 06:00 / 21:00에 호출. 누구나 호출할 수 있는 공개 URL이므로
+// 그 시각 ±20분 안에서만, 시간대마다 한 번만 실제로 발송한다.
+const DIGEST_SLOTS_KST = [6, 21];
 async function newsDigestSend(env) {
+  const kst = new Date(Date.now() + 9 * 3600000);
+  const mins = kst.getUTCHours() * 60 + kst.getUTCMinutes();
+  const slot = DIGEST_SLOTS_KST.find(h => Math.abs(mins - h * 60) <= 20);
+  if (slot === undefined) return json({ ok: false, skipped: 'outside send window' }, 403);
+  const slotKey = `digest_sent_${kst.toISOString().slice(0, 10)}_${slot}`;
+  if (await env.MMF_KV.get(slotKey)) return json({ ok: true, skipped: 'already sent for this slot' });
   try {
+    await env.MMF_KV.put(slotKey, '1', { expirationTtl: 86400 });   // 먼저 표시 → 동시 호출 중복 방지
     await sendBatchedTelegramDigest(env);
     return json({ ok: true, sentAt: new Date().toISOString() });
   } catch(e) {
+    await env.MMF_KV.delete(slotKey).catch(() => {});   // 실패 시 같은 시간대 재시도 허용
     console.error('[NEWS DIGEST SEND ERROR]', e.message);
     return json({ ok: false, error: e.message }, 500);
   }

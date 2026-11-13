@@ -102,7 +102,7 @@ jobs:
               "fetchedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
           }
 
-          kv_put("tga_dts_v1", payload, ttl=86400)  # 24h TTL
+          kv_put("tga_dts_v1", payload, ttl=86400 * 4)  # 4일 — 하루 이틀 실행 지연·실패에도 공백 없음 (Worker는 날짜로 신선도 판단)
           latest = series[-1] if series else {}
           print(f"DTS TGA 저장 완료: {len(series)}일치, 최신: {latest.get('date')} ${latest.get('close')}B")
           PYEOF

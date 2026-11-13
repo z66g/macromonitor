@@ -2680,54 +2680,6 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
   </div>
 </div>
 
-<!-- QRA 수동 수정 모달 -->
-<div id="qra-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;"></div>
-<div id="qra-modal" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-  z-index:1001;background:#161B22;border:0.5px solid #30363D;border-radius:10px;
-  width:480px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:20px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-    <div style="font-size:13px;font-weight:700;color:#E6EDF3;">QRA 데이터 검토 및 적용</div>
-    <button onclick="closeQraModal()" style="background:transparent;border:none;color:#484F58;cursor:pointer;font-size:18px;">✕</button>
-  </div>
-  <!-- AI 추출 결과 -->
-  <div id="qra-modal-source" style="margin-bottom:14px;"></div>
-  <!-- 수동 수정 입력 -->
-  <div style="font-size:10px;font-weight:600;color:#656D76;margin-bottom:8px;">수동 수정 (AI 오류 시 직접 입력)</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-    <div>
-      <div style="font-size:8px;color:#484F58;margin-bottom:3px;">대상 분기</div>
-      <input id="qra-input-quarter" type="text" placeholder="2026 Q2"
-        style="width:100%;background:#0D1117;border:0.5px solid #30363D;border-radius:4px;
-               color:#E6EDF3;font-size:11px;padding:6px 8px;box-sizing:border-box;font-family:inherit;">
-    </div>
-    <div>
-      <div style="font-size:8px;color:#484F58;margin-bottom:3px;">순차입 목표액 ($B)</div>
-      <input id="qra-input-borrowing" type="number" placeholder="514"
-        style="width:100%;background:#0D1117;border:0.5px solid #30363D;border-radius:4px;
-               color:#E6EDF3;font-size:11px;padding:6px 8px;box-sizing:border-box;font-family:inherit;">
-    </div>
-    <div>
-      <div style="font-size:8px;color:#484F58;margin-bottom:3px;">TGA 말잔 목표 ($B)</div>
-      <input id="qra-input-tga" type="number" placeholder="850"
-        style="width:100%;background:#0D1117;border:0.5px solid #30363D;border-radius:4px;
-               color:#E6EDF3;font-size:11px;padding:6px 8px;box-sizing:border-box;font-family:inherit;">
-    </div>
-    <div>
-      <div style="font-size:8px;color:#484F58;margin-bottom:3px;">발표일</div>
-      <input id="qra-input-date" type="text" placeholder="2026-02-05"
-        style="width:100%;background:#0D1117;border:0.5px solid #30363D;border-radius:4px;
-               color:#E6EDF3;font-size:11px;padding:6px 8px;box-sizing:border-box;font-family:inherit;">
-    </div>
-  </div>
-  <div style="display:flex;gap:8px;justify-content:flex-end;">
-    <button onclick="closeQraModal()"
-      style="background:transparent;border:0.5px solid #30363D;border-radius:4px;
-             color:#8B949E;font-size:11px;padding:7px 16px;cursor:pointer;">취소</button>
-    <button onclick="applyQraData()"
-      style="background:#1A7F5A;border:none;border-radius:4px;
-             color:#fff;font-size:11px;padding:7px 16px;cursor:pointer;font-weight:600;">✅ 적용</button>
-  </div>
-</div>
 <div id="t4" class="tab-panel">
 <div id="t4-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
     <div style="font-size:28px;">🪙</div>
@@ -2985,6 +2937,15 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
 </div>
 
 <script>
+// ── 전역 출력 안전 헬퍼 — 외부/LLM 텍스트는 반드시 거쳐서 innerHTML에 삽입 ──
+function escH(v) {
+  if (v === null || v === undefined) return '';
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function safeUrl(u) {           // https 링크만 허용 (javascript:, data: 등 차단)
+  try { const x = new URL(String(u)); return x.protocol === 'https:' ? x.href : ''; } catch(e) { return ''; }
+}
 // ══════════════════════════════
 // 공통 — WORKER, 테마, 탭, 시계
 // ══════════════════════════════
@@ -8138,7 +8099,7 @@ function renderOnchainMacro(d, rwaProtos) {
             <span style="font-size:8px;">${tp.badge}</span>
             <span style="font-size:9px;color:#E6EDF3;font-weight:600;
                          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
-                  title="${p.name}">${p.name}</span>
+                  title="${escH(p.name)}">${escH(p.name)}</span>
           </div>
         </div>
         <div style="font-size:9px;color:${tp.color};font-family:'SF Mono',monospace;
@@ -8166,7 +8127,7 @@ function renderOnchainMacro(d, rwaProtos) {
       ? tbills.map(p => `
           <div style="display:flex;align-items:center;justify-content:space-between;
                       padding:2px 8px;font-size:8px;">
-            <span style="color:#8B949E;">∟ ${p.name}</span>
+            <span style="color:#8B949E;">∟ ${escH(p.name)}</span>
             <span style="color:#58A6FF;font-family:'SF Mono',monospace;">$${p.tvlB.toFixed(3)}B</span>
           </div>`).join('')
       : '<div style="font-size:8px;color:#484F58;padding:2px 8px;">매칭 항목 없음</div>';
@@ -8234,7 +8195,7 @@ function renderOnchainMacro(d, rwaProtos) {
           <span style="width:7px;height:7px;border-radius:1px;background:${PALETTE[i]};
                        flex-shrink:0;border:0.5px solid rgba(255,255,255,0.1);"></span>
           <span style="font-size:7px;color:#8B949E;flex:1;white-space:nowrap;overflow:hidden;
-                       text-overflow:ellipsis;" title="${lbl}">${short}</span>
+                       text-overflow:ellipsis;" title="${escH(lbl)}">${escH(short)}</span>
           <span style="font-size:6px;color:${tp2.color};flex-shrink:0;">${tp2.badge}</span>
         </div>`;
       }).join('');
@@ -9577,34 +9538,33 @@ function renderTowerS3(d) {
   const qraCard = document.getElementById('tw-qra-card');
   if (qraCard) {
     if (qra) {
-      const appliedIcon = qra.applied_by === 'auto' ? '🤖' : '✋';
-      const appliedTip  = `${qra.applied_by === 'auto' ? '자동 적용' : '수동 적용'} · ${(qra.applied_at||'').slice(0,10)}`;
+      const appliedIcon = qra.applied_by === 'manual' ? '✋' : '🤖';
+      const appliedTip  = `${qra.applied_by === 'manual' ? '수동 적용' : '재무부 원문 검증 후 자동 적용'} · ${escH((qra.applied_at||'').slice(0,10))}`;
       qraCard.innerHTML = `
         <div style="background:#0D1117;border:0.5px solid #238636;border-radius:5px;padding:7px 10px;margin-bottom:8px;">
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
             <!-- 분기 -->
-            <span style="font-size:10px;font-weight:700;color:#3FB950;white-space:nowrap;">● ${qra.target_quarter}</span>
+            <span style="font-size:10px;font-weight:700;color:#3FB950;white-space:nowrap;">● ${escH(qra.target_quarter)}</span>
             <!-- 구분선 -->
             <span style="color:#30363D;font-size:9px;">|</span>
             <!-- 순차입 -->
             <span style="white-space:nowrap;">
               <span style="font-size:7px;color:#484F58;">순차입</span>
-              <span style="font-size:11px;font-weight:700;color:#E6EDF3;margin-left:3px;">$${qra.net_borrowing_billions}B</span>
+              <span style="font-size:11px;font-weight:700;color:#E6EDF3;margin-left:3px;">$${escH(qra.net_borrowing_billions)}B</span>
             </span>
             <!-- 구분선 -->
             <span style="color:#30363D;font-size:9px;">|</span>
             <!-- TGA -->
             <span style="white-space:nowrap;">
               <span style="font-size:7px;color:#484F58;">TGA</span>
-              <span style="font-size:11px;font-weight:700;color:#E6EDF3;margin-left:3px;">$${qra.tga_target_balance_billions}B</span>
+              <span style="font-size:11px;font-weight:700;color:#E6EDF3;margin-left:3px;">$${escH(qra.tga_target_balance_billions)}B</span>
             </span>
             <!-- 구분선 -->
             <span style="color:#30363D;font-size:9px;">|</span>
             <!-- 버튼들 + 적용 아이콘 -->
             <span style="display:flex;align-items:center;gap:5px;margin-left:auto;">
-              ${qra.source_url ? `<a href="${qra.source_url}" target="_blank" style="font-size:8px;color:#58A6FF;text-decoration:none;white-space:nowrap;">🔗 보도자료</a>` : ''}
-              ${qra.pdf_url    ? `<a href="${qra.pdf_url}" target="_blank" style="font-size:8px;color:#58A6FF;text-decoration:none;white-space:nowrap;">📄 PDF</a>` : ''}
-              <button onclick="openQraModal()" style="background:transparent;border:0.5px solid #30363D;border-radius:3px;color:#8B949E;font-size:8px;padding:1px 6px;cursor:pointer;white-space:nowrap;">✏️ 수정</button>
+              ${safeUrl(qra.source_url) ? `<a href="${escH(safeUrl(qra.source_url))}" target="_blank" rel="noopener" style="font-size:8px;color:#58A6FF;text-decoration:none;white-space:nowrap;">🔗 보도자료</a>` : ''}
+              ${safeUrl(qra.pdf_url)    ? `<a href="${escH(safeUrl(qra.pdf_url))}" target="_blank" rel="noopener" style="font-size:8px;color:#58A6FF;text-decoration:none;white-space:nowrap;">📄 PDF</a>` : ''}
               <span class="pd-tip-wrap" style="line-height:1;">
                 <span style="font-size:11px;cursor:default;">${appliedIcon}</span>
                 <span class="pd-tip-box" style="right:0;left:auto;transform:none;bottom:calc(100% + 6px);width:140px;text-align:left;">
@@ -9617,8 +9577,7 @@ function renderTowerS3(d) {
     } else {
       qraCard.innerHTML = `
         <div style="background:#0D1117;border:0.5px dashed #30363D;border-radius:5px;padding:10px 12px;margin-bottom:8px;text-align:center;">
-          <div style="font-size:9px;color:#484F58;margin-bottom:6px;">QRA 데이터 없음</div>
-          <button onclick="openQraModal()" style="background:#1A7F5A;border:none;border-radius:4px;color:#fff;font-size:9px;padding:5px 12px;cursor:pointer;">🤖 AI로 자동 검색</button>
+          <div style="font-size:9px;color:#484F58;">QRA 데이터 없음 — 다음 자동 점검에서 갱신됩니다</div>
         </div>`;
     }
   }
@@ -9807,133 +9766,41 @@ function renderTowerS4(d) {
   });
 }
 
-// ── QRA 상태 확인 (배너) ────────────────────────────────
+// ── QRA 업데이트 안내 배너 ─────────────────────────────
+// QRA는 클라우드 에이전트가 재무부 원문을 검증해 갱신한다(사이트에서 수정 불가 → 방문자 간 충돌 없음).
+// 최근 7일 안에 갱신됐으면 안내하고, '닫기'는 이 브라우저에만 기억한다.
 async function checkQraStatus() {
   try {
     const r = await fetchT(`${WORKER}/qra-status`, 8000);
     const d = await r.json();
-    const pending = d.pending;
-    if (!pending) return;
+    const q = d.active;
+    if (!q?.applied_at) return;
+    const ageDays = (Date.now() - new Date(q.applied_at).getTime()) / 86400000;
+    const seenKey = `qra_seen_${q.target_quarter}_${q.applied_at}`;
+    let seen = false;
+    try { seen = localStorage.getItem(seenKey) === '1'; } catch(e) {}
+    if (!(ageDays <= 7) || seen) return;
 
     const banner = document.getElementById('qra-banner');
-    const title  = document.getElementById('qra-banner-title');
-    const body   = document.getElementById('qra-banner-body');
-    const btns   = document.getElementById('qra-banner-btns');
     if (!banner) return;
-
     const btnStyle = 'font-size:9px;padding:4px 10px;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:3px;';
-
-    if (pending.status === 'auto_applied') {
-      title.textContent = `✅ QRA 데이터 자동 업데이트 — ${d.active?.target_quarter ?? ''}`;
-      body.textContent  = `신뢰도 HIGH. 재무부 발표 자료를 확인하거나 수동 수정할 수 있습니다.`;
-      btns.innerHTML = `
-        ${pending.data?.source_url ? `<a href="${pending.data.source_url}" target="_blank" style="${btnStyle}background:#21262D;border:0.5px solid #30363D;color:#8B949E;">📄 보도자료</a>` : ''}
-        ${pending.data?.pdf_url    ? `<a href="${pending.data.pdf_url}" target="_blank" style="${btnStyle}background:#21262D;border:0.5px solid #30363D;color:#8B949E;">📎 PDF</a>` : ''}
-        <button onclick="openQraModal()" style="${btnStyle}background:#21262D;border:0.5px solid #30363D;color:#8B949E;">✏️ 수동 수정</button>
-        <button onclick="qraBannerDismiss()" style="${btnStyle}background:transparent;border:none;color:#484F58;">닫기</button>`;
-    } else if (pending.status === 'new') {
-      title.textContent = `🔔 새 QRA 감지 — ${pending.data?.target_quarter ?? '검토 필요'}`;
-      body.textContent  = `신뢰도 ${pending.data?.confidence?.toUpperCase() ?? '?'}. PDF를 확인 후 적용해 주세요.`;
-      btns.innerHTML = `
-        ${pending.data?.source_url ? `<a href="${pending.data.source_url}" target="_blank" style="${btnStyle}background:#21262D;border:0.5px solid #30363D;color:#8B949E;">📄 보도자료</a>` : ''}
-        ${pending.data?.pdf_url    ? `<a href="${pending.data.pdf_url}" target="_blank" style="${btnStyle}background:#21262D;border:0.5px solid #30363D;color:#8B949E;">📎 PDF</a>` : ''}
-        <button onclick="openQraModal()" style="${btnStyle}background:#1A7F5A;border:none;color:#fff;font-weight:600;">🔍 검토 후 적용</button>
-        <button onclick="qraBannerDismiss()" style="${btnStyle}background:transparent;border:none;color:#484F58;">나중에</button>`;
-    } else { return; }
-
+    document.getElementById('qra-banner-title').textContent = `✅ QRA 업데이트 — ${q.target_quarter ?? ''}`;
+    document.getElementById('qra-banner-body').textContent =
+      `순차입 $${q.net_borrowing_billions ?? '—'}B · TGA 목표 $${q.tga_target_balance_billions ?? '—'}B (재무부 발표 원문 기준)`;
+    const src = safeUrl(q.source_url), pdf = safeUrl(q.pdf_url);
+    document.getElementById('qra-banner-btns').innerHTML = `
+      ${src ? `<a href="${escH(src)}" target="_blank" rel="noopener" style="${btnStyle}background:#21262D;border:0.5px solid #30363D;color:#8B949E;">📄 보도자료</a>` : ''}
+      ${pdf ? `<a href="${escH(pdf)}" target="_blank" rel="noopener" style="${btnStyle}background:#21262D;border:0.5px solid #30363D;color:#8B949E;">📎 PDF</a>` : ''}
+      <button onclick="qraBannerDismiss()" style="${btnStyle}background:transparent;border:none;color:#484F58;">닫기</button>`;
+    banner.dataset.seenKey = seenKey;
     banner.style.display = 'block';
-    // 배너 클릭 시 모달에 데이터 채우기
-    window._qraPendingData = pending.data;
   } catch(e) { /* 배너 실패는 조용히 무시 */ }
 }
 
 function qraBannerDismiss() {
-  document.getElementById('qra-banner').style.display = 'none';
-  fetchT(`${WORKER}/qra-dismiss`, 5000).catch(() => {});
-}
-
-// ── QRA 모달 ────────────────────────────────────────────
-let _qraModalData = null;
-
-async function openQraModal() {
-  const modal   = document.getElementById('qra-modal');
-  const overlay = document.getElementById('qra-modal-overlay');
-  const srcEl   = document.getElementById('qra-modal-source');
-  if (!modal) return;
-
-  modal.style.display   = 'block';
-  overlay.style.display = 'block';
-
-  // 현재 데이터 가져오기
-  try {
-    const r = await fetchT(`${WORKER}/qra-status`, 5000);
-    const d = await r.json();
-    const data = d.pending?.data || d.active;
-    _qraModalData = data;
-
-    if (data) {
-      // pre-fill 입력필드
-      document.getElementById('qra-input-quarter').value   = data.target_quarter || '';
-      document.getElementById('qra-input-borrowing').value = data.net_borrowing_billions || '';
-      document.getElementById('qra-input-tga').value       = data.tga_target_balance_billions || '';
-      document.getElementById('qra-input-date').value      = data.announcement_date || '';
-
-      // 출처 표시
-      if (srcEl) {
-        srcEl.innerHTML = `
-          <div style="background:#0D1117;border:0.5px solid #21262D;border-radius:5px;padding:10px 12px;margin-bottom:12px;">
-            <div style="font-size:9px;color:#656D76;font-weight:600;margin-bottom:6px;">AI 추출 결과</div>
-            ${data.evidence_quote ? `<div style="font-size:9px;color:#8B949E;font-style:italic;margin-bottom:6px;line-height:1.5;">"${data.evidence_quote}"</div>` : ''}
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              ${data.source_url ? `<a href="${data.source_url}" target="_blank" style="font-size:8px;color:#58A6FF;">🔗 보도자료 ↗</a>` : ''}
-              ${data.pdf_url    ? `<a href="${data.pdf_url}"    target="_blank" style="font-size:8px;color:#58A6FF;">📄 PDF ↗</a>`    : ''}
-              <span style="font-size:8px;color:#484F58;">신뢰도: <b style="color:${data.confidence==='high'?'#3FB950':data.confidence==='medium'?'#F0B429':'#F85149'}">${(data.confidence||'?').toUpperCase()}</b></span>
-            </div>
-          </div>`;
-      }
-    }
-  } catch(e) {
-    if (srcEl) srcEl.innerHTML = `<div style="font-size:9px;color:#F85149;">상태 조회 실패: ${e.message}</div>`;
-  }
-}
-
-function closeQraModal() {
-  document.getElementById('qra-modal').style.display   = 'none';
-  document.getElementById('qra-modal-overlay').style.display = 'none';
-}
-
-async function applyQraData() {
-  const quarter   = document.getElementById('qra-input-quarter').value.trim();
-  const borrowing = parseFloat(document.getElementById('qra-input-borrowing').value);
-  const tga       = parseFloat(document.getElementById('qra-input-tga').value);
-  const date      = document.getElementById('qra-input-date').value.trim();
-
-  if (!quarter || isNaN(borrowing) || isNaN(tga)) {
-    alert('분기, 순차입 목표액, TGA 말잔은 필수 입력입니다.'); return;
-  }
-
-  const data = {
-    ...(_qraModalData || {}),
-    target_quarter:              quarter,
-    net_borrowing_billions:      borrowing,
-    tga_target_balance_billions: tga,
-    announcement_date:           date,
-  };
-
-  try {
-    const r = await fetch(`${WORKER}/qra-apply`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ data, auto: false }),
-    });
-    if (!r.ok) throw new Error('서버 오류');
-    closeQraModal();
-    document.getElementById('qra-banner').style.display = 'none';
-    // 관제탑 데이터 새로고침
-    towerLoaded = false;
-    if (towerOpen) { towerLoaded = true; loadLiqTower(true); }
-  } catch(e) {
-    alert(`적용 실패: ${e.message}`);
-  }
+  const banner = document.getElementById('qra-banner');
+  banner.style.display = 'none';
+  try { localStorage.setItem(banner.dataset.seenKey, '1'); } catch(e) {}
 }
 
 // 페이지 로드 시 QRA 상태 조용히 확인
@@ -11372,9 +11239,9 @@ function renderAucCards(dateStr) {
     const isBill = typ === 'Bill';
     const summaryHtml = r.summary
       ? r.summary.split('\n').map(line => {
-          if (line.startsWith('🎯')) return `<div style="font-size:10px;font-weight:700;color:#E6EDF3;margin-bottom:6px;">${line}</div>`;
-          if (/^[1-4]\./.test(line)) return `<div style="font-size:9px;color:#8B949E;margin-bottom:3px;line-height:1.5;">${line}</div>`;
-          return `<div style="font-size:9px;color:#656D76;margin-bottom:2px;">${line}</div>`;
+          if (line.startsWith('🎯')) return `<div style="font-size:10px;font-weight:700;color:#E6EDF3;margin-bottom:6px;">${escH(line)}</div>`;
+          if (/^[1-4]\./.test(line)) return `<div style="font-size:9px;color:#8B949E;margin-bottom:3px;line-height:1.5;">${escH(line)}</div>`;
+          return `<div style="font-size:9px;color:#656D76;margin-bottom:2px;">${escH(line)}</div>`;
         }).join('')
       : isBill
         ? `<div style="font-size:9px;color:#484F58;">Bills는 요약이 제공되지 않습니다</div>`
@@ -11523,8 +11390,8 @@ function renderNewsDigest(digest) {
     `<div style="display:flex;gap:8px;${i > 0 ? 'padding-top:7px;border-top:0.5px solid #21262D;margin-top:7px;' : ''}">
       <span style="font-size:11px;font-weight:700;color:#CF222B;flex-shrink:0;margin-top:1px;">${item.rank}</span>
       <div>
-        <div style="font-size:11px;font-weight:600;color:#CDD9E5;line-height:1.4;margin-bottom:3px;">${item.title || ''}</div>
-        <div style="font-size:10px;color:#8B949E;line-height:1.4;">${item.summary || ''}</div>
+        <div style="font-size:11px;font-weight:600;color:#CDD9E5;line-height:1.4;margin-bottom:3px;">${escH(item.title)}</div>
+        <div style="font-size:10px;color:#8B949E;line-height:1.4;">${escH(item.summary)}</div>
       </div>
     </div>`
   ).join('');
@@ -11663,7 +11530,7 @@ function renderNews() {
         </div>
         <div class="np-expand${isExpanded ? ' open' : ''}">
           <div class="np-summary">${escHtml(n.summaryKo || n.summary || '요약 없음')}</div>
-          ${n.link ? `<a class="np-link" href="${escHtml(n.link)}" target="_blank" rel="noopener">전체 기사 →</a>` : ''}
+          ${safeUrl(n.link) ? `<a class="np-link" href="${escHtml(safeUrl(n.link))}" target="_blank" rel="noopener">전체 기사 →</a>` : ''}
         </div>
       </div>
     </div>`;
