@@ -50,9 +50,7 @@
 - `asOf`(관측일)와 `releasedAt`(발표일) 분리해 신선도 판정.
 
 ## 열려 있는 일 / 지켜볼 것
-- [ ] [이슈 #1](https://github.com/z66g/macromonitor/issues/1) (health): 11/13 03:02Z 배포 실패 기록만 남음(이미 수정됨).
-  24h 창 때문에 11/13 23:00 점검에서도 warn이 남는 문제 → `c_actions`가 '같은 워크플로의 최근 완료 실행이 성공이면 복구됨'으로 분류하도록 수정
-  (브랜치 `claude/handoff-status-review-2pe5sa`). **main 반영 후** 다음 23:00 UTC 점검에서 자동 종료되는지 확인.
+- [x] [이슈 #1](https://github.com/z66g/macromonitor/issues/1) (health): 11/13 03:02Z 배포 실패(이미 수정됨)가 24h 창에 남아 warn 유지 → `c_actions`가 이후 성공으로 복구된 실패를 제외하도록 수정(`fabb38c`), 07:43Z 수동 점검 ok로 자동 종료 확인.
 - [ ] 헬스체크 진단 에이전트(23:30 UTC)는 아직 이상 상황에서 실행된 적 없음 — 첫 warn/fail 때 `diagnosis`가 이슈에 붙는지 확인.
 - [ ] 다음 QRA(2027-02 초) 때 `fetch-qra-source.yml` → 에이전트 → `qra-apply.yml` 흐름이 사람 개입 없이 도는지 확인.
 - [ ] FOMC 하드코딩은 2027년까지 — 2027 하반기에 2028 일정 추가(헬스체크가 60일 전 경고).
