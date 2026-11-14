@@ -27,7 +27,7 @@ BANNED = ['매수하세요', '매도하세요', '사세요', '파세요', '사�
           '확실히 오', '확실히 내', '폭락 확정', '폭등 확정', '떡상', '떡락', '줍줍', '존버', '몰빵', '풀매수', '물타기 하', '지금이 기회',
           '호재니까', '악재니까', '호재라서 매수', '악재라서 매도']
 NAME_TOKENS = ['S&P 500', 'S&P500', '나스닥100', '나스닥 100', '러셀2000', '러셀 2000', '다우30', 'MOVE', 'VIX', 'Q1', 'Q2', 'Q3', 'Q4',
-               '1분기', '2분기', '3분기', '4분기', '2s10s', '3m10y']
+               '1분기', '2분기', '3분기', '4분기', '2s10s', '3m10y', '하위 10%', '상위 10%', '하위10%', '상위10%']
 COUNT_UNITS = r'(?:번|건|회|개|가지|차례|명|곳|종|위)'
 PERIOD_UNITS = r'(?:거래일|일선|일|주선|주|개월|달|년|시간|분)'
 NUM_RE = re.compile(r'(?<![A-Za-z0-9_.])([+\-−]?\d[\d,]*(?:\.\d+)?)')
@@ -40,33 +40,65 @@ def load(p, default=None):
         return default
 
 
-def number_pool(facts):
-    pool = set()
-
-    def walk(o):
-        if isinstance(o, bool) or o is None:
-            return
-        if isinstance(o, (int, float)):
-            pool.add(float(o))
-        elif isinstance(o, dict):
-            for v in o.values():
-                walk(v)
-        elif isinstance(o, list):
-            for v in o:
-                walk(v)
-    walk(facts)
-    extra = set()
-    for v in pool:
-        extra.update({abs(v), v * 100, abs(v) * 100})   # 부호를 말로 쓰는 경우, %p→bp (OAS 0.06 → 6bp)
-    return pool | extra
+PH_RE = re.compile(r'\{\{\s*([A-Za-z0-9_.\-/&]+?)\s*(?:\|\s*([a-z0-9+|]+))?\s*\}\}')
 
 
-def matches(x, pool):
-    for p in pool:
-        d = abs(x - p)
-        if d <= 0.051 or (x == int(x) and abs(p) >= 1 and d < 0.5 + 1e-9) or (abs(p) >= 100 and d / abs(p) <= 0.006):
-            return True
-    return False
+def resolve(facts, path):
+    """'market.US10Y.chg_5d' · 'analogs.US5Y.responses.SPY.hold_20d.median' (목록은 번호 또는 asset/key/name)"""
+    cur = facts
+    for seg in path.split('.'):
+        if isinstance(cur, dict):
+            if seg not in cur:
+                raise KeyError(path)
+            cur = cur[seg]
+        elif isinstance(cur, list):
+            if seg.isdigit():
+                cur = cur[int(seg)]
+            else:
+                hit = [x for x in cur if isinstance(x, dict) and seg in (x.get('asset'), x.get('key'), x.get('name'))]
+                if not hit:
+                    raise KeyError(path)
+                cur = hit[0]
+        else:
+            raise KeyError(path)
+    if isinstance(cur, bool) or not isinstance(cur, (int, float)):
+        raise KeyError(path)
+    return float(cur)
+
+
+def fmt_num(v, mods):
+    mods = set((mods or '').split('|')) - {''}
+    if 'bp' in mods:
+        v *= 100
+    if 'abs' in mods:
+        v = abs(v)
+    dec = 0 if 'r0' in mods else 1 if 'r1' in mods else 2 if 'r2' in mods else None
+    if dec is None:
+        dec = 0 if abs(v) >= 1000 else (2 if abs(v) < 100 else 1)
+    txt = f'{v:,.{dec}f}' if abs(v) >= 1000 else f'{v:.{dec}f}'
+    if dec and '.' in txt and not ({'r1', 'r2'} & mods):
+        txt = txt.rstrip('0').rstrip('.')
+    if '+' in mods and v > 0:
+        txt = '+' + txt
+    return txt.replace('-', '−')
+
+
+def fill(text, facts, errs, where):
+    def sub(m):
+        try:
+            return fmt_num(resolve(facts, m.group(1)), m.group(2))
+        except (KeyError, IndexError, ValueError):
+            errs.append(f'{where}: 자리표시자 {{{{{m.group(1)}}}}}를 팩트시트에서 찾을 수 없음')
+            return '??'
+    return PH_RE.sub(sub, text or '')
+
+
+def unit_of(tail):
+    t = tail.lstrip()
+    for u, k in (('%', 'pct'), ('bp', 'bp'), ('σ', 'z'), ('B', 'money'), ('T', 'money'), ('억', 'money'), ('조', 'money')):
+        if t.startswith(u):
+            return k
+    return None
 
 
 def scan_numbers(text):
@@ -90,9 +122,9 @@ def scan_numbers(text):
             continue
         if re.match(r'\s*' + PERIOD_UNITS, tail) and abs(val) <= 260 and val == int(val):
             continue
-        if abs(val) <= 10 and val == int(val) and '.' not in raw and not re.match(r'\s*(?:%|bp|σ|\$|B|T)', tail):
+        if abs(val) <= 10 and val == int(val) and '.' not in raw and not re.match(r'\s*(?:%|bp|σ|\$|B|T|조|억|천)', tail):
             continue
-        out.append((raw, val))
+        out.append((raw, val, unit_of(tail)))
     return out
 
 
@@ -117,7 +149,7 @@ def verify(draft, facts):
     if not 3 <= len(wps) <= 5:
         errs.append(f'watchpoints는 3~5개 (현재 {len(wps)})')
     for w in wps:
-        if not re.search(r'\d', w.get('condition', '')):
+        if not re.search(r'\d|\{\{', w.get('condition', '')):
             errs.append(f"watchpoint 조건에 수치 없음: {w.get('condition')!r}")
 
     # 블록 단위 텍스트 + cited_numbers
@@ -135,7 +167,7 @@ def verify(draft, facts):
         fa = an_facts.get(a.get('asset'))
         if not fa:
             errs.append(f"analogs[{i}] asset {a.get('asset')!r}이 팩트시트 유사 국면에 없음")
-        elif str(fa.get('n')) not in a.get('body', ''):
+        elif str(fa.get('n')) not in a.get('body', '') and f"analogs.{a.get('asset')}.n" not in a.get('body', '').replace(' ', ''):
             errs.append(f"analogs[{i}] 본문에 사례 수 n={fa.get('n')}가 없음")
     for i, y in enumerate(draft.get('yesterday_check') or []):
         blocks.append((f'yesterday_check[{i}]', f"{y.get('point', '')}\n{y.get('outcome', '')}", y.get('cited_numbers') or []))
@@ -147,8 +179,8 @@ def verify(draft, facts):
     total = sum(len(t) for _, t, _ in blocks)
     if total > 4200:
         errs.append(f'본문 합계 {total}자 — 3,500자 안팎으로 줄일 것')
-    pool = number_pool(facts)
     for name, text, cited in blocks:
+        filled = fill(text, facts, errs, name)
         if '<' in text:
             errs.append(f'{name}: HTML/꺾쇠 금지')
         for b in BANNED:
@@ -156,14 +188,17 @@ def verify(draft, facts):
                 errs.append(f'{name}: 금지 표현 "{b}" — 매수·매도 권유·확정·은어 대신 조건과 확률로')
         cited_vals = []
         for c in cited:
-            if not (isinstance(c, dict) and isinstance(c.get('value'), (int, float)) and str(c.get('source', '')).startswith('https://')):
-                errs.append(f'{name}: cited_numbers 항목은 {{value: 숫자, source: https URL}}')
+            if not (isinstance(c, dict) and isinstance(c.get('value'), (int, float))
+                    and (str(c.get('source', '')).startswith('https://') or c.get('threshold') is True)):
+                errs.append(f'{name}: cited_numbers 항목은 {{value, source: https URL}} 또는 판단 기준 수준이면 {{value, threshold: true}}')
             else:
                 cited_vals.append(float(c['value']))
-        for raw, val in scan_numbers(text):
-            if matches(val, pool) or any(abs(abs(val) - abs(c)) <= 0.051 for c in cited_vals):
+        if name.startswith('watchpoints'):
+            continue   # 관전 포인트의 수치는 사실 주장이 아니라 판단 기준 수준
+        for raw, val, unit in scan_numbers(PH_RE.sub(' ', text)):
+            if any(abs(abs(val) - abs(c)) <= 0.051 for c in cited_vals):
                 continue
-            errs.append(f'{name}: 숫자 {raw}가 팩트시트·cited_numbers에 없음')
+            errs.append(f'{name}: 숫자 {raw}를 직접 썼음 — 팩트시트 값은 {{{{경로}}}} 자리표시자로, 그 밖의 수치는 cited_numbers에 출처와 함께')
 
     # 출처
     for i, d in enumerate(drivers):
@@ -204,7 +239,16 @@ def publish(sess):
         json.dump({'session': sess, 'checked_at': NOW.isoformat(timespec='seconds'), 'errors': errs},
                   open(os.path.join(d, 'verify_errors.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
         return errs
-    report = {**draft, 'dashboard': dashboard(facts), 'anomalies': facts.get('anomalies', [])[:6],
+    report = json.loads(json.dumps(draft))
+
+    def fill_all(o, where='draft'):
+        if isinstance(o, dict):
+            return {k: (fill_all(v, f'{where}.{k}') if k not in ('sources', 'cited_numbers') else v) for k, v in o.items()}
+        if isinstance(o, list):
+            return [fill_all(v, where) for v in o]
+        return fill(o, facts, [], where) if isinstance(o, str) else o
+    report = fill_all(report)
+    report = {**report, 'dashboard': dashboard(facts), 'anomalies': facts.get('anomalies', [])[:6],
               'analog_stats': facts.get('analogs', []), 'verified_at': NOW.isoformat(timespec='seconds'),
               'draft_hash': hashlib.sha256(open(os.path.join(d, 'draft.json'), 'rb').read()).hexdigest(),
               'telegram_sent': (load(os.path.join(d, 'report.json')) or {}).get('telegram_sent', False)}

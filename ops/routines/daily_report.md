@@ -56,11 +56,20 @@ git pull --rebase origin main
   사례가 적거나(n<10) 국면 조건이 빠졌으면 그 한계를 밝힌다. 과거 통계는 예측이 아니라 기준점이다.
 - 투자 판단은 독자 몫이다. 리포트는 판단 재료(확률·조건·위험)를 준다.
 
-## 5. 수치 규칙 (검증 스크립트가 대조한다)
-- 본문의 모든 숫자는 **팩트시트에 있는 값**이어야 한다 (반올림은 허용: 소수 둘째 자리까지, bp는 정수).
-- 팩트시트에 없는 숫자(뉴스 속 수치, 연준 발언의 금리 수준 등)는 해당 항목의 `cited_numbers`에
-  `{"value": 25, "source": "https://..."}`로 출처와 함께 적는다. 그 외 허용: 연도·날짜, 10 이하의 세는 수(3가지, 2번째 등).
-- 단위: 지수·주가 %, 금리 bp(변화)·%(수준), 금액 $B. 부호는 + / − 를 명시.
+## 5. 수치 규칙 — 숫자는 직접 쓰지 말고 자리표시자로 (검증 스크립트가 강제)
+- 팩트시트의 값은 **`{{경로}}`** 로 쓴다. 게시할 때 스크립트가 팩트시트 값으로 바꿔 넣는다 → 숫자가 틀릴 수 없다.
+  - 경로 = facts.json의 키를 점으로: `{{market.US10Y.chg_5d}}`, `{{market.SPY.close}}`, `{{rates.dgs2.value}}`,
+    `{{plumbing.sofr_minus_iorb_bp}}`, `{{plumbing.ig_oas.delta|bp}}`, `{{sector_rank.0.chg_1d}}`
+  - 목록은 번호 또는 asset/key/name: `{{analogs.US5Y.n|r0}}`, `{{analogs.US5Y.responses.SPY.hold_20d.median|+}}`,
+    `{{analogs.QQQ.forward.QQQ.20d.p10}}`, `{{analogs.US5Y.closest.0.spy_20d|+}}`
+  - 수식어(`|`로 연결): `+` 양수에 + 표시 · `abs` 절댓값 · `bp` ×100(%p→bp) · `r0`/`r1`/`r2` 소수 자릿수
+  - 단위(%·bp·σ·$B)는 자리표시자 밖에 직접 쓴다: `{{market.US5Y.chg_5d|+}}bp`, `{{market.QQQ.chg_1d|+}}%`
+- 맨 숫자(직접 타이핑한 숫자)는 아래만 허용, 나머지는 검증 실패:
+  - 뉴스·발언 속 수치 → 그 블록의 `cited_numbers`에 `{"value": 25, "source": "https://..."}`
+  - 네가 정한 판단 기준 수준(무효화 조건 등) → `{"value": 115, "threshold": true}`
+  - 연도·날짜, 기간(20일·52주), 세는 수(3번·12건 — 100 이하), 10 이하 정수, '하위 10%' 같은 통계 용어
+  - `watchpoints`는 판단 기준이라 맨 숫자 허용 (그래도 현재 수준은 자리표시자로 함께 쓰면 좋다)
+- 사례 비율("19번 중 12번")처럼 계산한 세는 수는 허용되지만, 퍼센트는 `pct_positive` 자리표시자를 쓴다.
 
 ## 6. 출력 — `data/daily/<세션일>/draft.json`
 ```json
@@ -70,7 +79,7 @@ git pull --rebase origin main
   "regime": {"label": "risk_on | risk_off | transition", "one_liner": "레짐 판정 근거 한 문장"},
   "yesterday_check": [{"point": "어제 관전 포인트", "outcome": "결과 (수치)", "hit": true}],
   "drivers": [
-    {"title": "제목", "anomaly_keys": ["US10Y"], "body": "사실(수치) → 누가·왜(출처) → 해석 → 무효화 조건. 400자 이내",
+    {"title": "제목", "anomaly_keys": ["US10Y"], "body": "사실({{자리표시자}}) → 누가·왜(출처) → 해석 → 무효화 조건. 400자 이내",
      "sources": ["https://..."], "cited_numbers": []}
   ],
   "skipped_anomalies": [{"key": "...", "reason": "..."}],
@@ -90,7 +99,7 @@ git pull --rebase origin main
 ```bash
 python3 scripts/verify_daily_report.py --check data/daily/<세션일>/draft.json
 ```
-`FAIL`이 나오면 사유대로 고친다(대개 팩트시트에 없는 숫자 → 팩트시트 값으로 바꾸거나 cited_numbers에 출처 추가).
+`FAIL`이 나오면 사유대로 고친다(대개 맨 숫자 → `{{경로}}`로 바꾸거나 cited_numbers에 출처/threshold 추가, 경로 오타).
 통과하면:
 ```bash
 git add data/daily/<세션일>/draft.json
