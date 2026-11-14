@@ -1,36 +1,41 @@
 {
-  "checked_at": "2026-11-13T07:43:51+00:00",
+  "checked_at": "2026-11-14T02:52:56+00:00",
   "status": "ok",
   "checks": [
     {
       "name": "T1 순유동성",
       "status": "ok",
-      "detail": "NL $5795.11B score 0.92% asOf 2026-11-12 · {'walcl': 'H.4.1 reserve_credit (2026-11-12)', 'tga': 'DTS daily (2026-11-10)', 'rrp': 'FRED RRPONTSYD daily'}"
+      "detail": "NL $5774.03B score 0.28% asOf 2026-11-13 · {'walcl': 'H.4.1 reserve_credit (2026-11-12)', 'tga': 'DTS daily (2026-11-12)', 'rrp': 'FRED RRPONTSYD daily'}"
     },
     {
       "name": "국채 수익률",
       "status": "ok",
-      "detail": "DGS10 4.98 asOf 2026-11-10"
+      "detail": "DGS10 5.1 asOf 2026-11-12"
     },
     {
       "name": "T2 실물경제",
       "status": "ok",
-      "detail": "캐시 0.3h 전 · 실업률 2026-10 (발표 2026-11-06)"
+      "detail": "캐시 1.5h 전 · 실업률 2026-10 (발표 2026-11-06)"
     },
     {
       "name": "T3 글로벌",
       "status": "ok",
-      "detail": "빈 시리즈 없음 · 캐시 4.7h 전"
+      "detail": "빈 시리즈 없음 · 캐시 1.1h 전"
+    },
+    {
+      "name": "시세 스냅샷",
+      "status": "ok",
+      "detail": "33종목 · 저장 0.1h 전 · 6h 넘은 종목 없음"
     },
     {
       "name": "이벤트 캘린더",
       "status": "ok",
-      "detail": "45건 · error=None"
+      "detail": "47건 · error=None"
     },
     {
       "name": "FOMC 일정 하드코딩",
       "status": "ok",
-      "detail": "마지막 등록일 2027-11-17 (369일 남음) — 60일 이내면 다음 해 일정 추가 필요"
+      "detail": "마지막 등록일 2027-11-17 (368일 남음) — 60일 이내면 다음 해 일정 추가 필요"
     },
     {
       "name": "유동성 예측모델",
@@ -40,22 +45,22 @@
     {
       "name": "DTS TGA",
       "status": "ok",
-      "detail": "최신 2026-11-10 $912.1B"
+      "detail": "최신 2026-11-12 $933.1B"
     },
     {
       "name": "QRA",
       "status": "ok",
-      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (11일 전)"
+      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (12일 전)"
     },
     {
       "name": "뉴스 수집·번역",
       "status": "ok",
-      "detail": "226건 · 번역 223건 (99%) · 수집 0.1h 전"
+      "detail": "226건 · 번역 226건 (100%) · 수집 0.3h 전"
     },
     {
       "name": "뉴스 다이제스트",
       "status": "ok",
-      "detail": "생성 1.7h 전 · 3건"
+      "detail": "생성 2.9h 전 · 3건"
     },
     {
       "name": "H.4.1 이력",
@@ -70,7 +75,7 @@
     {
       "name": "경매 데이터 스키마",
       "status": "ok",
-      "detail": "157건 · 갱신 2026-11-13T03:04"
+      "detail": "157건 · 갱신 2026-11-13T21:00"
     },
     {
       "name": "경매 요약",
@@ -81,14 +86,6 @@
       "name": "GitHub Actions 실패(24h)",
       "status": "ok",
       "detail": "없음 · 이후 성공으로 복구됨: ['Deploy Cloudflare Worker (03:02Z)']"
-    }
-  ],
-  "diagnosis": [
-    {
-      "check": "헬스체크 실행 여부",
-      "likely_cause": "마지막 점검(checked_at 2026-11-13T07:43Z)이 약 16시간 전이고 23:00 UTC 정기 실행 결과가 38분 지난 현재까지 커밋되지 않음 — 오늘 점검이 실행되지 않음(지연 또는 실패 가능).",
-      "suggested_fix": ".github/workflows/health-check.yml의 schedule/최근 실행 로그와 cron-job.org 트리거를 확인.",
-      "confidence": "medium"
     }
   ]
 }
