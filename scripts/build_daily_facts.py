@@ -53,7 +53,8 @@ UNIVERSE = {
 # 과거 유사 국면을 계산할 자산 → 대응 결과를 볼 대상 자산 (금리·변동성 충격은 주식/채권 대응으로 본다)
 ANALOG_ASSETS = {'SPY': ['SPY'], 'QQQ': ['QQQ', 'SPY'], 'IWM': ['IWM', 'SPY'], 'VIX': ['SPY'], 'MOVE': ['SPY', 'TLT'],
                  'US10Y': ['TLT', 'SPY'], 'US30Y': ['TLT', 'SPY'], 'HYG': ['HYG', 'SPY'], 'DXY': ['DXY', 'SPY', 'GOLD'],
-                 'USDJPY': ['USDJPY', 'SPY'], 'GOLD': ['GOLD'], 'WTI': ['WTI', 'SPY'], 'BTC': ['BTC'], 'COPPER': ['COPPER', 'SPY']}
+                 'USDJPY': ['USDJPY', 'SPY'], 'GOLD': ['GOLD'], 'SILVER': ['SILVER', 'GOLD'], 'WTI': ['WTI', 'SPY'], 'NATGAS': ['NATGAS'],
+                 'BTC': ['BTC'], 'COPPER': ['COPPER', 'SPY'], 'US5Y': ['TLT', 'SPY'], 'TLT': ['TLT', 'SPY'], 'LQD': ['LQD', 'SPY']}
 
 
 def get_json(url, timeout=40, tries=3):
@@ -262,13 +263,14 @@ for key, m in market.items():
         a, b = sma(d['vals'], lv, i - 1), sma(d['vals'], lv, i)
         if a and b and (d['vals'][i - 1] - a) * (d['vals'][i] - b) < 0 and m['group'] in ('equity', 'fx', 'commodity', 'crypto', 'rates'):
             up = d['vals'][i] > b
-            add('cross', key, 1.5 if lv == 200 else 1.0, f"{m['name']} {lv}일 이동평균 {'상향' if up else '하향'} 돌파")
+            add('cross', key, 1.5 if lv == 200 else 1.0, f"{m['name']} {lv}일 이동평균 {'상향' if up else '하향'} 돌파",
+                ma=lv, dir='up' if up else 'down')
     yr = d['vals'][-252:]
     if m['group'] in ('equity', 'rates', 'commodity', 'crypto', 'fx') and len(yr) >= 252:
         if d['vals'][-1] >= max(yr):
-            add('extreme', key, 1.2, f"{m['name']} 52주 신고가")
+            add('extreme', key, 1.2, f"{m['name']} 52주 신고가", side='high')
         elif d['vals'][-1] <= min(yr):
-            add('extreme', key, 1.2, f"{m['name']} 52주 신저가")
+            add('extreme', key, 1.2, f"{m['name']} 52주 신저가", side='low')
 
 for key, levels in (('VIX', (20, 30, 40)), ('MOVE', (100, 120, 140)), ('US10Y', (4.0, 4.5, 5.0)), ('DXY', (100, 105, 110))):
     d = derived.get(key)
@@ -277,7 +279,8 @@ for key, levels in (('VIX', (20, 30, 40)), ('MOVE', (100, 120, 140)), ('US10Y', 
     a, b = d['vals'][-2], d['vals'][-1]
     for lv in levels:
         if (a - lv) * (b - lv) < 0:
-            add('level', key, 1.8, f"{UNIVERSE[key][1]} {lv} {'상향' if b > lv else '하향'} 돌파 ({a:.2f}→{b:.2f})")
+            add('level', key, 1.8, f"{UNIVERSE[key][1]} {lv} {'상향' if b > lv else '하향'} 돌파 ({a:.2f}→{b:.2f})",
+                level=lv, dir='up' if b > lv else 'down')
 
 
 def zof(k):
@@ -359,67 +362,97 @@ spy_d = derived['SPY']
 spy_trend = {spy_d['dates'][i]: (spy_d['vals'][i] > sma(spy_d['vals'], 200, i)) for i in range(199, len(spy_d['vals']))}
 
 
-def analogs_for(key):
+def trigger_dates(key, kind, an):
+    """과거에 같은 종류의 신호가 난 날짜들 (최근 20거래일 제외 — 현재 국면과 겹침). → ([(date, z|None)], 설명)"""
     d = derived[key]
-    z0 = d['z'][-1]
-    if z0 is None:
-        return None
-    sign, thr = (1 if z0 > 0 else -1), max(2.0, abs(z0) * 0.8)
+    v, dates, last = d['vals'], d['dates'], len(d['vals']) - 21
+    out = []
+    if kind == 'move':
+        z0 = d['z'][-1]
+        sign, thr = (1 if z0 > 0 else -1), max(2.0, abs(z0) * 0.8)
+        for i in range(61, len(d['ch']) - 20):
+            z = d['z'][i]
+            if z is not None and z * sign >= thr:
+                out.append((dates[i + 1], z))   # ch[i] = vals[i]→vals[i+1] → 그 날짜는 dates[i+1]
+        return out, f"같은 방향 1일 변동 {sign * thr:+.1f}σ 이상"
+    if kind == 'cross':
+        n, up = an['ma'], an['dir'] == 'up'
+        for i in range(n + 1, last):
+            p, c = sma(v, n, i - 1), sma(v, n, i)
+            if (v[i - 1] - p) * (v[i] - c) < 0 and (v[i] > c) == up:
+                out.append((dates[i], None))
+        return out, f"{n}일 이동평균 {'상향' if up else '하향'} 돌파"
+    if kind == 'extreme':
+        hi = an['side'] == 'high'
+        for i in range(252, last):
+            w = v[i - 251:i + 1]
+            if (v[i] >= max(w)) if hi else (v[i] <= min(w)):
+                out.append((dates[i], None))
+        return out, f"52주 {'신고가' if hi else '신저가'}"
+    if kind == 'level':
+        lv, up = an['level'], an['dir'] == 'up'
+        for i in range(1, last):
+            if (v[i - 1] - lv) * (v[i] - lv) < 0 and (v[i] > lv) == up:
+                out.append((dates[i], None))
+        return out, f"{lv} {'상향' if up else '하향'} 돌파"
+    return [], ''
+
+
+def analogs_for(an):
+    key, kind = an['key'], an['kind']
+    d = derived[key]
+    cand, desc = trigger_dates(key, kind, an)
     trend_now = spy_trend.get(session)
-    cand = []
-    for i in range(61, len(d['ch']) - 20):   # 최근 20거래일 제외 (현재 국면과 겹침)
-        z = d['z'][i]
-        if z is None or z * sign < thr:
-            continue
-        cand.append((d['dates'][i + 1], z))   # ch[i] = vals[i]→vals[i+1] 변화 → 그 날짜는 dates[i+1]
     filtered = [(dd, z) for dd, z in cand if spy_trend.get(dd) == trend_now] if trend_now is not None else cand
     regime_note = f"S&P 500 {'200일선 위' if trend_now else '200일선 아래'} 국면만" if trend_now is not None else '국면 조건 없음'
     if len(filtered) < 8:
         filtered, regime_note = cand, '국면 조건 없음 (표본 부족)'
-    # 군집 제거: 10거래일 안에 이어진 신호는 첫 날만
+    # 군집 제거: 이어진 신호는 첫 날만 (1일 충격 10거래일, 돌파·신고가류 20거래일)
+    gap = 10 if kind == 'move' else 20
     events, last_i = [], -99
     imap = idx_map(key)
     for dd, z in filtered:
         i = imap[dd]
-        if i - last_i > 10:
+        if i - last_i > gap:
             events.append((dd, z))
             last_i = i
+    base = {'asset': key, 'trigger': an['text'], 'condition': desc, 'regime_filter': regime_note, 'n': len(events)}
     if len(events) < 5:
-        return {'asset': key, 'n': len(events), 'note': '유사 사례 5건 미만 — 통계 생략', 'z_now': r2(z0)}
-    targets = ANALOG_ASSETS.get(key, [key])
-    out = {'asset': key, 'z_now': r2(z0), 'threshold_z': r2(sign * thr), 'n': len(events), 'regime_filter': regime_note,
-           'period': f"{events[0][0]} ~ {events[-1][0]}", 'forward': {}, 'responses': {}}
-    for t in targets:
+        return {**base, 'note': '유사 사례 5건 미만 — 통계 생략'}
+    out = {**base, 'period': f"{events[0][0]} ~ {events[-1][0]}", 'forward': {}, 'responses': {}}
+    for t in ANALOG_ASSETS.get(key, [key]):
         if t not in derived:
             continue
         out['forward'][t] = {f'{h}d': summ([fwd(t, dd, h) for dd, _ in events]) for h in HORIZONS}
         if derived[t]['unit'] == 'bp':
             continue
-        hold = [fwd(t, dd, 20) for dd, _ in events]
-        nxt = [fwd(t, dd, 19, 1) for dd, _ in events]              # 다음날 종가 → 20거래일째
-        wait = [fwd(t, dd, 20, 5) for dd, _ in events]             # 5거래일 뒤 진입 → 20거래일
+        nxt = [fwd(t, dd, 19, 1) for dd, _ in events]                 # 다음날 종가 → 20거래일째
         resp = {
-            'hold_20d': summ(hold),                                  # 그대로 보유
-            'sell_next_day_avoided': summ([-x if x is not None else None for x in nxt]),   # 다음날 매도 시 피한 손익(+면 매도가 유리)
-            'add_next_day_20d': summ(nxt),                           # 다음날 추가 매수
-            'wait5_then_add_20d': summ(wait),                        # 5일 기다린 뒤 진입
-            'max_adverse_20d': summ([mae(t, dd) for dd, _ in events]),   # 보유 시 20일 내 최대 평가손
+            'hold_20d': summ([fwd(t, dd, 20) for dd, _ in events]),                          # 그대로 보유
+            'sell_next_day_avoided': summ([-x if x is not None else None for x in nxt]),     # 다음날 매도 시 피한 손익(+면 매도가 유리)
+            'add_next_day_20d': summ(nxt),                                                   # 다음날 추가 매수
+            'wait5_then_add_20d': summ([fwd(t, dd, 20, 5) for dd, _ in events]),             # 5일 기다린 뒤 진입
+            'max_adverse_20d': summ([mae(t, dd) for dd, _ in events]),                       # 보유 시 20일 내 최대 평가손
         }
         cands = {k: v['median'] for k, v in resp.items() if v and k != 'max_adverse_20d'}
-        best = max(cands, key=cands.get) if cands else None
-        out['responses'][t] = {**resp, 'best_by_median': best}
-    # 가장 비슷한 사례 (|z| 차이 작은 순, 동률이면 최근) — 에이전트가 당시 맥락을 검색
-    closest = sorted(events, key=lambda e: (abs(abs(e[1]) - abs(z0)), e[0] < events[-1][0]))[:6]
-    out['closest'] = [{'date': dd, 'z': r2(z), 'move': r2(d['ch'][imap[dd] - 1]),
-                       'spy_5d': r2(fwd('SPY', dd, 5)), 'spy_20d': r2(fwd('SPY', dd, 20)),
-                       'vix_level': r2(dict(series.get('VIX', [])).get(dd))} for dd, z in sorted(closest)]
+        out['responses'][t] = {**resp, 'best_by_median': max(cands, key=cands.get) if cands else None}
+    # 에이전트가 당시 맥락을 검색할 대표 사례 — 1일 충격은 |z|가 가장 비슷한 순, 나머지는 최근 순
+    if kind == 'move':
+        z0 = d['z'][-1]
+        closest = sorted(events, key=lambda e: abs(abs(e[1]) - abs(z0)))[:6]
+    else:
+        closest = events[-6:]
+    vix = dict(series.get('VIX', []))
+    out['closest'] = [{'date': dd, 'z': r2(z), 'move_1d': r2(d['ch'][imap[dd] - 1]) if imap[dd] > 0 else None,
+                       'spy_5d': r2(fwd('SPY', dd, 5)), 'spy_20d': r2(fwd('SPY', dd, 20)), 'vix_level': r2(vix.get(dd))}
+                      for dd, z in sorted(closest)]
     return out
 
 
 analogs = []
-for a in anoms:
-    if a['kind'] == 'move' and a['key'] in ANALOG_ASSETS and a['key'] in derived:
-        res = analogs_for(a['key'])
+for an in anoms:
+    if an['kind'] in ('move', 'cross', 'extreme', 'level') and an['key'] in ANALOG_ASSETS and an['key'] in derived:
+        res = analogs_for(an)
         if res:
             analogs.append(res)
 analogs = analogs[:4]

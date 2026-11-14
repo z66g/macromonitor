@@ -25,6 +25,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build facts
         run: python3 scripts/build_daily_facts.py
+      - name: Print facts (시험 실행 — 로그로 확인)
+        if: github.event_name == 'workflow_dispatch' && !inputs.commit
+        run: python3 -c "import json,glob;f=sorted(glob.glob('data/daily/*/facts.json'))[-1];print('FACTS_JSON '+json.dumps(json.load(open(f)),ensure_ascii=False,separators=(',',':')))"
       - name: Upload artifact (시험 실행)
         if: github.event_name == 'workflow_dispatch' && !inputs.commit
         uses: actions/upload-artifact@v4
