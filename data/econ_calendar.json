@@ -1,0 +1,183 @@
+{
+ "updated": "2026-11-14T09:59:12+00:00",
+ "calendar_saved_at": "2026-11-14T07:55:06.284Z",
+ "today_kst": "2026-11-14",
+ "events": [
+  {
+   "key": "2026-11-10|소비자물가 (CPI)",
+   "date": "2026-11-10",
+   "name": "소비자물가 (CPI)",
+   "indicator": "cpi",
+   "imp": "high",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-12|세인트루이스 FSI",
+   "date": "2026-11-12",
+   "name": "세인트루이스 FSI",
+   "indicator": "stlfsi",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-13|생산자물가 (PPI)",
+   "date": "2026-11-13",
+   "name": "생산자물가 (PPI)",
+   "indicator": "ppi",
+   "imp": "high",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-17|소매판매",
+   "date": "2026-11-17",
+   "name": "소매판매",
+   "indicator": "retail",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-18|세인트루이스 FSI",
+   "date": "2026-11-18",
+   "name": "세인트루이스 FSI",
+   "indicator": "stlfsi",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-18|주택착공",
+   "date": "2026-11-18",
+   "name": "주택착공",
+   "indicator": "housing",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-19|실업수당 청구 (신규·연속) 주간 발표",
+   "date": "2026-11-19",
+   "name": "실업수당 청구 (신규·연속) 주간 발표",
+   "indicator": "claims",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-20|소비자심리 (미시간)",
+   "date": "2026-11-20",
+   "name": "소비자심리 (미시간)",
+   "indicator": "umich",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-25|GDP 성장률",
+   "date": "2026-11-25",
+   "name": "GDP 성장률",
+   "indicator": "gdp",
+   "imp": "high",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-25|개인소비지출 (PCE · Core PCE)",
+   "date": "2026-11-25",
+   "name": "개인소비지출 (PCE · Core PCE)",
+   "indicator": "pce",
+   "imp": "high",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-25|내구재 주문",
+   "date": "2026-11-25",
+   "name": "내구재 주문",
+   "indicator": "durable",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-25|세인트루이스 FSI",
+   "date": "2026-11-25",
+   "name": "세인트루이스 FSI",
+   "indicator": "stlfsi",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-25|주택착공",
+   "date": "2026-11-25",
+   "name": "주택착공",
+   "indicator": "housing",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-11-26|실업수당 청구 (신규·연속) 주간 발표",
+   "date": "2026-11-26",
+   "name": "실업수당 청구 (신규·연속) 주간 발표",
+   "indicator": "claims",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-01|ISM 제조업 PMI",
+   "date": "2026-12-01",
+   "name": "ISM 제조업 PMI",
+   "indicator": "ism_mfg",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-01|구인이직보고서 (JOLTS)",
+   "date": "2026-12-01",
+   "name": "구인이직보고서 (JOLTS)",
+   "indicator": "jolts",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-02|세인트루이스 FSI",
+   "date": "2026-12-02",
+   "name": "세인트루이스 FSI",
+   "indicator": "stlfsi",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-03|ISM 서비스업 PMI",
+   "date": "2026-12-03",
+   "name": "ISM 서비스업 PMI",
+   "indicator": "ism_svc",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-03|내구재 주문",
+   "date": "2026-12-03",
+   "name": "내구재 주문",
+   "indicator": "durable",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-03|실업수당 청구 (신규·연속) 주간 발표",
+   "date": "2026-12-03",
+   "name": "실업수당 청구 (신규·연속) 주간 발표",
+   "indicator": "claims",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-04|고용보고서 (NFP · 실업률)",
+   "date": "2026-12-04",
+   "name": "고용보고서 (NFP · 실업률)",
+   "indicator": "nfp",
+   "imp": "high",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-04|실업률 (UNRATE)",
+   "date": "2026-12-04",
+   "name": "실업률 (UNRATE)",
+   "indicator": "unrate",
+   "imp": "high",
+   "estimated": false
+  }
+ ]
+}
