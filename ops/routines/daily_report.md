@@ -97,6 +97,8 @@ git pull --rebase origin main
 ```
 - drivers 2~3개, analogs는 팩트시트 analogs 중 의미 있는 것 1~3개(없으면 빈 배열), watchpoints 3~5개(각각 수치 조건 포함),
   yesterday_check는 직전 리포트가 있을 때만. 전체 본문 합계 3,500자 이내. 한국어, 존댓말 없이 건조한 평서문.
+- 팩트시트 내부 키(risk_on, contraction 등)를 그대로 쓰지 말고 사람이 읽는 말로 (Risk-On, 레포 수축 국면 등).
+- headline은 한 문장 핵심 해석(쉼표로 두 갈래까지), one_liner는 레짐 판정 근거 한두 문장 — 사이트 맨 위 카드에 크게 표시된다.
 - HTML 금지(`<` 사용 금지). 줄바꿈은 `\n`.
 
 ## 7. 자체 검증 → 커밋
