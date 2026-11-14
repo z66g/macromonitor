@@ -1,0 +1,4 @@
+{
+ "telegram": false,
+ "_doc": "시험 기간(사이트만 게시) 동안 false. 품질 확인 후 true로 바꾸면 daily-report.yml이 텔레그램 요약을 보낸다."
+}

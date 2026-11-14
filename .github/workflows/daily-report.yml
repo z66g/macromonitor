@@ -1,0 +1,56 @@
+name: Daily Report
+
+# 리포트 에이전트가 data/daily/<세션>/draft.json을 push하면:
+#   1) verify_daily_report.py — 형식·숫자 대조·이상 신호 반영·금지 표현 검사 → report.json 게시 (사이트 report.html이 읽음)
+#   2) 실패 시 GitHub 이슈(daily-report)로 알림 — 구독자에게는 아무것도 나가지 않음
+#   3) data/daily/config.json의 telegram이 true면 요약 + 전문 링크 발송
+# GITHUB_TOKEN 커밋은 다른 워크플로를 트리거하지 않으므로 루프 없음.
+on:
+  push:
+    branches: [main]
+    paths: ['data/daily/*/draft.json']
+  schedule:
+    - cron: '20 23 * * 1-5'     # 백업: push 트리거 누락 대비 (KST 08:20)
+  workflow_dispatch:
+
+concurrency:
+  group: daily-report
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify + publish
+        id: verify
+        run: python3 scripts/verify_daily_report.py
+      - name: Commit report
+        if: always()
+        run: |
+          bash scripts/commit_data.sh "chore: 데일리 리포트 게시 [$(date -u '+%Y-%m-%d')]" data/daily/
+      - name: Alert on failure (GitHub issue)
+        if: failure() && steps.verify.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create daily-report --color FBCA04 --description '데일리 리포트 검증 실패' --force
+          f=$(ls -t data/daily/*/verify_errors.json | head -1)
+          sess=$(basename "$(dirname "$f")")
+          { echo "데일리 리포트 초안 검증 실패 — 사이트·텔레그램 미게시."; echo; echo '```'; python3 -c "import json,sys;[print('-',e) for e in json.load(open(sys.argv[1]))['errors']]" "$f"; echo '```'; echo; echo "다음 실행 때 에이전트가 고치거나, 지침(ops/routines/daily_report.md) 보강 필요."; } > body.md
+          num=$(gh issue list --label daily-report --state open --json number -q '.[0].number')
+          if [ -n "$num" ]; then gh issue comment "$num" --body-file body.md; else gh issue create --label daily-report --title "데일리 리포트 검증 실패 ($sess)" --body-file body.md; fi
+      - name: Telegram
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 scripts/send_daily_telegram.py
+      - name: Commit sent flags
+        if: success()
+        run: |
+          bash scripts/commit_data.sh "chore: 데일리 리포트 텔레그램 발송 표시" data/daily/

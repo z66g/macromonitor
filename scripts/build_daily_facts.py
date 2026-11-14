@@ -168,6 +168,7 @@ def worker(path):
 
 liq, yh, tower, pipe3, fsi, cal = (worker(p) for p in ['/liq', '/yields-hist', '/liq-tower', '/pipe3', '/ofr-fsi', '/calendar'])
 iorb = worker('/fred?series_id=IORB&limit=5&sort_order=desc')
+news_raw = worker('/news')
 
 rates = {}
 if yh and yh.get('labels'):
@@ -252,6 +253,25 @@ today_kst = (NOW + dt.timedelta(hours=9)).date()
 upcoming = [{'date': e['date'], 'name': e['name'], 'imp': e.get('imp'), 'estimated': bool(e.get('estimated'))}
             for e in ((cal or {}).get('events') or [])
             if today_kst.isoformat() <= e['date'] <= (today_kst + dt.timedelta(days=7)).isoformat() and e.get('imp') in ('high', 'medium')]
+
+# 원인 조사 출발점 — 최근 36시간 뉴스 헤드라인 (사이트 뉴스 피드, 번역 포함). 리포트 에이전트가 웹 검색으로 확인한다.
+news = []
+for it in ((news_raw or {}).get('items') or []):
+    try:
+        t = dt.datetime.strptime(it.get('pubDate', ''), '%a, %d %b %Y %H:%M:%S %z') if it.get('pubDate') else None
+    except ValueError:
+        t = None
+    if t is None:
+        try:
+            t = dt.datetime.fromisoformat(str(it.get('pubDate')).replace('Z', '+00:00'))
+        except ValueError:
+            continue
+    if t.tzinfo is None:
+        t = t.replace(tzinfo=dt.timezone.utc)
+    if NOW - t <= dt.timedelta(hours=36):
+        news.append({'time': t.astimezone(dt.timezone.utc).isoformat(timespec='minutes'), 'title': it.get('title'),
+                     'title_ko': it.get('titleKo'), 'source': it.get('sourceName') or it.get('source'), 'link': it.get('link')})
+news = sorted(news, key=lambda x: x['time'], reverse=True)[:30]
 
 # ── 4. 이상 신호 ────────────────────────────────────────────
 anoms = []
@@ -519,6 +539,7 @@ facts = {
     'market': market, 'sector_rank': [{'key': k, 'name': market[k]['name'], 'chg_1d': market[k]['chg_1d']} for k in sectors],
     'rates': rates, 'plumbing': plumbing,
     'events': {'econ_results': econ_recent, 'auctions': auctions, 'upcoming_7d': upcoming},
+    'news_headlines': news,
     'anomalies': anoms, 'analogs': analogs, 'data_status': status,
 }
 os.makedirs(os.path.join(OUT_DIR, session), exist_ok=True)

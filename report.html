@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>데일리 시황 — MacroMonitor</title>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0D1117">
+<style>
+:root{--bg:#0D1117;--card:#161B22;--line:#21262D;--line2:#30363D;--txt:#E6EDF3;--txt2:#C9D1D9;--mute:#8B949E;--dim:#656D76;
+  --green:#3FB950;--red:#F85149;--amber:#F0B429;--blue:#58A6FF;}
+*{box-sizing:border-box;}
+html{background:var(--bg);}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;line-height:1.65;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}
+.wrap{max-width:820px;margin:0 auto;}
+a{color:var(--blue);text-decoration:none;}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.logo{font-weight:800;letter-spacing:.06em;font-size:18px;color:var(--txt);}
+.logo b{color:var(--amber);font-weight:800;}
+.nav{display:flex;align-items:center;gap:6px;}
+.nav button,.nav select{background:var(--card);color:var(--txt2);border:0.5px solid var(--line2);border-radius:6px;font-size:13px;min-height:34px;padding:4px 10px;cursor:pointer;}
+.nav button:disabled{opacity:.35;cursor:default;}
+.date{color:var(--mute);font-size:12px;margin-bottom:4px;}
+h1{font-size:22px;line-height:1.35;margin:0 0 10px;}
+.regime{display:inline-flex;gap:8px;align-items:center;font-size:13px;padding:6px 10px;border-radius:6px;border:0.5px solid var(--line2);background:var(--card);color:var(--txt2);}
+.regime b{font-weight:700;}
+section{margin-top:26px;}
+h2{font-size:13px;letter-spacing:.04em;color:var(--mute);font-weight:700;margin:0 0 10px;padding-bottom:6px;border-bottom:0.5px solid var(--line);}
+.card{background:var(--card);border:0.5px solid var(--line2);border-radius:8px;padding:14px 16px;margin-bottom:10px;}
+.card h3{font-size:15px;margin:0 0 6px;}
+.body{white-space:pre-wrap;color:var(--txt2);}
+.src{margin-top:8px;font-size:12px;color:var(--dim);display:flex;flex-wrap:wrap;gap:4px 10px;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{font-size:12px;padding:3px 9px;border-radius:12px;background:#1F2A37;color:var(--txt2);border:0.5px solid var(--line2);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{font-size:11px;color:var(--dim);font-weight:600;text-align:right;padding:6px 6px;border-bottom:0.5px solid var(--line2);}
+th:first-child,td:first-child{text-align:left;}
+td{padding:6px 6px;border-bottom:0.5px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;color:var(--txt2);}
+.up{color:var(--green);}.dn{color:var(--red);}.na{color:var(--dim);}
+.zhi{font-weight:700;}
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+ul.plain{margin:0;padding-left:18px;color:var(--txt2);}
+ul.plain li{margin:4px 0;}
+.wp b{color:var(--txt);}
+.hit{font-size:11px;padding:1px 6px;border-radius:4px;margin-left:6px;}
+.hit.y{background:rgba(63,185,80,.15);color:var(--green);}.hit.n{background:rgba(248,81,73,.15);color:var(--red);}
+.foot{margin-top:30px;font-size:12px;color:var(--dim);border-top:0.5px solid var(--line);padding-top:12px;}
+.err{color:var(--red);padding:40px 0;text-align:center;}
+.muted{color:var(--dim);}
+.resp td:first-child{white-space:nowrap;}
+.best{background:rgba(240,180,41,.08);}
+@media (max-width:600px){h1{font-size:19px;}body{font-size:14px;}td,th{padding:6px 4px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="logo" href="./"><b>M</b>ACRO<b>M</b>ONITOR</a>
+    <div class="nav">
+      <button id="prev" aria-label="이전 리포트">‹</button>
+      <select id="pick" aria-label="리포트 날짜"></select>
+      <button id="next" aria-label="다음 리포트">›</button>
+    </div>
+  </div>
+  <div id="main"><div class="muted" style="padding:40px 0;text-align:center;">불러오는 중…</div></div>
+</div>
+<script>
+const RAW = 'https://raw.githubusercontent.com/z66g/macromonitor/main/data/daily/';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https:\/\//i.test(String(u || '')) ? String(u) : null;
+const DOW = ['일','월','화','수','목','금','토'];
+const REGIME = { risk_on: ['🟢', 'Risk-On'], risk_off: ['🔴', 'Risk-Off'], transition: ['🟡', '전환 국면'] };
+const RESP_LABEL = { hold_20d: '그대로 보유', sell_next_day_avoided: '다음날 매도 (피한 손익)', add_next_day_20d: '다음날 추가',
+  wait5_then_add_20d: '5일 대기 후 진입', max_adverse_20d: '보유 시 20일 내 최대 역행' };
+
+async function getJSON(url) {
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 15000);
+  try { const r = await fetch(url, { signal: ctrl.signal, cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
+  finally { clearTimeout(t); }
+}
+const sign = (v, unit) => v == null ? '<span class="na">—</span>'
+  : `<span class="${v > 0 ? 'up' : v < 0 ? 'dn' : ''}">${v > 0 ? '+' : ''}${v}${unit}</span>`;
+const fmtClose = v => v == null ? '—' : (Math.abs(v) >= 1000 ? Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 }) : String(+Number(v).toFixed(3)));
+const srcLinks = arr => (arr || []).map(safeUrl).filter(Boolean)
+  .map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">출처${(arr.length > 1) ? ' ' + (i + 1) : ''} ↗</a>`).join('');
+
+function render(r) {
+  const d = new Date(r.session + 'T12:00:00Z');
+  const rg = REGIME[r.regime?.label] || ['', ''];
+  const db = r.dashboard || {};
+  let h = `<div class="date">${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${DOW[d.getUTCDay()]}) 미국 장 마감 기준</div>
+    <h1>${esc(r.headline)}</h1>
+    <div class="regime">${rg[0]} <b>${rg[1]}</b> <span>${esc(r.regime?.one_liner)}</span></div>`;
+
+  if (r.yesterday_check?.length) {
+    h += `<section><h2>어제 관전 포인트 → 결과</h2>${r.yesterday_check.map(y =>
+      `<div class="card"><div class="body"><b>${esc(y.point)}</b>${y.hit === true ? '<span class="hit y">적중</span>' : y.hit === false ? '<span class="hit n">빗나감</span>' : ''}\n${esc(y.outcome)}</div></div>`).join('')}</section>`;
+  }
+
+  if (db.rows?.length) {
+    h += `<section><h2>시장 대시보드 <span class="muted" style="font-weight:400;">(z = 60일 변동성 대비)</span></h2><div class="tblwrap"><table>
+      <tr><th>자산</th><th>종가</th><th>1일</th><th>5일</th><th>z</th></tr>${db.rows.map(x =>
+      `<tr><td>${esc(x.name)}${x.stale ? ' <span class="muted">(전일)</span>' : ''}</td><td>${fmtClose(x.close)}</td><td>${sign(x.chg_1d, x.unit)}</td><td>${sign(x.chg_5d, x.unit)}</td>
+       <td class="${Math.abs(x.z_1d || 0) >= 2 ? 'zhi' : ''}">${x.z_1d == null ? '—' : (x.z_1d > 0 ? '+' : '') + x.z_1d}</td></tr>`).join('')}</table></div></section>`;
+  }
+  if (r.anomalies?.length) {
+    h += `<section><h2>오늘의 이상 신호</h2><div class="chips">${r.anomalies.map(a => `<span class="chip">${esc(a.text)}</span>`).join('')}</div></section>`;
+  }
+  h += `<section><h2>무엇이 시장을 움직였나</h2>${(r.drivers || []).map(dv =>
+    `<div class="card"><h3>${esc(dv.title)}</h3><div class="body">${esc(dv.body)}</div><div class="src">${srcLinks(dv.sources)}</div></div>`).join('')}</section>`;
+  if (r.plumbing?.body) h += `<section><h2>배관 점검 (유동성·자금시장·신용)</h2><div class="card"><div class="body">${esc(r.plumbing.body)}</div></div></section>`;
+
+  if (r.analogs?.length) {
+    const stats = Object.fromEntries((r.analog_stats || []).map(a => [a.asset, a]));
+    h += `<section><h2>과거 유사 국면 — 그때 어떤 대응이 나았나</h2>${r.analogs.map(a => {
+      const st = stats[a.asset];
+      let tbl = '';
+      if (st?.responses) {
+        tbl = Object.entries(st.responses).map(([t, resp]) => `<div class="tblwrap" style="margin-top:10px;"><table class="resp">
+          <tr><th>${esc(t)} · 20거래일</th><th>중앙값</th><th>플러스 비율</th><th>하위 10%</th></tr>${Object.entries(RESP_LABEL).map(([k, lab]) => {
+            const v = resp[k]; if (!v) return '';
+            return `<tr class="${resp.best_by_median === k ? 'best' : ''}"><td>${lab}</td><td>${sign(v.median, '%')}</td><td>${v.pct_positive}%</td><td>${sign(v.p10, '%')}</td></tr>`;
+          }).join('')}</table></div>`).join('');
+        tbl += `<div class="src">조건: ${esc(st.condition)} · ${esc(st.regime_filter)} · ${esc(st.period)} · 사례 ${st.n}건</div>`;
+      }
+      return `<div class="card"><div class="body">${esc(a.body)}</div>${tbl}<div class="src">${srcLinks(a.sources)}</div></div>`;
+    }).join('')}<div class="muted" style="font-size:12px;">과거 통계는 예측이 아니라 기준점이다. 노란 줄 = 과거 중앙값 기준 가장 나았던 대응.</div></section>`;
+  }
+  if (r.sectors?.body || db.sectors_top?.length) {
+    h += `<section><h2>섹터·자금 흐름</h2><div class="card">${r.sectors?.body ? `<div class="body">${esc(r.sectors.body)}</div>` : ''}
+      <div class="src">상위 ${(db.sectors_top || []).map(s => `${esc(s.name)} ${s.chg_1d > 0 ? '+' : ''}${s.chg_1d}%`).join(' · ')}
+      &nbsp;|&nbsp; 하위 ${(db.sectors_bottom || []).map(s => `${esc(s.name)} ${s.chg_1d > 0 ? '+' : ''}${s.chg_1d}%`).join(' · ')}</div></div></section>`;
+  }
+  h += `<section><h2>관전 포인트</h2><ul class="plain wp">${(r.watchpoints || []).map(w => `<li><b>${esc(w.condition)}</b> → ${esc(w.implication)}</li>`).join('')}</ul></section>`;
+  if (r.risks?.length) h += `<section><h2>시나리오를 뒤집을 위험</h2><ul class="plain">${r.risks.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`;
+  if (db.upcoming?.length) {
+    h += `<section><h2>이번 주 일정</h2><ul class="plain">${db.upcoming.map(e => `<li>${esc(e.date.slice(5))} ${esc(e.name)}${e.estimated ? ' <span class="muted">(추정)</span>' : ''}</li>`).join('')}</ul></section>`;
+  }
+  h += `<div class="foot">숫자는 팩트시트(스크립트 계산)와 대조 검증을 통과한 것만 게시됩니다. 해석은 Claude가 작성 · 검증 ${esc((r.verified_at || '').slice(0, 16).replace('T', ' '))} UTC
+    ${db.data_failures?.length ? `<br>수신 실패: ${esc(db.data_failures.join(', '))}` : ''}<br>투자 권유가 아니며, 판단과 책임은 독자에게 있습니다.</div>`;
+  document.getElementById('main').innerHTML = h;
+  document.title = `${r.session} 데일리 시황 — MacroMonitor`;
+}
+
+(async () => {
+  const main = document.getElementById('main');
+  let idx;
+  try { idx = await getJSON(RAW + 'index.json?t=' + Date.now()); }
+  catch (e) { main.innerHTML = '<div class="err">리포트 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.</div>'; return; }
+  const list = (idx.reports || []).slice().sort();
+  if (!list.length) { main.innerHTML = '<div class="muted" style="padding:40px 0;text-align:center;">아직 게시된 리포트가 없습니다.</div>'; return; }
+  const want = new URLSearchParams(location.search).get('d');
+  let i = list.includes(want) ? list.indexOf(want) : list.length - 1;
+  const pick = document.getElementById('pick');
+  pick.innerHTML = list.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).reverse().join('');
+  const go = async j => {
+    i = j; pick.value = list[i];
+    document.getElementById('prev').disabled = i <= 0;
+    document.getElementById('next').disabled = i >= list.length - 1;
+    history.replaceState(null, '', '?d=' + list[i]);
+    main.innerHTML = '<div class="muted" style="padding:40px 0;text-align:center;">불러오는 중…</div>';
+    try { render(await getJSON(RAW + list[i] + '/report.json?t=' + Date.now())); }
+    catch (e) { main.innerHTML = '<div class="err">리포트를 불러오지 못했습니다.</div>'; }
+  };
+  document.getElementById('prev').onclick = () => i > 0 && go(i - 1);
+  document.getElementById('next').onclick = () => i < list.length - 1 && go(i + 1);
+  pick.onchange = () => go(list.indexOf(pick.value));
+  go(i);
+})();
+</script>
+</body>
+</html>
