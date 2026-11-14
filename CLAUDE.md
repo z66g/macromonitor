@@ -125,7 +125,7 @@ mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v
 - **숫자는 자리표시자 `{{facts 경로|수식어}}`로만** — 게시 때 스크립트가 팩트시트 값으로 채움. 맨 숫자는 출처 있는 `cited_numbers`·판단 기준(`threshold`)·날짜·기간·세는 수만
 - 검증: 형식, 맨 숫자, 이상 신호 상위 3개 반영, 금지 표현(매수·매도 권유·확정·은어 = 이분법적 해석 차단), 유사 국면 사례 수(n)
 - 관점 규칙(지침 4장): 누가·왜, 가격과 뉴스의 어긋남, 배관, 공격적 해석은 근거+무효화 조건, 유사 국면은 n·분포·나쁜 경우·대응별 비교
-- 텔레그램은 `data/daily/config.json`의 `telegram: true`일 때만 (시험 기간 false). 기존 `daily-market-telegram.yml`은 가동 확정 후 삭제
+- 텔레그램: `data/daily/config.json`의 `telegram`(2026-11-14부터 true). 같은 날짜 다시 쓰기: `rerun`에 세션일 추가 후 예약작업 실행
 - 시험 실행: `daily-facts.yml` dispatch `commit=false` → 로그의 `FACTS_JSON`
 
 ## 클라우드 예약작업 (claude.ai/code/routines, 커넥터 없음)
@@ -143,7 +143,9 @@ mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v
 ## 텔레그램 (구독자 브로드캐스트 채널 — 운영 경고는 보내지 말 것, GitHub 이슈 사용)
 - 뉴스 다이제스트: Worker `/news-digest-send` (cron-job.org KST 06:00/21:00, ±20분·시간대당 1회만 동작)
 - 국채경매 결과: `auction-ai-merge.yml` → `send_auction_telegram.py`
-- H.4.1 주간 유동성: `h41-telegram.yml` (목 22:00 UTC) · 데일리 마켓: `daily-market-telegram.yml`
+- H.4.1 주간 유동성: `h41-telegram.yml` (목 22:00 UTC)
+- 데일리 시황 리포트: `daily-report.yml` → `send_daily_telegram.py` (가장 최근 리포트 1건, 게시 24시간 이내만 · KST 07시 전후)
+  (예전 19:30 '데일리 마켓' `daily-market-telegram.yml`은 2026-11-14 삭제 — cron-job.org의 `daily-market` dispatch 작업은 지워도 됨)
 
 ## LLM
 - **Gemini 2.5 Flash** (GitHub Actions): 뉴스 번역 `translate-news.yml`(30분), 다이제스트 `generate-news-digest.yml`(3시간)

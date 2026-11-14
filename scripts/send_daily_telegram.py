@@ -5,6 +5,7 @@ report.json의 telegram_sent로 중복 발송 방지. 운영 경고는 이 채�
 """
 import glob
 import html
+import re
 import json
 import os
 import sys
@@ -24,14 +25,42 @@ if not token or not chat:
 
 REGIME = {'risk_on': '🟢 Risk-On', 'risk_off': '🔴 Risk-Off', 'transition': '🟡 전환 국면'}
 DOW = '월화수목금토일'
-e = html.escape
+PRETTY = {'risk_on': 'Risk-On', 'risk_off': 'Risk-Off'}
 
-for p in sorted(glob.glob(os.path.join(BASE, '*', 'report.json')))[-3:]:
+
+def e(t):
+    t = str(t or '')
+    for k, v in PRETTY.items():
+        t = re.sub(rf'\b{k}\b', v, t)
+    return html.escape(t)
+
+
+def sentences(t, limit=170):
+    """limit 안에서 문장 단위로 자르기 (중간에 잘린 문장 대신)"""
+    out = ''
+    for sent in re.split(r'(?<=[.!?다])\s+', str(t or '').strip()):
+        if out and len(out) + len(sent) + 1 > limit:
+            break
+        out = (out + ' ' + sent).strip()
+    return out if len(out) <= limit + 60 else out[:limit] + '…'
+
+
+import datetime as dt
+idx = json.load(open(os.path.join(BASE, 'index.json'), encoding='utf-8')) if os.path.exists(os.path.join(BASE, 'index.json')) else {}
+latest = idx.get('latest_report')
+
+# 가장 최근 리포트 하나만, 게시 후 24시간 안에만 보낸다 (밀린 지난 리포트를 한꺼번에 보내지 않게)
+for p in [os.path.join(BASE, latest, 'report.json')] if latest else []:
+    if not os.path.exists(p):
+        continue
     r = json.load(open(p, encoding='utf-8'))
     if r.get('telegram_sent'):
         continue
+    age_h = (dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(r.get('verified_at', '1970-01-01T00:00:00+00:00'))).total_seconds() / 3600
+    if age_h > 24:
+        print(f"{r['session']} 게시 {age_h:.0f}시간 지남 — 발송 생략")
+        continue
     sess = r['session']
-    import datetime as dt
     d = dt.date.fromisoformat(sess)
     lines = [f"📊 <b>MacroMonitor 데일리</b> · {d.month}/{d.day}({DOW[d.weekday()]}) 미국장",
              '', f"<b>{e(r['headline'])}</b>",
@@ -47,7 +76,7 @@ for p in sorted(glob.glob(os.path.join(BASE, '*', 'report.json')))[-3:]:
     lines.append('<b>핵심</b>')
     lines += [f"• {e(dv['title'])}" for dv in r.get('drivers', [])]
     if r.get('analogs'):
-        lines += ['', '<b>과거 유사 국면</b>'] + [f"• {e(a['body'][:140])}{'…' if len(a['body']) > 140 else ''}" for a in r['analogs'][:2]]
+        lines += ['', '<b>과거 유사 국면</b>'] + [f"• {e(sentences(a['body']))}" for a in r['analogs'][:2]]
     lines += ['', '<b>관전 포인트</b>'] + [f"• {e(w['condition'])} → {e(w['implication'])}" for w in r.get('watchpoints', [])]
     lines += ['', f"📝 전문: {SITE}?d={sess}"]
     text = '\n'.join(lines)[:4000]
