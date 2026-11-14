@@ -18,6 +18,8 @@ git pull --rebase origin main
 ```
 - `data/daily/index.json`의 `latest` = 이번 세션일. `data/daily/<latest>/facts.json`이 입력이다.
   이미 `draft.json` 또는 `report.json`이 있으면 아무것도 하지 말고 "이미 작성됨"으로 끝낸다.
+  단, `data/daily/config.json`의 `rerun` 목록에 그 세션일이 있으면 **새로 조사해서 draft.json을 덮어쓴다**
+  (기존 draft·report는 참고하지 말고 처음부터). `rerun` 목록은 게시 스크립트가 비우므로 건드리지 마라.
   `facts.json`의 `session_complete`가 false면 쓰지 말고 끝낸다(장 마감 전 데이터).
 - 직전 세션의 `data/daily/<이전 세션>/report.json`이 있으면 그 `watchpoints`를 읽는다(어제의 관전 포인트 → 오늘 점검).
 - 문체 참고: 최근 3개 `report.json` (같은 표현 반복 금지).

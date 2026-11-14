@@ -255,6 +255,11 @@ def publish(sess):
     json.dump(report, open(os.path.join(d, 'report.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     if os.path.exists(os.path.join(d, 'verify_errors.json')):
         os.remove(os.path.join(d, 'verify_errors.json'))
+    cfg_p = os.path.join(BASE, 'config.json')
+    cfg = load(cfg_p, {})
+    if sess in (cfg.get('rerun') or []):   # 다시 쓰기 요청 처리 완료
+        cfg['rerun'] = [x for x in cfg['rerun'] if x != sess]
+        json.dump(cfg, open(cfg_p, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     idx = load(os.path.join(BASE, 'index.json'), {'sessions': []})
     reps = idx.get('reports') or []
     if sess not in reps:
