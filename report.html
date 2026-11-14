@@ -24,8 +24,9 @@ a{color:var(--blue);text-decoration:none;}
 .nav button:disabled{opacity:.35;cursor:default;}
 .date{color:var(--mute);font-size:12px;margin-bottom:4px;}
 h1{font-size:22px;line-height:1.35;margin:0 0 10px;}
-.regime{display:inline-flex;gap:8px;align-items:center;font-size:13px;padding:6px 10px;border-radius:6px;border:0.5px solid var(--line2);background:var(--card);color:var(--txt2);}
-.regime b{font-weight:700;}
+.regime{display:block;font-size:13px;padding:8px 12px;border-radius:6px;border:0.5px solid var(--line2);background:var(--card);color:var(--txt2);}
+.regime b{font-weight:700;white-space:nowrap;margin-right:6px;}
+th{white-space:nowrap;}
 section{margin-top:26px;}
 h2{font-size:13px;letter-spacing:.04em;color:var(--mute);font-weight:700;margin:0 0 10px;padding-bottom:6px;border-bottom:0.5px solid var(--line);}
 .card{background:var(--card);border:0.5px solid var(--line2);border-radius:8px;padding:14px 16px;margin-bottom:10px;}
@@ -80,8 +81,9 @@ async function getJSON(url) {
   try { const r = await fetch(url, { signal: ctrl.signal, cache: 'no-store' }); if (!r.ok) throw new Error('HTTP ' + r.status); return await r.json(); }
   finally { clearTimeout(t); }
 }
-const sign = (v, unit) => v == null ? '<span class="na">—</span>'
-  : `<span class="${v > 0 ? 'up' : v < 0 ? 'dn' : ''}">${v > 0 ? '+' : ''}${v}${unit}</span>`;
+const sign = (v, unit, neutral) => v == null ? '<span class="na">—</span>'
+  : `<span class="${neutral ? '' : v > 0 ? 'up' : v < 0 ? 'dn' : ''}">${v > 0 ? '+' : ''}${v}${unit}</span>`;
+const NEUTRAL = new Set(['VIX', 'MOVE', 'DXY', 'USDJPY']);
 const fmtClose = v => v == null ? '—' : (Math.abs(v) >= 1000 ? Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 }) : String(+Number(v).toFixed(3)));
 const srcLinks = arr => (arr || []).map(safeUrl).filter(Boolean)
   .map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">출처${(arr.length > 1) ? ' ' + (i + 1) : ''} ↗</a>`).join('');
@@ -92,7 +94,7 @@ function render(r) {
   const db = r.dashboard || {};
   let h = `<div class="date">${d.getUTCMonth() + 1}월 ${d.getUTCDate()}일 (${DOW[d.getUTCDay()]}) 미국 장 마감 기준</div>
     <h1>${esc(r.headline)}</h1>
-    <div class="regime">${rg[0]} <b>${rg[1]}</b> <span>${esc(r.regime?.one_liner)}</span></div>`;
+    <div class="regime">${rg[0]} <b>${rg[1]}</b>${esc(r.regime?.one_liner)}</div>`;
 
   if (r.yesterday_check?.length) {
     h += `<section><h2>어제 관전 포인트 → 결과</h2>${r.yesterday_check.map(y =>
@@ -102,7 +104,7 @@ function render(r) {
   if (db.rows?.length) {
     h += `<section><h2>시장 대시보드 <span class="muted" style="font-weight:400;">(z = 60일 변동성 대비)</span></h2><div class="tblwrap"><table>
       <tr><th>자산</th><th>종가</th><th>1일</th><th>5일</th><th>z</th></tr>${db.rows.map(x =>
-      `<tr><td>${esc(x.name)}${x.stale ? ' <span class="muted">(전일)</span>' : ''}</td><td>${fmtClose(x.close)}</td><td>${sign(x.chg_1d, x.unit)}</td><td>${sign(x.chg_5d, x.unit)}</td>
+      `<tr><td>${esc(x.name)}${x.stale ? ' <span class="muted">(전일)</span>' : ''}</td><td>${fmtClose(x.close)}</td><td>${sign(x.chg_1d, x.unit, x.unit === 'bp' || NEUTRAL.has(x.key))}</td><td>${sign(x.chg_5d, x.unit, x.unit === 'bp' || NEUTRAL.has(x.key))}</td>
        <td class="${Math.abs(x.z_1d || 0) >= 2 ? 'zhi' : ''}">${x.z_1d == null ? '—' : (x.z_1d > 0 ? '+' : '') + x.z_1d}</td></tr>`).join('')}</table></div></section>`;
   }
   if (r.anomalies?.length) {
@@ -114,12 +116,13 @@ function render(r) {
 
   if (r.analogs?.length) {
     const stats = Object.fromEntries((r.analog_stats || []).map(a => [a.asset, a]));
+    const nameOf = Object.fromEntries((db.rows || []).map(x => [x.key, x.name]));
     h += `<section><h2>과거 유사 국면 — 그때 어떤 대응이 나았나</h2>${r.analogs.map(a => {
       const st = stats[a.asset];
       let tbl = '';
       if (st?.responses) {
         tbl = Object.entries(st.responses).map(([t, resp]) => `<div class="tblwrap" style="margin-top:10px;"><table class="resp">
-          <tr><th>${esc(t)} · 20거래일</th><th>중앙값</th><th>플러스 비율</th><th>하위 10%</th></tr>${Object.entries(RESP_LABEL).map(([k, lab]) => {
+          <tr><th>${esc(nameOf[t] || t)} · 20거래일</th><th>중앙값</th><th>상승 비율</th><th>하위 10%</th></tr>${Object.entries(RESP_LABEL).map(([k, lab]) => {
             const v = resp[k]; if (!v) return '';
             return `<tr class="${resp.best_by_median === k ? 'best' : ''}"><td>${lab}</td><td>${sign(v.median, '%')}</td><td>${v.pct_positive}%</td><td>${sign(v.p10, '%')}</td></tr>`;
           }).join('')}</table></div>`).join('');

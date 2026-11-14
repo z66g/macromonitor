@@ -33,7 +33,9 @@ git pull --rebase origin main
 
 ## 3. 원인 조사 (WebSearch)
 - 상위 이상 신호마다 "왜"를 찾는다: 연준 발언, 지표, 국채 수급(경매·발행), 포지셔닝(CTA·옵션·헤지), 실적, 지정학, 정책.
-- 신뢰 출처: Reuters, Bloomberg, WSJ, FT, CNBC, MarketWatch, Barron's, 연준·재무부·BLS 원문, 주요 IB 리서치 보도.
+- 신뢰 출처 (이 순서로 우선): ① 연준·재무부·BLS·BEA 원문 ② Reuters, Bloomberg, WSJ, FT ③ CNBC, MarketWatch, Barron's,
+  Yahoo Finance(통신 기사), 주요 IB 리서치 보도. 콘텐츠 농장·번역 재가공·블로그성 사이트(stockanalysis, biggo, 개인 블로그 등)는
+  ①~③에서 같은 내용을 못 찾을 때만, 그 사실을 '보도 기준'으로 낮춰 쓰고 사용한다. 출처마다 수치가 다르면 ①②를 따른다.
 - **원인 주장에는 출처 URL**(sources). 확인 못 하면 "확인된 촉매 없음 — 포지셔닝/수급으로 추정"처럼 확신도를 낮춰 쓴다.
 - 유사 국면 `closest` 날짜 중 2~3개는 당시 무슨 일이었는지 검색해 지금과 **무엇이 같고 무엇이 다른지** 짚는다.
 
