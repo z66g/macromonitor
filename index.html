@@ -12008,6 +12008,15 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible),
 @media (max-width: 480px) {
   .tab-btn { padding: 10px 8px 4px !important; }
 }
+/* 휴대폰 세로: 탭·버튼을 가운데 정렬 (탭은 왼쪽, 버튼은 오른쪽으로 쏠려 어긋나 보이던 문제)
+   탭은 justify-content:center를 쓰면 넘칠 때 왼쪽이 잘리므로 양끝 auto 여백으로 가운데 정렬 */
+@media (max-width: 599px) {
+  .tab-nav { justify-content: flex-start !important; }
+  .tab-nav > .tab-btn:first-child { margin-left: auto !important; }
+  .tab-nav > .tab-btn:last-child  { margin-right: auto !important; }
+  #controls-bar-inner { justify-content: center !important; column-gap: 6px !important; row-gap: 6px !important; }
+  #hdr-refresh-btn { border: 0.5px solid #30363D !important; border-radius: 4px !important; min-width: 36px; justify-content: center; }
+}
 
 /* 기간(range) 버튼 공통 강조 — VIX/MOVE·DXY 인라인(.gc-chart-btn), T3(.t3-rbtn), 국채 시계열 기간 토글 */
 .gc-chart-btn.active,
