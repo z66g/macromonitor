@@ -157,11 +157,35 @@ if len(vague) >= 2:   # 막연한 '시장 의미'가 많으면 한 번만 다시
     parsed = call_gemini(prompt + '\n\n[수정 요청] 직전 답의 why가 "~영향을 줄 수 있습니다"처럼 막연했다. '
                          '모든 why를 좋은 예처럼 자산·방향·경로가 드러나는 개조식으로 다시 써라. 같은 JSON 형식.')
 
-NUM = re.compile(r'\d+(?:[.,]\d+)?')
+NUM = re.compile(r'(\d+(?:,\d{3})*(?:\.\d+)?)\s*(만|억|조|[kKmMbB](?![a-z])|bn|billion|million|trillion|thousand)?')
+MULT = {'만': 1e4, '억': 1e8, '조': 1e12, 'k': 1e3, 'thousand': 1e3, 'm': 1e6, 'million': 1e6,
+        'b': 1e9, 'bn': 1e9, 'billion': 1e9, 'trillion': 1e12}
 
 
 def nums(t):
-    return {n.replace(',', '') for n in NUM.findall(t or '')}
+    """문장 속 숫자를 값 집합으로. 단위 환산('$65,000' = '6.5만', '22M' = '2,200만')도 같은 값으로 본다.
+    단위가 붙은 수는 원래 숫자와 환산값 둘 다 넣는다."""
+    out = set()
+    for n, unit in NUM.findall(t or ''):
+        v = float(n.replace(',', ''))
+        out.add(round(v, 6))
+        if unit:
+            out.add(round(v * MULT[unit.lower()], 6))
+    return out
+
+
+def extra_numbers(text, src):
+    have = nums(src)
+    bad = []
+    for m in NUM.finditer(text or ''):
+        n, unit = m.group(1), m.group(2)
+        v = float(n.replace(',', ''))
+        if not unit and v <= 31 and re.match(r'\s*(월|일|자|분기|차|번째|개국|개월|주)', text[m.end():]):
+            continue   # '12월'·'3자 회담'·'2분기' — 원문(영문)엔 숫자로 없을 수 있는 날짜·서수 표현
+        cand = {round(v, 6)} | ({round(v * MULT[unit.lower()], 6)} if unit else set())
+        if not any(any(abs(c - h) <= 1e-6 * max(1, abs(h)) for h in have) for c in cand):
+            bad.append(n + (unit or ''))
+    return bad
 
 
 items, dropped = [], []
@@ -181,9 +205,9 @@ for x in parsed.get('items') or []:
     else:
         src_text = ' '.join(f"{cands[i - 1].get('title', '')} {cands[i - 1].get('titleKo', '')} {cands[i - 1].get('summary', '')} "
                             f"{cands[i - 1].get('summaryKo', '')}" for i in ids)
-        extra = nums(head + ' ' + why) - nums(src_text)
+        extra = extra_numbers(head + ' ' + why, src_text)
         if extra:
-            reason = f'원문에 없는 숫자 {sorted(extra)}'
+            reason = f'원문에 없는 숫자 {extra}'
     if reason:
         dropped.append((head, reason))
         continue
