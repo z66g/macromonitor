@@ -116,6 +116,18 @@ mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v
 - 예상 대비 상회/부합/하회는 스크립트가 숫자로 계산. 새 지표 추가 = spec에 항목 + FRED 계열이면 `FRED_PROXY_ALLOW`에도
 - 헬스체크 '이벤트 결과': 발표 2~10일 지났는데 게시·보류 모두 없음, 3일 넘은 보류, 거부 → warn
 
+## 데일리 시황 리포트 (텔레그램 요약 + 사이트 `report.html`)
+| 단계 | 주체 | 시각 |
+|---|---|---|
+| 팩트시트·이상 신호·과거 유사 국면 → `data/daily/<세션>/facts.json` | `daily-facts.yml` → `build_daily_facts.py` | KST 06:20 화-토 |
+| 본문 → `data/daily/<세션>/draft.json` | **클라우드 에이전트** (Opus 5.5, `ops/routines/daily_report.md`) | KST 06:40 |
+| 검증·게시 → `report.json` (+ 실패 시 이슈 `daily-report`) · 텔레그램 | `daily-report.yml` → `verify_daily_report.py` · `send_daily_telegram.py` | draft push 직후 |
+- **숫자는 자리표시자 `{{facts 경로|수식어}}`로만** — 게시 때 스크립트가 팩트시트 값으로 채움. 맨 숫자는 출처 있는 `cited_numbers`·판단 기준(`threshold`)·날짜·기간·세는 수만
+- 검증: 형식, 맨 숫자, 이상 신호 상위 3개 반영, 금지 표현(매수·매도 권유·확정·은어 = 이분법적 해석 차단), 유사 국면 사례 수(n)
+- 관점 규칙(지침 4장): 누가·왜, 가격과 뉴스의 어긋남, 배관, 공격적 해석은 근거+무효화 조건, 유사 국면은 n·분포·나쁜 경우·대응별 비교
+- 텔레그램은 `data/daily/config.json`의 `telegram: true`일 때만 (시험 기간 false). 기존 `daily-market-telegram.yml`은 가동 확정 후 삭제
+- 시험 실행: `daily-facts.yml` dispatch `commit=false` → 로그의 `FACTS_JSON`
+
 ## 클라우드 예약작업 (claude.ai/code/routines, 커넥터 없음)
 | 이름 | 모델 | cron(UTC) | 지침 | 쓰는 파일 |
 |---|---|---|---|---|
@@ -123,6 +135,7 @@ mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v
 | QRA 감지 | Opus 5.5 | `0 22 * * 1,3` | `ops/routines/qra.md` | `data/qra.json` |
 | 헬스체크 진단 | Sonnet 5.5 | `30 23 * * *` | `ops/routines/health.md` | `data/health.json`의 `diagnosis` → `health-alert.yml` |
 | 이벤트 결과 | Sonnet 5.5 | `40 16,22 * * 1-5` | `ops/routines/econ.md` | `data/econ_results_ai.json` → `econ-results-merge.yml` |
+| 데일리 리포트 | Opus 5.5 | `40 21 * * 1-5` | `ops/routines/daily_report.md` | `data/daily/<세션>/draft.json` → `daily-report.yml` |
 - 결정적 헬스체크 자체는 `health-check.yml`(Actions, 23:00 UTC)이 실행·커밋·이슈 처리. 에이전트는 이상 시 진단만.
 - **클라우드 세션 네트워크 제약**: Worker 도메인·treasury.gov·treasurydirect.gov 접속 불가(2026-11 확인).
   외부 데이터가 필요하면 Actions가 받아 `data/`에 저장하고 에이전트는 파일을 읽는 구조로 만들 것.
