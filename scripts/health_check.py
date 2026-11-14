@@ -188,6 +188,27 @@ def c_auctions():
     add('경매 요약', 'warn' if late else 'ok', f"요약 지연(2~14일): {late or '없음'}")
 
 
+def c_econ():
+    try:
+        cal = json.load(open('data/econ_calendar.json', encoding='utf-8'))
+    except FileNotFoundError:
+        add('이벤트 결과', 'warn', 'data/econ_calendar.json 없음 — fetch-econ-calendar.yml 실행 전')
+        return
+    try:
+        res = json.load(open('data/econ_results.json', encoding='utf-8'))
+    except FileNotFoundError:
+        res = {}
+    published, pending, rejects = res.get('results') or {}, res.get('pending') or {}, res.get('rejects') or {}
+    # 발표 2~10일 지났는데 게시도 보류도 아닌 것 = 에이전트가 못 찾았거나 안 돈 것
+    missing = [e['key'] for e in cal.get('events', [])
+               if 2 <= age_days(e['date']) <= 10 and not e.get('estimated')
+               and e['key'] not in published and e['key'] not in pending]
+    stale_pending = [k for k in pending if age_days(k[:10]) > 3]
+    bad = missing or stale_pending or rejects
+    add('이벤트 결과', 'warn' if bad else 'ok',
+        f"게시 {len(published)}건 · 누락 {missing or '없음'} · 3일 넘은 보류 {stale_pending or '없음'} · 거부 {list(rejects) or '없음'}")
+
+
 def c_actions():
     since = (NOW - dt.timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M:%SZ')
     d = get(f'https://api.github.com/repos/{REPO}/actions/runs?status=failure&per_page=50&created=%3E{since}')
@@ -208,7 +229,7 @@ def c_actions():
 for name, fn in [('T1 순유동성', c_liq), ('T2 실물경제', c_t2), ('T3 글로벌', c_t3), ('시세 스냅샷', c_market), ('이벤트 캘린더', c_calendar),
                  ('FOMC 일정 하드코딩', c_fomc_horizon), ('유동성 예측모델', c_tower), ('뉴스 수집·번역', c_news),
                  ('뉴스 다이제스트', c_digest), ('H.4.1 이력', c_h41), ('ICI MMF', c_ici),
-                 ('경매 데이터', c_auctions), ('GitHub Actions', c_actions)]:
+                 ('경매 데이터', c_auctions), ('이벤트 결과', c_econ), ('GitHub Actions', c_actions)]:
     check(name, fn)
 
 order = {'ok': 0, 'warn': 1, 'fail': 2}

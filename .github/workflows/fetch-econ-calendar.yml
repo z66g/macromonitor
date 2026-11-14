@@ -1,0 +1,27 @@
+name: Fetch Econ Calendar
+
+# Worker 이벤트 캘린더 → data/econ_calendar.json (결과 조사 대상만)
+# 클라우드 에이전트는 Worker에 접근할 수 없으므로 Actions가 레포에 저장한다.
+# 이벤트 결과 에이전트(16:40 · 22:40 UTC)보다 먼저 실행.
+on:
+  schedule:
+    - cron: '10 16,22 * * 1-5'
+  workflow_dispatch:
+
+concurrency:
+  group: fetch-econ-calendar
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch calendar events to research
+        run: python3 scripts/fetch_econ_calendar.py
+      - name: Commit
+        run: |
+          bash scripts/commit_data.sh "chore: 이벤트 캘린더 [$(date -u '+%Y-%m-%d %H:%M UTC')]" data/econ_calendar.json

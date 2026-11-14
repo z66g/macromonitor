@@ -1406,7 +1406,9 @@ async function refreshYieldsHist(env) {
 //    GET /fred?series_id=SOFR&limit=30&sort_order=desc
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 프론트엔드가 실제로 쓰는 시리즈만 허용 — 임의 파라미터 주입·FRED 키 남용 차단
-const FRED_PROXY_ALLOW = new Set(['DFII10', 'WRMFNS', 'IORB', 'DTWEXBGS', 'WALCL']);
+// 읽기 전용 FRED 프록시 허용 목록 — 사이트 + 이벤트 결과 검증(scripts/merge_econ_results.py, data/econ_spec.json의 fred.series)
+const FRED_PROXY_ALLOW = new Set(['DFII10', 'WRMFNS', 'IORB', 'DTWEXBGS', 'WALCL',
+  'A191RL1Q225SBEA', 'CCSA', 'CES0500000003', 'CPIAUCNS', 'CPIAUCSL', 'CPILFENS', 'CPILFESL', 'DGORDER', 'HOUST', 'ICSA', 'JTSJOL', 'PAYEMS', 'PCEPI', 'PCEPILFE', 'PPIFIS', 'RSAFS', 'RSFSXMV', 'STLFSI4', 'UNRATE']);
 async function fredProxy(url, env) {
   const seriesId  = (url.searchParams.get('series_id') || '').toUpperCase();
   const limit     = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '60', 10) || 60, 1), 1000);

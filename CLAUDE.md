@@ -104,12 +104,25 @@ mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v
 - PD/Direct/Indirect = 경쟁입찰 낙찰 기준 비중. 6회 평균은 같은 (종류, 원물 만기) 직전 6회
 - 텔레그램: 요약 완성 + 미발송 이표채만, HTML 이스케이프, 4096자 분할
 
+## 이벤트 결과 (캘린더의 실제·예상·이전치)
+| 단계 | 주체 | 시각(UTC) |
+|---|---|---|
+| 조사 대상 이벤트 → `data/econ_calendar.json` | `fetch-econ-calendar.yml` (Worker `/calendar`) | `10 16,22 * * 1-5` |
+| 실제·예상·이전치 + 한 줄 해석 → `data/econ_results_ai.json` | **클라우드 에이전트** (Sonnet 5.5) | `40 16,22 * * 1-5` |
+| 검증 → `data/econ_results.json` (사이트가 raw로 읽음) | `econ-results-merge.yml` → `merge_econ_results.py` | push + 3시간마다 |
+- 지표 정의(대상 이벤트 이름 match, metric id·단위·기준기간, FRED 대조 계열)는 **`data/econ_spec.json` 하나** — 에이전트·검증·사이트 공용
+- FRED에 있는 지표는 실제치를 Worker `/fred`(읽기 전용, `FRED_PROXY_ALLOW`)로 대조: 일치 게시 · 불일치 거부(`rejects`) ·
+  FRED 미반영 보류(`pending`, 3시간마다 재검증). YoY 헤드라인은 원계열(NSA) 사용. ISM·미시간·FOMC는 출처 기반
+- 예상 대비 상회/부합/하회는 스크립트가 숫자로 계산. 새 지표 추가 = spec에 항목 + FRED 계열이면 `FRED_PROXY_ALLOW`에도
+- 헬스체크 '이벤트 결과': 발표 2~10일 지났는데 게시·보류 모두 없음, 3일 넘은 보류, 거부 → warn
+
 ## 클라우드 예약작업 (claude.ai/code/routines, 커넥터 없음)
 | 이름 | 모델 | cron(UTC) | 지침 | 쓰는 파일 |
 |---|---|---|---|---|
 | 국채경매 분석 | Opus 5.5 | `30 21 * * 1-5` | `ops/routines/auction.md` | `data/auction_ai.json` |
 | QRA 감지 | Opus 5.5 | `0 22 * * 1,3` | `ops/routines/qra.md` | `data/qra.json` |
 | 헬스체크 진단 | Sonnet 5.5 | `30 23 * * *` | `ops/routines/health.md` | `data/health.json`의 `diagnosis` → `health-alert.yml` |
+| 이벤트 결과 | Sonnet 5.5 | `40 16,22 * * 1-5` | `ops/routines/econ.md` | `data/econ_results_ai.json` → `econ-results-merge.yml` |
 - 결정적 헬스체크 자체는 `health-check.yml`(Actions, 23:00 UTC)이 실행·커밋·이슈 처리. 에이전트는 이상 시 진단만.
 - **클라우드 세션 네트워크 제약**: Worker 도메인·treasury.gov·treasurydirect.gov 접속 불가(2026-11 확인).
   외부 데이터가 필요하면 Actions가 받아 `data/`에 저장하고 에이전트는 파일을 읽는 구조로 만들 것.

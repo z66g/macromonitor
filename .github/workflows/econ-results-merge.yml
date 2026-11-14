@@ -1,0 +1,30 @@
+name: Econ Results Merge
+
+# 클라우드 에이전트가 data/econ_results_ai.json을 push하면 검증 후 data/econ_results.json(사이트가 읽음)에 반영.
+# FRED 대조에서 '아직 FRED 미반영'으로 보류된 항목은 백업 schedule 실행 때 다시 검증한다.
+# GITHUB_TOKEN 커밋은 다른 워크플로를 트리거하지 않으므로 루프 없음.
+on:
+  push:
+    branches: [main]
+    paths: [data/econ_results_ai.json]
+  schedule:
+    - cron: '20 */3 * * *'     # 보류 항목 재검증 + push 트리거 누락 대비
+  workflow_dispatch:
+
+concurrency:
+  group: econ-results
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate + merge (FRED 대조)
+        run: python3 scripts/merge_econ_results.py
+      - name: Commit
+        run: |
+          bash scripts/commit_data.sh "chore: 이벤트 결과 반영 [$(date -u '+%Y-%m-%d %H:%M UTC')]" data/econ_results.json

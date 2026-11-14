@@ -67,6 +67,12 @@
   Gemini 번역·Haiku 다이제스트 생성, 디버그 함수(`calendarDebug`·`liqTowerDebug`·`newsTransDebug` 등), 폐기된 OFR 대체·DBnomics.
   호출 그래프로 export(fetch·scheduled)에서 도달 불가한 함수만 골라 삭제. `/qra-status`는 이제 `{active}`만.
 
+## 이벤트 캘린더 결과 (2026-11-14)
+- 캘린더 이벤트에 실제·예상·이전치 + 한 줄 해석 표시. 구조는 CLAUDE.md '이벤트 결과' (국채경매 분석과 같은 패턴: 에이전트 → 검증 스크립트 → 게시).
+- 사용자 결정: 캘린더 전체 지표, 사이트만(텔레그램 없음), Sonnet 5.5.
+- 예상치(컨센서스)는 언론 집계라 FRED로 검증 불가 — 출처 URL만 남김. 실제치는 FRED 계열이 있는 지표만 공식 값 대조.
+- [ ] 첫 실행(평일 16:40 UTC) 후 `data/econ_results.json`에 게시·보류·거부가 어떻게 나오는지, 거부 사유가 단위/기준기간 혼동이면 `ops/routines/econ.md` 보강.
+
 ## 사이트 전체 UI 점검 (2026-11-13)
 3개 영역 감사(헤더·패널 / 상태 배지·색 / 탭 내부 버튼) → 약 55건 중 대부분 수정. 규칙은 CLAUDE.md 'UI 상태 표시 규칙'.
 - 치명: 저장소 접근 예외 하나로 뉴스·경매 버튼 전체가 죽던 문제(localStorage try/catch).

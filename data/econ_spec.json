@@ -1,0 +1,111 @@
+{
+  "_doc": "YoY 헤드라인은 원계열(NSA, 예: CPIAUCNS)로 대조 — 계절조정 계열 YoY와 0.1%p 차이 날 수 있음. 이벤트 캘린더 결과 조사 대상과 지표 정의. 에이전트(ops/routines/econ.md)·검증(scripts/merge_econ_results.py)·사이트가 함께 읽는다. 캘린더 이벤트 이름(name)에 match 문자열이 들어 있으면 대상. metrics[].fred가 있으면 실제치를 FRED 공식 값과 대조(units: pc1=전년비%, pch=전월비%, chg=전기 대비 차이, lin=수준; scale은 FRED 값에 곱해 단위를 맞춤). period: monthly=YYYY-MM, quarterly=YYYY-Qn, weekly=주 종료일 YYYY-MM-DD, meeting=회의일 YYYY-MM-DD.",
+  "indicators": [
+    {
+      "id": "cpi", "match": "소비자물가 (CPI)", "period": "monthly",
+      "metrics": [
+        {"id": "yoy",      "label": "CPI YoY",       "unit": "%", "primary": true, "fred": {"series": "CPIAUCNS", "units": "pc1", "tol": 0.1}},
+        {"id": "mom",      "label": "CPI MoM",       "unit": "%",                  "fred": {"series": "CPIAUCSL", "units": "pch", "tol": 0.1}},
+        {"id": "core_yoy", "label": "근원 CPI YoY",  "unit": "%",                  "fred": {"series": "CPILFENS", "units": "pc1", "tol": 0.1}},
+        {"id": "core_mom", "label": "근원 CPI MoM",  "unit": "%",                  "fred": {"series": "CPILFESL", "units": "pch", "tol": 0.1}}
+      ]
+    },
+    {
+      "id": "ppi", "match": "생산자물가 (PPI)", "period": "monthly",
+      "metrics": [
+        {"id": "mom", "label": "PPI MoM (최종수요)", "unit": "%", "primary": true, "fred": {"series": "PPIFIS", "units": "pch", "tol": 0.1}},
+        {"id": "yoy", "label": "PPI YoY (최종수요)", "unit": "%",                  "fred": {"series": "PPIFIS", "units": "pc1", "tol": 0.2}}
+      ]
+    },
+    {
+      "id": "pce", "match": "개인소비지출 (PCE", "period": "monthly",
+      "metrics": [
+        {"id": "core_yoy", "label": "근원 PCE YoY", "unit": "%", "primary": true, "fred": {"series": "PCEPILFE", "units": "pc1", "tol": 0.1}},
+        {"id": "core_mom", "label": "근원 PCE MoM", "unit": "%",                  "fred": {"series": "PCEPILFE", "units": "pch", "tol": 0.1}},
+        {"id": "yoy",      "label": "PCE YoY",      "unit": "%",                  "fred": {"series": "PCEPI",    "units": "pc1", "tol": 0.1}}
+      ]
+    },
+    {
+      "id": "jolts", "match": "구인이직보고서 (JOLTS)", "period": "monthly",
+      "metrics": [
+        {"id": "openings", "label": "구인건수", "unit": "K", "primary": true, "fred": {"series": "JTSJOL", "units": "lin", "tol_pct": 0.5}}
+      ]
+    },
+    {
+      "id": "gdp", "match": "GDP 성장률", "period": "quarterly",
+      "metrics": [
+        {"id": "qoq_saar", "label": "실질 GDP (전기비 연율)", "unit": "%", "primary": true, "fred": {"series": "A191RL1Q225SBEA", "units": "lin", "tol": 0.1}}
+      ]
+    },
+    {
+      "id": "retail", "match": "소매판매", "period": "monthly",
+      "metrics": [
+        {"id": "mom",      "label": "소매판매 MoM",           "unit": "%", "primary": true, "fred": {"series": "RSAFS",   "units": "pch", "tol": 0.1}},
+        {"id": "ex_auto",  "label": "자동차 제외 MoM",        "unit": "%",                  "fred": {"series": "RSFSXMV", "units": "pch", "tol": 0.1}}
+      ]
+    },
+    {
+      "id": "housing", "match": "주택착공", "period": "monthly",
+      "metrics": [
+        {"id": "starts", "label": "주택착공 (연율)", "unit": "K", "primary": true, "fred": {"series": "HOUST", "units": "lin", "tol_pct": 0.5}}
+      ]
+    },
+    {
+      "id": "umich", "match": "소비자심리 (미시간)", "period": "monthly",
+      "metrics": [
+        {"id": "sentiment", "label": "미시간 소비자심리", "unit": "pt", "primary": true}
+      ]
+    },
+    {
+      "id": "durable", "match": "내구재 주문", "period": "monthly",
+      "metrics": [
+        {"id": "mom", "label": "내구재 주문 MoM", "unit": "%", "primary": true, "fred": {"series": "DGORDER", "units": "pch", "tol": 0.1}}
+      ]
+    },
+    {
+      "id": "stlfsi", "match": "세인트루이스 FSI", "period": "weekly",
+      "metrics": [
+        {"id": "index", "label": "STLFSI", "unit": "pt", "primary": true, "fred": {"series": "STLFSI4", "units": "lin", "tol": 0.01}}
+      ]
+    },
+    {
+      "id": "nfp", "match": "고용보고서 (NFP", "period": "monthly",
+      "metrics": [
+        {"id": "payrolls", "label": "비농업 고용 증감",  "unit": "K", "primary": true, "fred": {"series": "PAYEMS",        "units": "chg", "tol": 1}},
+        {"id": "unrate",   "label": "실업률",            "unit": "%",                  "fred": {"series": "UNRATE",        "units": "lin", "tol": 0.05}},
+        {"id": "ahe_mom",  "label": "평균시급 MoM",      "unit": "%",                  "fred": {"series": "CES0500000003", "units": "pch", "tol": 0.1}}
+      ]
+    },
+    {
+      "id": "unrate", "match": "실업률 (UNRATE)", "period": "monthly",
+      "metrics": [
+        {"id": "unrate", "label": "실업률", "unit": "%", "primary": true, "fred": {"series": "UNRATE", "units": "lin", "tol": 0.05}}
+      ]
+    },
+    {
+      "id": "ism_mfg", "match": "ISM 제조업 PMI", "period": "monthly",
+      "metrics": [
+        {"id": "pmi", "label": "ISM 제조업 PMI", "unit": "pt", "primary": true}
+      ]
+    },
+    {
+      "id": "ism_svc", "match": "ISM 서비스업 PMI", "period": "monthly",
+      "metrics": [
+        {"id": "pmi", "label": "ISM 서비스업 PMI", "unit": "pt", "primary": true}
+      ]
+    },
+    {
+      "id": "claims", "match": "실업수당 청구", "period": "weekly",
+      "metrics": [
+        {"id": "initial",    "label": "신규 청구", "unit": "K", "primary": true, "fred": {"series": "ICSA", "units": "lin", "scale": 0.001, "tol_pct": 0.5}},
+        {"id": "continuing", "label": "연속 청구", "unit": "K",                  "fred": {"series": "CCSA", "units": "lin", "scale": 0.001, "tol_pct": 0.5}}
+      ]
+    },
+    {
+      "id": "fomc", "match": "FOMC 회의 (금리 결정)", "period": "meeting",
+      "metrics": [
+        {"id": "upper", "label": "기준금리 상단", "unit": "%", "primary": true}
+      ]
+    }
+  ]
+}

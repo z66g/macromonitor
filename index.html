@@ -1036,6 +1036,18 @@ body{
   .pnl-today{min-height:28px !important;padding:4px 10px !important;font-size:10px !important;}
 }
 </style>
+<style>
+/* 이벤트 결과 블록 (캘린더 패널) */
+.econ-res{margin:5px 0 2px 10px;padding:6px 8px;background:#0D1117;border:0.5px solid #21262D;border-radius:5px;font-size:10px;color:#8B949E;line-height:1.5;}
+.econ-res-main{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;}
+.econ-res-lbl{color:#C9D1D9;font-weight:600;}
+.econ-res-act{color:#E6EDF3;font-size:11px;}
+.econ-res-sp{font-size:9px;font-weight:700;border-radius:3px;padding:1px 6px;}
+.econ-res-sub{margin-top:3px;font-size:9px;}
+.econ-res-int{margin-top:4px;color:#C9D1D9;}
+.econ-res-meta{margin-top:3px;font-size:9px;color:#484F58;}
+.econ-res-meta a{color:#58A6FF;text-decoration:none;}
+</style>
 </head>
 <body>
 
@@ -7087,8 +7099,18 @@ document.addEventListener('DOMContentLoaded', function() {
 // 캘린더 로드 — 일반 로드는 sharedFetch(페이지 로드 직후 LED 확인과 공유), ↻는 force=1.
 // 실패하면 이미 그린 데이터는 그대로 두고 작은 실패 문구만 덧붙임 (데이터가 없을 때만 '로딩 실패').
 let _calSavedAt = null;
+// 이벤트 결과(실제·예상·이전) — 클라우드 에이전트 조사 → Actions가 FRED 대조 검증 후 게시한 파일
+const ECON_RESULTS_URL = 'https://raw.githubusercontent.com/z66g/macromonitor/main/data/econ_results.json';
+let _econRes = {}, _econPending = {};
+async function loadEconResults(force = false) {
+  const d = await (force ? fetchT(`${ECON_RESULTS_URL}?t=${Date.now()}`, 12000) : sharedFetch(ECON_RESULTS_URL, 12000))
+    .then(jsonOrNull).catch(() => null);
+  if (d?.results) { _econRes = d.results; _econPending = d.pending || {}; }
+}
+
 async function loadCalendar(force = false) {
   const listEl = document.getElementById('cal-list');
+  const econP  = loadEconResults(force);
   const hadData = calData.length > 0;
   if (!hadData && listEl) listEl.innerHTML = '<div style="color:#484F58;font-size:11px;padding:20px 0;text-align:center;">로딩 중...</div>';
   const d = force
@@ -7112,8 +7134,48 @@ async function loadCalendar(force = false) {
   const updEl = document.getElementById('cal-updated');
   if (updEl) updEl.textContent = _calSavedAt ? `${fmtKST(_calSavedAt)} 기준` : '';
   setLedByAge('led-cal', '캘린더', _calSavedAt, CAL_STALE_MS);
+  await econP;
   renderCalMini();
   renderCalWeek();
+}
+
+// 결과 블록 — 대표 지표 '실제 · 예상 · 이전' + 예상 대비 + 보조 지표 + 해석 + 출처
+function econFmt(v, unit) {
+  if (v == null || !isFinite(v)) return '—';
+  if (unit === '%') return `${Number(v).toFixed(Math.max(1, (String(v).split('.')[1] || '').length))}%`;   // 3.0 → '3.0%'
+  if (unit === 'K') return `${Number(v).toLocaleString('en-US')}K`;
+  return String(v);
+}
+const ECON_SURPRISE = {
+  above:  { t: '예상 상회', c: '#58A6FF', bg: 'rgba(88,166,255,.12)' },
+  below:  { t: '예상 하회', c: '#F0B429', bg: 'rgba(240,180,41,.12)' },
+  inline: { t: '예상 부합', c: '#8B949E', bg: 'rgba(139,148,158,.12)' },
+};
+function econResultHtml(r) {
+  const p = r.metrics?.[r.primary];
+  if (!p) return '';
+  const sp = ECON_SURPRISE[r.surprise];
+  const prev = p.previous_revised != null
+    ? `${econFmt(p.previous_revised, p.unit)} <span style="color:#484F58;">(수정 전 ${econFmt(p.previous, p.unit)})</span>`
+    : econFmt(p.previous, p.unit);
+  const others = Object.entries(r.metrics).filter(([id]) => id !== r.primary && r.metrics[id].actual != null)
+    .map(([, m]) => `${escH(m.label)} <b style="color:#C9D1D9;">${econFmt(m.actual, m.unit)}</b>`
+      + (m.forecast != null ? ` <span style="color:#484F58;">(예상 ${econFmt(m.forecast, m.unit)})</span>` : ''))
+    .join(' · ');
+  const src = safeUrl(r.sources?.[0]);
+  const how = r.verified === 'fred' ? 'FRED 대조 확인' : '출처 기준';
+  return `<div class="econ-res">
+    <div class="econ-res-main">
+      <span class="econ-res-lbl">${escH(p.label)}</span>
+      <span>실제 <b class="econ-res-act">${econFmt(p.actual, p.unit)}</b></span>
+      <span>예상 ${econFmt(p.forecast, p.unit)}</span>
+      <span>이전 ${prev}</span>
+      ${sp ? `<span class="econ-res-sp" style="color:${sp.c};background:${sp.bg};">${sp.t}</span>` : ''}
+    </div>
+    ${others ? `<div class="econ-res-sub">${others}</div>` : ''}
+    ${r.interpretation ? `<div class="econ-res-int">${escH(r.interpretation)}</div>` : ''}
+    <div class="econ-res-meta">${escH(r.period || '')} 기준 · ${how}${src ? ` · <a href="${escH(src)}" target="_blank" rel="noopener">출처 ↗</a>` : ''}</div>
+  </div>`;
 }
 
 // 월 이동
@@ -7287,6 +7349,7 @@ function renderCalWeek() {
     const dayLabel = `${dt.getMonth()+1}월 ${dt.getDate()}일 (${DAY_NAMES[dt.getDay()]})`;
 
     const evHtml = events.map(e => {
+      const res       = _econRes[`${e.date}|${e.name}`];
       const impColor  = IMP_COLOR[e.imp] || '#484F58';
       const tagColor  = TAG_COLOR[e.tag] || '#656D76';
       const ddayColor = e.dday === 'D-DAY' ? '#F85149' : e.dday?.startsWith('D-') ? '#F0B429' : '#484F58';
@@ -7294,7 +7357,8 @@ function renderCalWeek() {
       const estBadge  = e.estimated
         ? `<span style="font-size:7px;color:#9A6700;background:#1A1400;border:0.5px solid #9A6700;border-radius:3px;padding:0 3px;margin-left:4px;">추정</span>`
         : '';
-      return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid #21262D;">
+      return `<div style="padding:6px 0;border-bottom:0.5px solid #21262D;">
+      <div style="display:flex;align-items:center;gap:8px;">
         <div style="width:2px;height:26px;border-radius:1px;background:${impColor};flex-shrink:0;"></div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:10px;font-weight:600;color:#E6EDF3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
@@ -7304,8 +7368,11 @@ function renderCalWeek() {
         </div>
         <div style="text-align:right;flex-shrink:0;">
           <div style="font-size:9px;font-weight:700;color:${ddayColor};">${escH(e.dday || '')}</div>
-          ${e.released ? `<div style="font-size:9px;font-weight:600;color:${e.released.val > 0 ? '#F85149' : '#3FB950'};margin-top:1px;">${escH(e.released.label)}</div>` : ''}
+          ${!res && e.released ? `<div style="font-size:9px;font-weight:600;color:${e.released.val > 0 ? '#F85149' : '#3FB950'};margin-top:1px;">${escH(e.released.label)}</div>` : ''}
         </div>
+      </div>
+      ${res ? econResultHtml(res)
+            : _econPending[`${e.date}|${e.name}`] ? '<div class="econ-res-meta" style="margin-left:10px;">결과 검증 대기 — FRED 공식 값 반영 후 표시</div>' : ''}
       </div>`;
     }).join('');
 
