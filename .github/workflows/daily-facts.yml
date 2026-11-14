@@ -1,0 +1,38 @@
+name: Daily Facts
+
+# 데일리 리포트 1단계 — 전일 미국 세션 팩트시트·이상 신호·과거 유사 국면 → data/daily/<세션일>/facts.json
+# 미국 장 마감(16:00 ET) 뒤 실행. 리포트 에이전트(클라우드)는 이 파일만 읽는다(Worker 접근 불가).
+on:
+  schedule:
+    - cron: '20 21 * * 1-5'     # KST 06:20 화-토
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: '결과를 main에 커밋 (false면 아티팩트로만 — 시험 실행용)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: daily-facts
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build facts
+        run: python3 scripts/build_daily_facts.py
+      - name: Upload artifact (시험 실행)
+        if: github.event_name == 'workflow_dispatch' && !inputs.commit
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-facts
+          path: data/daily/
+      - name: Commit
+        if: github.event_name == 'schedule' || inputs.commit
+        run: |
+          bash scripts/commit_data.sh "chore: 데일리 팩트시트 [$(date -u '+%Y-%m-%d')]" data/daily/
