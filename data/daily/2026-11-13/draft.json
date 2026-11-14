@@ -1,0 +1,146 @@
+{
+ "session": "2026-11-13",
+ "headline": "인상 재가격은 질서 있게, 매도는 AI 대형주에 집중",
+ "regime": {
+  "label": "transition",
+  "one_liner": "금리는 인상 사이클로 재가격 중이지만 신용 스프레드 축소·VIX 하락·동일가중 고점권이 겹쳐 전면 위험 회피가 아닌 리더십 교체 국면으로 판정"
+ },
+ "drivers": [
+  {
+   "title": "중간 구간이 이끈 금리 급등 — 공포가 아니라 정책 경로 재가격",
+   "anomaly_keys": [
+    "US5Y",
+    "US10Y",
+    "US30Y",
+    "US3M"
+   ],
+   "body": "5일간 5년물 {{market.US5Y.chg_5d|+}}bp({{market.US5Y.z_5d|+}}σ), 10년물 {{market.US10Y.chg_5d|+}}bp, 30년물 {{market.US30Y.chg_5d|+}}bp로 중간 구간이 주도했다. 10월 CPI가 헤드라인 0.4%·근원 0.3%로 예상을 웃돈 뒤 12월 25bp 인상 확률이 100%까지 반영됐다는 보도. 13일 PPI가 0.3%로 예상 0.4%를 밑돌았는데도 금리는 더 올랐다 — 좋은 지표가 무시된 것은 인하 베팅 청산이 아직 끝나지 않았다는 신호다. MOVE는 5일 {{market.MOVE.chg_5d|+}}%로 거의 그대로 → 변동성 공포가 아닌 질서 있는 재가격으로 본다.\n무효화: 30년물이 5년물보다 빠르게 오르며 MOVE가 115를 넘으면 기간 프리미엄·재정 문제로 성격이 바뀐 것.",
+   "sources": [
+    "https://stockanalysis.com/news/us-cpi-rises-october-2026/",
+    "https://pluang.com/en/news-feed/imbal-hasil-treasury-naik-seiring-penguatan-ekspektasi-kenaikan-suku-bunga-fed",
+    "https://finance.biggo.com/news/b2209e35-5940-4db5-a81b-2ad6cd7a4d1e",
+    "https://finance.yahoo.com/markets/live/stock-market-today-friday-november-13-dow-sp-500-nasdaq-nvidia-ppi-141451558.html"
+   ],
+   "cited_numbers": [
+    {
+     "value": 0.4,
+     "source": "https://stockanalysis.com/news/us-cpi-rises-october-2026/"
+    },
+    {
+     "value": 0.3,
+     "source": "https://stockanalysis.com/news/us-cpi-rises-october-2026/"
+    },
+    {
+     "value": 25,
+     "source": "https://pluang.com/en/news-feed/imbal-hasil-treasury-naik-seiring-penguatan-ekspektasi-kenaikan-suku-bunga-fed"
+    },
+    {
+     "value": 100,
+     "source": "https://pluang.com/en/news-feed/imbal-hasil-treasury-naik-seiring-penguatan-ekspektasi-kenaikan-suku-bunga-fed"
+    },
+    {
+     "value": 115,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "지수가 아니라 AI 대형주를 덜어냈다",
+   "anomaly_keys": [
+    "QQQ/RSP",
+    "QQQ"
+   ],
+   "body": "13일 QQQ {{market.QQQ.chg_1d}}%, 동일가중 RSP {{market.RSP.chg_1d|+}}%. QQQ는 200일선 아래({{market.QQQ.vs_200dma_pct}}%)로 내려간 반면 RSP는 1년 백분위 {{market.RSP.pctile_1y|r0}}로 고점권이다. 기술 {{market.XLK.chg_1d}}% 대 필수소비재 {{market.XLP.chg_1d|+}}%. 엔비디아는 이사회의 젠슨 황 조사 이후 고점 대비 29% 내렸다는 보도. 할인율 상승에 가장 민감한 장기 듀레이션 성장주에 지배구조 리스크까지 겹친 쪽을 줄이고, 그 돈이 방어주·금융으로 옮겨 간 구조다. VIX가 5일 {{market.VIX.chg_5d}}% 내린 것도 전면 디레버리징이 아님을 뒷받침한다.\n무효화: RSP가 50일선 아래로 내려가거나 VIX가 25를 넘으면 집중 매도가 지수 전체로 번진 것.",
+   "sources": [
+    "https://fourweekmba.com/ai-nvidia-erases-its-2026-gains-down-29-and-1-7t-from-peak/",
+    "https://finance.yahoo.com/markets/live/stock-market-today-friday-november-13-dow-sp-500-nasdaq-nvidia-ppi-141451558.html"
+   ],
+   "cited_numbers": [
+    {
+     "value": 29,
+     "source": "https://fourweekmba.com/ai-nvidia-erases-its-2026-gains-down-29-and-1-7t-from-peak/"
+    },
+    {
+     "value": 25,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "이자 없는 자산의 동반 하락 — 실질금리의 기회비용",
+   "anomaly_keys": [
+    "DXY",
+    "BTC"
+   ],
+   "body": "달러인덱스 {{market.DXY.close}}로 52주 신고가, 금은 5일 {{market.GOLD.chg_5d}}%로 1년 백분위 {{market.GOLD.pctile_1y|r0}}, 비트코인은 5일 {{market.BTC.chg_5d}}%. 매파적 재가격이 금·비트코인을 누르고 달러를 연중 고점으로 올렸다는 분석과 같은 그림이다. 이란 관련 지정학 뉴스가 이어지는데도 금이 오르지 않았다는 점이 핵심 — 헤지 수요보다 금리 논리가 우위다.\n무효화: 10년물이 계속 오르는데 금이 반등하면 헤지 수요가 금리를 이기기 시작한 것.",
+   "sources": [
+    "https://www.actionforex.com/action-insight/market-overview/weekly-report/660879-hawkish-fed-repricing-punishes-non-yielders-gold-and-bitcoin-slide-as-dollar-surges-to-2026-high/"
+   ],
+   "cited_numbers": []
+  }
+ ],
+ "skipped_anomalies": [
+  {
+   "key": "TLT",
+   "reason": "금리 급등(첫 번째 동인)의 가격 표현"
+  },
+  {
+   "key": "LQD",
+   "reason": "스프레드가 아닌 듀레이션 손실 — 배관 항목에서 다룸"
+  }
+ ],
+ "plumbing": {
+  "body": "순유동성 ${{plumbing.net_liquidity_b|r0}}B로 4주 평균(${{plumbing.nl_4w_avg_b|r0}}B) 위, SOFR−IORB {{plumbing.sofr_minus_iorb_bp|r0}}bp, SRF 사용 ${{plumbing.srf.accepted_b|r0}}B — 자금시장 경색 신호는 없다. 다만 역레포 잔액이 ${{plumbing.on_rrp_b}}B로 사실상 소진돼 연말 TGA(${{plumbing.tga_b|r0}}B) 증가나 결제일 충격을 준비금이 직접 흡수해야 한다. 신용은 IG OAS {{plumbing.ig_oas.delta|bp}}bp, CCC {{plumbing.ccc_oas.delta|bp}}bp로 오히려 좁아졌다 — LQD·HYG 하락은 스프레드가 아니라 듀레이션 손실이다.",
+  "cited_numbers": []
+ },
+ "analogs": [
+  {
+   "asset": "US5Y",
+   "body": "5년물 5일 급등(S&P 500 200일선 위 국면) 사례는 {{analogs.US5Y.n|r0}}번. S&P 500 20일 뒤 상승 비율 {{analogs.US5Y.forward.SPY.20d.pct_positive|r0}}%(19번 중 12번), 중앙값 {{analogs.US5Y.forward.SPY.20d.median|+}}%, 하위 10% {{analogs.US5Y.forward.SPY.20d.p10}}%. 다음날 추가가 20일 중앙값 {{analogs.US5Y.responses.SPY.add_next_day_20d.median|+}}%로 가장 나았지만 보유 중 최대 역행 하위 10%가 {{analogs.US5Y.responses.SPY.max_adverse_20d.p10}}%였다. TLT 20일 중앙값 {{analogs.US5Y.forward.TLT.20d.median}}% — 금리 상승은 곧바로 되돌려지지 않는 경우가 많았다. 2013-06-20(테이퍼 발작)은 20일 뒤 {{analogs.US5Y.closest.1.spy_20d|+}}%, 2022-02-10(CPI 충격·인상 사이클 시작)은 {{analogs.US5Y.closest.4.spy_20d}}%. 이번은 중간 구간 주도의 인상 재가격이라 2022년에 가깝지만 당시와 달리 IG 스프레드가 좁다. 신용이 버티는 동안은 하위 꼬리보다 중앙값 쪽이 기준점이다.",
+   "sources": [
+    "https://www.axios.com/2022/02/11/bond-market-fed-rate-hikes"
+   ],
+   "cited_numbers": []
+  },
+  {
+   "asset": "QQQ",
+   "body": "QQQ 200일선 하향 돌파(S&P 500은 200일선 위) 사례는 {{analogs.QQQ.n|r0}}번으로 적다. 5일 뒤 중앙값 {{analogs.QQQ.forward.QQQ.5d.median}}%로 단기 추가 약세가 흔했고, 20일 뒤 상승 비율 {{analogs.QQQ.forward.QQQ.20d.pct_positive|r0}}%, 중앙값 {{analogs.QQQ.forward.QQQ.20d.median|+}}%, 하위 10% {{analogs.QQQ.forward.QQQ.20d.p10}}%. 5일 대기 후 진입이 중앙값 {{analogs.QQQ.responses.QQQ.wait5_then_add_20d.median|+}}%로 가장 나았지만 보유 시 최대 역행 하위 10%는 {{analogs.QQQ.responses.QQQ.max_adverse_20d.p10}}%. 과거 사례엔 선도 기업의 지배구조 이벤트가 없었다 — 엔비디아 실적·조사 결과라는 이진 변수가 꼬리를 키울 수 있다.",
+   "sources": [],
+   "cited_numbers": []
+  }
+ ],
+ "sectors": {
+  "body": "필수소비재 {{market.XLP.chg_1d|+}}%·통신 {{market.XLC.chg_1d|+}}%·에너지 {{market.XLE.chg_1d|+}}%가 상위, 기술 {{market.XLK.chg_1d}}%가 최하위. 어긋난 지점: 금리가 오르는데 채권 대용주인 필수소비재(1년 백분위 {{market.XLP.pctile_1y|r0}})·유틸리티가 올랐다 — 금리 논리로는 설명되지 않고 AI 대형주에서 빠진 돈의 피난처 수요로 읽힌다. 금융은 1년 백분위 {{market.XLF.pctile_1y|r0}}로 인상 재가격의 순이자마진 수혜를 반영. 방어주 쏠림이 길어지면 지수는 버텨도 상승 탄력은 약해진다.",
+  "cited_numbers": []
+ },
+ "watchpoints": [
+  {
+   "condition": "10년물 {{market.US10Y.close}}% → 52주 고점 {{market.US10Y.high_52w}}% 돌파 + MOVE 115 상회",
+   "implication": "질서 있는 재가격이 무질서로 바뀌는 신호 — 주식·신용 동반 압박"
+  },
+  {
+   "condition": "11/17 소매판매 이후 2년물 5.0% 돌파 (FRED 최근 {{rates.dgs2.value}}%)",
+   "implication": "12월 50bp 인상 논의가 가격에 들어가기 시작 — 5년물 주도 상승 재개"
+  },
+  {
+   "condition": "QQQ 200일선 대비 −3% 이하 종가 (현재 {{market.QQQ.vs_200dma_pct}}%)",
+   "implication": "엔비디아 실적(보도상 11/17 또는 11/19) 전후 집중 매도가 지수 전체로 확산"
+  },
+  {
+   "condition": "SOFR−IORB +5bp 이상 또는 SRF 사용 $10B 이상",
+   "implication": "역레포 완충 없는 상태에서 연말 자금 경색 시작"
+  },
+  {
+   "condition": "VIX 25 상회와 RSP 하루 −1% 이하 동반",
+   "implication": "리더십 교체가 아니라 전면 위험 회피로 레짐 전환"
+  }
+ ],
+ "risks": [
+  "12월 인상 폭 확대 논의가 커지면 2022년형 경로(인상 가속·멀티플 압축)로 넘어갈 위험",
+  "엔비디아 이사회 조사 결과·실적이 이진 이벤트 — AI 대형주 꼬리 위험",
+  "이란 분쟁으로 유가가 재급등하면 인플레 경로 재평가로 금리 상방 압력 가중",
+  "역레포 소진 상태의 연말 자금시장 — 작은 결제 충격도 레포 금리 급등으로 번질 수 있음"
+ ],
+ "written_at": "2026-11-14T12:16:49+00:00",
+ "model": "claude-opus-5-5"
+}
