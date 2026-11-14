@@ -177,7 +177,7 @@ function render(r) {
   h += `<section><h2>관전 포인트</h2><ul class="plain wp">${(r.watchpoints || []).map(w => `<li><b>${esc(w.condition)}</b> → ${esc(w.implication)}</li>`).join('')}</ul></section>`;
   if (r.risks?.length) h += `<section><h2>시나리오를 뒤집을 위험</h2><ul class="plain">${r.risks.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`;
   if (db.upcoming?.length) {
-    h += `<section><h2>이번 주 일정</h2><ul class="plain">${db.upcoming.map(e => `<li>${esc(e.date.slice(5))} ${esc(e.name)}${e.estimated ? ' <span class="muted">(추정)</span>' : ''}</li>`).join('')}</ul></section>`;
+    h += `<section><h2>이번 주 일정</h2><ul class="plain">${db.upcoming.map(e => `<li>${+e.date.slice(5, 7)}/${+e.date.slice(8, 10)} ${esc(e.name)}${e.estimated ? ' <span class="muted">(추정)</span>' : ''}</li>`).join('')}</ul></section>`;
   }
   h += `<div class="foot">숫자는 팩트시트(스크립트 계산)와 대조 검증을 통과한 것만 게시됩니다. 해석은 Claude가 작성 · 검증 ${esc((r.verified_at || '').slice(0, 16).replace('T', ' '))} UTC
     ${db.data_failures?.length ? `<br>수신 실패: ${esc(db.data_failures.join(', '))}` : ''}<br>투자 권유가 아니며, 판단과 책임은 독자에게 있습니다.</div>`;

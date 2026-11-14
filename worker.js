@@ -719,7 +719,7 @@ function buildMarketEvents(fromDate, toDate, fomcDates = []) {
     const minutes = new Date(Date.parse(dateStr) + 21 * 86400000).toISOString().slice(0, 10);
     if (minutes >= fromDate && minutes <= toDate) {
       events.push({
-        date: minutes, dday: null, name: `FOMC 의사록 공개 (${dateStr.slice(5)} 회의)`,
+        date: minutes, dday: null, name: `FOMC 의사록 공개 (${+dateStr.slice(5, 7)}/${+dateStr.slice(8, 10)} 회의)`,
         imp: 'high', tag: '연준', category: 'fed', weight: 2, estimated: false,
       });
     }
