@@ -498,13 +498,20 @@ def analogs_for(an):
     return out
 
 
-analogs = []
+# 같은 이야기(예: 금리 급등 → 5년·10년·30년·TLT)가 유사 국면 칸을 다 차지하지 않게 군집당 1개, 최대 4개
+CLUSTER = {'rates': 'rates', 'bonds': 'rates', 'credit': 'rates', 'equity': 'equity', 'sector': 'equity', 'vol': 'equity'}
+analogs, used = [], set()
 for an in anoms:
     if an['kind'] in ('move', 'move5', 'cross', 'extreme', 'level') and an['key'] in ANALOG_ASSETS and an['key'] in derived:
+        cl = CLUSTER.get(UNIVERSE[an['key']][2], an['key'])
+        if cl in used:
+            continue
         res = analogs_for(an)
         if res:
             analogs.append(res)
-analogs = analogs[:4]
+            used.add(cl)
+    if len(analogs) >= 4:
+        break
 
 # ── 6. 저장 ─────────────────────────────────────────────────
 facts = {
