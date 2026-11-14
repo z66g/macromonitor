@@ -145,7 +145,7 @@ mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v
 - 국채경매 결과: `auction-ai-merge.yml` → `send_auction_telegram.py`
 - H.4.1 주간 유동성: `h41-telegram.yml` (목 22:00 UTC)
 - 데일리 시황 리포트: `daily-report.yml` → `send_daily_telegram.py` (가장 최근 리포트 1건, 게시 24시간 이내만 · KST 07시 전후)
-  (예전 19:30 '데일리 마켓' `daily-market-telegram.yml`은 2026-11-14 삭제 — cron-job.org의 `daily-market` dispatch 작업은 지워도 됨)
+  (예전 19:30 '데일리 마켓' `daily-market-telegram.yml`과 cron-job.org `daily-market` 작업은 2026-11-14 삭제)
 
 ## LLM
 - **Gemini 2.5 Flash** (GitHub Actions): 뉴스 번역 `translate-news.yml`(30분), 다이제스트 `generate-news-digest.yml`(3시간)
