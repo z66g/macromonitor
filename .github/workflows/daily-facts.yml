@@ -3,8 +3,7 @@ name: Daily Facts
 # 데일리 리포트 1단계 — 전일 미국 세션 팩트시트·이상 신호·과거 유사 국면 → data/daily/<세션일>/facts.json
 # 미국 장 마감(16:00 ET) 뒤 실행. 리포트 에이전트(클라우드)는 이 파일만 읽는다(Worker 접근 불가).
 on:
-  schedule:
-    - cron: '20 21 * * 1-5'     # KST 06:20 화-토
+  # schedule은 2단계(리포트 에이전트) 가동 때 켠다:  - cron: '20 21 * * 1-5'   # KST 06:20 화-토
   workflow_dispatch:
     inputs:
       commit:
