@@ -146,7 +146,7 @@ export default {
       if (path.startsWith('/market'))        return await marketSnapshot(env, ctx);
       if (path.startsWith('/yahoo-chart'))   return await yahooChart(url);
       if (path.startsWith('/yahoo'))         return await yahooProxy(url);
-      if (path.startsWith('/ici'))           return await iciMMF(env, ctx);
+      if (path.startsWith('/ici'))           return await iciFromKv(env, ctx);
       if (path.startsWith('/pipe3'))         return await pipe3CreditRisk(env, ctx);
       // ⚠️ 더 구체적인 경로를 반드시 먼저 — /liq-tower가 /liq보다 앞에
       if (path.startsWith('/liq-tower'))     return await liqTowerCached(env, force, ctx);
@@ -1433,6 +1433,27 @@ async function fredProxy(url, env) {
   return json(data);
 }
 
+
+// /ici — 방문자 요청은 KV 누적 이력(mmf_history_v1)만 읽는다. 스크래핑은 cron(갱신 시각 :45)만.
+//   이력이 비어 있을 때(최초)만 한 번 스크래핑으로 채운다.
+async function iciFromKv(env, ctx) {
+  let hist = [];
+  try { hist = (await env.MMF_KV.get('mmf_history_v1', { type: 'json' })) || []; } catch(e) {}
+  if (!Array.isArray(hist) || !hist.length) return iciMMF(env, ctx);
+  const h = hist[0];   // 최신 주차 (내림차순 저장)
+  return json({
+    source:        'ICI (ici.org) — cron 수집 · KV 누적',
+    weekEnded:     h.weekEnded,
+    total:         h.total,
+    retail:        h.retail,
+    institutional: h.inst,
+    changeB:       h.changeB,
+    unit:          'trillion_usd',
+    collectedAt:   h.savedAt,
+    history:       hist,
+    kvCount:       hist.length,
+  });
+}
 
 async function iciMMF(env, ctx) {
   const KV_KEY = 'mmf_history_v1';

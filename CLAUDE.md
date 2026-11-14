@@ -74,7 +74,7 @@ git pull origin main --rebase && git push
 ## KV 캐시 TTL (cron 주기 6h보다 길게)
 ```
 liq / t2 / t3 / calendar / liqTower / h41Html: 12h · yieldsHist: 24h · newsCache: 3h · onchain: 3h · market: 3일(종목별 fetchedAt)
-tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 영구): 400일
+mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v1: 4일 · qra_active_v1: 400일 · h41_rel_v1_YYYYMMDD(발표분별 영구): 400일
 ```
 
 ## H.4.1
