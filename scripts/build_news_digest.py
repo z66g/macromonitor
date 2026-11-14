@@ -109,13 +109,17 @@ prompt = f"""당신은 거시·유동성 중심 투자 매체 MacroMonitor의 �
 선별 규칙
 - 같은 사건을 다룬 기사는 하나로 묶는다 (ids에 여러 번호).
 - 중요도: 연준·중앙은행 정책 신호 > 국채 수급·재정 > 주요 경제지표 서프라이즈 > 신용 이벤트 > 지정학·원자재(유가·금) > AI·반도체 빅테크(지수 영향 있는 것) > 크립토(제도·기관 자금).
-- 제외: 정치 가십, 연예·스포츠, 지수 영향 없는 개별 기업 소식, 단순 시황 중계("다우 상승 마감" 류), 광고성 기사.
+- 제외: 정치 가십, 연예·스포츠, 지수 영향 없는 개별 기업 소식, 시장 경로가 불분명한 사회·기술 담론(경고·전망 발언 등), 단순 시황 중계("다우 상승 마감" 류), 광고성 기사.
 - 핵심 5~8건. 의미 있는 후보가 적으면 그보다 적게 (억지로 채우지 말 것).
 
 작성 규칙
 - headline: 한국어 40자 이내, 사실 위주 명사형("연준 월러, 12월 인상 지지 시사"). 과장·감탄 금지.
-- why: 한국어 90자 이내, 시장 의미 한 줄 — 금리·달러·주식·유동성·크레딧 중 어디에 어떤 경로로 영향을 주는지.
-  매수·매도 권유, "호재/악재" 단정, 확정 예측 금지. 불확실하면 "~할 수 있다"가 아니라 조건을 명시("~면 ~").
+- why: 한국어 70자 이내 개조식(명사형 종결, "~습니다" 금지). 시장 의미 한 줄 — 어떤 자산(금리·달러·유가·주식·크레딧·유동성)에
+  어느 방향의 압력이 생기는지와 그 경로, 또는 시장이 확인할 다음 지점.
+  나쁜 예: "글로벌 시장에 영향을 줄 수 있습니다", "투자 심리에 변화를 가져올 수 있음" (어디에·어느 방향인지 없음)
+  좋은 예: "해협 봉쇄 장기화 시 유가 상방 → 기대인플레·장기금리 상승 압력"
+          "12월 인하 기대 후퇴 경로 — 2년물·달러 민감, 다음 확인은 PCE"
+  매수·매도 권유, "호재/악재" 단정, 확정 예측 금지. 불확실하면 조건을 명시("~면 ~").
 - 숫자는 후보 기사 원문에 있는 것만 쓴다. 원문에 없는 수치·사실을 추가하지 말 것.
 - category: {', '.join(f'{k}({v})' for k, v in CATS.items())} 중 하나.
 - importance: 1~5 (5가 가장 중요).
@@ -126,20 +130,32 @@ prompt = f"""당신은 거시·유동성 중심 투자 매체 MacroMonitor의 �
 JSON만 출력:
 {{"items":[{{"ids":[3,7],"category":"fed","importance":5,"headline":"...","why":"..."}}]}}"""
 
-body = {'contents': [{'parts': [{'text': prompt}]}],
-        'generationConfig': {'temperature': 0.2, 'maxOutputTokens': 4096, 'responseMimeType': 'application/json',
-                             'thinkingConfig': {'thinkingBudget': 1024}}}
 url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}'
-for attempt in range(3):
-    r = requests.post(url, json=body, timeout=120)
-    if r.status_code in (429, 500, 503) and attempt < 2:
-        time.sleep(20 * (attempt + 1))
-        continue
-    r.raise_for_status()
-    break
-parts = r.json().get('candidates', [{}])[0].get('content', {}).get('parts', [])
-raw = ''.join(p.get('text', '') for p in parts if not p.get('thought'))
-parsed = json.loads(re.sub(r'^```json\s*|\s*```$', '', raw.strip(), flags=re.M))
+
+
+def call_gemini(text):
+    body = {'contents': [{'parts': [{'text': text}]}],
+            'generationConfig': {'temperature': 0.2, 'maxOutputTokens': 4096, 'responseMimeType': 'application/json',
+                                 'thinkingConfig': {'thinkingBudget': 1024}}}
+    for attempt in range(3):
+        r = requests.post(url, json=body, timeout=120)
+        if r.status_code in (429, 500, 503) and attempt < 2:
+            time.sleep(20 * (attempt + 1))
+            continue
+        r.raise_for_status()
+        break
+    parts = r.json().get('candidates', [{}])[0].get('content', {}).get('parts', [])
+    raw = ''.join(p.get('text', '') for p in parts if not p.get('thought'))
+    return json.loads(re.sub(r'^```json\s*|\s*```$', '', raw.strip(), flags=re.M))
+
+
+VAGUE = re.compile(r'(수 있습니다|수 있음|습니다\.?$|영향을 (줄|미칠|미치)|변화를 (가져|줄))')
+parsed = call_gemini(prompt)
+vague = [x.get('headline') for x in parsed.get('items') or [] if VAGUE.search(str(x.get('why') or ''))]
+if len(vague) >= 2:   # 막연한 '시장 의미'가 많으면 한 번만 다시 요청
+    print(f'막연한 why {len(vague)}건 → 재요청')
+    parsed = call_gemini(prompt + '\n\n[수정 요청] 직전 답의 why가 "~영향을 줄 수 있습니다"처럼 막연했다. '
+                         '모든 why를 좋은 예처럼 자산·방향·경로가 드러나는 개조식으로 다시 써라. 같은 JSON 형식.')
 
 NUM = re.compile(r'\d+(?:[.,]\d+)?')
 
@@ -180,6 +196,9 @@ for x in parsed.get('items') or []:
                   'keys': [key_of(c) for c in group],
                   # 사이트 뉴스 패널 호환 (title·summary·rank)
                   'title': head, 'summary': why})
+for it in items:
+    if VAGUE.search(it['why']):
+        print(f"  (막연함 경고) {it['headline']}: {it['why']}")
 for h, why in dropped:
     print(f'  제외: {h!r} — {why}')
 items.sort(key=lambda z: -z['importance'])
