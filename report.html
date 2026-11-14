@@ -44,6 +44,30 @@ h1{font-size:26px;line-height:1.42;font-weight:800;letter-spacing:-.01em;margin:
 .tldr a:hover{color:var(--blue);}
 .card[id]{scroll-margin-top:16px;}
 @media (max-width:760px){.keynums{grid-template-columns:repeat(3,1fr);}}
+/* 이번 주 일정 — 주간 달력 (PC: 요일 칸 가로 배치 / 휴대폰: 날짜별 세로) */
+.wk{display:grid;grid-template-columns:repeat(var(--days,5),1fr);border:0.5px solid var(--line2);border-radius:8px;overflow:hidden;background:var(--card);}
+.wk-day{border-left:0.5px solid var(--line);min-width:0;display:flex;flex-direction:column;}
+.wk-day:first-child{border-left:none;}
+.wk-hd{padding:8px 10px;border-bottom:0.5px solid var(--line);font-size:12px;color:var(--mute);display:flex;justify-content:space-between;align-items:baseline;}
+.wk-hd b{font-size:15px;color:var(--txt);font-weight:700;}
+.wk-day.today .wk-hd{background:rgba(88,166,255,.08);}
+.wk-day.today .wk-hd b{color:var(--blue);}
+.wk-day.wkend .wk-hd{color:var(--dim);}
+.wk-ev{padding:8px 10px;display:flex;flex-direction:column;gap:6px;flex:1;}
+.wk-e{font-size:12.5px;line-height:1.45;color:var(--txt2);padding-left:9px;border-left:2px solid #484F58;}
+.wk-e.high{border-left-color:#F0B429;color:var(--txt);font-weight:600;}
+.wk-e .est{font-size:10px;color:#9A6700;font-weight:400;margin-left:3px;}
+.wk-none{font-size:12px;color:var(--dim);}
+.wk-legend{margin-top:6px;font-size:11px;color:var(--dim);}
+.wk-legend i{display:inline-block;width:8px;height:2px;vertical-align:middle;margin:0 4px 0 10px;}
+@media (max-width:640px){
+  .wk{grid-template-columns:1fr;}
+  .wk-day{border-left:none;border-top:0.5px solid var(--line);flex-direction:row;}
+  .wk-day:first-child{border-top:none;}
+  .wk-hd{border-bottom:none;flex:0 0 74px;flex-direction:column;gap:0;justify-content:flex-start;}
+  .wk-ev{padding:8px 10px 8px 0;}
+  .wk-day.empty{display:none;}
+}
 @media (max-width:600px){.hero{padding:16px 16px 14px;}h1{font-size:21px;}.lead{font-size:14px;}.kn .v{font-size:15px;}}
 th{white-space:nowrap;}
 section{margin-top:26px;}
@@ -108,6 +132,33 @@ const NEUTRAL = new Set(['VIX', 'MOVE', 'DXY', 'USDJPY']);
 const fmtClose = v => v == null ? '—' : (Math.abs(v) >= 1000 ? Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 }) : String(+Number(v).toFixed(3)));
 const srcLinks = arr => (arr || []).map(safeUrl).filter(Boolean)
   .map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">출처${(arr.length > 1) ? ' ' + (i + 1) : ''} ↗</a>`).join('');
+
+// 주간 달력: 첫 일정이 있는 주 월요일 ~ 마지막 일정 주 금요일 (주말은 일정이 있을 때만)
+function weekCalendar(evs) {
+  const byDate = {};
+  evs.forEach(e => (byDate[e.date] = byDate[e.date] || []).push(e));
+  const dates = Object.keys(byDate).sort();
+  const start = new Date(dates[0] + 'T12:00:00Z'), end = new Date(dates[dates.length - 1] + 'T12:00:00Z');
+  start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7));            // 그 주 월요일부터
+  if (end.getUTCDay() >= 1 && end.getUTCDay() <= 5) end.setUTCDate(end.getUTCDate() + (5 - end.getUTCDay()));   // 금요일까지
+  const k = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10);   // 오늘(KST)
+  const days = [];
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+    const ds = d.toISOString().slice(0, 10), wd = d.getUTCDay();
+    if ((wd === 0 || wd === 6) && !byDate[ds]) continue;
+    days.push({ ds, wd });
+  }
+  const order = { high: 0, medium: 1, low: 2 };
+  const cols = days.map(({ ds, wd }) => {
+    const list = (byDate[ds] || []).slice().sort((a, b) => (order[a.imp] ?? 3) - (order[b.imp] ?? 3));
+    const cls = ['wk-day', ds === k ? 'today' : '', wd === 0 || wd === 6 ? 'wkend' : '', list.length ? '' : 'empty'].join(' ');
+    return `<div class="${cls}"><div class="wk-hd"><b>${+ds.slice(5, 7)}/${+ds.slice(8, 10)}</b><span>${DOW[wd]}${ds === k ? ' · 오늘' : ''}</span></div>
+      <div class="wk-ev">${list.length ? list.map(e => `<div class="wk-e ${e.imp === 'high' ? 'high' : ''}">${esc(e.name)}${e.estimated ? '<span class="est">추정</span>' : ''}</div>`).join('')
+        : '<div class="wk-none">—</div>'}</div></div>`;
+  }).join('');
+  return `<div class="wk" style="--days:${days.length}">${cols}</div>
+    <div class="wk-legend">중요도 <i style="background:#F0B429"></i>높음 <i style="background:#484F58"></i>보통</div>`;
+}
 
 function render(r) {
   const d = new Date(r.session + 'T12:00:00Z');
@@ -177,7 +228,7 @@ function render(r) {
   h += `<section><h2>관전 포인트</h2><ul class="plain wp">${(r.watchpoints || []).map(w => `<li><b>${esc(w.condition)}</b> → ${esc(w.implication)}</li>`).join('')}</ul></section>`;
   if (r.risks?.length) h += `<section><h2>시나리오를 뒤집을 위험</h2><ul class="plain">${r.risks.map(x => `<li>${esc(x)}</li>`).join('')}</ul></section>`;
   if (db.upcoming?.length) {
-    h += `<section><h2>이번 주 일정</h2><ul class="plain">${db.upcoming.map(e => `<li>${+e.date.slice(5, 7)}/${+e.date.slice(8, 10)} ${esc(e.name)}${e.estimated ? ' <span class="muted">(추정)</span>' : ''}</li>`).join('')}</ul></section>`;
+    h += `<section><h2>이번 주 일정</h2>${weekCalendar(db.upcoming)}</section>`;
   }
   h += `<div class="foot">숫자는 팩트시트(스크립트 계산)와 대조 검증을 통과한 것만 게시됩니다. 해석은 Claude가 작성 · 검증 ${esc((r.verified_at || '').slice(0, 16).replace('T', ' '))} UTC
     ${db.data_failures?.length ? `<br>수신 실패: ${esc(db.data_failures.join(', '))}` : ''}<br>투자 권유가 아니며, 판단과 책임은 독자에게 있습니다.</div>`;
