@@ -11748,7 +11748,7 @@ function renderNewsDigest(digest) {
     `<div style="display:flex;gap:8px;${i > 0 ? 'padding-top:7px;border-top:0.5px solid #21262D;margin-top:7px;' : ''}">
       <span style="font-size:11px;font-weight:700;color:#CF222B;flex-shrink:0;margin-top:1px;">${escH(item.rank)}</span>
       <div>
-        <div style="font-size:11px;font-weight:600;color:#CDD9E5;line-height:1.4;margin-bottom:3px;">${escH(item.title)}</div>
+        <div style="font-size:11px;font-weight:600;color:#CDD9E5;line-height:1.4;margin-bottom:3px;">${item.category_name ? `<span style="font-size:9px;font-weight:600;color:#8B949E;border:0.5px solid #30363D;border-radius:3px;padding:0 4px;margin-right:5px;">${escH(item.category_name)}</span>` : ''}${safeUrl(item.link) ? `<a href="${escH(safeUrl(item.link))}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">${escH(item.title)}</a>` : escH(item.title)}${item.source ? `<span style="font-weight:400;color:#6E7681;font-size:9px;margin-left:5px;">${escH(item.source)}</span>` : ''}</div>
         <div style="font-size:10px;color:#8B949E;line-height:1.4;">${escH(item.summary)}</div>
       </div>
     </div>`

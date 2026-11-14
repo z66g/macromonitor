@@ -34,7 +34,6 @@ const KV_KEYS = {
   newsCache:  'news_cache_v1',
   newsTransMap: 'news_trans_map_v1',
   newsDigest:        'news_digest_v1',    // 핵심뉴스 (장마감/장시작)
-  newsDigestHistory: 'news_digest_history_v1', // 다이제스트 누적 (배치 텔레그램용)
   tgaDts:            'tga_dts_v1',             // DTS 일별 TGA 잔고 (GitHub Actions)
   market:            'market_snap_v1',         // Yahoo 시세·3개월 일봉 스냅샷 (cron 갱신, 사이트는 이것만 읽음)
 };
@@ -70,7 +69,6 @@ const KV_TTL = {
   newsCache:  10800,   // 30분 cron 기준 여유 — 몇 번 실패해도 GH Actions(번역·다이제스트)가 캐시를 읽을 수 있게
   newsTransMap: 2592000,
   newsDigest:        86400,              // 24h
-  newsDigestHistory: 86400 * 2,          // 48h (하루 2회 발송 사이 안전 보장)
 };
 
 const kvGet = async (env, key) => {
@@ -3900,8 +3898,8 @@ async function newsDigestSend(env) {
   if (await env.MMF_KV.get(slotKey)) return json({ ok: true, skipped: 'already sent for this slot' });
   try {
     await env.MMF_KV.put(slotKey, '1', { expirationTtl: 86400 });   // 먼저 표시 → 동시 호출 중복 방지
-    await sendBatchedTelegramDigest(env);
-    return json({ ok: true, sentAt: new Date().toISOString() });
+    const r = await sendBatchedTelegramDigest(env);
+    return json({ ok: true, ...r, sentAt: new Date().toISOString() });
   } catch(e) {
     await env.MMF_KV.delete(slotKey).catch(() => {});   // 실패 시 같은 시간대 재시도 허용
     console.error('[NEWS DIGEST SEND ERROR]', e.message);
@@ -4406,66 +4404,66 @@ async function sendTelegram(env, text) {
   console.log('[TELEGRAM] 발송 완료');
 }
 
-/**
- * 뉴스 다이제스트 Telegram 포맷 조립 후 발송
- */
-async function sendTelegramDigest(env, digest) {
-  if (!digest?.items?.length) return;
+// ── 뉴스 다이제스트 텔레그램 (KST 06:00 / 21:00) ──
+// 생성: generate-news-digest.yml → scripts/build_news_digest.py (Gemini, 숫자·출처 검증) → news_digest_v1
+// 발송: 아직 안 보낸 항목만, 분야별 묶음 + 시장 의미 + 원문 링크 + 오늘 일정. 보낸 기사 키는 news_digest_state_v1에 기록
+//       (다음 생성 때 후보에서 제외 → 06시·21시 사이 중복 없음)
+const DIGEST_STATE_KEY = 'news_digest_state_v1';
+const DIGEST_CATS = [
+  ['fed', '🏛', '연준·중앙은행'], ['treasury', '💵', '국채·재정'], ['macro', '📊', '경제지표·거시'],
+  ['credit', '🏦', '신용·금융'], ['geo', '🌍', '지정학·원자재'], ['tech', '💻', 'AI·테크'], ['crypto', '🪙', '크립토'],
+];
+const tgEsc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const tgUrl = u => { try { const x = new URL(String(u || '')); return x.protocol === 'https:' ? x.href : null; } catch { return null; } };
+const digestKey = it => String(it.link || it.title || '').trim().toLowerCase().slice(0, 200);
 
-  // KST 시간
-  const now    = new Date();
-  const kst    = new Date(now.getTime() + 9 * 3600_000);
-  const mm     = String(kst.getUTCMonth() + 1).padStart(2, '0');
-  const dd     = String(kst.getUTCDate()).padStart(2, '0');
-  const hh     = String(kst.getUTCHours()).padStart(2, '0');
-  const min    = String(kst.getUTCMinutes()).padStart(2, '0');
-  const dateStr = `${mm}-${dd}`;
-  const timeStr = `${hh}:${min} KST`;
-
-  const lines = digest.items.map((item, i) =>
-    `${i + 1}. ${item.summary || item.title}`
-  ).join('\n');
-
-  const text =
-    `📰 <b>MacroMonitor 뉴스</b> | ${dateStr} ${timeStr}\n\n` +
-    `${lines}\n\n` +
-    `🔗 macromonitor.zbbg.kr`;
-
-  await sendTelegram(env, text);
+function buildDigestMessage(items, todayEvents, kst) {
+  const DOW = ['일', '월', '화', '수', '목', '금', '토'];
+  const head = `📰 <b>MacroMonitor 뉴스 브리핑</b>\n${kst.getUTCMonth() + 1}/${kst.getUTCDate()}(${DOW[kst.getUTCDay()]}) ` +
+               `${kst.getUTCHours() < 12 ? '아침' : '저녁'} · 핵심 ${items.length}건`;
+  const blocks = [];
+  for (const [cat, icon, label] of DIGEST_CATS) {
+    const list = items.filter(it => it.category === cat);
+    if (!list.length) continue;
+    blocks.push(`${icon} <b>${label}</b>\n` + list.map(it => {
+      const url = tgUrl(it.link);
+      const src = it.source ? ` <i>${tgEsc(it.source)}${(it.sources || []).length > 1 ? ` 외 ${it.sources.length - 1}` : ''}</i>` : '';
+      const title = url ? `<a href="${tgEsc(url)}">${tgEsc(it.headline)}</a>` : tgEsc(it.headline);
+      return `• ${title}${src}` + (it.why ? `\n   ↳ ${tgEsc(it.why)}` : '');
+    }).join('\n'));
+  }
+  const ev = todayEvents.length
+    ? `\n\n🗓 <b>오늘 일정(미국)</b>  ` + todayEvents.map(e => tgEsc(e.name)).join(' · ')
+    : '';
+  return `${head}\n\n${blocks.join('\n\n')}${ev}\n\n🔗 <a href="https://macromonitor.zbbg.kr">macromonitor.zbbg.kr</a>`;
 }
 
-/**
- * 누적된 다이제스트를 한 번에 발송 (중복 제거)
- * KST 06:00(9건) / KST 21:00(15건) 배치 발송용
- */
 async function sendBatchedTelegramDigest(env) {
-  const hist = await kvGet(env, KV_KEYS.newsDigestHistory);
-  if (!hist?.digests?.length) {
-    console.log('[BATCHED DIGEST] 누적 히스토리 없음, 스킵');
-    return;
+  const [digest, state, cal] = await Promise.all([
+    kvGet(env, KV_KEYS.newsDigest), kvGet(env, DIGEST_STATE_KEY), kvGet(env, KV_KEYS.calendar),
+  ]);
+  const sent = new Set(state?.sent_keys || []);
+  // 새 형식(headline·category)만 발송. 항목 키 중 하나라도 이미 보냈으면 제외
+  const items = (digest?.items || []).filter(it => it.headline && it.category &&
+    !(it.keys?.length ? it.keys : [digestKey(it)]).some(k => sent.has(k)));
+  if (!items.length) {
+    console.log('[DIGEST] 보낼 새 항목 없음, 스킵');
+    return { sent: 0 };
   }
+  const kst = new Date(Date.now() + 9 * 3600000);
+  const today = kst.toISOString().slice(0, 10);
+  const todayEvents = (cal?.events || [])
+    .filter(e => e.date === today && (e.imp === 'high' || e.imp === 'medium'))
+    .sort((a, b) => (a.imp === 'high' ? 0 : 1) - (b.imp === 'high' ? 0 : 1)).slice(0, 4);
 
-  // 전체 아이템 수집 + 중복 제거 (title 기준 소문자 정규화)
-  const seen = new Set();
-  const allItems = [];
-  for (const d of hist.digests) {
-    for (const item of (d.items || [])) {
-      const key = (item.title || item.summary || '').toLowerCase().trim().slice(0, 80);
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      allItems.push(item);
-    }
-  }
+  let text = buildDigestMessage(items, todayEvents, kst);
+  if (text.length > 4000) text = buildDigestMessage(items.map(it => ({ ...it, why: '' })), todayEvents, kst);   // 길면 의미 줄 생략
+  await sendTelegram(env, text);
 
-  console.log(`[BATCHED DIGEST] ${hist.digests.length}개 다이제스트 → ${allItems.length}건 (중복 제거 후)`);
-
-  if (allItems.length === 0) return;
-
-  await sendTelegramDigest(env, {
-    items: allItems,
-    generatedAt: new Date().toISOString(),
-  });
-
-  // 발송 완료 → 히스토리 초기화
-  await kvPut(env, KV_KEYS.newsDigestHistory, { digests: [] }, KV_TTL.newsDigestHistory);
+  const keys = items.flatMap(it => it.keys?.length ? it.keys : [digestKey(it)]);
+  await kvPut(env, DIGEST_STATE_KEY, {
+    last_sent_at: new Date().toISOString(),
+    sent_keys: [...keys, ...(state?.sent_keys || [])].slice(0, 400),
+  }, 86400 * 7);
+  return { sent: items.length };
 }

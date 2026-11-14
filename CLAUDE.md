@@ -141,14 +141,19 @@ mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v
   외부 데이터가 필요하면 Actions가 받아 `data/`에 저장하고 에이전트는 파일을 읽는 구조로 만들 것.
 
 ## 텔레그램 (구독자 브로드캐스트 채널 — 운영 경고는 보내지 말 것, GitHub 이슈 사용)
-- 뉴스 다이제스트: Worker `/news-digest-send` (cron-job.org KST 06:00/21:00, ±20분·시간대당 1회만 동작)
+- 뉴스 브리핑: Worker `/news-digest-send` (cron-job.org KST 06:00/21:00, ±20분·시간대당 1회만 동작)
+  - 생성 `generate-news-digest.yml` → `scripts/build_news_digest.py`: 마지막 발송 이후(최대 18h) 미발송 기사 → Gemini가 같은 사건 묶고
+    핵심 5~8건(분야·중요도·제목·시장 의미) → **검증**(후보 번호 실재·분야·길이·HTML 금지·숫자는 원문에 있어야) → `news_digest_v1`.
+    링크·출처는 원 기사 데이터에서(1차 원문 tier 1 우선). 실패·0건이면 기존 값 유지
+  - 발송: 분야별 묶음 + `↳ 시장 의미` + 원문 링크 + 오늘 미국 일정, 전부 HTML 이스케이프·https 링크만.
+    보낸 기사 키는 `news_digest_state_v1`(7일, 최근 400건) → 다음 생성 후보에서 제외(06·21시 중복 없음)
 - 국채경매 결과: `auction-ai-merge.yml` → `send_auction_telegram.py`
 - H.4.1 주간 유동성: `h41-telegram.yml` (목 22:00 UTC)
 - 데일리 시황 리포트: `daily-report.yml` → `send_daily_telegram.py` (가장 최근 리포트 1건, 게시 24시간 이내만 · KST 07시 전후)
   (예전 19:30 '데일리 마켓' `daily-market-telegram.yml`과 cron-job.org `daily-market` 작업은 2026-11-14 삭제)
 
 ## LLM
-- **Gemini 2.5 Flash** (GitHub Actions): 뉴스 번역 `translate-news.yml`(30분), 다이제스트 `generate-news-digest.yml`(3시간)
+- **Gemini 2.5 Flash** (GitHub Actions): 뉴스 번역 `translate-news.yml`(30분), 다이제스트 `generate-news-digest.yml`(3시간 + 발송 25분 전, `build_news_digest.py`)
   - 번역 맵은 현재 뉴스 + 최근 4000건만 유지 (KV 값 25MB 한도)
 - **Claude 클라우드 에이전트**: 경매 분석, QRA, 헬스체크 (위 표)
 - Worker 안에는 LLM 호출 코드가 없음(CF egress 차단 → 2026-11-13 코드까지 삭제). LLM 작업은 Actions·클라우드 에이전트에서만

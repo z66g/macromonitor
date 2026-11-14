@@ -5,11 +5,21 @@ on:
   repository_dispatch:
     types: [generate-news-digest]
   workflow_dispatch:
+  # 발송(KST 06:00·21:00) 직전에 한 번 더 — 마지막 몇 시간 뉴스가 빠지지 않게
+  schedule:
+    - cron: '35 20,11 * * *'
 
+# 마지막 텔레그램 발송 이후 뉴스에서 핵심 5~8건(제목 + 시장 의미 + 원문 링크) → KV news_digest_v1
+# 발송은 Worker /news-digest-send (cron-job.org KST 06:00/21:00). 로직은 scripts/build_news_digest.py
 jobs:
   generate:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: news-digest
+      cancel-in-progress: false
     steps:
+      - uses: actions/checkout@v4
       - name: Generate digest via Gemini + Write KV
         env:
           GEMINI_API_KEY:        ${{ secrets.GEMINI_API_KEY }}
@@ -18,174 +28,4 @@ jobs:
           KV_NAMESPACE_ID:       "66c313c710a04a4eb04775b80a44f313"
         run: |
           pip install requests -q
-          python3 << 'PYEOF'
-          import os, json, re, time, random, datetime, requests
-          from email.utils import parsedate_to_datetime
-
-          # 동시 실행 충돌 방지 — 시작 시 0~30s random jitter
-          jitter = random.uniform(0, 30)
-          print(f"start jitter: {jitter:.1f}s")
-          time.sleep(jitter)
-
-          GEMINI_KEY  = os.environ["GEMINI_API_KEY"]
-          CF_TOKEN    = os.environ["CLOUDFLARE_API_TOKEN"]
-          CF_ACCOUNT  = os.environ["CLOUDFLARE_ACCOUNT_ID"]
-          NAMESPACE   = os.environ["KV_NAMESPACE_ID"]
-
-          KV_BASE = f"https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT}/storage/kv/namespaces/{NAMESPACE}"
-          HDR     = {"Authorization": f"Bearer {CF_TOKEN}"}
-
-          def kv_get(key, max_retries=3):
-              for attempt in range(max_retries):
-                  r = requests.get(f"{KV_BASE}/values/{key}", headers=HDR, timeout=20)
-                  if r.status_code == 404: return None
-                  if r.status_code == 429:
-                      wait = 5 * (attempt + 1)
-                      print(f"  KV GET 429 ({key}, attempt {attempt+1}/{max_retries}) → wait {wait}s")
-                      time.sleep(wait)
-                      continue
-                  r.raise_for_status()
-                  try: return r.json()
-                  except: return r.text
-              raise RuntimeError(f"KV GET {key} failed after {max_retries} retries (429)")
-
-          def kv_put(key, value, ttl=None, max_retries=8):
-              """
-              429 백오프 retry — Retry-After 헤더 존중
-              base 백오프: 10s → 30s → 60s → 120s → 240s → 300s × 3 (총 ~25분)
-              """
-              url = f"{KV_BASE}/values/{key}"
-              params = {"expiration_ttl": ttl} if ttl else {}
-              body = value if isinstance(value, str) else json.dumps(value)
-              backoff = [10, 30, 60, 120, 240, 300, 300, 300]
-              for attempt in range(max_retries):
-                  r = requests.put(url, headers=HDR, params=params,
-                                   data=body.encode("utf-8"), timeout=30)
-                  if r.status_code == 429:
-                      ra = r.headers.get('Retry-After')
-                      try:
-                          ra_sec = int(ra) if ra else 0
-                      except (ValueError, TypeError):
-                          ra_sec = 0
-                      wait = max(backoff[attempt], ra_sec)
-                      reason = f"Retry-After={ra}s" if ra_sec else "기본"
-                      print(f"  KV PUT 429 ({key}, attempt {attempt+1}/{max_retries}, {reason}) → wait {wait}s")
-                      time.sleep(wait)
-                      continue
-                  r.raise_for_status()
-                  return
-              raise RuntimeError(f"KV PUT {key} failed after {max_retries} retries (429)")
-
-          news = kv_get("news_cache_v1")
-          if not news or not news.get("items"):
-              print("뉴스 캐시 없음, 종료")
-              exit(0)
-
-          # 최근 12시간 뉴스 (번역본 우선)
-          now_ts = datetime.datetime.now(datetime.timezone.utc).timestamp()
-
-          def parse_date(s):
-              if not s: return 0
-              # 1) ISO 8601 (YYYY-MM-DDTHH:MM:SSZ or +00:00)
-              try:
-                  return datetime.datetime.fromisoformat(s.replace("Z","+00:00")).timestamp()
-              except: pass
-              # 2) RFC 822 / RFC 2822 (Wed, 15 Apr 2026 14:30:00 GMT)
-              try:
-                  return parsedate_to_datetime(s).timestamp()
-              except: pass
-              return 0
-
-          items_raw = news["items"]
-          recent = []
-          for n in items_raw:
-              ts = parse_date(n.get("pubDate") or "")
-              if ts and now_ts - ts < 12 * 3600:
-                  recent.append(n)
-
-          print(f"전체 {len(items_raw)}건 중 최근 12h: {len(recent)}건")
-          recent = recent[:25]
-
-          if not recent:
-              print("최근 12h 뉴스 없음, 종료")
-              exit(0)
-
-          items_text = "\n".join(
-              f"[{i+1}] {(n.get('titleKo') or n.get('title',''))} ({n.get('sourceId','')})"
-              for i, n in enumerate(recent)
-          )
-
-          prompt = f"""당신은 MacroMonitor의 거시경제 뉴스 편집 엔진입니다.
-
-          ■ 기본 원칙
-          - 후보 뉴스가 1건이라도 거시·금융·시장과 관련 있으면 **최대한 선별하라**
-          - 완벽한 매크로 뉴스가 없어도, 시장 참여자가 알 가치 있는 뉴스는 선별 대상
-          - 빈 배열은 **거시·금융·시장 어떤 관점에서도 의미 없는 경우에만** 반환 (예: 전부 연예·스포츠·정치 가십)
-
-          ■ 선별 우선순위 (높을수록 우선)
-          1. Fed 커뮤니케이션 (FOMC, 파월·이사 발언, 통화정책 시그널)
-          2. 재정·국채 (TGA, 부채한도, QRA, 국채 경매 결과)
-          3. 신용 이벤트 (은행 부실, 기업 디폴트, 스프레드 급변)
-          4. 지정학 (유가·안전자산·달러 영향 있는 것)
-          5. 매크로 서프라이즈 (CPI/PPI/NFP/PMI 등 예상 대비 이탈)
-          6. AI·반도체·빅테크 (시장 전반 영향 있는 것)
-          7. 원자재·에너지·통화 (FX, WTI, 금, 비트코인 등 시장 신호)
-          8. 글로벌 중앙은행 (ECB·BOJ·BOE·PBOC 정책 시그널)
-
-          ■ 약한 선별 기준 (위 1~8에 해당 안 되어도)
-          - 시장 참여자(트레이더·매크로 펀드)가 보면 도움 될 만한 정책·규제·산업 동향
-          - 매크로 환경 변화를 시사하는 신호성 뉴스
-
-          ■ 제외 대상
-          - 정치 가십·연예·스포츠·일반 사회 사건
-          - 개별 기업 미시 이슈 (시장 전반 영향 전혀 없는 것)
-          - 동일 이벤트 중복 보도
-
-          ■ 출력 규칙
-          - 반드시 JSON만 반환 (코드블록 없이)
-          - 한국어 한 줄 요약: 명사구 종결, 수치 포함 권장
-          - 선별 가능한 뉴스가 1건뿐이면 1건만 반환해도 됨 (3건 강제 아님)
-
-          다음 {len(recent)}건의 뉴스에서 시장 참여자에게 의미 있는 **최대 3건**을 선별하여 한 줄로 요약하세요.
-
-          {items_text}
-
-          출력 JSON:
-          {{"items":[{{"rank":1,"title":"원문 제목","summary":"한 줄 요약"}},...]}}"""
-
-          url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}"
-          body = {
-              "contents": [{"parts": [{"text": prompt}]}],
-              "generationConfig": {
-                  "temperature": 0,
-                  "maxOutputTokens": 2048,
-                  "responseMimeType": "application/json",
-                  "thinkingConfig": {"thinkingBudget": 0},
-              },
-          }
-          r = requests.post(url, json=body, timeout=60)
-          r.raise_for_status()
-          data = r.json()
-          raw  = "".join(p.get("text","") for p in data.get("candidates",[{}])[0].get("content",{}).get("parts",[]))
-          cleaned = re.sub(r'^```json\s*|\s*```$', '', raw.strip(), flags=re.M)
-          parsed  = json.loads(cleaned)
-
-          digest = {
-              "items":       parsed.get("items", []),
-              "generatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-          }
-          kv_put("news_digest_v1", digest, ttl=86400)
-          print(f"다이제스트 생성: {len(digest['items'])}건")
-
-          # 누적 히스토리 (배치 텔레그램 발송용)
-          hist = kv_get("news_digest_history_v1") or {"digests": []}
-          if not isinstance(hist, dict): hist = {"digests": []}
-          hist_digests = hist.get("digests", [])
-          hist_digests.append({
-              "generatedAt": digest["generatedAt"],
-              "items": digest["items"],
-          })
-          hist["digests"] = hist_digests[-10:]   # 최대 10회분 보관
-          kv_put("news_digest_history_v1", hist, ttl=86400 * 2)
-          print(f"히스토리 누적: {len(hist['digests'])}개")
-          PYEOF
+          python3 scripts/build_news_digest.py
