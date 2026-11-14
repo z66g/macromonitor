@@ -127,7 +127,13 @@ for key, s in series.items():
     dates, vals = [d for d, _ in s], [v for _, v in s]
     ch = changes(vals, unit) if unit == 'bp' else [(vals[i] / vals[i - 1] - 1) * 100 for i in range(1, len(vals))]
     z = zscores(ch)
-    derived[key] = {'dates': dates, 'vals': vals, 'ch': ch, 'z': z, 'unit': unit}
+    # 5일 누적 변화와 그 z (직전 250개 5일 변화의 표준편차 기준)
+    ch5 = [((vals[i] - vals[i - 5]) * 100 if unit == 'bp' else (vals[i] / vals[i - 5] - 1) * 100) for i in range(5, len(vals))]
+    z5 = [None] * len(ch5)
+    for i in range(250, len(ch5)):
+        sd = st.pstdev(ch5[i - 250:i - 5])   # 마지막 5개는 현재 구간과 겹치므로 제외
+        z5[i] = ch5[i] / sd if sd > 0 else None
+    derived[key] = {'dates': dates, 'vals': vals, 'ch': ch, 'z': z, 'ch5': ch5, 'z5': z5, 'unit': unit}
     n = len(vals) - 1
 
     def back(k):
@@ -139,7 +145,7 @@ for key, s in series.items():
     market[key] = {
         'name': name, 'group': group, 'unit': '%p→bp' if unit == 'bp' else '%', 'date': dates[n],
         'close': r2(vals[n], 4), 'chg_1d': r2(back(1)), 'chg_5d': r2(back(5)), 'chg_20d': r2(back(20)),
-        'z_1d': r2(z[-1]), 'vs_50dma_pct': r2((vals[n] / sma(vals, 50, n) - 1) * 100) if sma(vals, 50, n) else None,
+        'z_1d': r2(z[-1]), 'z_5d': r2(z5[-1]) if z5 else None, 'vs_50dma_pct': r2((vals[n] / sma(vals, 50, n) - 1) * 100) if sma(vals, 50, n) else None,
         'vs_200dma_pct': r2((vals[n] / sma(vals, 200, n) - 1) * 100) if sma(vals, 200, n) else None,
         'pctile_1y': r2(sum(v <= vals[n] for v in yr) / len(yr) * 100, 0),
         'high_52w': r2(max(yr), 4), 'low_52w': r2(min(yr), 4), 'stale': dates[n] != session and group != 'crypto',
@@ -218,9 +224,13 @@ plumbing = {
     'ig_oas': (pipe3 or {}).get('igOas'), 'ccc_oas': (pipe3 or {}).get('cccHy'),
     'stlfsi': ((fsi or {}).get('total') or {}).get('current'), 'nfci': ((fsi or {}).get('funding') or {}).get('current'),
 }
-tg = (tower or {}).get('tga') or {}
-if isinstance(tg, dict):
-    plumbing['tga_daily'] = {k: tg.get(k) for k in ('latest', 'latestDate', 'delta1d', 'delta5d', 'deltaWeek') if k in tg} or None
+dts = sorted(((((tower or {}).get('fed') or {}).get('tgaDts') or {}).get('series') or []), key=lambda x: x.get('date', ''))
+if len(dts) >= 2:
+    plumbing['tga_daily'] = {'date': dts[-1]['date'], 'value_b': r2(dts[-1]['close'], 1),
+                             'chg_1d_b': r2(dts[-1]['close'] - dts[-2]['close'], 1),
+                             'chg_5d_b': r2(dts[-1]['close'] - dts[-6]['close'], 1) if len(dts) >= 6 else None}
+else:
+    plumbing['tga_daily'] = None
 
 # ── 3. 이벤트 ───────────────────────────────────────────────
 def repo_json(path):
@@ -254,9 +264,11 @@ def add(kind, key, score, text, **kw):
 for key, m in market.items():
     if m['stale'] or m['z_1d'] is None:
         continue
+    unit = 'bp' if UNIVERSE[key][3] == 'bp' else '%'
     if abs(m['z_1d']) >= 2:
-        unit = 'bp' if UNIVERSE[key][3] == 'bp' else '%'
         add('move', key, abs(m['z_1d']), f"{m['name']} {m['chg_1d']:+}{unit} (60일 변동성 대비 {m['z_1d']:+.1f}σ)", z=m['z_1d'])
+    elif m.get('z_5d') is not None and abs(m['z_5d']) >= 2 and m['group'] != 'sector':
+        add('move5', key, abs(m['z_5d']) * 0.9, f"{m['name']} 5일 누적 {m['chg_5d']:+}{unit} (5일 변동 분포 대비 {m['z_5d']:+.1f}σ)", z=m['z_5d'])
     d = derived[key]
     for lv_key, lv in (('vs_50dma_pct', 50), ('vs_200dma_pct', 200)):
         i = len(d['vals']) - 1
@@ -267,10 +279,16 @@ for key, m in market.items():
                 ma=lv, dir='up' if up else 'down')
     yr = d['vals'][-252:]
     if m['group'] in ('equity', 'rates', 'commodity', 'crypto', 'fx') and len(yr) >= 252:
-        if d['vals'][-1] >= max(yr):
+        cur, hi, lo = d['vals'][-1], max(yr), min(yr)
+        near = (lambda a, b: abs(a - b) * 100 <= 3) if UNIVERSE[key][3] == 'bp' else (lambda a, b: abs(a / b - 1) <= 0.005)
+        if cur >= hi:
             add('extreme', key, 1.2, f"{m['name']} 52주 신고가", side='high')
-        elif d['vals'][-1] <= min(yr):
+        elif cur <= lo:
             add('extreme', key, 1.2, f"{m['name']} 52주 신저가", side='low')
+        elif near(cur, hi):
+            add('extreme', key, 1.0, f"{m['name']} 52주 고점 근접 (고점 {hi:.4g})", side='high')
+        elif near(cur, lo):
+            add('extreme', key, 1.0, f"{m['name']} 52주 저점 근접 (저점 {lo:.4g})", side='low')
 
 for key, levels in (('VIX', (20, 30, 40)), ('MOVE', (100, 120, 140)), ('US10Y', (4.0, 4.5, 5.0)), ('DXY', (100, 105, 110))):
     d = derived.get(key)
@@ -283,6 +301,24 @@ for key, levels in (('VIX', (20, 30, 40)), ('MOVE', (100, 120, 140)), ('US10Y', 
                 level=lv, dir='up' if b > lv else 'down')
 
 
+# 섹터 격차: 그날 최고·최저 섹터 차이를 직전 250일 분포와 비교
+sec_keys = [k for k in derived if UNIVERSE[k][2] == 'sector']
+if len(sec_keys) >= 8:
+    common = sorted(set.intersection(*(set(derived[k]['dates'][1:]) for k in sec_keys)))[-251:]
+    pos = {k: {dd: i for i, dd in enumerate(derived[k]['dates'])} for k in sec_keys}
+    spreads = []
+    for dd in common:
+        rets = [derived[k]['ch'][pos[k][dd] - 1] for k in sec_keys]
+        spreads.append(max(rets) - min(rets))
+    if len(spreads) > 60 and common[-1] == session:
+        sd, mu = st.pstdev(spreads[:-1]), st.mean(spreads[:-1])
+        zz = (spreads[-1] - mu) / sd if sd > 0 else 0
+        if zz >= 2:
+            top, bot = market[sectors[0]], market[sectors[-1]]
+            add('rotation', 'SECTORS', 1.4 + zz / 3,
+                f"섹터 격차 {spreads[-1]:.1f}%p (평소 {mu:.1f}%p, {zz:+.1f}σ) — {top['name']} {top['chg_1d']:+}% vs {bot['name']} {bot['chg_1d']:+}%")
+
+
 def zof(k):
     return (market.get(k) or {}).get('z_1d')
 
@@ -293,8 +329,13 @@ if zof('SPY') is not None and zof('HYG') is not None and zof('SPY') * zof('HYG')
     add('divergence', 'SPY/HYG', 2.0, '주식과 하이일드 채권 반대 방향 — 신용이 주식을 확인하지 않음')
 if zof('GOLD') is not None and zof('DXY') is not None and zof('GOLD') > 1 and zof('DXY') > 1:
     add('divergence', 'GOLD/DXY', 1.5, '금과 달러 동반 강세 — 안전자산 동시 수요')
-if zof('RSP') is not None and zof('SPY') is not None and abs((market['SPY']['chg_1d'] or 0) - (market['RSP']['chg_1d'] or 0)) > 1:
-    add('divergence', 'SPY/RSP', 1.3, f"시가총액 가중 vs 동일가중 격차 {market['SPY']['chg_1d'] - market['RSP']['chg_1d']:+.2f}%p — 쏠림")
+gaps = [(abs((market[b]['chg_1d'] or 0) - (market['RSP']['chg_1d'] or 0)) - (1.0 if b == 'QQQ' else 0.7), b)
+        for b in ('SPY', 'QQQ') if zof(b) is not None and zof('RSP') is not None]
+if gaps and max(gaps)[0] > 0:   # 둘 중 임계를 더 많이 넘은 쪽 하나만
+    big = max(gaps)[1]
+    gap = (market[big]['chg_1d'] or 0) - (market['RSP']['chg_1d'] or 0)
+    add('divergence', f'{big}/RSP', 1.3 + abs(gap) / 3,
+        f"{market[big]['name']} vs 동일가중(RSP) 격차 {gap:+.2f}%p — {'대형 기술주 주도' if gap > 0 else '대형 기술주 이탈, 폭은 유지'}")
 
 if plumbing['sofr_minus_iorb_bp'] is not None and plumbing['sofr_minus_iorb_bp'] > 0:
     add('plumbing', 'SOFR-IORB', 2.5, f"SOFR가 IORB 위 {plumbing['sofr_minus_iorb_bp']}bp — 단기자금 압박")
@@ -375,6 +416,14 @@ def trigger_dates(key, kind, an):
             if z is not None and z * sign >= thr:
                 out.append((dates[i + 1], z))   # ch[i] = vals[i]→vals[i+1] → 그 날짜는 dates[i+1]
         return out, f"같은 방향 1일 변동 {sign * thr:+.1f}σ 이상"
+    if kind == 'move5':
+        z0 = d['z5'][-1]
+        sign, thr = (1 if z0 > 0 else -1), max(2.0, abs(z0) * 0.8)
+        for i in range(250, len(d['ch5']) - 20):
+            z = d['z5'][i]
+            if z is not None and z * sign >= thr:
+                out.append((dates[i + 5], z))   # ch5[i] = vals[i]→vals[i+5] → 그 날짜는 dates[i+5]
+        return out, f"같은 방향 5일 누적 변동 {sign * thr:+.1f}σ 이상"
     if kind == 'cross':
         n, up = an['ma'], an['dir'] == 'up'
         for i in range(n + 1, last):
@@ -408,7 +457,7 @@ def analogs_for(an):
     if len(filtered) < 8:
         filtered, regime_note = cand, '국면 조건 없음 (표본 부족)'
     # 군집 제거: 이어진 신호는 첫 날만 (1일 충격 10거래일, 돌파·신고가류 20거래일)
-    gap = 10 if kind == 'move' else 20
+    gap = 10 if kind in ('move', 'move5') else 20
     events, last_i = [], -99
     imap = idx_map(key)
     for dd, z in filtered:
@@ -437,8 +486,8 @@ def analogs_for(an):
         cands = {k: v['median'] for k, v in resp.items() if v and k != 'max_adverse_20d'}
         out['responses'][t] = {**resp, 'best_by_median': max(cands, key=cands.get) if cands else None}
     # 에이전트가 당시 맥락을 검색할 대표 사례 — 1일 충격은 |z|가 가장 비슷한 순, 나머지는 최근 순
-    if kind == 'move':
-        z0 = d['z'][-1]
+    if kind in ('move', 'move5'):
+        z0 = d['z'][-1] if kind == 'move' else d['z5'][-1]
         closest = sorted(events, key=lambda e: abs(abs(e[1]) - abs(z0)))[:6]
     else:
         closest = events[-6:]
@@ -451,7 +500,7 @@ def analogs_for(an):
 
 analogs = []
 for an in anoms:
-    if an['kind'] in ('move', 'cross', 'extreme', 'level') and an['key'] in ANALOG_ASSETS and an['key'] in derived:
+    if an['kind'] in ('move', 'move5', 'cross', 'extreme', 'level') and an['key'] in ANALOG_ASSETS and an['key'] in derived:
         res = analogs_for(an)
         if res:
             analogs.append(res)
