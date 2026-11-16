@@ -1,0 +1,29 @@
+{
+ "updated": "2026-11-16T16:41:26Z",
+ "entries": {
+  "2026-11-13|생산자물가 (PPI)": {
+   "period": "2026-10",
+   "metrics": {
+    "mom": {
+     "actual": 0.3,
+     "forecast": 0.4,
+     "previous": 1.3,
+     "previous_revised": null
+    },
+    "yoy": {
+     "actual": 6.5,
+     "forecast": 6.6,
+     "previous": 6.3,
+     "previous_revised": null
+    }
+   },
+   "interpretation": "최종수요 월간 0.3%로 예상(0.4%) 하회했으나 전년비 6.5%로 높은 수준 유지 — 9월 급등(1.3%) 이후 소폭 진정.",
+   "sources": [
+    "https://www.bls.gov/news.release/ppi.nr0.htm",
+    "https://www.stocktitan.net/articles/october-2026-ppi-preview-yearly-rate"
+   ],
+   "researched_at": "2026-11-16T16:41:26Z",
+   "model": "claude-sonnet-5-5"
+  }
+ }
+}
