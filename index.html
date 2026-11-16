@@ -3152,8 +3152,8 @@ function todayKSTStr()   { return nowKST().toISOString().slice(0, 10); }
 function tick() {
   const n = nowKST(), p = v => String(v).padStart(2,'0');
   const el = document.getElementById('clock');
-  if (el) el.textContent =
-    `${n.getUTCFullYear()}.${p(n.getUTCMonth()+1)}.${p(n.getUTCDate())} · ${p(n.getUTCHours())}:${p(n.getUTCMinutes())} KST`;
+  if (el) el.innerHTML =   // 날짜 부분은 태블릿 폭에서 숨김(.clk-date)
+    `<span class="clk-date">${n.getUTCFullYear()}.${p(n.getUTCMonth()+1)}.${p(n.getUTCDate())} · </span>${p(n.getUTCHours())}:${p(n.getUTCMinutes())} KST`;
 }
 tick(); setInterval(tick, 1000);
 
@@ -12010,6 +12010,21 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible),
 }
 /* 휴대폰 세로: 탭·버튼을 가운데 정렬 (탭은 왼쪽, 버튼은 오른쪽으로 쏠려 어긋나 보이던 문제)
    탭은 justify-content:center를 쓰면 넘칠 때 왼쪽이 잘리므로 양끝 auto 여백으로 가운데 정렬 */
+/* 태블릿 세로(600~1023px, 아이패드 미니 744 등): 버튼이 눌려 글자가 두 줄로 쪼개지던 문제
+   → 글자 한 줄 고정·버튼 축소 금지·높이 통일, 시계는 시각만, 가운데 정렬(넘치면 다음 줄) */
+@media (min-width: 600px) and (max-width: 1023px) {
+  #controls-bar-inner { flex-wrap: wrap !important; justify-content: center !important;
+                        column-gap: 6px !important; row-gap: 6px !important; padding: 8px 12px 2px !important; }
+  #controls-bar-inner .hdr-pbtn { flex-shrink: 0 !important; height: 30px; min-height: 30px !important;
+                                  padding: 0 8px !important; gap: 5px !important; white-space: nowrap; }
+  #controls-bar-inner .hdr-pbtn > span:nth-child(2) { font-size: 11px !important; white-space: nowrap; }
+  #controls-bar-inner .hdr-pbtn > span:first-child { font-size: 12px !important; }
+  .hdr-clock { white-space: nowrap; margin-left: 4px; }
+  .clk-date { display: none; }
+  #hdr-refresh-btn { height: 30px; min-width: 30px !important; justify-content: center;
+                     border: 0.5px solid #30363D !important; border-radius: 4px !important; }
+}
+@media (min-width: 900px) and (max-width: 1023px) { .clk-date { display: inline; } }
 @media (max-width: 599px) {
   .tab-nav { justify-content: flex-start !important; }
   .tab-nav > .tab-btn:first-child { margin-left: auto !important; }
