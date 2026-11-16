@@ -542,6 +542,11 @@ facts = {
     'news_headlines': news,
     'anomalies': anoms, 'analogs': analogs, 'data_status': status,
 }
+# 이미 초안·게시본이 있는 세션은 팩트시트를 덮지 않는다 — 트리거가 여러 개(cron-job.org + 백업 schedule)라
+# 늦게 도는 백업 실행이 게시된 리포트의 근거 수치를 바꾸면 안 된다.
+if any(os.path.exists(os.path.join(OUT_DIR, session, f)) for f in ('draft.json', 'report.json')):
+    print(f'세션 {session}: 이미 draft/report 있음 — 팩트시트 유지(덮지 않음)')
+    sys.exit(0)
 os.makedirs(os.path.join(OUT_DIR, session), exist_ok=True)
 path = os.path.join(OUT_DIR, session, 'facts.json')
 with open(path, 'w', encoding='utf-8') as f:

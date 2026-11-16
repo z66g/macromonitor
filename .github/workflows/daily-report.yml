@@ -10,7 +10,8 @@ on:
     branches: [main]
     paths: ['data/daily/*/draft.json']
   schedule:
-    - cron: '20 23 * * 1-5'     # 백업: push 트리거 누락 대비 (KST 08:20)
+    - cron: '20 23 * * 1-5'     # 백업: push 트리거 누락 대비 + 감시 (KST 08:20)
+    - cron: '30 1 * * 2-6'      # 감시 2차 (KST 10:30) — schedule 지연·누락 대비
   workflow_dispatch:
 
 concurrency:
@@ -54,3 +55,39 @@ jobs:
         if: success()
         run: |
           bash scripts/commit_data.sh "chore: 데일리 리포트 텔레그램 발송 표시" data/daily/
+
+  # 감시: 오늘 세션의 팩트시트·초안이 없으면 조용히 빠진 것 → 팩트시트는 다시 실행, 이슈로 소유자에게 알림.
+  # (draft push로 돈 실행에서는 생략 — 그땐 이미 진행 중이다)
+  watchdog:
+    needs: publish
+    if: always() && github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Check today's session
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          st=$(python3 scripts/daily_common.py status --cutoff 23:15)
+          echo "$st"
+          sess=$(echo "$st" | python3 -c "import json,sys;print(json.load(sys.stdin)['expected'])")
+          miss=$(echo "$st" | python3 -c "import json,sys;print(json.load(sys.stdin)['missing'] or '')")
+          case "$miss" in
+            facts)
+              gh workflow run daily-facts.yml -f commit=true
+              msg="팩트시트(data/daily/$sess/facts.json)가 없음 — daily-facts.yml 트리거가 돌지 않았다(cron-job.org \`daily-facts\` 작업 확인). 방금 자동으로 다시 실행했다. 커밋되면 claude.ai/code/routines에서 '데일리 리포트' 예약작업을 한 번 실행할 것." ;;
+            draft)
+              msg="팩트시트는 있는데 초안(draft.json)이 없음 — 리포트 에이전트가 안 돌았거나 팩트시트를 기다리다 끝났다. claude.ai/code/routines에서 '데일리 리포트' 예약작업을 한 번 실행할 것." ;;
+            *) echo "정상 또는 검증 단계(별도 이슈) — 알림 없음"; exit 0 ;;
+          esac
+          gh label create daily-report --color FBCA04 --description '데일리 리포트 검증 실패·누락' --force
+          body="세션 $sess: $msg"
+          num=$(gh issue list --label daily-report --state open --json number -q '.[0].number')
+          if [ -n "$num" ]; then gh issue comment "$num" --body "$body"; else gh issue create --label daily-report --title "데일리 리포트 누락 ($sess)" --body "$body"; fi

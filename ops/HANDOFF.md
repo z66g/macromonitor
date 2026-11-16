@@ -7,6 +7,13 @@
 2. 첫 메시지 예: `ops/HANDOFF.md 읽고 현재 상태 확인한 다음 ___ 해줘`
 3. 상태 점검이 필요하면: `data/health.json`, [이슈 라벨 health](https://github.com/z66g/macromonitor/issues?q=label%3Ahealth), 최근 Actions 실행.
 
+## 2026-11-16 데일리 리포트 누락 대응
+- 원인: `daily-facts.yml`의 GitHub schedule(21:20 UTC)이 실행되지 않음 → 팩트시트 없음 → 21:40 리포트 에이전트가 할 일 없이 종료.
+  같은 날 다른 schedule도 2~3시간 지연·누락(경매 20:20 누락, 헬스체크 3.5시간 지연). cron-job.org dispatch 작업은 정시.
+- 조치: cron-job.org `daily-facts` dispatch(주) + schedule 백업 2개, 에이전트 80분 대기, 팩트시트 덮어쓰기 방지,
+  `daily-report.yml` watchdog(재실행+이슈), 헬스체크 항목. 11/16 세션은 수동 dispatch 후 작성.
+- **열린 일(소유자)**: cron-job.org에 `daily-facts` 작업 추가, 리포트 예약작업 cron에 두 번째 시각 추가 (CLAUDE.md 데일리 절).
+
 ## 2026-11 전체 점검·개편 (커밋 a555036 ~ 356a0e4)
 **보안·사용자 간 충돌 차단 (bc9120f)**
 - 인증 없는 쓰기/디버그 라우트 제거: `/qra-trigger·apply·dismiss·preview·debug`, `/news-trans-flush`, `/ofr`, `/h41`, `/ici-raw` 등.

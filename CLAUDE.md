@@ -119,7 +119,7 @@ mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v
 ## 데일리 시황 리포트 (텔레그램 요약 + 사이트 `report.html`)
 | 단계 | 주체 | 시각 |
 |---|---|---|
-| 팩트시트·이상 신호·과거 유사 국면 → `data/daily/<세션>/facts.json` | `daily-facts.yml` → `build_daily_facts.py` | KST 06:20 화-토 |
+| 팩트시트·이상 신호·과거 유사 국면 → `data/daily/<세션>/facts.json` | `daily-facts.yml` → `build_daily_facts.py` (cron-job.org dispatch `daily-facts` + 백업 schedule 2개) | KST 06:20 화-토 |
 | 본문 → `data/daily/<세션>/draft.json` | **클라우드 에이전트** (Opus 5.5, `ops/routines/daily_report.md`) | KST 06:40 |
 | 검증·게시 → `report.json` (+ 실패 시 이슈 `daily-report`) · 텔레그램 | `daily-report.yml` → `verify_daily_report.py` · `send_daily_telegram.py` | draft push 직후 |
 - **숫자는 자리표시자 `{{facts 경로|수식어}}`로만** — 게시 때 스크립트가 팩트시트 값으로 채움. 맨 숫자는 출처 있는 `cited_numbers`·판단 기준(`threshold`)·날짜·기간·세는 수만
@@ -127,6 +127,10 @@ mmf_history_v1(ICI 주간 누적, /ici는 이것만 읽음): 400일 · tga_dts_v
 - 관점 규칙(지침 4장): 누가·왜, 가격과 뉴스의 어긋남, 배관, 공격적 해석은 근거+무효화 조건, 유사 국면은 n·분포·나쁜 경우·대응별 비교
 - 텔레그램: `data/daily/config.json`의 `telegram`(2026-11-14부터 true). 같은 날짜 다시 쓰기: `rerun`에 세션일 추가 후 예약작업 실행
 - 시험 실행: `daily-facts.yml` dispatch `commit=false` → 로그의 `FACTS_JSON`
+- **GitHub schedule은 믿지 말 것**(30분~3시간 지연·누락, 2026-11-16 팩트시트 미실행 → 리포트 누락). 대응:
+  주 트리거 cron-job.org · 에이전트는 팩트시트를 최대 80분 대기 · 이미 draft/report 있는 세션은 팩트시트를 덮지 않음 ·
+  `daily-report.yml` 감시 단계(KST 08:20·10:30)가 팩트시트 없으면 재실행+이슈, 초안 없으면 이슈 · 헬스체크 '데일리 리포트'.
+  기대 세션 계산·NYSE 휴장일은 `scripts/daily_common.py` (다음 해 휴장일은 연말 전에 추가 — 헬스체크가 경고)
 
 ## 클라우드 예약작업 (claude.ai/code/routines, 커넥터 없음)
 | 이름 | 모델 | cron(UTC) | 지침 | 쓰는 파일 |

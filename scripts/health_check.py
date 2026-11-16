@@ -209,6 +209,16 @@ def c_econ():
         f"게시 {len(published)}건 · 누락 {missing or '없음'} · 3일 넘은 보류 {stale_pending or '없음'} · 거부 {list(rejects) or '없음'}")
 
 
+def c_daily():
+    import daily_common as dc
+    st = dc.status(NOW, cutoff=dt.time(23, 15))
+    label = {'facts': '팩트시트 없음(daily-facts 미실행 — cron-job.org daily-facts 확인)',
+             'draft': '초안 없음(리포트 예약작업 미실행)', 'report': '게시 안 됨(검증 실패 이슈 확인)'}
+    note = '' if TODAY.year < int(dc.HOLIDAY_HORIZON) else f' · NYSE 휴장일 목록이 {dc.HOLIDAY_HORIZON}년까지 — daily_common.py에 다음 해 추가'
+    add('데일리 리포트', 'warn' if st['missing'] or note else 'ok',
+        f"세션 {st['expected']}: {label.get(st['missing'], '게시됨')}{note}")
+
+
 def c_actions():
     since = (NOW - dt.timedelta(hours=24)).strftime('%Y-%m-%dT%H:%M:%SZ')
     d = get(f'https://api.github.com/repos/{REPO}/actions/runs?status=failure&per_page=50&created=%3E{since}')
@@ -229,7 +239,7 @@ def c_actions():
 for name, fn in [('T1 순유동성', c_liq), ('T2 실물경제', c_t2), ('T3 글로벌', c_t3), ('시세 스냅샷', c_market), ('이벤트 캘린더', c_calendar),
                  ('FOMC 일정 하드코딩', c_fomc_horizon), ('유동성 예측모델', c_tower), ('뉴스 수집·번역', c_news),
                  ('뉴스 다이제스트', c_digest), ('H.4.1 이력', c_h41), ('ICI MMF', c_ici),
-                 ('경매 데이터', c_auctions), ('이벤트 결과', c_econ), ('GitHub Actions', c_actions)]:
+                 ('경매 데이터', c_auctions), ('이벤트 결과', c_econ), ('데일리 리포트', c_daily), ('GitHub Actions', c_actions)]:
     check(name, fn)
 
 order = {'ok': 0, 'warn': 1, 'fail': 2}

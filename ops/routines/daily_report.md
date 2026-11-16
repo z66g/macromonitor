@@ -16,8 +16,17 @@ GitHub Actions(`daily-report.yml` → `scripts/verify_daily_report.py`)가 한�
 ```bash
 git pull --rebase origin main
 ```
-- `data/daily/index.json`의 `latest` = 이번 세션일. `data/daily/<latest>/facts.json`이 입력이다.
-  이미 `draft.json` 또는 `report.json`이 있으면 아무것도 하지 말고 "이미 작성됨"으로 끝낸다.
+- **이번 세션일 = `python3 scripts/daily_common.py expected`** (NYSE 휴장일 반영한 마지막 완료 세션).
+  `data/daily/<세션일>/facts.json`이 입력이다. 아직 없으면 팩트시트 워크플로가 늦는 것이다(GitHub schedule 지연) —
+  **바로 끝내지 말고 최대 80분 기다린다**:
+  ```bash
+  S=$(python3 scripts/daily_common.py expected)
+  for i in $(seq 1 40); do git pull -q --rebase origin main; [ -f data/daily/$S/facts.json ] && break; sleep 120; done
+  ```
+  (셸 한 번의 실행 시간 제한이 있으면 백그라운드로 돌리거나 여러 번 나눠 실행한다.)
+  80분이 지나도 없으면 "팩트시트 미생성 — 작성 안 함"으로 끝낸다(경보는 `daily-report.yml` 감시 단계가 이슈로 낸다).
+  이미 `draft.json` 또는 `report.json`이 있으면 아무것도 하지 말고 "이미 작성됨"으로 끝낸다
+  (예약작업이 하루 두 번 돌 수 있다 — 두 번째 실행은 여기서 끝나는 게 정상).
   단, `data/daily/config.json`의 `rerun` 목록에 그 세션일이 있으면 **새로 조사해서 draft.json을 덮어쓴다**
   (기존 draft·report는 참고하지 말고 처음부터). `rerun` 목록은 게시 스크립트가 비우므로 건드리지 마라.
   `facts.json`의 `session_complete`가 false면 쓰지 말고 끝낸다(장 마감 전 데이터).
