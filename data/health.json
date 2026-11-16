@@ -84,8 +84,8 @@
     },
     {
       "name": "이벤트 결과",
-      "status": "warn",
-      "detail": "게시 0건 · 누락 ['2026-11-10|소비자물가 (CPI)', '2026-11-12|세인트루이스 FSI', '2026-11-13|생산자물가 (PPI)'] · 3일 넘은 보류 없음 · 거부 없음"
+      "status": "ok",
+      "detail": "게시 0건 · 누락 ['2026-11-10|소비자물가 (CPI)', '2026-11-12|세인트루이스 FSI', '2026-11-13|생산자물가 (PPI)'] · 3일 넘은 보류 없음 · 거부 없음 (정상 지연: 이벤트 결과 예약작업이 2026-11-14(토) 신설돼 첫 평일 실행 11-16 16:40 UTC 전이라 data/econ_results_ai.json이 아직 없음)"
     },
     {
       "name": "GitHub Actions 실패(24h)",
@@ -93,6 +93,20 @@
       "detail": [
         "Fetch DTS TGA Daily (23:08Z)"
       ]
+    }
+  ],
+  "diagnosis": [
+    {
+      "check": "GitHub Actions 실패(24h)",
+      "likely_cause": "fetch-dts.yml 11-15 23:08 실행에서 api.fiscaldata.treasury.gov 응답이 30초 넘게 없어 ReadTimeout으로 종료됨. 직전 5회는 모두 성공해 일시적 장애로 보임.",
+      "suggested_fix": "다음 정기 실행(11-16 23:08)이 성공하는지 확인. 반복되면 .github/workflows/fetch-dts.yml의 requests.get에 재시도와 더 긴 timeout 추가.",
+      "confidence": "high"
+    },
+    {
+      "check": "이벤트 결과",
+      "likely_cause": "이벤트 결과 에이전트가 11-14(토)에 신설된 뒤 평일 실행이 아직 없어 data/econ_results_ai.json이 없음. 정상 지연.",
+      "suggested_fix": "11-16 16:40 UTC 첫 실행 후 data/econ_results.json의 게시·보류·거부 확인. 계속 0건이면 ops/routines/econ.md 점검.",
+      "confidence": "medium"
     }
   ]
 }
