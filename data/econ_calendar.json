@@ -1,16 +1,8 @@
 {
- "updated": "2026-11-17T00:13:09+00:00",
- "calendar_saved_at": "2026-11-16T19:55:20.742Z",
- "today_kst": "2026-11-17",
+ "updated": "2026-11-17T23:29:15+00:00",
+ "calendar_saved_at": "2026-11-17T19:55:06.765Z",
+ "today_kst": "2026-11-18",
  "events": [
-  {
-   "key": "2026-11-10|소비자물가 (CPI)",
-   "date": "2026-11-10",
-   "name": "소비자물가 (CPI)",
-   "indicator": "cpi",
-   "imp": "high",
-   "estimated": false
-  },
   {
    "key": "2026-11-12|세인트루이스 FSI",
    "date": "2026-11-12",
@@ -177,6 +169,22 @@
    "name": "실업률 (UNRATE)",
    "indicator": "unrate",
    "imp": "high",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-09|FOMC 회의 (금리 결정)",
+   "date": "2026-12-09",
+   "name": "FOMC 회의 (금리 결정)",
+   "indicator": "fomc",
+   "imp": "high",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-09|세인트루이스 FSI",
+   "date": "2026-12-09",
+   "name": "세인트루이스 FSI",
+   "indicator": "stlfsi",
+   "imp": "medium",
    "estimated": false
   }
  ]
