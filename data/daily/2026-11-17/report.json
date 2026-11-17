@@ -1283,5 +1283,5 @@
  ],
  "verified_at": "2026-11-17T21:43:10+00:00",
  "draft_hash": "95fdf94db0f526368677fb009051197b2420c9a5b09c1e12e7a6fa8e4a6ec67e",
- "telegram_sent": false
+ "telegram_sent": true
 }
