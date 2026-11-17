@@ -229,49 +229,43 @@ body{
 }
 .sec-title-row::after{content:'';flex:1;height:0.5px;background:#21262D;}
 
-/* ═══ 파이프 다이어그램 ═══ */
-.pipe-row{display:flex;align-items:stretch;}
-.pipe-seg{
-  flex:1;border:0.5px solid #30363D;background:#0D1117;
-  padding:12px 13px 10px;
-  cursor:pointer;
-  transition:background .2s,border-color .2s,border-bottom-left-radius .15s,border-bottom-right-radius .15s;
-  position:relative;
-  display:flex;flex-direction:column;
+/* ═══ 금융 배관 — 밸브 배관 (캔버스 1장: 관·물·밸브·압력계) + 아래 4칸 라벨 ═══
+   PC·태블릿·폰 같은 디자인, 폭에 비례해 크기만 바뀜. 밸브 중심 = 4칸 각 칸의 가운데 (grid gap 0) */
+.pv-hd{display:flex;align-items:center;gap:4px 8px;flex-wrap:wrap;margin-bottom:4px;}
+.pv-sum{font-size:10px;color:#8B949E;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.pv-sum b{color:#9CCBFF;font-weight:600;}
+.pv-canvas-wrap{position:relative;}
+.pv-canvas-wrap canvas{display:block;width:100%;height:90px;}
+.pv-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;}
+.pv-col{
+  font:inherit;color:inherit;background:transparent;border:0.5px solid transparent;border-radius:7px;cursor:pointer;
+  padding:6px 6px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;min-width:0;
+  position:relative;transition:background .2s,border-color .2s;
 }
-/* bar + score 를 하단으로 밀기 */
-.ps-spacer{flex:1;}
-.pipe-seg:hover{filter:brightness(1.08);}
-.pipe-seg:first-child{border-radius:7px 0 0 7px;}
-.pipe-seg:last-child{border-radius:0 7px 7px 0;}
-.pipe-seg.g{background:#0D3321;border-color:#238636;}
-.pipe-seg.n{background:#161B22;border-color:#484F58;}
-.pipe-seg.a{background:#2D1F00;border-color:#9E6A03;}
-.pipe-seg.r{background:#3D0000;border-color:#B91C1C;}
-/* 펼쳐진 상태: 하단 모서리 제거 */
-.pipe-seg.expanded{border-bottom-left-radius:0 !important;border-bottom-right-radius:0 !important;border-bottom-color:transparent;}
-
-.pipe-arrow{width:0;flex-shrink:0;display:flex;align-items:center;position:relative;}
-.pipe-arrow::before{content:'';position:absolute;left:-1px;width:0;height:0;border-top:9px solid transparent;border-bottom:9px solid transparent;border-left:9px solid #30363D;z-index:2;}
-.pipe-arrow.g::before{border-left-color:#238636;}
-.pipe-arrow.n::before{border-left-color:#484F58;}
-.pipe-arrow.a::before{border-left-color:#9E6A03;}
-.pipe-arrow.r::before{border-left-color:#B91C1C;}
-
-.ps-label{
-  font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
-  display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:4px;
+.pv-col:hover{background:rgba(255,255,255,.03);}
+.pv-col:focus-visible{outline:2px solid #58A6FF;outline-offset:-1px;}
+.pv-col.expanded{background:rgba(88,166,255,.07);border-color:rgba(88,166,255,.35);}
+.pv-col .ps-label{font-size:12px;font-weight:700;color:#E6EDF3;line-height:1.3;word-break:keep-all;}
+.pv-meta{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;}
+.pv-open{font-size:10px;color:#8B949E;font-family:"SF Mono",Menlo,monospace;white-space:nowrap;}
+.pv-flow{font-size:10px;color:#9CCBFF;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.pv-col .ps-inds{font-size:9px;color:#6E7681;line-height:1.55;}
+.ps-expand{font-size:12px;color:#484F58;line-height:1;transition:transform .2s,color .2s;}
+.pv-col.expanded .ps-expand{transform:rotate(180deg);color:#58A6FF;}
+.pv-legend{font-size:9px;color:#6E7681;text-align:center;margin-top:2px;line-height:1.5;}
+@media (max-width:599px){
+  .pv-col{padding:5px 2px 6px;}
+  .pv-col .ps-label{font-size:11px;}
+  .pv-col .ps-inds{display:none;}
+  .pv-sum{flex-basis:100%;}
 }
-.ps-label.g{color:#3FB950;}.ps-label.n{color:#8B949E;}.ps-label.a{color:#F0B429;}.ps-label.r{color:#F85149;}
-.ps-inds{font-size:8px;color:#8B949E;line-height:1.7;margin-bottom:4px;}
 .ps-bar-wrap{position:relative;height:5px;background:#21262D;border-radius:3px;margin-bottom:5px;overflow:visible;}
 .ps-bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:3px;transition:width .6s ease;}
 .ps-needle{position:absolute;top:-4px;width:2px;height:13px;background:#E6EDF3;border-radius:1px;transform:translateX(-50%);transition:left .6s ease;}
 .ps-bottom{display:flex;justify-content:space-between;align-items:baseline;}
 .ps-score{font-size:15px;font-weight:700;}
 .ps-score.g{color:#3FB950;}.ps-score.a{color:#F0B429;}.ps-score.r{color:#F85149;}
-/* 상태 배지 — 타이틀 행 우측 */
+/* 상태 배지 */
 .ps-status{
   font-size:9px;font-weight:600;
   padding:2px 8px;border-radius:3px;
@@ -282,26 +276,45 @@ body{
 .ps-status.a{background:#2D1F00;color:#F0B429;}
 .ps-status.r{background:#3D0000;color:#F85149;}
 .ps-status.k{background:#4A0000;color:#FF7B72;border:0.5px solid #F85149;}
-/* 펼침 힌트 화살표 */
-.ps-expand{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:16px;color:#484F58;transition:transform .2s,color .2s;line-height:1;}
-.pipe-seg.expanded .ps-expand{transform:translateX(-50%) rotate(180deg);color:#8B949E;}
 
-/* ═══ 인라인 상세 패널 ═══ */
+/* ═══ 인라인 상세 패널 — 열린 밸브에서 내려오는 분기관 + 배관 벽 테두리 ═══
+   한 번에 하나만 열림(toggleDetail). --at = 열린 칸 가운데(12.5/37.5/62.5/87.5%) */
 .pipe-detail{
-  display:none;
-  border:0.5px solid #30363D;border-top:none;
-  border-radius:0 0 7px 7px;
-  background:#0D1117;
-  padding:16px 16px;
+  display:none;position:relative;margin-top:16px;
+  border:1.5px solid #2B323B;border-radius:8px;
+  background:linear-gradient(180deg,#0B0F14,#0D1117 60px);
+  padding:0 14px 14px;
   flex-direction:column;gap:0;
   animation:fadeIn .2s ease;
 }
 .pipe-detail.open{display:flex;}
-.pipe-detail.g{border-color:#238636;background:#070F0C;}
-.pipe-detail.n{border-color:#484F58;background:#0D1117;}
-.pipe-detail.a{border-color:#9E6A03;background:#100C02;}
-.pipe-detail.r{border-color:#B91C1C;background:#0F0404;}
-.pipe-detail.k{border-color:#F85149;background:#140303;}
+.pipe-detail::before{   /* 분기관 (금속) */
+  content:'';position:absolute;top:-17px;left:calc(var(--at,12.5%) - 7px);width:14px;height:16px;
+  background:linear-gradient(90deg,#1C2128,#3A424D 35%,#2B323B 65%,#1C2128);
+}
+.pipe-detail::after{    /* 분기관 속 물줄기 — 굵기·진하기 = 이 구간 하류 유량 */
+  content:'';position:absolute;top:-17px;left:calc(var(--at,12.5%) - var(--ww,3px) / 2);width:var(--ww,3px);height:18px;
+  background:linear-gradient(180deg,rgba(121,184,255,.9),rgba(31,111,235,.9));border-radius:1px;
+}
+.pipe-detail.n::after{background:repeating-linear-gradient(180deg,#484F58 0 3px,transparent 3px 6px);width:2px;}
+.pipe-detail.g{box-shadow:inset 0 2px 0 #238636;}
+.pipe-detail.a{box-shadow:inset 0 2px 0 #9E6A03;}
+.pipe-detail.r{box-shadow:inset 0 2px 0 #B91C1C;}
+.pipe-detail.k{box-shadow:inset 0 2px 0 #F85149;}
+.pipe-detail.n{box-shadow:inset 0 2px 0 #484F58;}
+.pd-head{display:flex;align-items:center;gap:6px 8px;flex-wrap:wrap;padding:12px 38px 10px 0;position:relative;margin-bottom:12px;border-bottom:0.5px solid #21262D;}
+.pd-head svg{width:22px;height:22px;flex-shrink:0;}
+.pd-hname{font-size:13px;font-weight:700;color:#E6EDF3;}
+.pd-hnums{font-size:10px;color:#8B949E;font-variant-numeric:tabular-nums;}
+.pd-hnums b{color:#C9D1D9;font-weight:600;}
+.pd-hnums .fl{color:#9CCBFF;}
+.pd-close{position:absolute;right:0;top:9px;background:transparent;border:0.5px solid #30363D;border-radius:4px;color:#8B949E;cursor:pointer;font-size:11px;min-width:28px;min-height:28px;}
+.pd-close:hover{color:#E6EDF3;border-color:#8B949E;}
+/* 지표 행의 작은 관 — 행 신호의 개도만큼 물이 참 */
+.pd-pipe{width:40px;height:8px;border-radius:4px;background:#070A0E;border:1px solid #2B323B;overflow:hidden;display:inline-block;flex-shrink:0;}
+.pd-pipe i{display:block;height:100%;background:linear-gradient(180deg,#79B8FF,#1F6FEB);}
+.pd-pipe.n{border-style:dashed;border-color:#484F58;}
+.pd-row-right{display:flex;align-items:center;gap:6px;flex-shrink:0;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
 
 /* 상세 패널 — 지표 행 */
@@ -338,10 +351,7 @@ body{
 .pd-formula.n{border-left-color:#484F58;}
 .pd-formula.a{border-left-color:#9E6A03;}
 .pd-formula.r{border-left-color:#B91C1C;}
-/* k(위기) — r보다 한 단계 강한 빨강 (이전엔 회색 #aaa라 '수신 실패'와 구분이 안 됐음) */
-.pipe-seg.k{background:#4A0000;border-color:#F85149;}
-.pipe-arrow.k::before{border-left-color:#F85149;}
-.ps-label.k{color:#FF7B72;}
+/* k(위기) — r보다 한 단계 강한 빨강 */
 .pd-formula.k{border-left-color:#F85149;}
 
 /* detail-rows: 카드 컨테이너 — 여기에 gap 적용 */
@@ -352,7 +362,7 @@ body{
 
 /* ═══ 신규: 카드형 지표 행 ═══ */
 .pd-row-card{
-  padding:12px 14px;
+  padding:12px 14px;border-left:2px solid var(--sc,#30363D) !important;
   background:rgba(255,255,255,.03);
   border-radius:6px;border:0.5px solid rgba(255,255,255,.06);
   display:flex;flex-direction:column;gap:6px;
@@ -1444,63 +1454,65 @@ body{
 
     <!-- ─── PART A: 파이프 다이어그램 ─── -->
     <div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <div class="sec-title-row" style="margin-bottom:0;">금융 배관 — 구간별 압력 현황</div>
+      <div class="pv-hd">
+        <div class="sec-title-row" style="margin-bottom:0;flex:1 1 auto;white-space:nowrap;">금융 배관 — 구간별 압력·유량</div>
         <span id="liquidityCrisisBadge" style="display:none;font-size:10px;font-weight:700;
           padding:2px 9px;border-radius:4px;background:#3D0000;color:#F85149;
           border:0.5px solid #F85149;letter-spacing:.04em;white-space:nowrap;">⚫ 유동성 위기</span>
+        <span class="pv-sum" id="pipeSum"></span>
       </div>
 
-      <!-- 파이프 행 -->
-      <div class="pipe-row" id="pipeRow">
-        <div class="pipe-seg" id="pipe0" onclick="toggleDetail(0)">
-          <div class="ps-label" id="plbl0">
-            <span>중앙은행 유동성</span>
-            <span class="ps-status" id="psts0">로딩중</span>
-          </div>
-          <div class="ps-inds">동적 유동성 가용지수<br>지급준비금 잠식 속도<br>Reserves + ON RRP 버퍼</div>
-          <span class="ps-expand">▾</span>
+      <!-- 밸브 배관: 캔버스(관·물·밸브·압력계) + 4칸 라벨. 칸을 누르면 아래 상세가 열림(한 번에 하나) -->
+      <div id="pipeRow">
+        <div class="pv-canvas-wrap" id="pvWrap"><canvas id="pvCanvas" aria-hidden="true"></canvas></div>
+        <div class="pv-grid">
+        <button type="button" class="pv-col" id="pipe0" onclick="toggleDetail(0)" aria-expanded="false" aria-controls="detail0">
+          <span class="ps-label" id="plbl0">중앙은행 유동성</span>
+          <span class="pv-meta"><span class="ps-status" id="psts0">로딩중</span><span class="pv-open" id="popen0" title="밸브 개도 — 이 구간 신호에 따른 열림 정도">개도 —</span></span>
+          <span class="pv-flow" id="pflow0" title="하류 유량 — 지나온 밸브 중 가장 좁은 개도">하류 —</span>
+          <span class="ps-inds">동적 유동성 가용지수<br>지급준비금 잠식 속도<br>Reserves + ON RRP 버퍼</span>
+          <span class="ps-expand" aria-hidden="true">▾</span>
+        </button>
+        <button type="button" class="pv-col" id="pipe1" onclick="toggleDetail(1)" aria-expanded="false" aria-controls="detail1">
+          <span class="ps-label" id="plbl1">단기자금시장</span>
+          <span class="pv-meta"><span class="ps-status" id="psts1">로딩중</span><span class="pv-open" id="popen1" title="밸브 개도 — 이 구간 신호에 따른 열림 정도">개도 —</span></span>
+          <span class="pv-flow" id="pflow1" title="하류 유량 — 지나온 밸브 중 가장 좁은 개도">하류 —</span>
+          <span class="ps-inds">SOFR–IORB<br>SRF Usage<br>PD net position<br>긴급대출의존도</span>
+          <span class="ps-expand" aria-hidden="true">▾</span>
+        </button>
+        <button type="button" class="pv-col" id="pipe2" onclick="toggleDetail(2)" aria-expanded="false" aria-controls="detail2">
+          <span class="ps-label" id="plbl2">글로벌 달러·환율</span>
+          <span class="pv-meta"><span class="ps-status" id="psts2">로딩중</span><span class="pv-open" id="popen2" title="밸브 개도 — 이 구간 신호에 따른 열림 정도">개도 —</span></span>
+          <span class="pv-flow" id="pflow2" title="하류 유량 — 지나온 밸브 중 가장 좁은 개도">하류 —</span>
+          <span class="ps-inds">DXY 모멘텀<br>금융스트레스(FRED)<br>엔캐리 청산 리스크<br>Custody & FIMA</span>
+          <span class="ps-expand" aria-hidden="true">▾</span>
+        </button>
+        <button type="button" class="pv-col" id="pipe3" onclick="toggleDetail(3)" aria-expanded="false" aria-controls="detail3">
+          <span class="ps-label" id="plbl3">신용·실물 리스크</span>
+          <span class="pv-meta"><span class="ps-status" id="psts3">로딩중</span><span class="pv-open" id="popen3" title="밸브 개도 — 이 구간 신호에 따른 열림 정도">개도 —</span></span>
+          <span class="pv-flow" id="pflow3" title="하류 유량 — 지나온 밸브 중 가장 좁은 개도">하류 —</span>
+          <span class="ps-inds">SLOOS<br>CRE Risk<br>CCC HY<br>Sovereign CDS</span>
+          <span class="ps-expand" aria-hidden="true">▾</span>
+        </button>
         </div>
-        <div class="pipe-arrow" id="parr0"></div>
-        <div class="pipe-seg" id="pipe1" onclick="toggleDetail(1)">
-          <div class="ps-label" id="plbl1">
-            <span>단기자금시장</span>
-            <span class="ps-status" id="psts1">로딩중</span>
-          </div>
-          <div class="ps-inds">SOFR–IORB<br>SRF Usage<br>PD net position<br>긴급대출의존도</div>
-          <span class="ps-expand">▾</span>
-        </div>
-        <div class="pipe-arrow" id="parr1"></div>
-        <div class="pipe-seg" id="pipe2" onclick="toggleDetail(2)">
-          <div class="ps-label" id="plbl2">
-            <span>글로벌 달러·환율</span>
-            <span class="ps-status" id="psts2">로딩중</span>
-          </div>
-          <div class="ps-inds">DXY 모멘텀<br>금융스트레스(FRED)<br>엔캐리 청산 리스크<br>Custody & FIMA</div>
-          <span class="ps-expand">▾</span>
-        </div>
-        <div class="pipe-arrow" id="parr2"></div>
-        <div class="pipe-seg" id="pipe3" onclick="toggleDetail(3)">
-          <div class="ps-label" id="plbl3">
-            <span>신용·실물 리스크</span>
-            <span class="ps-status" id="psts3">로딩중</span>
-          </div>
-          <div class="ps-inds">SLOOS<br>CRE Risk<br>CCC HY<br>Sovereign CDS</div>
-          <span class="ps-expand">▾</span>
-        </div>
+        <div class="pv-legend">개도 = 구간 신호별 밸브 열림(안정 100 · 마찰 60 · 경색 30 · 위기 8%) · 하류 = 지나온 밸브 중 가장 좁은 개도 · 압력계 = 앞단 배압</div>
       </div>
 
-      <!-- 인라인 상세 패널 4개 (파이프 행 바로 아래) -->
-      <div id="detail0" class="pipe-detail">
+      <!-- 인라인 상세 패널 4개 — 열린 칸에서 분기관이 내려옴 -->
+      <div id="detail0" class="pipe-detail" style="--at:12.5%" role="region" aria-labelledby="dhead0">
+        <div class="pd-head" id="dhead0"></div>
         <div id="detail0-rows"></div>
       </div>
-      <div id="detail1" class="pipe-detail">
+      <div id="detail1" class="pipe-detail" style="--at:37.5%" role="region" aria-labelledby="dhead1">
+        <div class="pd-head" id="dhead1"></div>
         <div id="detail1-rows"></div>
       </div>
-      <div id="detail2" class="pipe-detail">
+      <div id="detail2" class="pipe-detail" style="--at:62.5%" role="region" aria-labelledby="dhead2">
+        <div class="pd-head" id="dhead2"></div>
         <div id="detail2-rows"></div>
       </div>
-      <div id="detail3" class="pipe-detail">
+      <div id="detail3" class="pipe-detail" style="--at:87.5%" role="region" aria-labelledby="dhead3">
+        <div class="pd-head" id="dhead3"></div>
         <div id="detail3-rows"></div>
       </div>
 
@@ -3606,6 +3618,195 @@ const SIG_STYLE = {
 };
 // 파이프 헤더는 배관 은유(마찰·경색)를 유지 — 행 배지는 SIG_STYLE 라벨
 const PIPE_LABEL = { g:'안정', a:'마찰', r:'경색', k:'위기', n:'수신 실패' };
+// ── 금융 배관 밸브 그림 (캔버스) ──
+// 각 구간 신호 → 밸브 개도(안정 100·마찰 60·경색 30·위기 8%, 수신 실패 = 윗단 값 이어 '추정').
+// 하류 유량 = 지나온 밸브 개도의 최솟값, 배압 = 들어오는 유량 − 이 밸브 개도.
+// 그리는 것: 관(금속 벽·이음), 물(수위 + 표면 물결 + 배압 정체 구간), 버터플라이 밸브(원판 각도), 압력계(배압).
+// 화면 밖·다른 탭·창 숨김이면 멈추고, '동작 줄이기' 설정이면 바뀔 때 한 장만 그린다.
+const pipeViz = (() => {
+  const OPEN = { g: 1, a: 0.6, r: 0.3, k: 0.08, n: null };
+  const COL = { g: ['#3FB950', '#238636'], a: ['#F0B429', '#9E6A03'], r: ['#F85149', '#B91C1C'], k: ['#F85149', '#F85149'], n: ['#8B949E', '#484F58'] };
+  const NAMES = ['중앙은행 유동성', '단기자금시장', '글로벌 달러·환율', '신용·실물 리스크'];
+  const pct = v => v == null ? '?' : Math.round(v * 100) + '%';
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function model(sigs) {
+    let flow = 1, est = false;
+    return sigs.map(s => {
+      const sc = OPEN[s] !== undefined ? s : 'n', inflow = flow, o = OPEN[sc];
+      if (o == null) est = true; else flow = Math.min(flow, o);
+      return { s: sc, open: o, inflow, outflow: flow, back: o == null ? 0 : Math.max(0, inflow - o), est };
+    });
+  }
+  function valveSvg(s, open) {
+    const c = COL[s][0], ang = open == null ? 0 : (1 - open) * 84;
+    return `<svg viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9.5" fill="#0B0F14" stroke="${COL[s][1]}" stroke-width="1.4" ${s === 'n' ? 'stroke-dasharray="2.5 2"' : ''}/>` +
+      (open == null ? `<text x="11" y="15" fill="${c}" font-size="11" font-weight="700" text-anchor="middle">?</text>`
+        : `<rect x="3.5" y="9.6" width="15" height="2.8" rx="1.4" fill="${c}" transform="rotate(${-ang} 11 11)"/><circle cx="11" cy="11" r="1.8" fill="#0B0F14" stroke="${c}" stroke-width="1"/>`) + '</svg>';
+  }
+  function headHtml(i, v, partial) {
+    const label = (typeof PIPE_LABEL !== 'undefined' && PIPE_LABEL[v.s]) || v.s;
+    return `${valveSvg(v.s, v.open)}<span class="pd-hname">${NAMES[i]}</span><span class="ps-status ${v.s}">${label}</span>` +
+      `<span class="pd-hnums">개도 <b>${pct(v.open)}</b> · 하류 <b class="fl">${pct(v.outflow)}${v.est ? ' 추정' : ''}</b>` +
+      (v.back > 0.005 ? ` · 배압 <b>${pct(v.back)}</b>` : '') + (partial ? ' · ⚠ 일부 수신 실패' : '') + `</span>` +
+      `<button type="button" class="pd-close" onclick="event.stopPropagation();toggleDetail(${i})" aria-label="${NAMES[i]} 상세 닫기">✕</button>`;
+  }
+
+  let cv = null, ctx = null, wrap = null, W = 0, H = 0, dpr = 1, G = null;
+  let m = null, sel = -1, raf = 0, last = 0, visible = true;
+  const t0 = performance.now();
+  const disp = { f: [0, 0, 0, 0, 0], ang: [0, 0, 0, 0], back: [0, 0, 0, 0] };
+  let tg = { f: [0, 0, 0, 0, 0], ang: [0, 0, 0, 0], back: [0, 0, 0, 0] };
+
+  function init() {
+    if (cv) return true;
+    cv = document.getElementById('pvCanvas'); wrap = document.getElementById('pvWrap');
+    if (!cv || !wrap) { cv = null; return false; }
+    ctx = cv.getContext('2d');
+    new ResizeObserver(() => { layout(); kick(); }).observe(wrap);
+    new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible) kick(); }).observe(wrap);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) kick(); });
+    layout();
+    return true;
+  }
+  function layout() {
+    W = wrap.clientWidth; if (!W) return;
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    const ph = Math.max(24, Math.min(44, W * 0.048));
+    const gaugeR = Math.max(8, Math.min(13, W * 0.014));
+    const wall = Math.max(3, ph * 0.1);
+    const top = gaugeR * 2 + 20 + wall;
+    H = Math.round(top + ph + wall + 18);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); cv.style.height = H + 'px';
+    G = { ph, top, bot: top + ph, gaugeR, wall, vx: [0, 1, 2, 3].map(i => W * (i + 0.5) / 4), vw: Math.max(13, Math.min(22, W * 0.024)) };
+  }
+  const segOf = x => G.vx.reduce((n, v) => n + (x > v ? 1 : 0), 0);
+
+  // 위치 x의 물: 높이(관 높이 비율), 정체 정도, 표면 흔들림(px)
+  function waterAt(x, t) {
+    const s = segOf(x), f = disp.f[s], segL = W / 4;
+    let h = f, stag = 0;
+    if (s < 4 && disp.back[s] > 0.01) {
+      const d = G.vx[s] - x, D = segL * 0.55;
+      if (d < D) { const k = Math.pow(1 - d / D, 1.6) * Math.min(1, disp.back[s] / 0.5); h = f + (0.94 - f) * k; stag = k; }
+    }
+    const sp = 0.6 + 2.2 * f;
+    let wave = (1.1 * Math.sin(x * 0.045 - t * sp) + 0.6 * Math.sin(x * 0.11 + t * sp * 1.3)) * (0.35 + 0.65 * f) * (1 - 0.7 * stag);
+    if (f < 0.02) wave = 0;
+    return { h: f < 0.005 ? 0 : Math.max(0.03, Math.min(0.97, h)), stag, wave };
+  }
+
+  function draw(t) {
+    if (!G || !W) return;
+    const { top, bot, ph, wall, vw } = G;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    // 빈 관 안쪽
+    const inner = ctx.createLinearGradient(0, top, 0, bot);
+    inner.addColorStop(0, '#070A0E'); inner.addColorStop(1, '#0B1118');
+    ctx.fillStyle = inner; ctx.fillRect(0, top, W, ph);
+    // 물
+    if (m) {
+      const step = Math.max(2, Math.round(W / 320)), pts = [];
+      for (let x = 0; x <= W + step; x += step) { const w = waterAt(Math.min(x, W), t); pts.push([Math.min(x, W), bot - w.h * ph + w.wave, w]); }
+      ctx.save(); ctx.beginPath(); ctx.rect(0, top, W, ph); ctx.clip();
+      ctx.beginPath(); ctx.moveTo(0, bot); pts.forEach(([x, y]) => ctx.lineTo(x, y)); ctx.lineTo(W, bot); ctx.closePath();
+      const wg = ctx.createLinearGradient(0, top, 0, bot);
+      wg.addColorStop(0, 'rgba(88,166,255,.55)'); wg.addColorStop(1, 'rgba(31,111,235,.85)');
+      ctx.fillStyle = wg; ctx.fill();
+      ctx.save(); ctx.clip();
+      disp.back.forEach((bk, i) => {   // 배압 정체: 막힌 밸브 앞을 짙게
+        if (bk < 0.01) return;
+        const D = W / 4 * 0.55, x1 = G.vx[i], x0 = x1 - D, a = 0.55 * Math.min(1, bk / 0.5);
+        const g = ctx.createLinearGradient(x0, 0, x1, 0);
+        g.addColorStop(0, 'rgba(4,10,30,0)'); g.addColorStop(1, `rgba(4,10,30,${a.toFixed(3)})`);
+        ctx.fillStyle = g; ctx.fillRect(x0, top, D, ph);
+      });
+      m.forEach((v, i) => { if (v.est) { const x0 = G.vx[i], x1 = i < 3 ? G.vx[i + 1] : W; ctx.fillStyle = 'rgba(7,10,14,.45)'; ctx.fillRect(x0, top, x1 - x0, ph); } });
+      ctx.restore();
+      ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
+      ctx.strokeStyle = 'rgba(190,225,255,.75)'; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.restore();
+    }
+    // 관 벽 + 이음
+    const wallG = (y0, y1, flip) => { const g = ctx.createLinearGradient(0, y0, 0, y1); g.addColorStop(flip ? 1 : 0, '#3A424D'); g.addColorStop(flip ? 0 : 1, '#1C2128'); return g; };
+    ctx.fillStyle = wallG(top - wall, top); ctx.fillRect(0, top - wall, W, wall);
+    ctx.fillStyle = wallG(bot, bot + wall, true); ctx.fillRect(0, bot, W, wall);
+    ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(0, top - wall, W, 1);
+    ctx.fillStyle = '#262C34';
+    for (let i = 1; i < 4; i++) { const x = (G.vx[i - 1] + G.vx[i]) / 2; ctx.fillRect(x - 2, top - wall - 3, 4, ph + wall * 2 + 6); }
+    ctx.fillStyle = '#2B323B'; ctx.fillRect(0, top - wall - 4, 4, ph + wall * 2 + 8); ctx.fillRect(W - 4, top - wall - 4, 4, ph + wall * 2 + 8);
+    // 밸브
+    for (let i = 0; i < 4; i++) {
+      const v = m ? m[i] : { s: 'n', open: null, back: 0 }, [c, bd] = COL[v.s], cx = G.vx[i], cy = top + ph / 2;
+      if (i === sel) {   // 열린 상세의 밸브 표시
+        ctx.beginPath(); ctx.roundRect(cx - vw / 2 - 4, top - wall - 10, vw + 8, ph + wall * 2 + 20, 6);
+        ctx.fillStyle = 'rgba(88,166,255,.12)'; ctx.fill(); ctx.strokeStyle = 'rgba(88,166,255,.7)'; ctx.lineWidth = 1; ctx.stroke();
+      }
+      ctx.beginPath(); ctx.roundRect(cx - vw / 2, top - wall - 6, vw, ph + wall * 2 + 12, 4);
+      ctx.fillStyle = '#161B22'; ctx.fill();
+      ctx.setLineDash(v.s === 'n' ? [3, 3] : []); ctx.lineWidth = 1.4; ctx.strokeStyle = bd; ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = '#484F58';
+      [top - wall - 2, bot + wall + 2].forEach(y => [-vw / 4, vw / 4].forEach(dx => { ctx.beginPath(); ctx.arc(cx + dx, y, 1.2, 0, 7); ctx.fill(); }));
+      if (v.open == null) {
+        ctx.fillStyle = c; ctx.font = `700 ${Math.round(ph * 0.42)}px -apple-system,BlinkMacSystemFont,sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(m ? '?' : '·', cx, cy + 1);
+      } else {
+        const a = disp.ang[i] * Math.PI / 180, L = ph / 2 - 2;
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(-a);
+        ctx.fillStyle = c; ctx.beginPath(); ctx.roundRect(-L, -2.1, L * 2, 4.2, 2.1); ctx.fill(); ctx.restore();
+        ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, 7); ctx.fillStyle = '#0D1117'; ctx.fill(); ctx.strokeStyle = c; ctx.lineWidth = 1.2; ctx.stroke();
+        if (v.s === 'k' && !reduce) {   // 위기: 경고 링
+          const pr = (t * 0.9) % 1;
+          ctx.beginPath(); ctx.arc(cx, cy, vw * (0.7 + pr * 1.1), 0, 7);
+          ctx.strokeStyle = `rgba(248,81,73,${(0.45 * (1 - pr)).toFixed(2)})`; ctx.lineWidth = 1.5; ctx.stroke();
+        }
+      }
+      // 스템 + 압력계(배압)
+      const gr = G.gaugeR, gy = gr + 5;
+      ctx.strokeStyle = '#30363D'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, gy + gr * 0.4); ctx.lineTo(cx, top - wall - 6); ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, gy, gr, 0, 7); ctx.fillStyle = '#0D1117'; ctx.fill(); ctx.strokeStyle = '#30363D'; ctx.lineWidth = 1; ctx.stroke();
+      const A0 = Math.PI * 0.8, SPAN = Math.PI * 1.4;
+      [[0, 0.4, 'rgba(63,185,80,.55)'], [0.4, 0.7, 'rgba(240,180,41,.6)'], [0.7, 1, 'rgba(248,81,73,.65)']].forEach(([p0, p1, col]) => {
+        ctx.beginPath(); ctx.arc(cx, gy, gr - 2.5, A0 + SPAN * p0, A0 + SPAN * p1); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+      });
+      const bp = disp.back[i], jit = bp > 0.3 && !reduce ? Math.sin(t * 23 + i) * 0.015 * bp : 0, na = A0 + SPAN * Math.min(1, bp + jit);
+      ctx.beginPath(); ctx.moveTo(cx, gy); ctx.lineTo(cx + Math.cos(na) * (gr - 3), gy + Math.sin(na) * (gr - 3));
+      ctx.strokeStyle = '#E6EDF3'; ctx.lineWidth = 1.3; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, gy, 1.5, 0, 7); ctx.fillStyle = '#E6EDF3'; ctx.fill();
+    }
+    ctx.fillStyle = '#6E7681'; ctx.font = `${Math.round(Math.max(9, Math.min(10, W * 0.011)))}px -apple-system,BlinkMacSystemFont,sans-serif`; ctx.textBaseline = 'alphabetic';
+    ctx.textAlign = 'left'; ctx.fillText('공급 →', 6, bot + wall + 13);
+    ctx.textAlign = 'right'; ctx.fillText('→ 실물·자산', W - 6, bot + wall + 13);
+  }
+
+  function frame(now) {
+    raf = 0;
+    if (!G || !W) return;
+    const dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
+    const k = reduce ? 1 : 1 - Math.pow(0.0025, dt);
+    let moving = false;
+    for (const key of ['f', 'ang', 'back']) disp[key] = disp[key].map((v, i) => { const d = tg[key][i] - v; if (Math.abs(d) > 1e-3) moving = true; return v + d * k; });
+    draw((now - t0) / 1000);
+    // 물결이 있으니 데이터가 있으면 계속 — 단 화면 밖·숨김·동작 줄이기면 정지
+    if (!reduce && visible && !document.hidden && (m || moving)) raf = requestAnimationFrame(frame);
+  }
+  function kick() { if (!raf && cv) { last = 0; raf = requestAnimationFrame(frame); } }
+
+  return {
+    OPEN, NAMES, pct, model, headHtml,
+    set(sigs) {
+      if (!init()) return;
+      m = model(sigs);
+      tg = { f: [1, ...m.map(v => v.outflow)], ang: m.map(v => v.open == null ? 0 : (1 - v.open) * 84), back: m.map(v => v.back) };
+      if (!W) layout();
+      kick();
+    },
+    select(i) { sel = i; kick(); },
+  };
+})();
+window.pipeViz = pipeViz;
+
 // 행 신호 → 파이프 종합 신호. 전부 'n'이면 'n', 아니면 실제 신호 중 최악 + 'n' 섞임 여부
 function pipeAggregate(rows) {
   const sigs = rows.map(r => SIG_STYLE[r?.sig] ? r.sig : 'n');
@@ -4407,9 +4608,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
     const seg = document.getElementById('pipe'+i);
     if (!seg) return;
     // className을 통째로 바꾸면 'expanded'/'open'이 지워져 조용한 재로드(markPartial) 때 펼친 패널이 닫힘 → 신호 클래스만 교체
-    setSigClass(seg, 'pipe-seg', cls);
-    if (i<3) setSigClass(document.getElementById('parr'+i), 'pipe-arrow', cls);
-    setSigClass(document.getElementById('plbl'+i), 'ps-label', cls);
+    setSigClass(seg, 'pv-col', cls);
     const stsEl = document.getElementById('psts'+i);
     if (stsEl) { stsEl.textContent = PIPE_LABEL[cls] || SIG_STYLE[cls].label; setSigClass(stsEl, 'ps-status', cls); }
     let partEl = document.getElementById('ppart'+i);
@@ -4436,6 +4635,25 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
       }, 50);
     }
   });
+
+  // 밸브 배관: 개도·하류 유량·배압 → 라벨·상세 헤더·캔버스
+  const pm = pipeViz.model(pipeSigs);
+  pm.forEach((v, i) => {
+    const op = document.getElementById('popen'+i), fl = document.getElementById('pflow'+i);
+    if (op) op.textContent = '개도 ' + pipeViz.pct(v.open);
+    if (fl) fl.textContent = '하류 ' + pipeViz.pct(v.outflow) + (v.est ? ' 추정' : '');
+    const hd = document.getElementById('dhead'+i);
+    if (hd) hd.innerHTML = pipeViz.headHtml(i, v, pipeAgg[i].partial);
+    const det = document.getElementById('detail'+i);
+    if (det) det.style.setProperty('--ww', (2 + 8 * v.outflow).toFixed(1) + 'px');
+  });
+  const sumEl = document.getElementById('pipeSum');
+  if (sumEl) {
+    let at = -1, worst = 0;
+    pm.forEach((v, i) => { if (v.open != null && 1 - v.open > worst) { worst = 1 - v.open; at = i; } });
+    sumEl.innerHTML = `병목 ${at < 0 ? '없음' : pipeViz.NAMES[at]} · 실물 도달 <b>${pipeViz.pct(pm[3].outflow)}</b>${pm[3].est ? ' (추정)' : ''}`;
+  }
+  pipeViz.set(pipeSigs);
 
   // 유동성 위기 배지 (하나라도 k)
   const hasK = pipeSigs.some(s => s==='k');
@@ -4478,11 +4696,13 @@ function buildDetailRows(i, detail, accentColor) {
       ? `<div class="pd-row-formula ${sc}">${r.formula.replace(/\n/g,'<br>')}</div>`
       : '';
 
+    const op = pipeViz.OPEN[sc];
     return `
-      <div class="pd-row-card">
+      <div class="pd-row-card" style="--sc:${sc==='n' ? '#484F58' : col}">
         <div class="pd-row-top">
           <span class="pd-name">${r.name}${extraHtml}${tipHtml}</span>
-          <span class="pd-badge ${sc}">${sc==='n' ? SIG_STYLE.n.label : (r.badgeText||SIG_STYLE[sc].label)}</span>
+          <span class="pd-row-right"><span class="pd-pipe ${sc}" title="지표 개도 ${pipeViz.pct(op)}"><i style="width:${op == null ? 0 : Math.round(op * 100)}%"></i></span>
+          <span class="pd-badge ${sc}">${sc==='n' ? SIG_STYLE.n.label : (r.badgeText||SIG_STYLE[sc].label)}</span></span>
         </div>
         <div class="pd-row-val" style="color:${col}">${r.val}</div>
         ${chartHtml}
@@ -4507,22 +4727,18 @@ function _setDetailOpen(i, open) {
   detail.classList.toggle('open', open);
   seg.classList.toggle('expanded', open);
   seg.setAttribute('aria-expanded', open ? 'true' : 'false');
-  // 마지막 파이프(3번)는 right, 첫 파이프(0번)는 left 모서리 처리
-  if (i===3) seg.style.borderBottomRightRadius = open ? '0' : '';
-  if (i===0) seg.style.borderBottomLeftRadius  = open ? '0' : '';
 }
+// 모든 화면에서 한 번에 하나만: 다른 칸을 누르면 열려 있던 상세가 닫히고 그 칸의 상세가 열림
 function toggleDetail(i) {
   const detail = document.getElementById('detail'+i);
   if (!detail) return;
   const isOpen = detail.classList.contains('open');
-  const narrow = _isNarrow();   // ≤599px: 구간이 세로로 쌓이고 상세는 4번 구간 아래에 붙는다
-
-  // 좁은 화면은 아코디언 — 하나만 열어 둔다
-  if (!isOpen && narrow) [0,1,2,3].filter(j => j !== i).forEach(j => {
+  [0,1,2,3].filter(j => j !== i).forEach(j => {
     if (document.getElementById('detail'+j)?.classList.contains('open')) _setDetailOpen(j, false);
   });
   _setDetailOpen(i, !isOpen);
-  if (!isOpen && narrow) setTimeout(() => detail.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
+  pipeViz.select(isOpen ? -1 : i);
+  if (!isOpen) setTimeout(() => detail.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
 }
 
 // ──────────────────────────────
@@ -10457,28 +10673,6 @@ window.addEventListener('orientationchange', function() {
     overflow-x: auto !important;
   }
 
-  /* 2. 배관 4구간 — 가로 4열 유지, overflow 방지 */
-  #pipeRow {
-    overflow: hidden !important;
-  }
-  .pipe-row { flex-wrap: nowrap !important; overflow: hidden !important; }
-  .pipe-seg {
-    flex: 1 1 0 !important;
-    min-width: 0 !important;
-    width: 25% !important;
-    max-width: 25% !important;
-    padding: 10px 8px 8px !important;
-    border-radius: 0 !important;
-    overflow: hidden !important;
-  }
-  .pipe-seg:nth-child(1) { border-radius: 7px 0 0 7px !important; }
-  .pipe-seg:nth-child(4) { border-radius: 0 7px 7px 0 !important; }
-  /* 파이프 내부 텍스트 축소 */
-  .pipe-seg .ps-label span:first-child { font-size: 11px !important; }
-  .pipe-seg .ps-inds  { font-size: 9px !important; line-height: 1.5 !important; }
-  .pipe-seg .ps-status { font-size: 9px !important; padding: 1px 5px !important; }
-  /* pipe-arrow 숨기거나 축소 */
-  .pipe-arrow { width: 14px !important; min-width: 14px !important; font-size: 10px !important; }
 
   /* 3. VIX·MOVE·Z-SCORE — 3열 1행 유지 */
   .gauge-grid {
@@ -10693,31 +10887,11 @@ window.addEventListener('orientationchange', function() {
     overflow-x: hidden !important;
     min-height: 0 !important;
   }
-  .pipe-row { overflow: hidden !important; }
   * { min-width: 0; }
 }
 
 /* ── 소형 모바일 전용 (≤599px): 파이프 세로스택 + gauge 2열 ── */
 @media (max-width: 599px) {
-  /* 파이프 4구간 — 세로 단열 스택 */
-  .pipe-row {
-    flex-direction: column !important;
-    flex-wrap: nowrap !important;
-    overflow: visible !important;
-  }
-  #pipeRow { overflow: visible !important; }
-  .pipe-seg {
-    flex: none !important;
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    border-radius: 0 !important;
-  }
-  .pipe-seg:nth-child(1) { border-radius: 7px 7px 0 0 !important; }
-  .pipe-seg:nth-child(2) { border-radius: 0 !important; }
-  .pipe-seg:nth-child(3) { border-radius: 0 !important; }
-  .pipe-seg:nth-child(4) { border-radius: 0 0 7px 7px !important; }
-  .pipe-arrow { display: none !important; }
   .gauge-grid {
     grid-template-columns: 1fr 1fr !important;
   }

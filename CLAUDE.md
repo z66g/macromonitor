@@ -53,6 +53,9 @@ git pull origin main --rebase && git push
   로더 catch에서 `dsFailTab()` 호출. 값이 없으면 `$0`/`+0.0%` 대신 `—`
 - **시각 표기**: `fmtKST(iso)` → "MM/DD HH:mm KST" (getHours/toLocaleTimeString 금지 — 기기 시간대)
 - 모바일(≤767px) 탭 대상 최소 28px, 7px 글자는 9px로 (끝의 공용 style 블록)
+- **T0 금융 배관(밸브 배관)**: `pipeViz`(캔버스: 관·물·버터플라이 밸브·압력계) + 4칸 라벨 `pv-col#pipe0~3`. 모든 폭에서 같은 디자인(4칸 가로).
+  개도 = 칸 신호(`pipeAggregate`) 안정 100·마찰 60·경색 30·위기 8%·수신 실패 '?'(윗단 이어 '추정'), 하류 = 지나온 개도 최솟값, 배압 = 들어온 유량 − 개도.
+  상세 `detail0~3`은 **한 번에 하나**(`toggleDetail`), 열린 칸에서 분기관이 내려오고 헤더(`dhead`)에 개도·하류·배압. 화면 밖·숨김·동작 줄이기면 애니메이션 정지
 
 ## Worker cron (무료 플랜: 계정 전체 cron 5개 한도 → 1개만 사용)
 `CRON = '5,15,25,35,45,55 * * * *'` — 10분마다 깨어나 `CRON_JOBS` 표대로 실행:
