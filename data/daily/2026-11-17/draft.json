@@ -1,0 +1,179 @@
+{
+ "session": "2026-11-17",
+ "headline": "실적 전 헤지가 VIX를 끌어올렸다, 하락은 대형주 밖으로 넓어졌고 앞단 금리는 인상을 굳힌다",
+ "regime": {
+  "label": "risk_off",
+  "one_liner": "S&P 500 {{market.SPY.chg_1d}}%보다 동일가중이 {{market.RSP.chg_1d}}%로 더 빠졌고 VIX는 5일 {{market.VIX.chg_5d|+}}%. 신용 스프레드는 거의 그대로라 디레버리징이 아닌 헤지 수요 주도 Risk-Off로 본다."
+ },
+ "yesterday_check": [
+  {
+   "point": "엔비디아 실적 후 QQQ 200일선 회복 여부",
+   "outcome": "판정 보류 — 실적은 장 마감 뒤 발표. 종가 기준 QQQ는 200일선 대비 {{market.QQQ.vs_200dma_pct}}%로 하루 새 더 멀어졌다",
+   "hit": false
+  },
+  {
+   "point": "소매판매 예상 상회 + 5년물 5.0% 재돌파",
+   "outcome": "헤드라인은 예상 부합, 5년물은 {{market.US5Y.close}}%로 하루 {{market.US5Y.chg_1d|+}}bp — 미발생",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 5.0,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "VIX 25 상회",
+   "outcome": "발생 — 종가 {{market.VIX.close|r2}}",
+   "hit": true,
+   "cited_numbers": [
+    {
+     "value": 25,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "CCC OAS 하루 50bp 이상 확대",
+   "outcome": "미발생 — {{plumbing.ccc_oas.delta|bp}}bp로 오히려 축소",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 50,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "drivers": [
+  {
+   "title": "VIX 4일 연속 상승은 공포보다 이벤트 헤지 — 매도는 넓어졌다",
+   "anomaly_keys": [
+    "VIX",
+    "SPY"
+   ],
+   "body": "VIX 종가 {{market.VIX.close|r2}}, 5일 {{market.VIX.chg_5d|+}}%({{market.VIX.z_5d}}σ). 촉매는 엔비디아 실적 대기에 NSA 망 장애 보도 등 인프라 불안이 겹친 것. S&P 500 {{market.SPY.chg_1d}}%보다 동일가중 {{market.RSP.chg_1d}}%·러셀 {{market.IWM.chg_1d}}%가 더 빠졌고 NYSE 하락 종목이 상승의 약 3배 — 대형주 한정 매도가 아니다. 그런데 CCC OAS {{plumbing.ccc_oas.delta|bp}}bp, IG {{plumbing.ig_oas.delta|bp}}bp로 신용은 반응하지 않았다. 강제 청산이 아니라 실적 앞 풋 매수가 변동성을 올린 것으로 본다. 엔비디아는 장 마감 뒤 예상 상회 실적에 시간외 약 3% 상승(보도). 무효화: 실적 뒤에도 VIX가 25 위에 머물고 CCC OAS가 벌어지면 헤지가 아니라 위험 축소의 시작이다.",
+   "sources": [
+    "https://www.cnbc.com/2026/11/16/stock-market-today-live-updates.html",
+    "https://www.cnbc.com/2026/11/17/nvidia-nvda-earnings-report-q3-2027.html"
+   ],
+   "cited_numbers": [
+    {
+     "value": 3,
+     "source": "https://www.cnbc.com/2026/11/17/nvidia-nvda-earnings-report-q3-2027.html"
+    },
+    {
+     "value": 25,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "3개월물 52주 신고가 + SOFR의 IORB 상회 — 앞단은 12월 인상을 다 넣었다",
+   "anomaly_keys": [
+    "SOFR-IORB",
+    "US3M"
+   ],
+   "body": "3개월 금리 {{market.US3M.close}}%로 1년 분위 최상단, 20일 {{market.US3M.chg_20d|+}}bp. CME 기준 12월 25bp 인상 확률 95%(보도), 무살렘 총재는 최대 4번 추가 인상 가능성을 언급했다. 10월 소매판매는 헤드라인 부합, 자동차·휘발유 제외 0.6%(예상 0.4%)로 강했다. 같은 날 5년 {{market.US5Y.chg_1d|+}}bp·10년 {{market.US10Y.chg_1d|+}}bp로 장기 쪽은 되밀려, 앞단만 오르는 곡선이다. SOFR도 IORB 위 {{plumbing.sofr_minus_iorb_bp}}bp — 준비금 여유가 얇다(배관 참조). 무효화: 의사록이 인상 소수 의견에 그치고 3개월물이 4.0% 아래로 내려오면 앞단 과열로 본다.",
+   "sources": [
+    "https://www.cnbc.com/2026/11/17/treasury-yields-bonds-inflation.html"
+   ],
+   "cited_numbers": [
+    {
+     "value": 95,
+     "source": "https://www.cnbc.com/2026/11/17/treasury-yields-bonds-inflation.html"
+    },
+    {
+     "value": 25,
+     "source": "https://www.cnbc.com/2026/11/17/treasury-yields-bonds-inflation.html"
+    },
+    {
+     "value": 4,
+     "source": "https://www.cnbc.com/2026/11/17/treasury-yields-bonds-inflation.html"
+    },
+    {
+     "value": 0.6,
+     "source": "https://www.cnbc.com/2026/11/17/treasury-yields-bonds-inflation.html"
+    },
+    {
+     "value": 0.4,
+     "source": "https://www.cnbc.com/2026/11/17/treasury-yields-bonds-inflation.html"
+    },
+    {
+     "value": 4.0,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "달러 신고가·금 신저가·비트코인 급락 — 인상 경로가 무수익 자산을 누른다",
+   "anomaly_keys": [
+    "DXY",
+    "GOLD",
+    "BTC"
+   ],
+   "body": "달러인덱스 {{market.DXY.close|r2}}로 52주 고점권, 금 {{market.GOLD.close|r0}}로 52주 저점권(50일선 대비 {{market.GOLD.vs_50dma_pct}}%), 비트코인 5일 {{market.BTC.chg_5d}}%({{market.BTC.z_5d}}σ), 64,000달러 부근에서 기술주와 함께 밀렸다(보도). 금이 주식 급락일에도 {{market.GOLD.chg_1d|+}}%로 반등하지 못한 점이 핵심 — 안전자산 수요가 금이 아니라 달러·단기 국채로 가고 있다. 별도 촉매는 확인 못 함 — 금리·달러 경로와 레버리지 축소로 추정. 무효화: 달러가 꺾이는데도 금·비트코인이 반등하지 못하면 금리가 아닌 자체 청산 연쇄로 본다.",
+   "sources": [
+    "https://www.coindesk.com/business/2026/11/17/live-updates-bitcoin-holds-near-usd64-000-as-tech-slides-ahead-of-nvidia-earnings"
+   ],
+   "cited_numbers": [
+    {
+     "value": 64000,
+     "source": "https://www.coindesk.com/business/2026/11/17/live-updates-bitcoin-holds-near-usd64-000-as-tech-slides-ahead-of-nvidia-earnings"
+    }
+   ]
+  }
+ ],
+ "skipped_anomalies": [],
+ "plumbing": {
+  "body": "평소와 다른 곳은 단기자금 한 곳. SOFR {{plumbing.sofr.rate}}%로 IORB 위 {{plumbing.sofr_minus_iorb_bp}}bp, 역레포 잔액 {{plumbing.on_rrp_b}}$B로 완충은 사실상 없다. SRF 이용 {{plumbing.srf.accepted_b}}$B로 미미하고 순유동성은 4주 평균 위라 총량 부족은 아니다 — 월 중순 국채 결제 수요가 얇은 준비금에 닿은 것으로 본다.",
+  "cited_numbers": []
+ },
+ "analogs": [
+  {
+   "asset": "VIX",
+   "body": "200일선 위 국면의 VIX 5일 급등은 n={{analogs.VIX.n|r0}}. SPY 20일 뒤 중앙값 {{analogs.VIX.forward.SPY.20d.median|+}}%, 상승 비율 {{analogs.VIX.forward.SPY.20d.pct_positive|r0}}%, 하위 10% {{analogs.VIX.forward.SPY.20d.p10}}%. 대응별로는 5일 대기 후 진입이 중앙값 {{analogs.VIX.responses.SPY.wait5_then_add_20d.median|+}}%로 가장 나았고, 다음날 매도는 중앙값 {{analogs.VIX.responses.SPY.sell_next_day_avoided.median}}%를 놓쳤다. 다만 보유 시 최대 역행 하위 10%가 {{analogs.VIX.responses.SPY.max_adverse_20d.p10}}%, 최악 {{analogs.VIX.forward.SPY.20d.worst}}%. 대표 사례 2021-09-20(헝다)·2024-07-18(대형 기술주 이탈)은 신용이 버틴 채 회복했지만, 2024-07은 이후 엔 캐리 청산으로 한 번 더 흔들렸다. 지금은 인상 사이클 한가운데라는 점이 다르다.",
+   "sources": [],
+   "cited_numbers": []
+  },
+  {
+   "asset": "BTC",
+   "body": "비트코인 5일 급락은 n={{analogs.BTC.n|r0}}로 표본이 작다. 20일 뒤 중앙값 {{analogs.BTC.forward.BTC.20d.median|+}}%지만 상승 비율 {{analogs.BTC.forward.BTC.20d.pct_positive|r0}}%로 반반, 하위 10% {{analogs.BTC.forward.BTC.20d.p10}}%. 보유가 중앙값 기준 가장 나았으나 최대 역행 하위 10% {{analogs.BTC.responses.BTC.max_adverse_20d.p10}}%를 견딜 때의 이야기다. 과거 사례 대부분은 금리 하락·완화 국면이었다는 점이 지금과 다르다.",
+   "sources": [],
+   "cited_numbers": []
+  }
+ ],
+ "sectors": {
+  "body": "11개 섹터 모두 하락. 상대적으로 덜 빠진 곳은 에너지({{sector_rank.0.chg_1d}}%)·산업재({{sector_rank.1.chg_1d}}%), 꼴찌는 금융({{sector_rank.10.chg_1d}}%)과 유틸리티({{sector_rank.9.chg_1d}}%). 1년 분위 상단이던 금융의 최하위는 차익 실현으로 본다. 필수소비재·유틸리티도 {{market.XLP.chg_1d}}%·{{market.XLU.chg_1d}}%로 밀려 어제 같은 방어주 대피도 없었다 — 섹터 이동보다 주식 비중 자체를 줄인 날이다.",
+  "cited_numbers": []
+ },
+ "watchpoints": [
+  {
+   "condition": "엔비디아 실적 반영 후 QQQ가 하루 +2% 이상 반등하는데 VIX가 22 아래로 못 내려오면",
+   "implication": "헤지 수요가 실적 이후에도 남음 — 하락의 원인이 AI 실적이 아닌 금리·인프라 불안 쪽"
+  },
+  {
+   "condition": "11/18 FOMC 의사록에서 추가 인상 지지 다수 + 3개월물 4.2% 돌파 시",
+   "implication": "12월 이후 추가 인상까지 앞단 가격에 반영 — 달러 104 돌파·금 추가 약세 경로"
+  },
+  {
+   "condition": "SOFR−IORB 3bp 이상이 3거래일 이어지거나 SRF 이용 50억 달러 초과 시",
+   "implication": "준비금 부족이 일시 결제 수요가 아니라 구조적 문제로 번짐"
+  },
+  {
+   "condition": "CCC OAS 하루 30bp 이상 확대 시",
+   "implication": "주식 헤지 수요가 신용 매도로 전이되는 첫 신호"
+  },
+  {
+   "condition": "11/20 옵션 만기 전 VIX 25 재상회",
+   "implication": "만기 앞 감마 포지션이 하락을 키우는 구간 — 만기 뒤 되돌림 여부 점검"
+  }
+ ],
+ "risks": [
+  "엔비디아 호실적에 쏠린 헤지가 한꺼번에 풀리면 기술주 급반등으로 오늘의 Risk-Off 판정이 뒤집힌다",
+  "의사록이 예상보다 매파적이면 장기 금리까지 다시 올라 주식·채권 동반 약세로 돌아간다",
+  "인프라 장애 보도가 사이버 공격으로 확인되면 촉매가 금리에서 지정학·안보로 바뀐다"
+ ],
+ "written_at": "2026-11-17T21:42:50Z",
+ "model": "claude-opus-5-5"
+}
