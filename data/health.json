@@ -97,5 +97,19 @@
       "status": "ok",
       "detail": "없음"
     }
+  ],
+  "diagnosis": [
+    {
+      "check": "이벤트 결과",
+      "likely_cause": "CPI(11-10)·STLFSI(11-12)는 이벤트 결과 파이프라인의 첫 게시(11-14, PPI 11-13분) 이전 발표분이거나 해당 시각 에이전트 실행에서 조사 대상에 들지 못해 한 번도 게시·보류되지 않았다(pending·rejects도 비어 있음).",
+      "suggested_fix": "data/econ_calendar.json의 조사 대상 목록과 ops/routines/econ.md의 대상 기간(발표 후 2~10일)을 확인하고, 필요하면 두 건을 data/econ_results_ai.json에 수동 조사·추가(econ-results-merge.yml이 검증); 10일 경과 시 자연 소멸.",
+      "confidence": "low"
+    },
+    {
+      "check": "점검 실행 시각",
+      "likely_cause": "checked_at(2026-11-17T04:56Z)이 진단 시각(23:38Z)보다 18시간 넘게 오래됨 — 오늘 23:00 UTC 정기 점검이 아직 커밋되지 않았거나 지연 중(GitHub schedule 지연 가능).",
+      "suggested_fix": "health-check.yml의 오늘 실행 기록 확인.",
+      "confidence": "medium"
+    }
   ]
 }
