@@ -277,6 +277,30 @@ body{
 .ps-status.r{background:#3D0000;color:#F85149;}
 .ps-status.k{background:#4A0000;color:#FF7B72;border:0.5px solid #F85149;}
 
+/* ═══ T0 로딩 — 빈 밸브 배관 (pipeViz와 같은 비율) ═══ */
+.pvs{display:flex;flex-direction:column;gap:6px;padding:2px 0 8px;}
+.pvs-hd{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:600;color:#484F58;letter-spacing:.07em;}
+.pvs-hd i{flex:1;height:0.5px;background:#21262D;}
+.pvs-pipe{position:relative;height:clamp(24px,4.8vw,44px);margin:clamp(30px,4vw,46px) 0 18px;background:#070A0E;
+  border-top:4px solid #2B323B;border-bottom:4px solid #1C2128;overflow:visible;}
+.pvs-water{position:absolute;left:0;bottom:0;height:38%;width:100%;overflow:hidden;}
+.pvs-water::before{content:'';position:absolute;inset:0;width:45%;
+  background:linear-gradient(90deg,rgba(31,111,235,0),rgba(88,166,255,.45),rgba(31,111,235,0));
+  animation:pvsFlow 1.8s ease-in-out infinite;}
+@keyframes pvsFlow{from{transform:translateX(-100%);}to{transform:translateX(230%);}}
+.pvs-v{position:absolute;top:-10px;bottom:-10px;width:clamp(13px,2.4vw,22px);transform:translateX(-50%);
+  background:#161B22;border:1.4px dashed #484F58;border-radius:4px;}
+.pvs-g{position:absolute;left:50%;bottom:calc(100% + 6px);width:clamp(16px,2.8vw,26px);aspect-ratio:1;transform:translateX(-50%);
+  border-radius:50%;border:1px solid #30363D;background:#0D1117;}
+.pvs-b{position:absolute;left:50%;bottom:100%;width:2px;height:6px;transform:translateX(-50%);background:#30363D;}
+.pvs-cols{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));}
+.pvs-col{display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 6px;}
+.pvs-col i{display:block;height:9px;border-radius:3px;background:linear-gradient(90deg,#161B22,#21262D,#161B22);background-size:200% 100%;
+  animation:pvsShim 1.6s linear infinite;}
+@keyframes pvsShim{from{background-position:200% 0;}to{background-position:-200% 0;}}
+.pvs-msg{font-size:10px;color:#6E7681;text-align:center;margin-top:2px;}
+@media (prefers-reduced-motion: reduce){ .pvs-water::before,.pvs-col i{animation:none;} }
+
 /* ═══ 인라인 상세 패널 — 열린 밸브에서 내려오는 분기관 + 배관 벽 테두리 ═══
    한 번에 하나만 열림(toggleDetail). --at = 열린 칸 가운데(12.5/37.5/62.5/87.5%) */
 .pipe-detail{
@@ -1434,9 +1458,12 @@ body{
   </div>
 
   <!-- 로딩 -->
-  <div id="loadingState" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
-    <div style="font-size:28px;">🖥️</div>
-    <div style="font-size:12px;color:#484F58;">거시경제 데이터 로딩 중...</div>
+  <!-- 로딩: 밸브 배관과 같은 모양의 빈 관 — 물이 들어오는 중 (실제 배관과 높이를 맞춰 화면이 덜 튐) -->
+  <div id="loadingState" class="pvs" role="status" aria-live="polite">
+    <div class="pvs-hd"><span>금융 배관 — 구간별 압력·유량</span><i></i></div>
+    <div class="pvs-pipe"><span class="pvs-water"></span><span class="pvs-v" style="left:12.5%"><i class="pvs-g"></i><i class="pvs-b"></i></span><span class="pvs-v" style="left:37.5%"><i class="pvs-g"></i><i class="pvs-b"></i></span><span class="pvs-v" style="left:62.5%"><i class="pvs-g"></i><i class="pvs-b"></i></span><span class="pvs-v" style="left:87.5%"><i class="pvs-g"></i><i class="pvs-b"></i></span></div>
+    <div class="pvs-cols"><span class="pvs-col"><i style="width:68%"></i><i style="width:44%"></i><i style="width:36%"></i></span><span class="pvs-col"><i style="width:68%"></i><i style="width:44%"></i><i style="width:36%"></i></span><span class="pvs-col"><i style="width:68%"></i><i style="width:44%"></i><i style="width:36%"></i></span><span class="pvs-col"><i style="width:68%"></i><i style="width:44%"></i><i style="width:36%"></i></span></div>
+    <div class="pvs-msg">배관 데이터 수신 중 · 준비금 · 단기자금 · 달러 · 신용</div>
   </div>
 
   <!-- 에러 -->
@@ -4875,7 +4902,7 @@ function scoreReserve(res, rrp) {
 // ──────────────────────────────
 function showLoading() {
   const ls = document.getElementById('loadingState');
-  if (ls) { ls.style.display='flex'; ls.style.flexDirection='column'; ls.style.alignItems='center'; ls.style.justifyContent='center'; }
+  if (ls) ls.style.display='flex';
   document.getElementById('mainContent').style.display='none';
   document.getElementById('errorPanel').classList.remove('show');
 }
