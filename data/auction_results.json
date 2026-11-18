@@ -27,16 +27,24 @@
         "btc_avg6": 2.63,
         "pd_avg6": 12.05,
         "in_avg6": 63.67,
-        "tail_bps": null,
-        "wi_rate": null,
+        "tail_bps": 0.0,
+        "wi_rate": 5.459,
         "grade": {
           "btc": "strong",
-          "tail": null,
+          "tail": "strong",
           "pd": "neutral"
         },
-        "score_pct": 75
+        "score_pct": 83
       },
-      "summary": null
+      "summary": "🎯 총평: Average\n1. Tail: +0.0 bp. WI 5.459%에 정확히 낙찰돼 20년물 금리에 추가 상승 압력도, 하락 재료도 주지 못했다.\n2. BTC: 2.63x vs 6avg 2.63x. 응찰률이 평균과 같아 수요는 무난했지만 5%대 중반 금리에도 추가 매수세는 없었다.\n3. Indirect 60.2% vs 6avg 63.67%. 해외 수요는 평균보다 3%p 넘게 약했다. PD 13.1% vs 6avg 12.05%. 딜러 인수가 평균을 다소 웃돌아 재고 부담이 소폭 늘었다.\n4. 결론: 30년물 tail에 이어 20년물도 해외 수요 둔화 속 평범한 결과에 그쳐 장기물 기간 프리미엄이 쉽게 꺾이지 않을 전망이다.",
+      "_ai": {
+        "sources": [
+          "https://investinglive.com/news/the-us-treasury-auctions-16b-of-20-year-bonds-at-a-high-year-at-5-495/",
+          "https://www.rttnews.com/3715999/twenty-year-bond-auction-attracts-average-demand.aspx"
+        ],
+        "researched_at": "2026-11-18T21:33:28Z",
+        "model": "claude-opus-5-5"
+      }
     },
     {
       "security_type": "Bill",
