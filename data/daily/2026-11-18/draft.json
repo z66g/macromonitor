@@ -1,0 +1,210 @@
+{
+ "session": "2026-11-18",
+ "headline": "의사록의 추가 인상 신호가 달러를 밀어 올렸다, 구리·금 롱이 먼저 털렸다",
+ "regime": {
+  "label": "risk_off",
+  "one_liner": "SPY 5일 {{market.SPY.chg_5d}}%, VIX 1년 분위 {{market.VIX.pctile_1y|r0}}에 구리·금·은이 하루에 동반 급락. 신용 스프레드 확대는 작아 강제 디레버리징이 아닌 인상 경로 재가격에 따른 원자재·위험자산 축소형 Risk-Off로 본다."
+ },
+ "yesterday_check": [
+  {
+   "point": "엔비디아 실적 후 QQQ 하루 +2% 이상 반등에도 VIX 22 위 유지",
+   "outcome": "반등 자체가 없었다 — QQQ {{market.QQQ.chg_1d|+}}%, VIX {{market.VIX.close}}. 조건 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 2,
+     "threshold": true
+    },
+    {
+     "value": 22,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "의사록 추가 인상 다수 + 3개월물 4.2% 돌파",
+   "outcome": "의사록은 거의 모든 위원이 추가 인상 적절(보도), 3개월물은 {{market.US3M.close}}%로 52주 최고지만 4.2% 아래 — 절반만 발생",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 4.2,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "SOFR−IORB 3bp 이상 3거래일 또는 SRF 50억 달러 초과",
+   "outcome": "미발생 — SOFR−IORB {{plumbing.sofr_minus_iorb_bp|r0}}bp, SRF {{plumbing.srf.accepted_b}}",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 3,
+     "threshold": true
+    },
+    {
+     "value": 50,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "CCC OAS 하루 30bp 이상 확대",
+   "outcome": "미발생 — {{plumbing.ccc_oas.delta|bp}}bp 확대(11월 17일 기준)",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 30,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "옵션 만기 전 VIX 25 재상회",
+   "outcome": "아직 — VIX {{market.VIX.close}}로 문턱 바로 아래, 만기는 11월 20일",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 25,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "drivers": [
+  {
+   "title": "구리 급락 — 실수요가 아니라 투기 롱 청산",
+   "anomaly_keys": [
+    "COPPER",
+    "XLE"
+   ],
+   "body": "구리 {{market.COPPER.chg_1d}}%({{market.COPPER.z_1d}}σ), 5일 {{market.COPPER.chg_5d}}%로 2025년 4월 이후 최대 일간 낙폭(보도). 보도는 강달러·인플레와 AI 데이터센터 수요 우려를 꼽았고, Saxo는 AI는 방아쇠일 뿐이라고 했다. 중국 수입 프리미엄은 사상 최고(보도) — 현물 수요는 살아 있는데 선물만 무너졌다. 달러 신고가에 AI·관세 테마로 쌓인 투기 롱이 정리된 것으로 본다. WTI {{market.WTI.chg_1d}}%(재고 예상 상회 증가), 에너지 {{market.XLE.chg_1d}}%. 무효화: 달러가 꺾여도 구리가 못 오르고 중국 프리미엄이 꺼지면 실수요 둔화다.",
+   "sources": [
+    "https://www.theglobeandmail.com/investing/article-it-seems-like-people-are-throwing-in-the-towel-why-copper-prices-are/",
+    "https://www.brecorder.com/news/40449557/copper-tumbles-to-seven-month-low-on-speculative-selling-and-inflation-fears",
+    "https://www.ajot.com/news/oil-prices-fall-as-higher-us-crude-stocks-temper-supply-risks"
+   ],
+   "cited_numbers": []
+  },
+  {
+   "title": "금·은 급락은 금리가 아니라 달러 — 장기금리는 오히려 내렸다",
+   "anomaly_keys": [
+    "GOLD",
+    "SILVER"
+   ],
+   "body": "금 {{market.GOLD.chg_1d}}%({{market.GOLD.z_1d}}σ), 종가 {{market.GOLD.close|r0}}로 52주 최저, 은 {{market.SILVER.chg_1d}}%. 의사록은 거의 모든 위원이 추가 인상을 적절하다고 봤고 일부는 25bp 초과도 거론(보도). 그런데 10년 {{market.US10Y.chg_1d}}bp, 30년 {{market.US30Y.chg_1d}}bp — 장기는 '인상이 성장을 누른다'에 베팅했다. 금을 누른 건 금리가 아니라 달러인덱스 {{market.DXY.close}}(52주 신고가)와 쌓인 롱의 청산이다. 무효화: 달러인덱스가 103 아래로 내려와도 금이 못 오르면 자체 수급 문제다.",
+   "sources": [
+    "https://www.bloomberg.com/news/articles/2026-11-18/fed-minutes-show-almost-all-officials-expect-more-rate-hikes",
+    "https://www.benzinga.com/markets/economic-data/26/11/63409950/fed-minutes-almost-all-officials-more-hikes-ai-debt",
+    "https://finance.yahoo.com/markets/commodities/articles/gold-14-month-low-traders-164318443.html"
+   ],
+   "cited_numbers": [
+    {
+     "value": 25,
+     "source": "https://www.bloomberg.com/news/articles/2026-11-18/fed-minutes-show-almost-all-officials-expect-more-rate-hikes"
+    },
+    {
+     "value": 103,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "VIX는 고점권에서 숨 고르기, 매도는 헬스케어·다우로 옮겨갔다",
+   "anomaly_keys": [
+    "VIX",
+    "SPY",
+    "RSP",
+    "XLV"
+   ],
+   "body": "VIX {{market.VIX.close}}로 하루 {{market.VIX.chg_1d}}%지만 5일 {{market.VIX.chg_5d|+}}%({{market.VIX.z_5d|+}}σ). 엔비디아는 예상 상회 실적에도 2.89% 하락(CEO 공백·중국 제외 가이던스) — 기대가 이미 가격에 있었다. 그래도 QQQ는 {{market.QQQ.chg_1d|+}}%로 버텼고 다우는 500포인트 넘게 빠졌다 — 유나이티드헬스가 CMS 감사 강화안 여파로 8% 넘게 밀리며(보도) 헬스케어 {{market.XLV.chg_1d}}%. 5일 SPY {{market.SPY.chg_5d}}%, 동일가중 {{market.RSP.chg_5d}}%로 하락은 넓다. 실적 헤지가 풀렸는데 VIX가 25 부근에 남은 건 헤지가 금리 경로로 옮겨간 것으로 본다. 무효화: 11월 20일 만기 뒤 VIX 20 하회.",
+   "sources": [
+    "https://www.cnbc.com/2026/11/18/nvidia-stock-earnings.html",
+    "https://www.cnbc.com/2026/11/17/stock-market-today-live-updates.html",
+    "https://tokenpost.com/news/investing/60695"
+   ],
+   "cited_numbers": [
+    {
+     "value": 2.89,
+     "source": "https://www.cnbc.com/2026/11/18/nvidia-stock-earnings.html"
+    },
+    {
+     "value": 500,
+     "source": "https://www.cnbc.com/2026/11/17/stock-market-today-live-updates.html"
+    },
+    {
+     "value": 8,
+     "source": "https://tokenpost.com/news/investing/60695"
+    },
+    {
+     "value": 25,
+     "threshold": true
+    },
+    {
+     "value": 20,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "skipped_anomalies": [
+  {
+   "key": "SOFR-IORB",
+   "reason": "배관 항목에서 다룸"
+  },
+  {
+   "key": "NATGAS",
+   "reason": "단일 원자재 움직임, 확인된 촉매 없음 — 호르무즈 가스선 피격 보도와의 연결은 검증 못 함"
+  }
+ ],
+ "plumbing": {
+  "body": "SOFR가 IORB 위 {{plumbing.sofr_minus_iorb_bp|r0}}bp(11월 17일)로 상회는 이어지나 폭은 줄었다. SRF 이용 {{plumbing.srf.accepted_b}}, 역레포 {{plumbing.on_rrp_b}}$B로 완충은 없지만 순유동성은 4주 평균 위라 총량 부족은 아니다. CCC OAS {{plumbing.ccc_oas.delta|bp}}bp 확대는 변동성이 신용 하단에 닿은 흔적, IG는 {{plumbing.ig_oas.delta|bp}}bp — 전이는 아직.",
+  "cited_numbers": []
+ },
+ "analogs": [
+  {
+   "asset": "COPPER",
+   "body": "200일선 아래 국면의 구리 급락은 n={{analogs.COPPER.n|r0}}로 표본이 작다. 구리 20일 뒤 중앙값 {{analogs.COPPER.forward.COPPER.20d.median}}%, 오른 건 7번 중 1번, 하위 10% {{analogs.COPPER.forward.COPPER.20d.p10}}% — 첫 급락이 끝이 아니었다. SPY는 20일 뒤 중앙값 {{analogs.COPPER.forward.SPY.20d.median|+}}%지만 하위 10% {{analogs.COPPER.forward.SPY.20d.p10}}%, 보유 시 최대 역행 최악 {{analogs.COPPER.responses.SPY.max_adverse_20d.worst}}%. 가장 닮은 2022-06-23(인상기·강달러 속 침체 공포)은 SPY 20일 {{analogs.COPPER.closest.5.spy_20d|+}}%. 다른 점: 지금 구리엔 AI 수요 기대가 얹혀 있었고 2008년처럼 신용이 깨지진 않았다.",
+   "sources": [],
+   "cited_numbers": []
+  },
+  {
+   "asset": "VIX",
+   "body": "200일선 아래 국면의 VIX 5일 급등은 n={{analogs.VIX.n|r0}}. SPY 20일 뒤 중앙값 {{analogs.VIX.forward.SPY.20d.median|+}}%, 상승 비율 {{analogs.VIX.forward.SPY.20d.pct_positive|r0}}%, 하위 10% {{analogs.VIX.forward.SPY.20d.p10}}%. 보유가 중앙값 기준 가장 나았고 5일 대기 후 진입은 {{analogs.VIX.responses.SPY.wait5_then_add_20d.median}}%로 나빴다. 보유 시 최대 역행 하위 10% {{analogs.VIX.responses.SPY.max_adverse_20d.p10}}%. 2008-10-02처럼 신용이 깨진 경우 20일 {{analogs.VIX.closest.0.spy_20d}}%, 인상 사이클 중이던 2022-04-26은 {{analogs.VIX.closest.3.spy_20d}}%. 신용이 멀쩡한 지금은 2022년 쪽에 가깝다.",
+   "sources": [],
+   "cited_numbers": []
+  }
+ ],
+ "sectors": {
+  "body": "1위 임의소비재 {{sector_rank.0.chg_1d|+}}%(촉매 확인 못 함), 꼴찌 에너지 {{sector_rank.10.chg_1d}}%·헬스케어 {{sector_rank.9.chg_1d}}%. 기술은 엔비디아 하락에도 {{market.XLK.chg_1d|+}}%. 1년 분위 상단이던 헬스케어·금융({{market.XLF.chg_1d}}%)이 이틀째 밀리고 20일 {{market.XLK.chg_20d}}% 빠진 기술로 일부 돌아온 회전 — 피난처의 차익 실현이다.",
+  "cited_numbers": []
+ },
+ "watchpoints": [
+  {
+   "condition": "11월 20일 옵션 만기 전후 VIX 25 재상회(현재 {{market.VIX.close}})",
+   "implication": "헤지 수요가 금리 경로 불안으로 고착 — 만기 뒤에도 남는지 확인"
+  },
+  {
+   "condition": "구리가 파운드당 5.5달러 아래로 밀리고 달러인덱스 104 돌파 시",
+   "implication": "투기 청산이 2차 파동으로 — 원자재·신흥국 위험자산 동반 압박"
+  },
+  {
+   "condition": "11월 19일 실업수당 청구 뒤 3개월물 4.2% 돌파(현재 {{market.US3M.close}}%)",
+   "implication": "12월 25bp를 넘는 인상까지 앞단에 반영되기 시작"
+  },
+  {
+   "condition": "SOFR−IORB 3bp 이상 3거래일 또는 SRF 이용 50억 달러 초과",
+   "implication": "얇은 준비금이 월 중순 결제를 넘어 구조적 압박으로"
+  },
+  {
+   "condition": "CCC OAS 하루 30bp 이상 확대",
+   "implication": "주식·원자재 매도가 신용으로 전이되는 첫 신호"
+  }
+ ],
+ "risks": [
+  "앤트로픽 IPO 수요 확대 보도 — 배정 자금 마련을 위한 대형 기술주 매도가 이어질 수 있다",
+  "호르무즈 해협 선박 공격이 커져 유가가 되오르면 인상 경로가 한 단계 더 올라간다",
+  "월러 이사의 빅스텝 인상 주장이 가격에 들어가면 장기금리 하락(성장 베팅)이 뒤집힐 수 있다"
+ ],
+ "written_at": "2026-11-18T21:43:47Z",
+ "model": "claude-opus-5-5"
+}
