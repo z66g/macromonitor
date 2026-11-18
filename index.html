@@ -1956,9 +1956,11 @@ body{
 <div id="t1" class="tab-panel">
 
   <!-- ── 로딩 / 에러 ── -->
-<div id="t1-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
-    <div style="font-size:28px;">📊</div>
-    <div style="font-size:12px;color:#484F58;">유동성 & 시장 데이터 로딩 중...</div>
+<div id="t1-loading" class="tl" role="status" aria-live="polite">
+    <div class="tl-hd"><span>유동성 &amp; 시장</span><i></i></div>
+    <div class="tl-pipe"><span></span></div>
+    <div class="tl-grid"><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span></div>
+    <div class="tl-msg">데이터 수신 중 · 순유동성 · 국채수익률 · 인플레 · 원자재</div>
   </div>
   <div id="t1-error" style="display:none;padding:24px;color:#F85149;font-size:11px;text-align:center;"></div>
 
@@ -2219,9 +2221,11 @@ BEI↑ &amp; 5Y5Y↑ 동반 → 장기 기대 이탈, 연준 신뢰 위기.<br>
 <!-- TAB 2: 실물경제 -->
 <div id="t2" class="tab-panel">
 
-<div id="t2-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
-    <div style="font-size:28px;">📈</div>
-    <div style="font-size:12px;color:#484F58;">실물경제 데이터 로딩 중...</div>
+<div id="t2-loading" class="tl" role="status" aria-live="polite">
+    <div class="tl-hd"><span>실물경제</span><i></i></div>
+    <div class="tl-pipe"><span></span></div>
+    <div class="tl-grid"><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span></div>
+    <div class="tl-msg">데이터 수신 중 · 지역 연준 PMI · 고용 · 소비자 체력</div>
   </div>
   <div id="t2-error" style="display:none;padding:24px;color:#F85149;font-size:11px;text-align:center;"></div>
 
@@ -2382,9 +2386,11 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
 <div id="t3" class="tab-panel">
   <div id="t3-wrapper" style="padding:10px 24px;max-width:940px;margin:0 auto;display:flex;flex-direction:column;gap:24px;">
   <!-- 로딩 / 에러 -->
-<div id="t3-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
-    <div style="font-size:28px;">🌐</div>
-    <div style="font-size:12px;color:#484F58;">글로벌 데이터 로딩 중...</div>
+<div id="t3-loading" class="tl" role="status" aria-live="polite">
+    <div class="tl-hd"><span>글로벌</span><i></i></div>
+    <div class="tl-pipe"><span></span></div>
+    <div class="tl-grid"><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span></div>
+    <div class="tl-msg">데이터 수신 중 · 아시아 · 유럽 · 신흥국</div>
   </div>
   <div id="t3-error" style="display:none;color:#F85149;font-size:11px;padding:20px;"></div>
 
@@ -2790,9 +2796,11 @@ ISM PMI는 월 1회 발표·저작권 제한으로 데이터 직접 제공이 �
 </div>
 
 <div id="t4" class="tab-panel">
-<div id="t4-loading" style="display:flex;align-items:center;justify-content:center;min-height:280px;flex-direction:column;gap:10px;">
-    <div style="font-size:28px;">🪙</div>
-    <div style="font-size:12px;color:#484F58;">온체인 데이터 로딩 중...</div>
+<div id="t4-loading" class="tl" role="status" aria-live="polite">
+    <div class="tl-hd"><span>온체인 매크로</span><i></i></div>
+    <div class="tl-pipe"><span></span></div>
+    <div class="tl-grid"><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span><span class="tl-card"><i style="width:42%"></i><i class="tl-big" style="width:58%"></i><i class="tl-chart"></i></span></div>
+    <div class="tl-msg">데이터 수신 중 · 스테이블코인 · ETF 자금 · 온체인 지표</div>
   </div>
   <div id="t4-error" style="display:none;padding:24px;color:#F85149;font-size:11px;text-align:center;"></div>
   <div id="t4-wrapper" style="display:none;padding:10px 24px;max-width:940px;margin:0 auto;flex-direction:column;gap:24px;">
@@ -12307,4 +12315,23 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible),
   .pd-tip-icon::before, .rc-info-btn::before { content: ''; position: absolute; inset: -8px; }
   [style*="font-size:7px"] { font-size: 9px !important; }
 }
+
+/* ═══ 탭 로딩 공통 — 금융 배관 로딩과 같은 언어: 가는 관에 물이 흘러 들어오고, 카드 자리는 은은하게 반짝 ═══ */
+.tl{display:flex;flex-direction:column;gap:12px;max-width:940px;margin:0 auto;padding:22px 0 18px;box-sizing:border-box;width:100%;}
+.tl-hd{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:600;color:#484F58;letter-spacing:.07em;}
+.tl-hd i{flex:1;height:0.5px;background:#21262D;}
+.tl-pipe{position:relative;height:10px;background:#070A0E;border-top:2px solid #2B323B;border-bottom:2px solid #1C2128;overflow:hidden;}
+.tl-pipe span,.spinner::before{position:absolute;left:0;bottom:0;height:60%;width:40%;content:'';
+  background:linear-gradient(90deg,rgba(31,111,235,0),rgba(88,166,255,.5),rgba(31,111,235,0));animation:pvsFlow 1.8s ease-in-out infinite;}
+.tl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;}
+.tl-card{display:flex;flex-direction:column;gap:9px;padding:14px;border:0.5px solid #21262D;border-radius:8px;background:#0D1117;min-width:0;}
+.tl-card i{display:block;height:9px;border-radius:3px;background:linear-gradient(90deg,#161B22,#21262D,#161B22);background-size:200% 100%;animation:pvsShim 1.6s linear infinite;}
+.tl-card i.tl-big{height:18px;}
+.tl-card i.tl-chart{height:70px;width:100%;border-radius:5px;opacity:.6;}
+.tl-msg{font-size:10px;color:#6E7681;text-align:center;}
+/* 섹션 안 작은 로딩(스피너)도 같은 모양: 짧은 관 + 물줄기 */
+.spinner{position:relative;width:120px !important;height:8px !important;border-radius:2px !important;border:none !important;
+  border-top:2px solid #2B323B !important;border-bottom:2px solid #1C2128 !important;background:#070A0E;animation:none !important;overflow:hidden;}
+@media (max-width:599px){ .tl{padding:16px 0 12px;} .tl-card i.tl-chart{height:44px;} .tl-card:nth-child(3){display:none;} }
+@media (prefers-reduced-motion: reduce){ .tl-pipe span,.spinner::before,.tl-card i{animation:none;} }
 </style>
