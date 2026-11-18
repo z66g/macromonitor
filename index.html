@@ -1522,7 +1522,7 @@ body{
           <span class="ps-expand" aria-hidden="true">▾</span>
         </button>
         </div>
-        <div class="pv-legend">개도 = 구간 신호별 밸브 열림(안정 100 · 마찰 60 · 경색 30 · 위기 8%) · 하류 = 지나온 밸브 중 가장 좁은 개도 · 압력계 = 앞단 배압</div>
+        <div class="pv-legend">개도 = 구간 신호별 밸브 열림(안정 100 · 마찰 60 · 경색 30 · 위기 8%) · 하류 = 지나온 밸브 중 가장 좁은 개도 · 압력계 = 구간 압력(밸브 신호와 같은 구역, 유량과 별개)</div>
       </div>
 
       <!-- 인라인 상세 패널 4개 — 열린 칸에서 분기관이 내려옴 -->
@@ -3655,8 +3655,10 @@ const SIG_STYLE = {
 const PIPE_LABEL = { g:'안정', a:'마찰', r:'경색', k:'위기', n:'수신 실패' };
 // ── 금융 배관 밸브 그림 (캔버스) ──
 // 각 구간 신호 → 밸브 개도(안정 100·마찰 60·경색 30·위기 8%, 수신 실패 = 윗단 값 이어 '추정').
-// 하류 유량 = 지나온 밸브 개도의 최솟값, 배압 = 들어오는 유량 − 이 밸브 개도.
-// 그리는 것: 관(금속 벽·이음), 물(수위 + 표면 물결 + 배압 정체 구간), 버터플라이 밸브(원판 각도), 압력계(배압).
+// 하류 유량 = 지나온 밸브 개도의 최솟값, 배압 = 들어오는 유량 − 이 밸브 개도(물이 차오르는 그림에만 사용).
+// 압력계 = 그 구간 자체의 압력(유량과 별개): 칸 신호의 구역(안정 초록·마찰 노랑·경색/위기 빨강) 안에서
+//          행 지표 중 최악 신호인 비율만큼 바늘이 올라감 → 밸브 색과 항상 같은 구역.
+// 그리는 것: 관(금속 벽·이음), 물(수위 + 표면 물결 + 배압 정체 구간), 버터플라이 밸브(원판 각도), 압력계(구간 압력).
 // 화면 밖·다른 탭·창 숨김이면 멈추고, '동작 줄이기' 설정이면 바뀔 때 한 장만 그린다.
 const pipeViz = (() => {
   const OPEN = { g: 1, a: 0.6, r: 0.3, k: 0.08, n: null };
@@ -3665,12 +3667,23 @@ const pipeViz = (() => {
   const pct = v => v == null ? '?' : Math.round(v * 100) + '%';
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function model(sigs) {
+  // 구간 압력 0~1: 신호 구역 [하한, 상한] 안에서 '최악 신호인 행 비율'만큼. 수신 실패는 null
+  const ZONE = { g: [0.12, 0.32], a: [0.44, 0.66], r: [0.72, 0.88], k: [0.91, 0.99] };
+  const PRI = { g: 0, a: 1, r: 2, k: 3 };
+  function pressure(rows, sig) {
+    if (!ZONE[sig]) return null;
+    const real = (rows || []).map(r => r?.sig).filter(x => PRI[x] !== undefined);
+    const share = real.length ? real.filter(x => PRI[x] >= PRI[sig]).length / real.length : 1;
+    const [lo, hi] = ZONE[sig];
+    return sig === 'g' ? lo + (hi - lo) * (1 - share) : lo + (hi - lo) * share;   // 안정은 전부 안정일수록 낮게
+  }
+  function model(sigs, press = []) {
     let flow = 1, est = false;
-    return sigs.map(s => {
+    return sigs.map((s, i) => {
       const sc = OPEN[s] !== undefined ? s : 'n', inflow = flow, o = OPEN[sc];
       if (o == null) est = true; else flow = Math.min(flow, o);
-      return { s: sc, open: o, inflow, outflow: flow, back: o == null ? 0 : Math.max(0, inflow - o), est };
+      return { s: sc, open: o, inflow, outflow: flow, back: o == null ? 0 : Math.max(0, inflow - o), est,
+               press: sc === 'n' ? null : (press[i] ?? (ZONE[sc] ? (ZONE[sc][0] + ZONE[sc][1]) / 2 : null)) };
     });
   }
   function valveSvg(s, open) {
@@ -3683,15 +3696,15 @@ const pipeViz = (() => {
     const label = (typeof PIPE_LABEL !== 'undefined' && PIPE_LABEL[v.s]) || v.s;
     return `${valveSvg(v.s, v.open)}<span class="pd-hname">${NAMES[i]}</span><span class="ps-status ${v.s}">${label}</span>` +
       `<span class="pd-hnums">개도 <b>${pct(v.open)}</b> · 하류 <b class="fl">${pct(v.outflow)}${v.est ? ' 추정' : ''}</b>` +
-      (v.back > 0.005 ? ` · 배압 <b>${pct(v.back)}</b>` : '') + (partial ? ' · ⚠ 일부 수신 실패' : '') + `</span>` +
+      ` · 압력 <b style="color:${COL[v.s][0]}">${v.press == null ? '?' : Math.round(v.press * 100)}</b>` + (partial ? ' · ⚠ 일부 수신 실패' : '') + `</span>` +
       `<button type="button" class="pd-close" onclick="event.stopPropagation();toggleDetail(${i})" aria-label="${NAMES[i]} 상세 닫기">✕</button>`;
   }
 
   let cv = null, ctx = null, wrap = null, W = 0, H = 0, dpr = 1, G = null;
   let m = null, sel = -1, raf = 0, last = 0, visible = true;
   const t0 = performance.now();
-  const disp = { f: [0, 0, 0, 0, 0], ang: [0, 0, 0, 0], back: [0, 0, 0, 0] };
-  let tg = { f: [0, 0, 0, 0, 0], ang: [0, 0, 0, 0], back: [0, 0, 0, 0] };
+  const disp = { f: [0, 0, 0, 0, 0], ang: [0, 0, 0, 0], back: [0, 0, 0, 0], press: [0, 0, 0, 0] };
+  let tg = { f: [0, 0, 0, 0, 0], ang: [0, 0, 0, 0], back: [0, 0, 0, 0], press: [0, 0, 0, 0] };
 
   function init() {
     if (cv) return true;
@@ -3773,7 +3786,7 @@ const pipeViz = (() => {
     ctx.fillStyle = '#2B323B'; ctx.fillRect(0, top - wall - 4, 4, ph + wall * 2 + 8); ctx.fillRect(W - 4, top - wall - 4, 4, ph + wall * 2 + 8);
     // 밸브
     for (let i = 0; i < 4; i++) {
-      const v = m ? m[i] : { s: 'n', open: null, back: 0 }, [c, bd] = COL[v.s], cx = G.vx[i], cy = top + ph / 2;
+      const v = m ? m[i] : { s: 'n', open: null, back: 0, press: null }, [c, bd] = COL[v.s], cx = G.vx[i], cy = top + ph / 2;
       if (i === sel) {   // 열린 상세의 밸브 표시
         ctx.beginPath(); ctx.roundRect(cx - vw / 2 - 4, top - wall - 10, vw + 8, ph + wall * 2 + 20, 6);
         ctx.fillStyle = 'rgba(88,166,255,.12)'; ctx.fill(); ctx.strokeStyle = 'rgba(88,166,255,.7)'; ctx.lineWidth = 1; ctx.stroke();
@@ -3797,7 +3810,7 @@ const pipeViz = (() => {
           ctx.strokeStyle = `rgba(248,81,73,${(0.45 * (1 - pr)).toFixed(2)})`; ctx.lineWidth = 1.5; ctx.stroke();
         }
       }
-      // 스템 + 압력계(배압)
+      // 스템 + 압력계(구간 압력 — 유량과 별개)
       const gr = G.gaugeR, gy = gr + 5;
       ctx.strokeStyle = '#30363D'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx, gy + gr * 0.4); ctx.lineTo(cx, top - wall - 6); ctx.stroke();
       ctx.beginPath(); ctx.arc(cx, gy, gr, 0, 7); ctx.fillStyle = '#0D1117'; ctx.fill(); ctx.strokeStyle = '#30363D'; ctx.lineWidth = 1; ctx.stroke();
@@ -3805,10 +3818,15 @@ const pipeViz = (() => {
       [[0, 0.4, 'rgba(63,185,80,.55)'], [0.4, 0.7, 'rgba(240,180,41,.6)'], [0.7, 1, 'rgba(248,81,73,.65)']].forEach(([p0, p1, col]) => {
         ctx.beginPath(); ctx.arc(cx, gy, gr - 2.5, A0 + SPAN * p0, A0 + SPAN * p1); ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
       });
-      const bp = disp.back[i], jit = bp > 0.3 && !reduce ? Math.sin(t * 23 + i) * 0.015 * bp : 0, na = A0 + SPAN * Math.min(1, bp + jit);
-      ctx.beginPath(); ctx.moveTo(cx, gy); ctx.lineTo(cx + Math.cos(na) * (gr - 3), gy + Math.sin(na) * (gr - 3));
-      ctx.strokeStyle = '#E6EDF3'; ctx.lineWidth = 1.3; ctx.stroke();
-      ctx.beginPath(); ctx.arc(cx, gy, 1.5, 0, 7); ctx.fillStyle = '#E6EDF3'; ctx.fill();
+      if (!m || v.press == null) {   // 수신 실패: 바늘 없이 '?'
+        ctx.fillStyle = '#8B949E'; ctx.font = `700 ${Math.round(gr * 0.9)}px -apple-system,BlinkMacSystemFont,sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(m ? '?' : '·', cx, gy + 1);
+      } else {
+        const bp = disp.press[i], jit = bp > 0.7 && !reduce ? Math.sin(t * 23 + i) * 0.012 : 0, na = A0 + SPAN * Math.min(1, bp + jit);
+        ctx.beginPath(); ctx.moveTo(cx, gy); ctx.lineTo(cx + Math.cos(na) * (gr - 3), gy + Math.sin(na) * (gr - 3));
+        ctx.strokeStyle = '#E6EDF3'; ctx.lineWidth = 1.3; ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, gy, 1.8, 0, 7); ctx.fillStyle = c; ctx.fill();   // 바늘 중심 = 구간 신호색
+      }
     }
     ctx.fillStyle = '#6E7681'; ctx.font = `${Math.round(Math.max(9, Math.min(10, W * 0.011)))}px -apple-system,BlinkMacSystemFont,sans-serif`; ctx.textBaseline = 'alphabetic';
     ctx.textAlign = 'left'; ctx.fillText('공급 →', 6, bot + wall + 13);
@@ -3821,7 +3839,7 @@ const pipeViz = (() => {
     const dt = Math.min(0.05, (now - (last || now)) / 1000); last = now;
     const k = reduce ? 1 : 1 - Math.pow(0.0025, dt);
     let moving = false;
-    for (const key of ['f', 'ang', 'back']) disp[key] = disp[key].map((v, i) => { const d = tg[key][i] - v; if (Math.abs(d) > 1e-3) moving = true; return v + d * k; });
+    for (const key of ['f', 'ang', 'back', 'press']) disp[key] = disp[key].map((v, i) => { const d = tg[key][i] - v; if (Math.abs(d) > 1e-3) moving = true; return v + d * k; });
     draw((now - t0) / 1000);
     // 물결이 있으니 데이터가 있으면 계속 — 단 화면 밖·숨김·동작 줄이기면 정지
     if (!reduce && visible && !document.hidden && (m || moving)) raf = requestAnimationFrame(frame);
@@ -3829,11 +3847,12 @@ const pipeViz = (() => {
   function kick() { if (!raf && cv) { last = 0; raf = requestAnimationFrame(frame); } }
 
   return {
-    OPEN, NAMES, pct, model, headHtml,
-    set(sigs) {
+    OPEN, NAMES, pct, model, headHtml, pressure,
+    set(sigs, press) {
       if (!init()) return;
-      m = model(sigs);
-      tg = { f: [1, ...m.map(v => v.outflow)], ang: m.map(v => v.open == null ? 0 : (1 - v.open) * 84), back: m.map(v => v.back) };
+      m = model(sigs, press);
+      tg = { f: [1, ...m.map(v => v.outflow)], ang: m.map(v => v.open == null ? 0 : (1 - v.open) * 84), back: m.map(v => v.back),
+             press: m.map((v, i) => v.press ?? disp.press[i]) };
       if (!W) layout();
       kick();
     },
@@ -4671,8 +4690,9 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
     }
   });
 
-  // 밸브 배관: 개도·하류 유량·배압 → 라벨·상세 헤더·캔버스
-  const pm = pipeViz.model(pipeSigs);
+  // 밸브 배관: 개도·하류 유량 + 구간 압력(유량과 별개) → 라벨·상세 헤더·캔버스
+  const pipePress = [0,1,2,3].map(i => pipeViz.pressure(pipeDetails[i]?.rows, pipeSigs[i]));
+  const pm = pipeViz.model(pipeSigs, pipePress);
   pm.forEach((v, i) => {
     const op = document.getElementById('popen'+i), fl = document.getElementById('pflow'+i);
     if (op) op.textContent = '개도 ' + pipeViz.pct(v.open);
@@ -4688,7 +4708,7 @@ function renderPipe(fs, ici, h41Html, h41Hist, sofrJson, rrpJson, srfJson, nypdJ
     pm.forEach((v, i) => { if (v.open != null && 1 - v.open > worst) { worst = 1 - v.open; at = i; } });
     sumEl.innerHTML = `병목 ${at < 0 ? '없음' : pipeViz.NAMES[at]} · 실물 도달 <b>${pipeViz.pct(pm[3].outflow)}</b>${pm[3].est ? ' (추정)' : ''}`;
   }
-  pipeViz.set(pipeSigs);
+  pipeViz.set(pipeSigs, pipePress);
 
   // 유동성 위기 배지 (하나라도 k)
   const hasK = pipeSigs.some(s => s==='k');
