@@ -1,7 +1,79 @@
 {
-  "updated": "2026-11-17T21:00:55.458221+00:00",
-  "count": 155,
+  "updated": "2026-11-18T21:00:43.799431+00:00",
+  "count": 157,
   "results": [
+    {
+      "security_type": "Bond",
+      "security_term": "20-Year",
+      "group_term": "20-Year",
+      "auction_date": "2026-11-18",
+      "issue_date": "2026-11-30",
+      "maturity_date": "2046-11-15",
+      "cusip": "912810UZ9",
+      "offering_amt": 16000000000.0,
+      "total_accepted": 16000004600.0,
+      "total_tendered": 42109384200.0,
+      "interest_rate": 5.375,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261118_2.pdf",
+      "_analysis": {
+        "btc": 2.63,
+        "high_yield": 5.459,
+        "pd_pct": 13.1,
+        "di_pct": 26.7,
+        "in_pct": 60.2,
+        "pd_accepted": 2071000000.0,
+        "di_accepted": 4235491700.0,
+        "in_accepted": 9532868700.0,
+        "btc_avg6": 2.63,
+        "pd_avg6": 12.05,
+        "in_avg6": 63.67,
+        "tail_bps": null,
+        "wi_rate": null,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "neutral"
+        },
+        "score_pct": 75
+      },
+      "summary": null
+    },
+    {
+      "security_type": "Bill",
+      "security_term": "17-Week",
+      "group_term": "17-Week",
+      "auction_date": "2026-11-18",
+      "issue_date": "2026-11-24",
+      "maturity_date": "2027-03-23",
+      "cusip": "912797XJ1",
+      "offering_amt": 75000000000.0,
+      "total_accepted": 75000719100.0,
+      "total_tendered": 228428473400.0,
+      "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261118_1.pdf",
+      "_analysis": {
+        "btc": 3.05,
+        "high_yield": 4.23,
+        "pd_pct": 37.5,
+        "di_pct": 5.6,
+        "in_pct": 56.8,
+        "pd_accepted": 27455310000.0,
+        "di_accepted": 4130000000.0,
+        "in_accepted": 41590220700.0,
+        "btc_avg6": 2.96,
+        "pd_avg6": 37.8,
+        "in_avg6": 54.48,
+        "tail_bps": null,
+        "wi_rate": null,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      },
+      "summary": null
+    },
     {
       "security_type": "Bill",
       "security_term": "6-Week",
