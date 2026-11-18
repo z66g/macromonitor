@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-16T16:41:26Z",
+ "updated": "2026-11-18T16:41:31Z",
  "entries": {
   "2026-11-13|생산자물가 (PPI)": {
    "period": "2026-10",
@@ -23,6 +23,23 @@
     "https://www.stocktitan.net/articles/october-2026-ppi-preview-yearly-rate"
    ],
    "researched_at": "2026-11-16T16:41:26Z",
+   "model": "claude-sonnet-5-5"
+  },
+  "2026-11-17|소매판매": {
+   "period": "2026-10",
+   "metrics": {
+    "mom": {
+     "actual": 0.2,
+     "forecast": 0.2,
+     "previous": 0.8,
+     "previous_revised": null
+    }
+   },
+   "interpretation": "소매판매 월간 0.2%로 예상(0.2%)에 부합, 9월 급증(0.8%) 이후 둔화 — 근원(자동차·휘발유 등 제외)은 0.6%로 예상(0.4%) 상회.",
+   "sources": [
+    "https://www.investing.com/news/economy-news/us-retail-sales-increase-moderately-in-october-5033051"
+   ],
+   "researched_at": "2026-11-18T16:41:31Z",
    "model": "claude-sonnet-5-5"
   }
  }
