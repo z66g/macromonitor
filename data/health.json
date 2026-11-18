@@ -97,5 +97,19 @@
       "status": "ok",
       "detail": "없음"
     }
+  ],
+  "diagnosis": [
+    {
+      "check": "점검 실행 시각",
+      "likely_cause": "checked_at(2026-11-18T03:59Z)이 진단 시각(23:38Z)보다 19시간 넘게 오래됨 — 오늘 23:00 UTC 정기 점검이 아직 커밋되지 않았거나 GitHub schedule 지연/누락(CLAUDE.md: schedule 신뢰 불가).",
+      "suggested_fix": "health-check.yml의 오늘 실행 기록 확인, 필요하면 workflow_dispatch로 수동 실행.",
+      "confidence": "medium"
+    },
+    {
+      "check": "이벤트 결과",
+      "likely_cause": "세인트루이스 FSI(11-12 발표, STLFSI4)가 아직 게시·보류·거부 어디에도 없음 — 해당 시각 에이전트 실행에서 조사 대상에서 빠졌거나 파이프라인 첫 게시(11-14) 전 발표분일 가능성 (econ_results_ai.json 최근 갱신은 정상 실행 중).",
+      "suggested_fix": "data/econ_calendar.json 대상 목록과 ops/routines/econ.md 대상 기간 확인, 필요 시 data/econ_results_ai.json에 추가(econ-results-merge.yml이 FRED 대조); 발표 10일 경과(11-22) 시 자연 소멸.",
+      "confidence": "low"
+    }
   ]
 }
