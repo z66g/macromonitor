@@ -1,7 +1,7 @@
 {
- "updated": "2026-11-17T23:29:15+00:00",
- "calendar_saved_at": "2026-11-17T19:55:06.765Z",
- "today_kst": "2026-11-18",
+ "updated": "2026-11-18T22:56:20+00:00",
+ "calendar_saved_at": "2026-11-18T19:55:22.379Z",
+ "today_kst": "2026-11-19",
  "events": [
   {
    "key": "2026-11-12|세인트루이스 FSI",
@@ -184,6 +184,22 @@
    "date": "2026-12-09",
    "name": "세인트루이스 FSI",
    "indicator": "stlfsi",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-10|소비자물가 (CPI)",
+   "date": "2026-12-10",
+   "name": "소비자물가 (CPI)",
+   "indicator": "cpi",
+   "imp": "high",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-10|실업수당 청구 (신규·연속) 주간 발표",
+   "date": "2026-12-10",
+   "name": "실업수당 청구 (신규·연속) 주간 발표",
+   "indicator": "claims",
    "imp": "medium",
    "estimated": false
   }
