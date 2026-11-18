@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T16:41:44+00:00",
+ "updated": "2026-11-18T22:41:24+00:00",
  "results": {
   "2026-11-13|생산자물가 (PPI)": {
    "indicator": "ppi",
@@ -61,6 +61,33 @@
    "researched_at": "2026-11-18T16:41:31Z",
    "model": "claude-sonnet-5-5",
    "published_at": "2026-11-18T16:41:44+00:00"
+  },
+  "2026-11-18|주택착공": {
+   "indicator": "housing",
+   "date": "2026-11-18",
+   "name": "주택착공",
+   "period": "2026-10",
+   "primary": "starts",
+   "metrics": {
+    "starts": {
+     "actual": 1309,
+     "forecast": 1230,
+     "previous": 1221,
+     "previous_revised": 1191,
+     "label": "주택착공 (연율)",
+     "unit": "K"
+    }
+   },
+   "surprise": "above",
+   "interpretation": "주택착공 연율 1.309M으로 예상(1.23M)을 상회, 9월 수정치(1.191M) 대비 반등 — 다만 허가는 1.295M으로 감소해 선행 신호는 엇갈림.",
+   "sources": [
+    "https://fxtribune.com/news/us-housing-starts-rise-to-1-309k-in-october-2026/",
+    "https://www.citybiz.co/article/935728/u-s-housing-starts-surge-9-9-in-october-beating-forecasts-as-building-permits-lag/"
+   ],
+   "verified": "fred",
+   "researched_at": "2026-11-18T22:41:12Z",
+   "model": "claude-sonnet-5-5",
+   "published_at": "2026-11-18T22:41:24+00:00"
   }
  },
  "pending": {},
