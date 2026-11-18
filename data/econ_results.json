@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-16T16:41:39+00:00",
+ "updated": "2026-11-18T16:41:44+00:00",
  "results": {
   "2026-11-13|생산자물가 (PPI)": {
    "indicator": "ppi",
@@ -35,6 +35,32 @@
    "researched_at": "2026-11-16T16:41:26Z",
    "model": "claude-sonnet-5-5",
    "published_at": "2026-11-16T16:41:39+00:00"
+  },
+  "2026-11-17|소매판매": {
+   "indicator": "retail",
+   "date": "2026-11-17",
+   "name": "소매판매",
+   "period": "2026-10",
+   "primary": "mom",
+   "metrics": {
+    "mom": {
+     "actual": 0.2,
+     "forecast": 0.2,
+     "previous": 0.8,
+     "previous_revised": null,
+     "label": "소매판매 MoM",
+     "unit": "%"
+    }
+   },
+   "surprise": "inline",
+   "interpretation": "소매판매 월간 0.2%로 예상(0.2%)에 부합, 9월 급증(0.8%) 이후 둔화 — 근원(자동차·휘발유 등 제외)은 0.6%로 예상(0.4%) 상회.",
+   "sources": [
+    "https://www.investing.com/news/economy-news/us-retail-sales-increase-moderately-in-october-5033051"
+   ],
+   "verified": "fred",
+   "researched_at": "2026-11-18T16:41:31Z",
+   "model": "claude-sonnet-5-5",
+   "published_at": "2026-11-18T16:41:44+00:00"
   }
  },
  "pending": {},
