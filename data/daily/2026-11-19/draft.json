@@ -1,0 +1,211 @@
+{
+ "session": "2026-11-19",
+ "headline": "앤트로픽 상장이 AI 대리 보유분을 풀어냈다, 변동성은 주식에만 갇혀 있다",
+ "regime": {
+  "label": "risk_off",
+  "one_liner": "S&P 500 5일 {{market.SPY.chg_5d}}%, VIX 1년 분위 {{market.VIX.pctile_1y|r0}}로 Risk-Off. 다만 MOVE는 하루 {{market.MOVE.chg_1d}}%, IG OAS는 {{plumbing.ig_oas.delta|bp}}bp로 금리·신용은 조용해 강제 청산이 아닌 주식 익스포저 축소로 본다."
+ },
+ "yesterday_check": [
+  {
+   "point": "11월 20일 옵션 만기 전 VIX 25 재상회",
+   "outcome": "발생 — VIX {{market.VIX.close}}, 하루 {{market.VIX.chg_1d|+}}%",
+   "hit": true,
+   "cited_numbers": [
+    {
+     "value": 25,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "구리 파운드당 5.5달러 하회 + 달러인덱스 104 돌파",
+   "outcome": "미발생 — 구리 {{market.COPPER.close}}, 달러인덱스 {{market.DXY.close}}로 둘 다 문턱 바로 앞",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 5.5,
+     "threshold": true
+    },
+    {
+     "value": 104,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "실업수당 청구 뒤 3개월물 4.2% 돌파",
+   "outcome": "미발생 — 3개월물 {{market.US3M.close}}%로 52주 최고 경신에 그쳤다",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 4.2,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "SOFR−IORB 3bp 이상 3거래일 또는 SRF 50억 달러 초과",
+   "outcome": "미발생 — SOFR−IORB {{plumbing.sofr_minus_iorb_bp}}bp, SRF {{plumbing.srf.accepted_b}}$B",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 3,
+     "threshold": true
+    },
+    {
+     "value": 50,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "CCC OAS 하루 30bp 이상 확대",
+   "outcome": "미발생 — {{plumbing.ccc_oas.delta|bp}}bp 확대(11월 18일 기준). 문턱엔 못 미쳤지만 이틀 연속 확대",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 30,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "drivers": [
+  {
+   "title": "VIX 급등은 주식 전용 공포 — 금리 변동성은 오히려 내렸다",
+   "anomaly_keys": [
+    "VIX",
+    "SPY"
+   ],
+   "body": "VIX {{market.VIX.close}}, 5일 {{market.VIX.chg_5d|+}}%({{market.VIX.z_5d|+}}σ)로 1년 분위 {{market.VIX.pctile_1y|r0}}. 지수는 앤트로픽 거래 시작 순간 장중 저점(보도), 공모가 83달러·조달 810억 달러(보도) — 기대 정점에 새 AI 물량이 풀렸다. MOVE {{market.MOVE.chg_1d}}%, TLT {{market.TLT.chg_1d|+}}%, IG OAS {{plumbing.ig_oas.delta|bp}}bp. 강제 청산이 아니라 만기 하루 전 주식 풋 수요로 본다. 무효화: 만기 뒤 VIX 30 위 유지와 CCC OAS 하루 30bp 확대가 겹칠 때.",
+   "sources": [
+    "https://www.cnbc.com/2026/11/18/stock-market-today-live-updates.html",
+    "https://www.investing.com/news/stock-market-news/wall-street-futures-climb-ahead-of-anthropics-15-trillion-mega-ipo-5037518",
+    "https://rallies.ai/news/wall-street-slides-as-anthropics-debut-fails-to-revive-ai-trade-optimism-2481e02f1bc67a1f"
+   ],
+   "cited_numbers": [
+    {
+     "value": 83,
+     "source": "https://www.investing.com/news/stock-market-news/wall-street-futures-climb-ahead-of-anthropics-15-trillion-mega-ipo-5037518"
+    },
+    {
+     "value": 810,
+     "source": "https://rallies.ai/news/wall-street-slides-as-anthropics-debut-fails-to-revive-ai-trade-optimism-2481e02f1bc67a1f"
+    },
+    {
+     "value": 30,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "임의소비재·통신이 꼴찌 — AI 대리 보유분의 이동",
+   "anomaly_keys": [
+    "XLY",
+    "XLC",
+    "RSP",
+    "QQQ",
+    "IWM"
+   ],
+   "body": "임의소비재 {{market.XLY.chg_1d}}%({{market.XLY.z_1d}}σ), 통신 {{market.XLC.chg_1d}}%로 최하위. 아마존·알파벳이 앤트로픽 지분 약 28%를 가진다(보도) — 두 종목으로 대신 들던 노출을 직접 주식으로 옮길 수 있게 된 날이다. 다만 동일가중 {{market.RSP.chg_1d}}%, 필수소비재 {{market.XLP.chg_1d}}%로 피난처도 빠져 총 익스포저 축소가 겹쳤다. 무효화: 앤트로픽이 공모가를 밑도는데 두 종목도 같이 빠지면 AI 테마 전체의 재평가다.",
+   "sources": [
+    "https://www.bloomberg.com/news/articles/2026-11-17/amazon-google-to-have-about-28-of-anthropic-stock-after-ipo",
+    "https://www.cnbc.com/2026/11/18/stock-market-today-live-updates.html"
+   ],
+   "cited_numbers": [
+    {
+     "value": 28,
+     "source": "https://www.bloomberg.com/news/articles/2026-11-17/amazon-google-to-have-about-28-of-anthropic-stock-after-ipo"
+    }
+   ]
+  },
+  {
+   "title": "구리·금은 인상 경로와 달러에 눌린다, 장기금리는 성장 둔화에 베팅",
+   "anomaly_keys": [
+    "COPPER",
+    "US3M",
+    "DXY"
+   ],
+   "body": "구리 5일 {{market.COPPER.chg_5d}}%({{market.COPPER.z_5d}}σ), 금은 52주 최저, 달러인덱스·3개월물 {{market.US3M.close}}%는 52주 최고. 12월 25bp 인상 확률 95%(보도)에 월러는 50bp도 거론(보도). 실업수당 청구는 20.3만 건으로 예상 상회(보도)지만 고용 둔화로 보긴 약하다. 10년물은 5일 {{market.US10Y.chg_5d|+}}bp — 장기는 성장 둔화 쪽에 섰다. 원자재 하락은 실수요 붕괴보다 강달러·인상 경로에 따른 롱 축소로 본다. 무효화: 달러인덱스 103 하회에도 구리가 못 오르면 수요 둔화다.",
+   "sources": [
+    "https://www.spokesman.com/stories/2026/nov/19/us-weekly-jobless-claims-edge-up-but-labor-market-/",
+    "https://www.business-standard.com/markets/commodities/gold-silver-fall-as-strong-dollar-fed-rate-outlook-weigh-on-bullion-126111900318_1.html",
+    "https://tradingeconomics.com/commodity/copper"
+   ],
+   "cited_numbers": [
+    {
+     "value": 25,
+     "source": "https://www.spokesman.com/stories/2026/nov/19/us-weekly-jobless-claims-edge-up-but-labor-market-/"
+    },
+    {
+     "value": 95,
+     "source": "https://www.spokesman.com/stories/2026/nov/19/us-weekly-jobless-claims-edge-up-but-labor-market-/"
+    },
+    {
+     "value": 50,
+     "source": "https://tradingeconomics.com/commodity/copper"
+    },
+    {
+     "value": 20.3,
+     "source": "https://www.spokesman.com/stories/2026/nov/19/us-weekly-jobless-claims-edge-up-but-labor-market-/"
+    },
+    {
+     "value": 103,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "skipped_anomalies": [],
+ "plumbing": {
+  "body": "SOFR−IORB {{plumbing.sofr_minus_iorb_bp}}bp로 상회분이 사라졌고 SRF {{plumbing.srf.accepted_b}}$B, 순유동성은 4주 평균 위 — 급락은 배관에서 오지 않았다. 볼 곳은 신용 하단: CCC OAS {{plumbing.ccc_oas.delta|bp}}bp 확대, 하이일드 ETF 1년 최저.",
+  "cited_numbers": []
+ },
+ "analogs": [
+  {
+   "asset": "VIX",
+   "body": "200일선 아래 VIX 5일 급등은 {{analogs.VIX.n}}번. S&P 500 20일 뒤 중앙값 {{analogs.VIX.forward.SPY.20d.median|+}}%, 오른 비율 {{analogs.VIX.forward.SPY.20d.pct_positive|r0}}%, 하위 10% {{analogs.VIX.forward.SPY.20d.p10}}%. 다음날 추가가 중앙값 {{analogs.VIX.responses.SPY.add_next_day_20d.median|+}}%로 가장 나았지만 최대 역행 하위 10% {{analogs.VIX.responses.SPY.max_adverse_20d.p10}}%를 견딜 때 이야기다. 5일 대기 후 진입은 {{analogs.VIX.responses.SPY.wait5_then_add_20d.median|+}}%. 2022-04-26(인상기·빅테크 실적 실망)은 20일 {{analogs.VIX.closest.4.spy_20d|+}}%, 2008-09-15(리먼)는 {{analogs.VIX.closest.0.spy_20d|+}}%. 신용이 멀쩡하고 연준이 올리는 지금은 2022년 쪽이다.",
+   "sources": [],
+   "cited_numbers": []
+  },
+  {
+   "asset": "COPPER",
+   "body": "구리 5일 급락(200일선 아래)은 {{analogs.COPPER.n}}번. 구리 20일 뒤 중앙값 {{analogs.COPPER.forward.COPPER.20d.median|+}}%, 오른 비율 {{analogs.COPPER.forward.COPPER.20d.pct_positive|r0}}%, 하위 10% {{analogs.COPPER.forward.COPPER.20d.p10}}% — 첫 급락 뒤 반등은 드물었다. S&P 500 20일 중앙값 {{analogs.COPPER.forward.SPY.20d.median|+}}%, 하위 10% {{analogs.COPPER.forward.SPY.20d.p10}}%. 인상기·강달러 2022-06-23은 {{analogs.COPPER.closest.4.spy_20d|+}}%, 신용 위기 2008-09-29는 {{analogs.COPPER.closest.0.spy_20d|+}}% — 갈림길은 신용이다.",
+   "sources": [],
+   "cited_numbers": []
+  }
+ ],
+ "sectors": {
+  "body": "1위 에너지 {{market.XLE.chg_1d}}%까지 전 섹터 하락. 기술은 5일 {{market.XLK.chg_5d}}%. 1년 분위 상단이던 필수소비재·헬스케어도 밀렸고 장기국채는 {{market.TLT.chg_1d|+}}%로 제자리 — 주식에서 나온 돈이 채권으로 가지 않고 현금에 머물렀다.",
+  "cited_numbers": []
+ },
+ "watchpoints": [
+  {
+   "condition": "11월 20일 옵션 만기 뒤 VIX 25 아래 복귀 여부(현재 {{market.VIX.close}})",
+   "implication": "복귀하면 만기 전 헤지 수요, 30 위 유지면 위험 축소가 이어지는 국면"
+  },
+  {
+   "condition": "앤트로픽이 공모가 83달러 아래로 밀릴 때 QQQ 5일 −8% 초과",
+   "implication": "대리 보유 이동이 아니라 AI 테마 전체의 재평가 — 대형주 매도 연장"
+  },
+  {
+   "condition": "CCC OAS 하루 30bp 이상 확대 또는 14% 돌파(현재 {{plumbing.ccc_oas.current}}%)",
+   "implication": "주식 변동성이 신용 하단으로 전이되는 첫 신호"
+  },
+  {
+   "condition": "3개월물 4.2% 돌파(현재 {{market.US3M.close}}%) 또는 달러인덱스 104 돌파",
+   "implication": "12월 50bp 가능성이 앞단에 들어가기 시작 — 원자재·금 추가 압박"
+  },
+  {
+   "condition": "11월 25일 근원 PCE 예상 상회와 10년물 5.2% 재돌파 동반",
+   "implication": "장기금리의 성장 둔화 베팅이 뒤집히며 주식·채권 동반 약세"
+  }
+ ],
+ "risks": [
+  "앤트로픽이 공모가 위에서 안착하면 대리 보유 매도가 하루 이벤트로 끝나 VIX가 빠르게 꺼질 수 있다",
+  "트럼프의 이란 공습 시사 보도 — 실제 공습 시 유가 반등으로 인상 경로가 한 단계 더 올라간다",
+  "월러 이사의 빅스텝 주장이 12월 가격에 들어가면 장기금리 하락이 뒤집힐 수 있다"
+ ],
+ "written_at": "2026-11-19T21:42:56Z",
+ "model": "claude-opus-5-5"
+}
