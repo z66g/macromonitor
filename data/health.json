@@ -1,21 +1,21 @@
 {
-  "checked_at": "2026-11-18T03:59:59+00:00",
+  "checked_at": "2026-11-19T03:56:56+00:00",
   "status": "warn",
   "checks": [
     {
       "name": "T1 순유동성",
       "status": "ok",
-      "detail": "NL $5811.31B score 1.28% asOf 2026-11-17 · {'walcl': 'H.4.1 reserve_credit (2026-11-12)', 'tga': 'DTS daily (2026-11-16)', 'rrp': 'FRED RRPONTSYD daily'}"
+      "detail": "NL $5785.93B score 0.54% asOf 2026-11-18 · {'walcl': 'H.4.1 reserve_credit (2026-11-12)', 'tga': 'DTS daily (2026-11-17)', 'rrp': 'FRED RRPONTSYD daily'}"
     },
     {
       "name": "국채 수익률",
       "status": "ok",
-      "detail": "DGS10 5.12 asOf 2026-11-16"
+      "detail": "DGS10 5.1 asOf 2026-11-17"
     },
     {
       "name": "T2 실물경제",
       "status": "ok",
-      "detail": "캐시 2.6h 전 · 실업률 2026-10 (발표 2026-11-06)"
+      "detail": "캐시 2.5h 전 · 실업률 2026-10 (발표 2026-11-07)"
     },
     {
       "name": "T3 글로벌",
@@ -25,17 +25,17 @@
     {
       "name": "시세 스냅샷",
       "status": "ok",
-      "detail": "33종목 · 저장 0.1h 전 · 6h 넘은 종목 없음"
+      "detail": "33종목 · 저장 0.0h 전 · 6h 넘은 종목 없음"
     },
     {
       "name": "이벤트 캘린더",
       "status": "ok",
-      "detail": "55건 · error=None"
+      "detail": "53건 · error=None"
     },
     {
       "name": "FOMC 일정 하드코딩",
       "status": "ok",
-      "detail": "마지막 등록일 2027-11-17 (364일 남음) — 60일 이내면 다음 해 일정 추가 필요"
+      "detail": "마지막 등록일 2027-11-17 (363일 남음) — 60일 이내면 다음 해 일정 추가 필요"
     },
     {
       "name": "유동성 예측모델",
@@ -45,22 +45,22 @@
     {
       "name": "DTS TGA",
       "status": "ok",
-      "detail": "최신 2026-11-16 $895.8B"
+      "detail": "최신 2026-11-17 $921.2B"
     },
     {
       "name": "QRA",
       "status": "ok",
-      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (16일 전)"
+      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (17일 전)"
     },
     {
       "name": "뉴스 수집·번역",
       "status": "ok",
-      "detail": "226건 · 번역 226건 (100%) · 수집 0.4h 전"
+      "detail": "227건 · 번역 227건 (100%) · 수집 0.4h 전"
     },
     {
       "name": "뉴스 다이제스트",
       "status": "ok",
-      "detail": "생성 1.0h 전 · 4건"
+      "detail": "생성 0.9h 전 · 6건"
     },
     {
       "name": "H.4.1 이력",
@@ -75,7 +75,7 @@
     {
       "name": "경매 데이터 스키마",
       "status": "ok",
-      "detail": "155건 · 갱신 2026-11-17T21:00"
+      "detail": "157건 · 갱신 2026-11-18T21:00"
     },
     {
       "name": "경매 요약",
@@ -85,31 +85,17 @@
     {
       "name": "이벤트 결과",
       "status": "warn",
-      "detail": "게시 1건 · 누락 ['2026-11-12|세인트루이스 FSI'] · 3일 넘은 보류 없음 · 거부 없음"
+      "detail": "게시 3건 · 누락 ['2026-11-12|세인트루이스 FSI'] · 3일 넘은 보류 없음 · 거부 없음"
     },
     {
       "name": "데일리 리포트",
       "status": "ok",
-      "detail": "세션 2026-11-17: 게시됨"
+      "detail": "세션 2026-11-18: 게시됨"
     },
     {
       "name": "GitHub Actions 실패(24h)",
       "status": "ok",
       "detail": "없음"
-    }
-  ],
-  "diagnosis": [
-    {
-      "check": "점검 실행 시각",
-      "likely_cause": "checked_at(2026-11-18T03:59Z)이 진단 시각(23:38Z)보다 19시간 넘게 오래됨 — 오늘 23:00 UTC 정기 점검이 아직 커밋되지 않았거나 GitHub schedule 지연/누락(CLAUDE.md: schedule 신뢰 불가).",
-      "suggested_fix": "health-check.yml의 오늘 실행 기록 확인, 필요하면 workflow_dispatch로 수동 실행.",
-      "confidence": "medium"
-    },
-    {
-      "check": "이벤트 결과",
-      "likely_cause": "세인트루이스 FSI(11-12 발표, STLFSI4)가 아직 게시·보류·거부 어디에도 없음 — 해당 시각 에이전트 실행에서 조사 대상에서 빠졌거나 파이프라인 첫 게시(11-14) 전 발표분일 가능성 (econ_results_ai.json 최근 갱신은 정상 실행 중).",
-      "suggested_fix": "data/econ_calendar.json 대상 목록과 ops/routines/econ.md 대상 기간 확인, 필요 시 data/econ_results_ai.json에 추가(econ-results-merge.yml이 FRED 대조); 발표 10일 경과(11-22) 시 자연 소멸.",
-      "confidence": "low"
     }
   ]
 }
