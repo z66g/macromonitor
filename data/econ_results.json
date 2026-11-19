@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-18T22:41:24+00:00",
+ "updated": "2026-11-19T22:41:49+00:00",
  "results": {
   "2026-11-13|생산자물가 (PPI)": {
    "indicator": "ppi",
@@ -88,6 +88,33 @@
    "researched_at": "2026-11-18T22:41:12Z",
    "model": "claude-sonnet-5-5",
    "published_at": "2026-11-18T22:41:24+00:00"
+  },
+  "2026-11-19|실업수당 청구 (신규·연속) 주간 발표": {
+   "indicator": "claims",
+   "date": "2026-11-19",
+   "name": "실업수당 청구 (신규·연속) 주간 발표",
+   "period": "2026-11-14",
+   "primary": "initial",
+   "metrics": {
+    "initial": {
+     "actual": 203,
+     "forecast": 197,
+     "previous": 200,
+     "previous_revised": 202,
+     "label": "신규 청구",
+     "unit": "K"
+    }
+   },
+   "surprise": "above",
+   "interpretation": "신규 청구 20.3만 건으로 예상(19.7만) 상회했으나 여전히 낮은 수준 — 미시간주 온라인 신청 시스템 도입 영향 가능성이 거론됨.",
+   "sources": [
+    "https://www.investing.com/news/economy-news/us-weekly-jobless-claims-increase-slightly-5039110",
+    "https://www.spokesman.com/stories/2026/nov/19/us-weekly-jobless-claims-edge-up-but-labor-market-/"
+   ],
+   "verified": "fred",
+   "researched_at": "2026-11-19T22:41:36Z",
+   "model": "claude-sonnet-5-5",
+   "published_at": "2026-11-19T22:41:49+00:00"
   }
  },
  "pending": {},
