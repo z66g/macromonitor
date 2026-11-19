@@ -1,16 +1,8 @@
 {
- "updated": "2026-11-18T22:56:20+00:00",
- "calendar_saved_at": "2026-11-18T19:55:22.379Z",
- "today_kst": "2026-11-19",
+ "updated": "2026-11-19T23:01:59+00:00",
+ "calendar_saved_at": "2026-11-19T19:55:25.686Z",
+ "today_kst": "2026-11-20",
  "events": [
-  {
-   "key": "2026-11-12|세인트루이스 FSI",
-   "date": "2026-11-12",
-   "name": "세인트루이스 FSI",
-   "indicator": "stlfsi",
-   "imp": "medium",
-   "estimated": false
-  },
   {
    "key": "2026-11-13|생산자물가 (PPI)",
    "date": "2026-11-13",
@@ -40,14 +32,6 @@
    "date": "2026-11-18",
    "name": "주택착공",
    "indicator": "housing",
-   "imp": "medium",
-   "estimated": false
-  },
-  {
-   "key": "2026-11-19|실업수당 청구 (신규·연속) 주간 발표",
-   "date": "2026-11-19",
-   "name": "실업수당 청구 (신규·연속) 주간 발표",
-   "indicator": "claims",
    "imp": "medium",
    "estimated": false
   },
