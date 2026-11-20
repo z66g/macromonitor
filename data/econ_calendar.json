@@ -1,16 +1,8 @@
 {
- "updated": "2026-11-19T23:01:59+00:00",
- "calendar_saved_at": "2026-11-19T19:55:25.686Z",
- "today_kst": "2026-11-20",
+ "updated": "2026-11-20T22:39:09+00:00",
+ "calendar_saved_at": "2026-11-20T19:55:20.029Z",
+ "today_kst": "2026-11-21",
  "events": [
-  {
-   "key": "2026-11-13|생산자물가 (PPI)",
-   "date": "2026-11-13",
-   "name": "생산자물가 (PPI)",
-   "indicator": "ppi",
-   "imp": "high",
-   "estimated": false
-  },
   {
    "key": "2026-11-17|소매판매",
    "date": "2026-11-17",
