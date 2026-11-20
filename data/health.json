@@ -97,5 +97,19 @@
       "status": "ok",
       "detail": "없음"
     }
+  ],
+  "diagnosis": [
+    {
+      "check": "헬스체크 실행 지연",
+      "likely_cause": "checked_at(2026-11-20 03:50 UTC)이 약 20시간 전이라 오늘 23:00 UTC 점검이 아직 커밋되지 않음(전날도 03:56에 커밋된 같은 패턴 — GitHub schedule 지연으로 보임)",
+      "suggested_fix": ".github/workflows/health-check.yml 실행 이력 확인, 상습 지연이면 cron-job.org dispatch 추가 고려",
+      "confidence": "medium"
+    },
+    {
+      "check": "이벤트 결과",
+      "likely_cause": "세인트루이스 FSI(주간) 결과가 11-12분에 이어 11-18분도 econ_results_ai.json·econ_results.json에 없고 rejects·pending도 비어 있어, 에이전트가 이 지표를 반복해서 건너뛰는 것으로 보임(다른 지표는 11-18·19일 정상 게시)",
+      "suggested_fix": "ops/routines/econ.md의 대상 선정과 data/econ_spec.json stlfsi 항목(period weekly, FRED STLFSI4)을 점검 — 주간 지표 대상 포함 여부 확인",
+      "confidence": "low"
+    }
   ]
 }
