@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-11-21T03:43:19+00:00",
+  "checked_at": "2026-11-22T02:47:36+00:00",
   "status": "warn",
   "checks": [
     {
@@ -15,27 +15,27 @@
     {
       "name": "T2 실물경제",
       "status": "ok",
-      "detail": "캐시 2.3h 전 · 실업률 2026-10 (발표 2026-11-06)"
+      "detail": "캐시 1.4h 전 · 실업률 2026-10 (발표 2026-11-06)"
     },
     {
       "name": "T3 글로벌",
       "status": "ok",
-      "detail": "빈 시리즈 없음 · 캐시 2.0h 전"
+      "detail": "빈 시리즈 없음 · 캐시 1.0h 전"
     },
     {
       "name": "시세 스냅샷",
       "status": "ok",
-      "detail": "33종목 · 저장 0.3h 전 · 6h 넘은 종목 없음"
+      "detail": "33종목 · 저장 0.0h 전 · 6h 넘은 종목 없음"
     },
     {
       "name": "이벤트 캘린더",
       "status": "ok",
-      "detail": "50건 · error=None"
+      "detail": "52건 · error=None"
     },
     {
       "name": "FOMC 일정 하드코딩",
       "status": "ok",
-      "detail": "마지막 등록일 2027-11-17 (361일 남음) — 60일 이내면 다음 해 일정 추가 필요"
+      "detail": "마지막 등록일 2027-11-17 (360일 남음) — 60일 이내면 다음 해 일정 추가 필요"
     },
     {
       "name": "유동성 예측모델",
@@ -50,17 +50,17 @@
     {
       "name": "QRA",
       "status": "ok",
-      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (19일 전)"
+      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (20일 전)"
     },
     {
       "name": "뉴스 수집·번역",
       "status": "ok",
-      "detail": "227건 · 번역 227건 (100%) · 수집 0.1h 전"
+      "detail": "227건 · 번역 227건 (100%) · 수집 0.2h 전"
     },
     {
       "name": "뉴스 다이제스트",
       "status": "ok",
-      "detail": "생성 0.7h 전 · 1건"
+      "detail": "생성 2.2h 전 · 2건"
     },
     {
       "name": "H.4.1 이력",
@@ -85,7 +85,7 @@
     {
       "name": "이벤트 결과",
       "status": "warn",
-      "detail": "게시 4건 · 누락 ['2026-11-18|세인트루이스 FSI'] · 3일 넘은 보류 없음 · 거부 없음"
+      "detail": "게시 4건 · 누락 ['2026-11-18|세인트루이스 FSI', '2026-11-20|소비자심리 (미시간)'] · 3일 넘은 보류 없음 · 거부 없음"
     },
     {
       "name": "데일리 리포트",
@@ -96,20 +96,6 @@
       "name": "GitHub Actions 실패(24h)",
       "status": "ok",
       "detail": "없음"
-    }
-  ],
-  "diagnosis": [
-    {
-      "check": "헬스체크 실행 지연",
-      "likely_cause": "checked_at(2026-11-21 03:43 UTC)이 약 20시간 전이라 오늘 23:00 UTC 점검이 아직 커밋되지 않음(매일 03~04시에 커밋되는 같은 패턴 — GitHub schedule 지연으로 보임)",
-      "suggested_fix": ".github/workflows/health-check.yml 실행 이력 확인, 상습 지연이면 cron-job.org dispatch 추가 고려",
-      "confidence": "medium"
-    },
-    {
-      "check": "이벤트 결과",
-      "likely_cause": "세인트루이스 FSI(주간) 11-18분이 econ_results*.json에 없고 rejects·pending도 비어, 11-12분에 이어 에이전트가 이 지표를 반복해서 건너뛰는 것으로 보임(다른 지표는 정상 게시)",
-      "suggested_fix": "ops/routines/econ.md의 대상 선정과 data/econ_spec.json stlfsi 항목(period weekly, FRED STLFSI4) 점검 — 주간 지표 포함 여부 확인",
-      "confidence": "low"
     }
   ]
 }
