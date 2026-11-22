@@ -97,5 +97,19 @@
       "status": "ok",
       "detail": "없음"
     }
+  ],
+  "diagnosis": [
+    {
+      "check": "헬스체크 실행",
+      "likely_cause": "checked_at(2026-11-22 02:47 UTC)이 6시간 넘음 — 11-22 23:00 UTC 점검이 아직 안 돌았거나 GitHub schedule 지연(최근 며칠 02~04시 UTC에 실행되는 패턴).",
+      "suggested_fix": "health-check.yml 실행 이력 확인, 필요 시 cron-job.org dispatch 추가.",
+      "confidence": "medium"
+    },
+    {
+      "check": "이벤트 결과",
+      "likely_cause": "data/econ_results_ai.json 마지막 에이전트 커밋이 2026-11-19 22:41 UTC — 11-20(금) 16:40·22:40 예약작업 실행 기록이 없어 11-18 STLFSI·11-20 미시간이 미조사 상태.",
+      "suggested_fix": "claude.ai/code/routines '이벤트 결과' 실행 이력 확인 후 재실행 (ops/routines/econ.md); 코드 문제는 발견되지 않음.",
+      "confidence": "medium"
+    }
   ]
 }
