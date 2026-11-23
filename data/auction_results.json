@@ -44,7 +44,8 @@
         ],
         "researched_at": "2026-11-23T21:33:45Z",
         "model": "claude-opus-5-5"
-      }
+      },
+      "telegram_sent": true
     },
     {
       "security_type": "Bill",
