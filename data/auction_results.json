@@ -1,7 +1,115 @@
 {
-  "updated": "2026-11-20T21:00:50.326305+00:00",
-  "count": 157,
+  "updated": "2026-11-23T21:00:44.565606+00:00",
+  "count": 158,
   "results": [
+    {
+      "security_type": "Note",
+      "security_term": "2-Year",
+      "group_term": "2-Year",
+      "auction_date": "2026-11-23",
+      "issue_date": "2026-11-30",
+      "maturity_date": "2028-11-30",
+      "cusip": "91282CRY9",
+      "offering_amt": 69000000000.0,
+      "total_accepted": 69000146300.0,
+      "total_tendered": 182770733600.0,
+      "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261123_3.pdf",
+      "_analysis": {
+        "btc": 2.65,
+        "high_yield": 4.7,
+        "pd_pct": 10.4,
+        "di_pct": 38.1,
+        "in_pct": 51.5,
+        "pd_accepted": 7068326000.0,
+        "di_accepted": 25869805700.0,
+        "in_accepted": 35029421000.0,
+        "btc_avg6": 2.63,
+        "pd_avg6": 11.5,
+        "in_avg6": 56.53,
+        "tail_bps": null,
+        "wi_rate": null,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "strong"
+        },
+        "score_pct": 100
+      },
+      "summary": null
+    },
+    {
+      "security_type": "Bill",
+      "security_term": "26-Week",
+      "group_term": "26-Week",
+      "auction_date": "2026-11-23",
+      "issue_date": "2026-11-27",
+      "maturity_date": "2027-05-27",
+      "cusip": "912797XE2",
+      "offering_amt": 82000000000.0,
+      "total_accepted": 82000678800.0,
+      "total_tendered": 213387128800.0,
+      "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261123_1.pdf",
+      "_analysis": {
+        "btc": 2.6,
+        "high_yield": 4.34,
+        "pd_pct": 39.2,
+        "di_pct": 10.1,
+        "in_pct": 50.7,
+        "pd_accepted": 31258435000.0,
+        "di_accepted": 8058426000.0,
+        "in_accepted": 40437440000.0,
+        "btc_avg6": 2.81,
+        "pd_avg6": 28.2,
+        "in_avg6": 61.07,
+        "tail_bps": null,
+        "wi_rate": null,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      },
+      "summary": null
+    },
+    {
+      "security_type": "Bill",
+      "security_term": "13-Week",
+      "group_term": "13-Week",
+      "auction_date": "2026-11-23",
+      "issue_date": "2026-11-27",
+      "maturity_date": "2027-02-25",
+      "cusip": "912797WC7",
+      "offering_amt": 95000000000.0,
+      "total_accepted": 95000262100.0,
+      "total_tendered": 260483441600.0,
+      "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261123_2.pdf",
+      "_analysis": {
+        "btc": 2.74,
+        "high_yield": 4.18,
+        "pd_pct": 31.7,
+        "di_pct": 8.5,
+        "in_pct": 59.9,
+        "pd_accepted": 28975190000.0,
+        "di_accepted": 7772415000.0,
+        "in_accepted": 54786119200.0,
+        "btc_avg6": 2.8,
+        "pd_avg6": 32.17,
+        "in_avg6": 59.67,
+        "tail_bps": null,
+        "wi_rate": null,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      },
+      "summary": null
+    },
     {
       "security_type": "TIPS",
       "security_term": "9-Year 8-Month",
@@ -1778,42 +1886,6 @@
       "summary": null
     },
     {
-      "security_type": "Bill",
-      "security_term": "8-Week",
-      "group_term": "8-Week",
-      "auction_date": "2026-10-08",
-      "issue_date": "2026-10-13",
-      "maturity_date": "2026-12-08",
-      "cusip": "912797WE3",
-      "offering_amt": 105000000000.0,
-      "total_accepted": null,
-      "total_tendered": null,
-      "interest_rate": null,
-      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261008_2.pdf",
-      "_analysis": {
-        "btc": 2.77,
-        "high_yield": 3.98,
-        "pd_pct": 23.4,
-        "di_pct": 6.3,
-        "in_pct": 70.3,
-        "pd_accepted": 23789855000.0,
-        "di_accepted": 6395930000.0,
-        "in_accepted": 71404872500.0,
-        "btc_avg6": 2.73,
-        "pd_avg6": 35.65,
-        "in_avg6": 57.8,
-        "tail_bps": null,
-        "wi_rate": null,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 50
-      },
-      "summary": null
-    },
-    {
       "security_type": "Note",
       "security_term": "9-Year 10-Month",
       "group_term": "10-Year",
@@ -1846,42 +1918,6 @@
           "pd": "strong"
         },
         "score_pct": 100
-      },
-      "summary": null
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "17-Week",
-      "group_term": "17-Week",
-      "auction_date": "2026-10-07",
-      "issue_date": "2026-10-13",
-      "maturity_date": "2027-02-09",
-      "cusip": "912797WY9",
-      "offering_amt": 75000000000.0,
-      "total_accepted": null,
-      "total_tendered": null,
-      "interest_rate": null,
-      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261007_1.pdf",
-      "_analysis": {
-        "btc": 3.1,
-        "high_yield": 4.105,
-        "pd_pct": 30.2,
-        "di_pct": 10.1,
-        "in_pct": 59.7,
-        "pd_accepted": 22028150000.0,
-        "di_accepted": 7400122000.0,
-        "in_accepted": 43538762000.0,
-        "btc_avg6": 2.84,
-        "pd_avg6": 39.33,
-        "in_avg6": 53.42,
-        "tail_bps": null,
-        "wi_rate": null,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 50
       },
       "summary": null
     },
