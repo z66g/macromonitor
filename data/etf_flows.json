@@ -1,12 +1,12 @@
 {
-  "updated": "2026-11-22T08:58:23.396847+00:00",
+  "updated": "2026-11-23T09:57:07.961829+00:00",
   "source": "farside.co.uk",
-  "cumTotal": 53.454,
+  "cumTotal": 52.909,
   "dailyFlows": [
     {
       "date": "2026-11-20",
-      "netFlow": -0.124,
-      "cumFlow": 53.454
+      "netFlow": -0.669,
+      "cumFlow": 52.909
     },
     {
       "date": "2026-11-19",
