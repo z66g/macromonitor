@@ -1,0 +1,175 @@
+{
+ "session": "2026-11-23",
+ "headline": "황 복귀가 AI 숏을 되감았다, 금리·달러는 인상 경로를 그대로 뒀다",
+ "regime": {
+  "label": "transition",
+  "one_liner": "S&P 500 하루 {{market.SPY.chg_1d|+}}%에도 5일 {{market.SPY.chg_5d|+}}%, 200일선 대비 {{market.SPY.vs_200dma_pct|+}}%, VIX {{market.VIX.close}}(1년 분위 {{market.VIX.pctile_1y|r0}})라 전환 국면. 개별 악재가 지워졌을 뿐 신용 하단 스프레드가 넓어진 채라 Risk-On 판정은 이르다."
+ },
+ "yesterday_check": [
+  {
+   "point": "VIX 40 돌파와 CCC OAS 14% 돌파 동반",
+   "outcome": "CCC OAS는 {{plumbing.ccc_oas.current}}%로 14%를 넘었지만 VIX는 {{market.VIX.close}}로 급락 — 동반 조건 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 40,
+     "threshold": true
+    },
+    {
+     "value": 14,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "QQQ 52주 저점 558 하회",
+   "outcome": "QQQ {{market.QQQ.close}}로 반등 — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 558,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "5년물 4.6% 하회 또는 12월 인상 확률 80% 아래",
+   "outcome": "5년물 {{market.US5Y.close}}%, 12월 인상은 여전히 반영(보도) — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 4.6,
+     "threshold": true
+    },
+    {
+     "value": 80,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "금 3,500달러·비트코인 55,000달러 하회",
+   "outcome": "금 {{market.GOLD.close|r0}}달러로 반등, 비트코인 {{market.BTC.close|r0}}달러 — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 3500,
+     "threshold": true
+    },
+    {
+     "value": 55000,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "drivers": [
+  {
+   "title": "경영 공백 해소 — 숏과 인버스 레버리지의 되감기",
+   "anomaly_keys": [
+    "SPY",
+    "XLK",
+    "QQQ",
+    "QQQ/RSP"
+   ],
+   "body": "엔비디아 이사회가 젠슨 황을 CEO로 복귀시키자 주가는 31% 급등(보도). 기술 {{market.XLK.chg_1d|+}}%, QQQ {{market.QQQ.chg_1d|+}}%({{market.QQQ.z_1d|+}}σ), S&P 500 {{market.SPY.chg_1d|+}}%인데 동일가중은 {{market.RSP.chg_1d|+}}% — 반등도 하락 때처럼 대형 기술주에 쏠렸다. 지난주 낙폭은 실적이 아니라 경영자 공백이라는 개별 위험에서 나왔고, 그것이 하루 만에 지워지자 위에 쌓인 숏·3배 인버스 상품이 되감긴 것으로 본다(인버스 상품 청산 보도). 다만 SEC 회계 조사 보도와 이사회 독립위원회 조사는 끝나지 않았다. 무효화: QQQ가 이번 주 630 아래로 되밀리면 숏 커버만 있었고 실수요 복귀는 없었다는 뜻.",
+   "sources": [
+    "https://www.cnbc.com/2026/11/23/nvidia-jensen-huang-ceo.html",
+    "https://nvidianews.nvidia.com/news/nvidia-board-reinstates-jensen-huang-as-president-ceo-and-board-director",
+    "https://abcnews.com/Business/nvidia-reinstates-jensen-huang-ceo/story?id=138375516",
+    "https://www.zerohedge.com/markets/thoughts-and-prayers-jensens-return-wipes-out-3x-short-nvidia-etp-seconds-volmageddon"
+   ],
+   "cited_numbers": [
+    {
+     "value": 31,
+     "source": "https://www.cnbc.com/2026/11/23/nvidia-jensen-huang-ceo.html"
+    },
+    {
+     "value": 630,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "금·은이 주식과 같이 올랐다 — 증거금 압박이 풀린 날",
+   "anomaly_keys": [
+    "XLI",
+    "IWM",
+    "XLB",
+    "RSP",
+    "SECTORS"
+   ],
+   "body": "산업재 {{market.XLI.chg_1d|+}}%, 러셀2000 {{market.IWM.chg_1d|+}}%, 소재 {{market.XLB.chg_1d|+}}%로 기술 밖도 크게 올랐고 금 {{market.GOLD.chg_1d|+}}%, 은 {{market.SILVER.chg_1d|+}}%가 함께 반등했다. 보도는 금 반등을 금리 하락·인상 기대 완화로 설명하지만 10년물은 {{market.US10Y.chg_1d|+}}bp로 제자리, 달러인덱스는 {{market.DXY.chg_1d|+}}%로 1년 최고 — 해설과 가격이 어긋난다. 지난주 AI 손실을 메우려 금을 팔았다는 분석대로라면, 오늘은 같은 계좌들이 증거금 압박에서 풀려 위험·안전자산을 동시에 되산 날이다. VIX는 {{market.VIX.chg_1d|+}}%지만 헤지 상당수는 남아 있다. 무효화: 달러 강세 속에 금이 다음 주 다시 3,500달러 아래면 현금화 압력은 끝나지 않았다.",
+   "sources": [
+    "https://invezz.com/news/2026/11/23/gold-price-today-rebounds-from-14-month-low/",
+    "https://www.fxstreet.com/news/forex-today-gold-rebounds-above-3-600-us-dollar-retreats-ahead-of-pmi-data-202611230735",
+    "https://fxstreet.com/analysis/27-trillion-wiped-30-recovered-in-one-session-nvidia-bitcoin-and-gold-explode-higher-on-jensen-huangs-return-202611231713"
+   ],
+   "cited_numbers": [
+    {
+     "value": 3500,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "skipped_anomalies": [
+  {
+   "key": "XLY",
+   "reason": "임의소비재 급등은 대형 기술·플랫폼주 반등과 같은 이야기"
+  }
+ ],
+ "plumbing": {
+  "body": "순유동성 {{plumbing.net_liquidity_b|r0}}B로 4주 평균({{plumbing.nl_4w_avg_b|r0}}B) 위, TGA 5일 {{plumbing.tga_daily.chg_5d_b|+}}B로 재무부 현금이 풀리는 쪽, SOFR−IORB {{plumbing.sofr_minus_iorb_bp|r0}}bp, SRF {{plumbing.srf.accepted_b|r0}}B — 자금시장은 정상. 평소와 다른 것은 신용 하단: CCC 이하 OAS가 11월 20일 기준 {{plumbing.ccc_oas.current}}%로 하루 {{plumbing.ccc_oas.delta|bp}}bp 넓어졌다(IG는 {{plumbing.ig_oas.delta|bp}}bp). 3개월물은 {{market.US3M.close}}%로 1년 최고, 2년물 경매 응찰률 {{events.auctions.0.btc}}배(6회 평균 {{events.auctions.0.btc_avg6}})로 인상 경로는 무리 없이 소화되고 있다.",
+  "cited_numbers": []
+ },
+ "analogs": [
+  {
+   "asset": "SPY",
+   "body": "S&P 500이 하루 +3.5σ 이상 오른 경우는 2008년 이후 {{analogs.SPY.n|r0}}번(국면 조건 없음, 표본 작음). 20일 뒤 상승은 9번 중 5번, 중앙값 {{analogs.SPY.forward.SPY.20d.median|+}}%지만 하위 10%는 {{analogs.SPY.forward.SPY.20d.p10}}%, 보유 시 최대 역행 하위 10%는 {{analogs.SPY.responses.SPY.max_adverse_20d.p10}}%. 5일 대기 후 진입이 중앙값 {{analogs.SPY.responses.SPY.wait5_then_add_20d.median|+}}%로 가장 나았고, 다음날 추가는 {{analogs.SPY.responses.SPY.add_next_day_20d.median|+}}%, 다음날 매도는 중앙값 기준 {{analogs.SPY.responses.SPY.sell_next_day_avoided.median|abs}}%의 상승을 놓쳤다. 대표 사례: 유로존 구제금융 직후 2010-05-10(20일 {{analogs.SPY.closest.0.spy_20d|+}}%), 연준 의장 해임 우려가 걷힌 2018-12-26({{analogs.SPY.closest.4.spy_20d|+}}%), 연준 긴급 완화 기대가 붙은 2020-03-02({{analogs.SPY.closest.5.spy_20d|+}}%). 촉매가 정책이 아니라 한 기업의 인사라는 점, 연준이 완화가 아닌 인상 쪽이라는 점이 셋 모두와 다르다.",
+   "sources": [
+    "https://www.npr.org/2018/12/26/680119113/after-big-losses-investors-keep-a-look-out-for-santa-claus-rally",
+    "https://money.cnn.com/2010/05/10/markets/markets_newyork/index.htm"
+   ],
+   "cited_numbers": [
+    {
+     "value": 3.5,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "sectors": {
+  "body": "기술 {{sector_rank.0.chg_1d|+}}%에서 에너지 {{sector_rank.10.chg_1d|+}}%까지 격차가 평소의 약 세 배. 에너지는 WTI {{market.WTI.chg_1d|+}}%와 함께 빠졌고 필수소비재 {{sector_rank.9.chg_1d|+}}%는 제자리 — 지난주 피신처였던 방어주에서 자금이 빠져 AI로 돌아간 교체다. 금리가 그대로인데 유틸리티 {{market.XLU.chg_1d|+}}%·부동산 {{market.XLRE.chg_1d|+}}%는 시장 평균에 크게 못 미쳤다.",
+  "cited_numbers": []
+ },
+ "watchpoints": [
+  {
+   "condition": "QQQ 630 하회(현재 {{market.QQQ.close}})",
+   "implication": "오늘 반등이 숏 커버뿐이었다는 신호 — 지난주 저점 재시험"
+  },
+  {
+   "condition": "VIX 22 아래 안착 vs 30 재돌파(현재 {{market.VIX.close}})",
+   "implication": "22 아래면 헤지 해제가 이어지는 정상화, 30 위면 이번 주 악재 재가격"
+  },
+  {
+   "condition": "11월 25일 근원 PCE 후 5년물 4.85% 재돌파 또는 3개월물 4.2% 돌파(현재 {{market.US5Y.close}}% / {{market.US3M.close}}%)",
+   "implication": "인상 경로 강화 — 주식 반등과 금리가 충돌하는 구간"
+  },
+  {
+   "condition": "CCC OAS 14.5% 돌파(현재 {{plumbing.ccc_oas.current}}%)",
+   "implication": "주가 반등과 별개로 신용 하단 경색이 진행 — 반등의 질이 낮다는 뜻"
+  },
+  {
+   "condition": "금 3,500달러 하회와 달러인덱스 105 돌파",
+   "implication": "현금화 압력이 끝나지 않았다는 뜻 — 레버리지 축소 재개"
+  }
+ ],
+ "risks": [
+  "SEC 회계 조사나 이사회 독립위원회 조사에서 새 사실이 나오면 경영 공백 해소가 다시 지배구조 위험으로 바뀐다",
+  "추수감사절 주간 얇은 거래 속에 수요일 PCE·GDP가 한꺼번에 나온다 — 근원 물가가 예상을 넘으면 인상 경로가 반등을 되돌린다",
+  "트럼프의 새해 이후 이란 공습 시사 보도 — 유가가 반등하면 인상 경로가 더 단단해진다"
+ ],
+ "written_at": "2026-11-23T21:43:58Z",
+ "model": "claude-opus-5-5"
+}
