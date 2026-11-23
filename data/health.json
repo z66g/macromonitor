@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-11-22T02:47:36+00:00",
-  "status": "warn",
+  "checked_at": "2026-11-23T03:28:14+00:00",
+  "status": "fail",
   "checks": [
     {
       "name": "T1 순유동성",
@@ -15,27 +15,27 @@
     {
       "name": "T2 실물경제",
       "status": "ok",
-      "detail": "캐시 1.4h 전 · 실업률 2026-10 (발표 2026-11-06)"
+      "detail": "캐시 2.1h 전 · 실업률 2026-10 (발표 2026-11-06)"
     },
     {
       "name": "T3 글로벌",
-      "status": "ok",
-      "detail": "빈 시리즈 없음 · 캐시 1.0h 전"
+      "status": "fail",
+      "detail": "빈 시리즈 ['broadDollar'] · 캐시 1.7h 전"
     },
     {
       "name": "시세 스냅샷",
       "status": "ok",
-      "detail": "33종목 · 저장 0.0h 전 · 6h 넘은 종목 없음"
+      "detail": "33종목 · 저장 0.1h 전 · 6h 넘은 종목 없음"
     },
     {
       "name": "이벤트 캘린더",
       "status": "ok",
-      "detail": "52건 · error=None"
+      "detail": "54건 · error=None"
     },
     {
       "name": "FOMC 일정 하드코딩",
       "status": "ok",
-      "detail": "마지막 등록일 2027-11-17 (360일 남음) — 60일 이내면 다음 해 일정 추가 필요"
+      "detail": "마지막 등록일 2027-11-17 (359일 남음) — 60일 이내면 다음 해 일정 추가 필요"
     },
     {
       "name": "유동성 예측모델",
@@ -50,17 +50,17 @@
     {
       "name": "QRA",
       "status": "ok",
-      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (20일 전)"
+      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (21일 전)"
     },
     {
       "name": "뉴스 수집·번역",
       "status": "ok",
-      "detail": "227건 · 번역 227건 (100%) · 수집 0.2h 전"
+      "detail": "227건 · 번역 225건 (99%) · 수집 0.4h 전"
     },
     {
       "name": "뉴스 다이제스트",
       "status": "ok",
-      "detail": "생성 2.2h 전 · 2건"
+      "detail": "생성 0.5h 전 · 3건"
     },
     {
       "name": "H.4.1 이력",
@@ -96,20 +96,6 @@
       "name": "GitHub Actions 실패(24h)",
       "status": "ok",
       "detail": "없음"
-    }
-  ],
-  "diagnosis": [
-    {
-      "check": "헬스체크 실행",
-      "likely_cause": "checked_at(2026-11-22 02:47 UTC)이 6시간 넘음 — 11-22 23:00 UTC 점검이 아직 안 돌았거나 GitHub schedule 지연(최근 며칠 02~04시 UTC에 실행되는 패턴).",
-      "suggested_fix": "health-check.yml 실행 이력 확인, 필요 시 cron-job.org dispatch 추가.",
-      "confidence": "medium"
-    },
-    {
-      "check": "이벤트 결과",
-      "likely_cause": "data/econ_results_ai.json 마지막 에이전트 커밋이 2026-11-19 22:41 UTC — 11-20(금) 16:40·22:40 예약작업 실행 기록이 없어 11-18 STLFSI·11-20 미시간이 미조사 상태.",
-      "suggested_fix": "claude.ai/code/routines '이벤트 결과' 실행 이력 확인 후 재실행 (ops/routines/econ.md); 코드 문제는 발견되지 않음.",
-      "confidence": "medium"
     }
   ]
 }
