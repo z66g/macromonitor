@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T22:41:49+00:00",
+ "updated": "2026-11-23T22:41:38+00:00",
  "results": {
   "2026-11-13|생산자물가 (PPI)": {
    "indicator": "ppi",
@@ -115,6 +115,33 @@
    "researched_at": "2026-11-19T22:41:36Z",
    "model": "claude-sonnet-5-5",
    "published_at": "2026-11-19T22:41:49+00:00"
+  },
+  "2026-11-20|소비자심리 (미시간)": {
+   "indicator": "umich",
+   "date": "2026-11-20",
+   "name": "소비자심리 (미시간)",
+   "period": "2026-11",
+   "primary": "sentiment",
+   "metrics": {
+    "sentiment": {
+     "actual": 51.5,
+     "forecast": null,
+     "previous": 48.0,
+     "previous_revised": null,
+     "label": "미시간 소비자심리",
+     "unit": "pt"
+    }
+   },
+   "surprise": null,
+   "interpretation": "11월 최종 51.5로 잠정치(51.0)보다 소폭 상향, 10월(48.0) 대비 반등 — 선거 이후 기업경기 기대 개선이 주도했으나 수준은 여전히 낮음.",
+   "sources": [
+    "https://www.advisorperspectives.com/dshort/updates/2026/11/20/consumer-sentiment-recovers-significantly",
+    "https://seekingalpha.com/news/4675184-consumer-sentiment-revised-slightly-higher-in-novembers-final-print"
+   ],
+   "verified": "source",
+   "researched_at": "2026-11-23T22:41:19Z",
+   "model": "claude-sonnet-5-5",
+   "published_at": "2026-11-23T22:41:38+00:00"
   }
  },
  "pending": {},
