@@ -27,16 +27,24 @@
         "btc_avg6": 2.63,
         "pd_avg6": 11.5,
         "in_avg6": 56.53,
-        "tail_bps": null,
-        "wi_rate": null,
+        "tail_bps": -0.3,
+        "wi_rate": 4.703,
         "grade": {
           "btc": "strong",
-          "tail": null,
+          "tail": "strong",
           "pd": "strong"
         },
         "score_pct": 100
       },
-      "summary": null
+      "summary": "🎯 총평: Average\n1. Tail: -0.3 bp. WI 4.703%보다 0.3bp 낮은 4.700%에 낙찰된 소폭 stop-through로, 단기 금리에 추가 상승 압력을 주지 않았다.\n2. BTC: 2.65x vs 6avg 2.63x. 응찰률이 평균을 소폭 웃돌아 전체 수요는 무난했다.\n3. Indirect 51.5% vs 6avg 56.53%. 해외·기관 수요가 평균보다 약 5%p 약해 직접 입찰(38.1%)이 빈자리를 메웠다. PD 10.4% vs 6avg 11.5%. 딜러 인수 비중이 평균 이하라 재고 부담은 크지 않다.\n4. 결론: 2년물 4.7%대가 무리 없이 소화돼 시장이 현 정책금리 경로를 받아들이고 있음을 보여주지만, 해외 수요 둔화는 다음 5·7년물 경매에서 확인해야 할 약한 고리다.",
+      "_ai": {
+        "sources": [
+          "https://investinglive.com/news/u-s-treasury-sells-69-billion-the-two-year-notes-at-a-high-yield-of-4-700/",
+          "https://www.newsquawk.com/headlines/us-sells-usd-69bln-of-2-year-notes-stop-through-03bps"
+        ],
+        "researched_at": "2026-11-23T21:33:45Z",
+        "model": "claude-opus-5-5"
+      }
     },
     {
       "security_type": "Bill",
