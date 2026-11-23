@@ -1,0 +1,656 @@
+{
+ "session": "2026-11-23",
+ "headline": "황 복귀가 AI 숏을 되감았다, 금리·달러는 인상 경로를 그대로 뒀다",
+ "regime": {
+  "label": "transition",
+  "one_liner": "S&P 500 하루 +4.74%에도 5일 −2.36%, 200일선 대비 −1.42%, VIX 26.78(1년 분위 96)라 전환 국면. 개별 악재가 지워졌을 뿐 신용 하단 스프레드가 넓어진 채라 Risk-On 판정은 이르다."
+ },
+ "yesterday_check": [
+  {
+   "point": "VIX 40 돌파와 CCC OAS 14% 돌파 동반",
+   "outcome": "CCC OAS는 14.02%로 14%를 넘었지만 VIX는 26.78로 급락 — 동반 조건 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 40,
+     "threshold": true
+    },
+    {
+     "value": 14,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "QQQ 52주 저점 558 하회",
+   "outcome": "QQQ 651로 반등 — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 558,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "5년물 4.6% 하회 또는 12월 인상 확률 80% 아래",
+   "outcome": "5년물 4.73%, 12월 인상은 여전히 반영(보도) — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 4.6,
+     "threshold": true
+    },
+    {
+     "value": 80,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "금 3,500달러·비트코인 55,000달러 하회",
+   "outcome": "금 3,635달러로 반등, 비트코인 61,155달러 — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 3500,
+     "threshold": true
+    },
+    {
+     "value": 55000,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "drivers": [
+  {
+   "title": "경영 공백 해소 — 숏과 인버스 레버리지의 되감기",
+   "anomaly_keys": [
+    "SPY",
+    "XLK",
+    "QQQ",
+    "QQQ/RSP"
+   ],
+   "body": "엔비디아 이사회가 젠슨 황을 CEO로 복귀시키자 주가는 31% 급등(보도). 기술 +8.97%, QQQ +7%(+4.14σ), S&P 500 +4.74%인데 동일가중은 +2.59% — 반등도 하락 때처럼 대형 기술주에 쏠렸다. 지난주 낙폭은 실적이 아니라 경영자 공백이라는 개별 위험에서 나왔고, 그것이 하루 만에 지워지자 위에 쌓인 숏·3배 인버스 상품이 되감긴 것으로 본다(인버스 상품 청산 보도). 다만 SEC 회계 조사 보도와 이사회 독립위원회 조사는 끝나지 않았다. 무효화: QQQ가 이번 주 630 아래로 되밀리면 숏 커버만 있었고 실수요 복귀는 없었다는 뜻.",
+   "sources": [
+    "https://www.cnbc.com/2026/11/23/nvidia-jensen-huang-ceo.html",
+    "https://nvidianews.nvidia.com/news/nvidia-board-reinstates-jensen-huang-as-president-ceo-and-board-director",
+    "https://abcnews.com/Business/nvidia-reinstates-jensen-huang-ceo/story?id=138375516",
+    "https://www.zerohedge.com/markets/thoughts-and-prayers-jensens-return-wipes-out-3x-short-nvidia-etp-seconds-volmageddon"
+   ],
+   "cited_numbers": [
+    {
+     "value": 31,
+     "source": "https://www.cnbc.com/2026/11/23/nvidia-jensen-huang-ceo.html"
+    },
+    {
+     "value": 630,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "금·은이 주식과 같이 올랐다 — 증거금 압박이 풀린 날",
+   "anomaly_keys": [
+    "XLI",
+    "IWM",
+    "XLB",
+    "RSP",
+    "SECTORS"
+   ],
+   "body": "산업재 +3.9%, 러셀2000 +3.56%, 소재 +3.23%로 기술 밖도 크게 올랐고 금 +3.4%, 은 +4.62%가 함께 반등했다. 보도는 금 반등을 금리 하락·인상 기대 완화로 설명하지만 10년물은 +0.6bp로 제자리, 달러인덱스는 +0.49%로 1년 최고 — 해설과 가격이 어긋난다. 지난주 AI 손실을 메우려 금을 팔았다는 분석대로라면, 오늘은 같은 계좌들이 증거금 압박에서 풀려 위험·안전자산을 동시에 되산 날이다. VIX는 −25.38%지만 헤지 상당수는 남아 있다. 무효화: 달러 강세 속에 금이 다음 주 다시 3,500달러 아래면 현금화 압력은 끝나지 않았다.",
+   "sources": [
+    "https://invezz.com/news/2026/11/23/gold-price-today-rebounds-from-14-month-low/",
+    "https://www.fxstreet.com/news/forex-today-gold-rebounds-above-3-600-us-dollar-retreats-ahead-of-pmi-data-202611230735",
+    "https://fxstreet.com/analysis/27-trillion-wiped-30-recovered-in-one-session-nvidia-bitcoin-and-gold-explode-higher-on-jensen-huangs-return-202611231713"
+   ],
+   "cited_numbers": [
+    {
+     "value": 3500,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "skipped_anomalies": [
+  {
+   "key": "XLY",
+   "reason": "임의소비재 급등은 대형 기술·플랫폼주 반등과 같은 이야기"
+  }
+ ],
+ "plumbing": {
+  "body": "순유동성 5,814B로 4주 평균(5,762B) 위, TGA 5일 −41.9B로 재무부 현금이 풀리는 쪽, SOFR−IORB 2bp, SRF 0B — 자금시장은 정상. 평소와 다른 것은 신용 하단: CCC 이하 OAS가 11월 20일 기준 14.02%로 하루 41bp 넓어졌다(IG는 4bp). 3개월물은 4.15%로 1년 최고, 2년물 경매 응찰률 2.65배(6회 평균 2.63)로 인상 경로는 무리 없이 소화되고 있다.",
+  "cited_numbers": []
+ },
+ "analogs": [
+  {
+   "asset": "SPY",
+   "body": "S&P 500이 하루 +3.5σ 이상 오른 경우는 2008년 이후 9번(국면 조건 없음, 표본 작음). 20일 뒤 상승은 9번 중 5번, 중앙값 +3%지만 하위 10%는 −15.35%, 보유 시 최대 역행 하위 10%는 −27.87%. 5일 대기 후 진입이 중앙값 +3.49%로 가장 나았고, 다음날 추가는 +2.74%, 다음날 매도는 중앙값 기준 2.74%의 상승을 놓쳤다. 대표 사례: 유로존 구제금융 직후 2010-05-10(20일 −8.21%), 연준 의장 해임 우려가 걷힌 2018-12-26(+7.96%), 연준 긴급 완화 기대가 붙은 2020-03-02(−15.35%). 촉매가 정책이 아니라 한 기업의 인사라는 점, 연준이 완화가 아닌 인상 쪽이라는 점이 셋 모두와 다르다.",
+   "sources": [
+    "https://www.npr.org/2018/12/26/680119113/after-big-losses-investors-keep-a-look-out-for-santa-claus-rally",
+    "https://money.cnn.com/2010/05/10/markets/markets_newyork/index.htm"
+   ],
+   "cited_numbers": [
+    {
+     "value": 3.5,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "sectors": {
+  "body": "기술 +8.97%에서 에너지 −1.06%까지 격차가 평소의 약 세 배. 에너지는 WTI −4.5%와 함께 빠졌고 필수소비재 −0.09%는 제자리 — 지난주 피신처였던 방어주에서 자금이 빠져 AI로 돌아간 교체다. 금리가 그대로인데 유틸리티 +1.48%·부동산 +1.04%는 시장 평균에 크게 못 미쳤다.",
+  "cited_numbers": []
+ },
+ "watchpoints": [
+  {
+   "condition": "QQQ 630 하회(현재 651)",
+   "implication": "오늘 반등이 숏 커버뿐이었다는 신호 — 지난주 저점 재시험"
+  },
+  {
+   "condition": "VIX 22 아래 안착 vs 30 재돌파(현재 26.78)",
+   "implication": "22 아래면 헤지 해제가 이어지는 정상화, 30 위면 이번 주 악재 재가격"
+  },
+  {
+   "condition": "11월 25일 근원 PCE 후 5년물 4.85% 재돌파 또는 3개월물 4.2% 돌파(현재 4.73% / 4.15%)",
+   "implication": "인상 경로 강화 — 주식 반등과 금리가 충돌하는 구간"
+  },
+  {
+   "condition": "CCC OAS 14.5% 돌파(현재 14.02%)",
+   "implication": "주가 반등과 별개로 신용 하단 경색이 진행 — 반등의 질이 낮다는 뜻"
+  },
+  {
+   "condition": "금 3,500달러 하회와 달러인덱스 105 돌파",
+   "implication": "현금화 압력이 끝나지 않았다는 뜻 — 레버리지 축소 재개"
+  }
+ ],
+ "risks": [
+  "SEC 회계 조사나 이사회 독립위원회 조사에서 새 사실이 나오면 경영 공백 해소가 다시 지배구조 위험으로 바뀐다",
+  "추수감사절 주간 얇은 거래 속에 수요일 PCE·GDP가 한꺼번에 나온다 — 근원 물가가 예상을 넘으면 인상 경로가 반등을 되돌린다",
+  "트럼프의 새해 이후 이란 공습 시사 보도 — 유가가 반등하면 인상 경로가 더 단단해진다"
+ ],
+ "written_at": "2026-11-23T21:43:58Z",
+ "model": "claude-opus-5-5",
+ "dashboard": {
+  "rows": [
+   {
+    "key": "SPY",
+    "name": "S&P 500 (SPY)",
+    "close": 722.51,
+    "chg_1d": 4.74,
+    "chg_5d": -2.36,
+    "z_1d": 4.37,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "QQQ",
+    "name": "나스닥100 (QQQ)",
+    "close": 651.03,
+    "chg_1d": 7.0,
+    "chg_5d": -1.62,
+    "z_1d": 4.14,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "IWM",
+    "name": "러셀2000 (IWM)",
+    "close": 265.74,
+    "chg_1d": 3.56,
+    "chg_5d": -2.64,
+    "z_1d": 2.92,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "RSP",
+    "name": "S&P 동일가중 (RSP)",
+    "close": 212.82,
+    "chg_1d": 2.59,
+    "chg_5d": -2.79,
+    "z_1d": 2.94,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "VIX",
+    "name": "VIX",
+    "close": 26.78,
+    "chg_1d": -25.38,
+    "chg_5d": 16.89,
+    "z_1d": -2.04,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "MOVE",
+    "name": "MOVE",
+    "close": 100.9234,
+    "chg_1d": -5.07,
+    "chg_5d": -0.35,
+    "z_1d": -0.95,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "US3M",
+    "name": "미 3개월 금리",
+    "close": 4.147,
+    "chg_1d": 2.5,
+    "chg_5d": 2.2,
+    "z_1d": 1.0,
+    "unit": "bp",
+    "stale": false
+   },
+   {
+    "key": "US5Y",
+    "name": "미 5년 금리",
+    "close": 4.728,
+    "chg_1d": 2.7,
+    "chg_5d": -20.7,
+    "z_1d": 0.43,
+    "unit": "bp",
+    "stale": false
+   },
+   {
+    "key": "US10Y",
+    "name": "미 10년 금리",
+    "close": 4.918,
+    "chg_1d": 0.6,
+    "chg_5d": -20.3,
+    "z_1d": 0.11,
+    "unit": "bp",
+    "stale": false
+   },
+   {
+    "key": "US30Y",
+    "name": "미 30년 금리",
+    "close": 5.294,
+    "chg_1d": -0.9,
+    "chg_5d": -17.3,
+    "z_1d": -0.2,
+    "unit": "bp",
+    "stale": false
+   },
+   {
+    "key": "TLT",
+    "name": "장기국채 (TLT)",
+    "close": 81.69,
+    "chg_1d": 0.29,
+    "chg_5d": 2.91,
+    "z_1d": 0.43,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "HYG",
+    "name": "하이일드 (HYG)",
+    "close": 76.52,
+    "chg_1d": 0.25,
+    "chg_5d": -0.27,
+    "z_1d": 0.86,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "DXY",
+    "name": "달러인덱스",
+    "close": 104.316,
+    "chg_1d": 0.49,
+    "chg_5d": 0.74,
+    "z_1d": 1.57,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "USDJPY",
+    "name": "달러/엔",
+    "close": 158.943,
+    "chg_1d": -0.48,
+    "chg_5d": -0.52,
+    "z_1d": -0.98,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "GOLD",
+    "name": "금",
+    "close": 3634.8999,
+    "chg_1d": 3.4,
+    "chg_5d": -5.66,
+    "z_1d": 2.33,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "WTI",
+    "name": "WTI 원유",
+    "close": 80.2,
+    "chg_1d": -4.5,
+    "chg_5d": -6.44,
+    "z_1d": -1.57,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "COPPER",
+    "name": "구리",
+    "close": 5.618,
+    "chg_1d": 2.57,
+    "chg_5d": -6.33,
+    "z_1d": 1.67,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "BTC",
+    "name": "비트코인",
+    "close": 61155.4102,
+    "chg_1d": -0.01,
+    "chg_5d": -2.91,
+    "z_1d": -0.01,
+    "unit": "%",
+    "stale": false
+   }
+  ],
+  "sectors_top": [
+   {
+    "key": "XLK",
+    "name": "기술",
+    "chg_1d": 8.97
+   },
+   {
+    "key": "XLY",
+    "name": "임의소비재",
+    "chg_1d": 3.97
+   },
+   {
+    "key": "XLI",
+    "name": "산업재",
+    "chg_1d": 3.9
+   }
+  ],
+  "sectors_bottom": [
+   {
+    "key": "XLE",
+    "name": "에너지",
+    "chg_1d": -1.06
+   },
+   {
+    "key": "XLP",
+    "name": "필수소비재",
+    "chg_1d": -0.09
+   },
+   {
+    "key": "XLRE",
+    "name": "부동산",
+    "chg_1d": 1.04
+   }
+  ],
+  "plumbing": {
+   "net_liquidity_b": 5814.12,
+   "nl_4w_avg_b": 5761.76,
+   "tga_b": 891.2,
+   "on_rrp_b": 0.35,
+   "sofr_minus_iorb_bp": 2.0,
+   "stlfsi": -0.8655
+  },
+  "upcoming": [
+   {
+    "date": "2026-11-25",
+    "name": "GDP 성장률",
+    "imp": "high",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-25",
+    "name": "내구재 주문",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-25",
+    "name": "주택착공",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-25",
+    "name": "개인소비지출 (PCE · Core PCE)",
+    "imp": "high",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-25",
+    "name": "세인트루이스 FSI",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-26",
+    "name": "실업수당 청구 (신규·연속) 주간 발표",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-30",
+    "name": "월말 기관 리밸런싱 구간",
+    "imp": "medium",
+    "estimated": true
+   },
+   {
+    "date": "2026-12-01",
+    "name": "구인이직보고서 (JOLTS)",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-12-01",
+    "name": "ISM 제조업 PMI",
+    "imp": "medium",
+    "estimated": false
+   }
+  ],
+  "econ_results": [],
+  "data_failures": []
+ },
+ "anomalies": [
+  {
+   "kind": "move",
+   "key": "SPY",
+   "score": 4.37,
+   "text": "S&P 500 (SPY) +4.74% (60일 변동성 대비 +4.4σ)",
+   "z": 4.37
+  },
+  {
+   "kind": "move",
+   "key": "XLK",
+   "score": 4.23,
+   "text": "기술 +8.97% (60일 변동성 대비 +4.2σ)",
+   "z": 4.23
+  },
+  {
+   "kind": "move",
+   "key": "QQQ",
+   "score": 4.14,
+   "text": "나스닥100 (QQQ) +7.0% (60일 변동성 대비 +4.1σ)",
+   "z": 4.14
+  },
+  {
+   "kind": "move",
+   "key": "XLI",
+   "score": 3.23,
+   "text": "산업재 +3.9% (60일 변동성 대비 +3.2σ)",
+   "z": 3.23
+  },
+  {
+   "kind": "move",
+   "key": "RSP",
+   "score": 2.94,
+   "text": "S&P 동일가중 (RSP) +2.59% (60일 변동성 대비 +2.9σ)",
+   "z": 2.94
+  },
+  {
+   "kind": "move",
+   "key": "XLB",
+   "score": 2.94,
+   "text": "소재 +3.23% (60일 변동성 대비 +2.9σ)",
+   "z": 2.94
+  }
+ ],
+ "analog_stats": [
+  {
+   "asset": "SPY",
+   "trigger": "S&P 500 (SPY) +4.74% (60일 변동성 대비 +4.4σ)",
+   "condition": "같은 방향 1일 변동 +3.5σ 이상",
+   "regime_filter": "국면 조건 없음 (표본 부족)",
+   "n": 9,
+   "period": "2008-10-13 ~ 2026-03-31",
+   "forward": {
+    "SPY": {
+     "1d": {
+      "n": 9,
+      "median": 0.45,
+      "mean": -0.44,
+      "pct_positive": 56.0,
+      "p10": -4.38,
+      "worst": -4.38,
+      "best": 2.47
+     },
+     "5d": {
+      "n": 9,
+      "median": -0.8,
+      "mean": -1.36,
+      "pct_positive": 44.0,
+      "p10": -11.28,
+      "worst": -11.28,
+      "best": 3.95
+     },
+     "20d": {
+      "n": 9,
+      "median": 3.0,
+      "mean": -0.58,
+      "pct_positive": 56.0,
+      "p10": -15.35,
+      "worst": -15.35,
+      "best": 9.42
+     },
+     "60d": {
+      "n": 9,
+      "median": 7.6,
+      "mean": 5.23,
+      "pct_positive": 67.0,
+      "p10": -10.17,
+      "worst": -10.17,
+      "best": 13.35
+     }
+    }
+   },
+   "responses": {
+    "SPY": {
+     "hold_20d": {
+      "n": 9,
+      "median": 3.0,
+      "mean": -0.58,
+      "pct_positive": 56.0,
+      "p10": -15.35,
+      "worst": -15.35,
+      "best": 9.42
+     },
+     "sell_next_day_avoided": {
+      "n": 9,
+      "median": -2.74,
+      "mean": 0.17,
+      "pct_positive": 44.0,
+      "p10": -8.6,
+      "worst": -8.6,
+      "best": 12.85
+     },
+     "add_next_day_20d": {
+      "n": 9,
+      "median": 2.74,
+      "mean": -0.17,
+      "pct_positive": 56.0,
+      "p10": -12.85,
+      "worst": -12.85,
+      "best": 8.6
+     },
+     "wait5_then_add_20d": {
+      "n": 9,
+      "median": 3.49,
+      "mean": 2.2,
+      "pct_positive": 56.0,
+      "p10": -13.5,
+      "worst": -13.5,
+      "best": 12.33
+     },
+     "max_adverse_20d": {
+      "n": 9,
+      "median": -1.38,
+      "mean": -6.8,
+      "pct_positive": 33.0,
+      "p10": -27.87,
+      "worst": -27.87,
+      "best": 0.75
+     },
+     "best_by_median": "wait5_then_add_20d"
+    }
+   },
+   "closest": [
+    {
+     "date": "2010-05-10",
+     "z": 4.72,
+     "move_1d": 4.4,
+     "spy_5d": -1.9,
+     "spy_20d": -8.21,
+     "vix_level": 28.84
+    },
+    {
+     "date": "2013-10-10",
+     "z": 3.62,
+     "move_1d": 2.16,
+     "spy_5d": 2.39,
+     "spy_20d": 3.4,
+     "vix_level": 16.48
+    },
+    {
+     "date": "2015-08-26",
+     "z": 3.93,
+     "move_1d": 3.84,
+     "spy_5d": 0.49,
+     "spy_20d": -0.8,
+     "vix_level": 30.32
+    },
+    {
+     "date": "2016-11-07",
+     "z": 3.62,
+     "move_1d": 2.21,
+     "spy_5d": 1.61,
+     "spy_20d": 4.01,
+     "vix_level": 18.71
+    },
+    {
+     "date": "2018-12-26",
+     "z": 3.74,
+     "move_1d": 5.05,
+     "spy_5d": -0.8,
+     "spy_20d": 7.96,
+     "vix_level": 30.41
+    },
+    {
+     "date": "2020-03-02",
+     "z": 4.22,
+     "move_1d": 4.33,
+     "spy_5d": -11.28,
+     "spy_20d": -15.35,
+     "vix_level": 33.42
+    }
+   ]
+  }
+ ],
+ "verified_at": "2026-11-23T21:44:14+00:00",
+ "draft_hash": "c18328d925f5a0e63d6f8d4a414a00d9c7d04bb0027b997be5786b08ba150b6d",
+ "telegram_sent": false
+}
