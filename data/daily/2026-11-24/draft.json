@@ -1,0 +1,204 @@
+{
+ "session": "2026-11-24",
+ "headline": "숏 커버는 하루로 끝났다, 자금은 칩에서 헬스케어·방어주로 옮겼다",
+ "regime": {
+  "label": "transition",
+  "one_liner": "S&P 500 {{market.SPY.chg_1d}}%인데 동일가중 {{market.RSP.chg_1d|+}}%, VIX {{market.VIX.close}}(1년 분위 {{market.VIX.pctile_1y|r0}})로 매도는 대형 기술주에 갇혔다. 순유동성은 4주 평균 위지만 S&P 500이 200일선 아래({{market.SPY.vs_200dma_pct}}%)라 전환 국면 판정 유지."
+ },
+ "yesterday_check": [
+  {
+   "point": "QQQ 630 하회",
+   "outcome": "QQQ {{market.QQQ.close}} — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 630,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "VIX 22 아래 안착 vs 30 재돌파",
+   "outcome": "VIX {{market.VIX.close}} — 둘 다 아님",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 22,
+     "threshold": true
+    },
+    {
+     "value": 30,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "PCE 후 5년물 4.85% 재돌파 또는 3개월물 4.2% 돌파",
+   "outcome": "PCE 발표 전, 5년물 {{market.US5Y.close}}% — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 4.85,
+     "threshold": true
+    },
+    {
+     "value": 4.2,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "CCC OAS 14.5% 돌파",
+   "outcome": "{{plumbing.ccc_oas.current}}% — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 14.5,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "금 3,500달러 하회와 달러인덱스 105 돌파",
+   "outcome": "금 {{market.GOLD.close|r0}}달러, 달러는 하락 — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 3500,
+     "threshold": true
+    },
+    {
+     "value": 105,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "drivers": [
+  {
+   "title": "하루 만에 끝난 되감기 — 칩에서 빠진 돈이 헬스케어로",
+   "anomaly_keys": [
+    "XLV",
+    "QQQ/RSP"
+   ],
+   "body": "엔비디아가 전날 급등분 일부를 되돌리며 반도체 ETF가 7% 넘게 빠졌다(보도). 기술 {{market.XLK.chg_1d}}%, QQQ {{market.QQQ.chg_1d}}%인데 동일가중은 {{market.RSP.chg_1d|+}}%, 러셀2000 {{market.IWM.chg_1d|+}}%. 헬스케어 {{market.XLV.chg_1d|+}}%({{market.XLV.z_1d|+}}σ)는 사노피의 인스메드 410억 달러 현금 인수가 제약주 재평가를 불렀고 칩에서 나온 돈이 방어주로 옮겨 갔다(보도). 전날 반등은 숏 되감기였고 실수요는 따라붙지 않았다. VIX가 내려 위험 축소가 아니라 주식 안의 교체로 본다. 무효화: QQQ가 630 아래로 밀리면서 동일가중도 같이 빠지면 교체가 아니라 총노출 축소.",
+   "sources": [
+    "https://www.benzinga.com/markets/equities/26/11/63596550/stock-market-today-anthropic-below-ipo-price-nvidia-record-rally-reversal",
+    "https://www.fool.com/coverage/stock-market-today/2026/11/24/stock-market-midday-nov-24-nvidia-drops-9-as-wall-street-s-historic-ai-rally-loses-momentum/",
+    "https://www.rte.ie/news/business/2026/1124/1600393-nvidia-stocks-surge/",
+    "https://za.investing.com/news/stock-market-news/sanofi-to-acquire-insmed-in-41-billion-cash-deal-4593601"
+   ],
+   "cited_numbers": [
+    {
+     "value": 7,
+     "source": "https://www.benzinga.com/markets/equities/26/11/63596550/stock-market-today-anthropic-below-ipo-price-nvidia-record-rally-reversal"
+    },
+    {
+     "value": 410,
+     "source": "https://za.investing.com/news/stock-market-news/sanofi-to-acquire-insmed-in-41-billion-cash-deal-4593601"
+    },
+    {
+     "value": 630,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "천연가스 급등 — 만기 주간의 숏 커버",
+   "anomaly_keys": [
+    "NATGAS"
+   ],
+   "body": "천연가스 {{market.NATGAS.chg_1d|+}}%({{market.NATGAS.z_1d|+}}σ). 전날엔 주말 기상모델이 12월 초를 따뜻하게 바꾸며 급락했는데, 이날은 한파 예보·LNG 수요를 이유로 지지선 이탈 뒤 저항선을 뚫는 급반전이 나왔다(NGI). 12월물 옵션 만기(24일)와 선물 최종 결제(25일)가 겹친 주간이라 기상보다 만기 앞 숏 청산이 폭을 키운 것으로 본다. 무효화: 만기 뒤 1월물이 3.4달러 위에서 버티면 만기 효과가 아니라 한파 수요의 재가격.",
+   "sources": [
+    "https://naturalgasintel.com/news/natural-gas-futures-stage-comeback-as-expiration-key-storage-report-draw-closer/",
+    "https://naturalgasintel.com/news/natural-gas-futures-bounce-back-as-expiry-storage-print-loom-large/",
+    "https://naturalgasintel.com/news/weekend-weather-wipeout-sends-natural-gas-futures-reeling/"
+   ],
+   "cited_numbers": [
+    {
+     "value": 3.4,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "달러·금리가 내린 날 금속이 빠졌다 — 해설과 어긋난 청산",
+   "anomaly_keys": [
+    "SILVER",
+    "COPPER",
+    "GOLD",
+    "US10Y",
+    "US30Y",
+    "MOVE"
+   ],
+   "body": "은 {{market.SILVER.chg_1d}}%, 금 {{market.GOLD.chg_1d}}%, 구리 5일 {{market.COPPER.chg_5d}}%. 보도는 12월 인상 기대와 달러 강세를 원인으로 들지만 이날 달러인덱스는 {{market.DXY.chg_1d}}%, 10년물은 {{market.US10Y.chg_1d}}bp로 둘 다 내렸다. 은은 52주 고점의 절반에도 못 미치는 1년 최저라, 쏠렸던 금속 롱의 강제 청산이 이어지는 것으로 본다. 금리는 반대로 질서 있다: 10년물 5일 {{market.US10Y.chg_5d}}bp에도 MOVE {{market.MOVE.close|r1}}로 100 아래, 3개월물 {{market.US3M.close}}%는 1년 최고 — '지금 인상, 나중 둔화'를 반영한 평탄화. 무효화: 달러가 다시 오를 때만 금속이 빠진다면 원래 해설(인상·달러)이 맞다.",
+   "sources": [
+    "https://fxtribune.com/news/gold-silver-fed-rate-bets-dollar",
+    "https://www.usagold.com/daily-precious-metals-market-report-november-24-2026/"
+   ],
+   "cited_numbers": [
+    {
+     "value": 100,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "skipped_anomalies": [
+  {
+   "key": "SOFR-IORB",
+   "reason": "전일과 같은 수준이고 SRF 이용 0 — 새 압박이 아니라 배관 항목에서 점검"
+  }
+ ],
+ "plumbing": {
+  "body": "순유동성 {{plumbing.net_liquidity_b|r0}}B로 4주 평균({{plumbing.nl_4w_avg_b|r0}}B) 위, TGA 5일 {{plumbing.tga_daily.chg_5d_b}}B로 재무부 현금이 풀리는 쪽. SOFR−IORB {{plumbing.sofr_minus_iorb_bp|r0}}bp는 전일과 같고 SRF {{plumbing.srf.accepted_b|r0}}B라 레포 압박은 커지지 않았다. 전날 넓어졌던 CCC 이하 OAS는 {{plumbing.ccc_oas.current}}%로 {{plumbing.ccc_oas.delta|bp}}bp 좁혀져 신용 하단은 한숨 돌렸다.",
+  "cited_numbers": []
+ },
+ "analogs": [
+  {
+   "asset": "US10Y",
+   "body": "S&P 500이 200일선 아래인 국면에서 10년물 5일 하락이 극단적이었던 경우는 {{analogs.US10Y.n|r0}}번. S&P 500의 20일 뒤 상승 비율 {{analogs.US10Y.forward.SPY.20d.pct_positive|r0}}%, 중앙값 {{analogs.US10Y.forward.SPY.20d.median|+}}%, 하위 10% {{analogs.US10Y.forward.SPY.20d.p10}}%. 대응별로는 보유가 중앙값 기준 가장 나았고, 다음날 매도는 중앙값 {{analogs.US10Y.responses.SPY.sell_next_day_avoided.median|abs}}%의 상승을 놓쳤다. 다만 보유 시 최대 역행 하위 10%는 {{analogs.US10Y.responses.SPY.max_adverse_20d.p10}}%. 2008-01-17·2022-11-11은 완화 기대가 금리를 끌어내렸지만 지금은 연준이 인상 쪽이라 다르다.",
+   "sources": [],
+   "cited_numbers": []
+  },
+  {
+   "asset": "NATGAS",
+   "body": "천연가스가 하루에 같은 방향으로 극단적으로 오른 경우(국면 조건 없음)는 {{analogs.NATGAS.n|r0}}번. 20일 뒤 {{analogs.NATGAS.forward.NATGAS.20d.pct_positive|r0}}%가 상승, 중앙값 {{analogs.NATGAS.forward.NATGAS.20d.median|+}}%지만 하위 10%는 {{analogs.NATGAS.forward.NATGAS.20d.p10}}%. 5일 대기 후 진입이 중앙값 {{analogs.NATGAS.responses.NATGAS.wait5_then_add_20d.median|+}}%로 가장 나았지만 최악은 {{analogs.NATGAS.responses.NATGAS.wait5_then_add_20d.worst}}%. 실제 한파였던 2026-01-20과 달리 이번은 만기 주간 반등이다.",
+   "sources": [],
+   "cited_numbers": []
+  }
+ ],
+ "sectors": {
+  "body": "헬스케어 {{market.XLV.chg_1d|+}}%, 필수소비재 {{market.XLP.chg_1d|+}}%(1년 분위 {{market.XLP.pctile_1y|r0}}), 부동산 {{market.XLRE.chg_1d|+}}%가 위, 기술 {{market.XLK.chg_1d}}%·산업재 {{market.XLI.chg_1d}}%가 아래. 11개 섹터 중 9곳이 올랐는데 S&P 500이 내린 것은 기술 비중 하나 때문이다. 에너지 {{market.XLE.chg_1d|+}}%는 WTI {{market.WTI.chg_1d|+}}%를 따라갔다.",
+  "cited_numbers": []
+ },
+ "watchpoints": [
+  {
+   "condition": "11월 25일 근원 PCE 뒤 5년물 4.85% 재돌파(현재 {{market.US5Y.close}}%)",
+   "implication": "5일간의 장기금리 하락이 인상 경로에 되돌려진다 — 평탄화 해석 무효"
+  },
+  {
+   "condition": "QQQ 630 하회와 동일가중 동반 하락(현재 QQQ {{market.QQQ.close}})",
+   "implication": "교체가 아니라 총노출 축소로 번진다는 신호"
+  },
+  {
+   "condition": "VIX 30 돌파(현재 {{market.VIX.close}})",
+   "implication": "방어주 피신이 지수 전체 헤지 수요로 바뀐다"
+  },
+  {
+   "condition": "은 40달러·구리 5.0달러 하회(현재 {{market.SILVER.close}} / {{market.COPPER.close}})",
+   "implication": "달러가 약해도 금속 청산이 끝나지 않았다 — 레버리지 축소가 원자재 전반으로 확산"
+  },
+  {
+   "condition": "천연가스 3.4달러 하회(현재 {{market.NATGAS.close}})",
+   "implication": "이번 급등은 만기 숏 커버였을 뿐 한파 수요는 확인되지 않았다는 뜻"
+  }
+ ],
+ "risks": [
+  "11월 25일 PCE·GDP·내구재가 하루에 몰렸다 — 근원 물가가 예상을 넘으면 장기금리 하락이 한꺼번에 되돌려진다",
+  "엔비디아 회계 조사·이사회 조사에서 새 사실이 나오면 기술주 매도가 교체가 아닌 축소로 번진다",
+  "추수감사절 휴장으로 거래가 얇아 월말 리밸런싱 수급이 가격을 과장할 수 있다"
+ ],
+ "written_at": "2026-11-24T21:44:13Z",
+ "model": "claude-opus-5-5"
+}
