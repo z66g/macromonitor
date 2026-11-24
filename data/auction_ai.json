@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-23T21:33:45Z",
+  "updated": "2026-11-24T21:34:02Z",
   "entries": {
     "91282CRW3|2026-11-09": {
       "summary": "🎯 총평: Average\n1. Tail: +0.5 bp. WI 4.622% 대비 4.627%로 소폭 tail이 나 단기물 금리에 약한 상방 압력을 남겼다.\n2. BTC: 2.53x vs 6avg 2.64x. 2025년 8월 이후 최저 응찰률로 수요가 평균을 밑돌았다.\n3. Indirect 55.5% vs 6avg 63.02%. 해외 수요는 약 15개월 만에 최저로 뚜렷이 위축됐다. PD 9.5% vs 6avg 12.2%. 직접응찰(35.0%)이 빈자리를 메워 딜러 부담은 오히려 가벼웠다.\n4. 결론: 해외 수요 공백을 국내 직접응찰이 막아낸 무난한 결과지만, 리펀딩 주간 첫 경매부터 tail이 나며 프런트엔드 금리 하락 여력이 제한됨을 보여줬다.",
@@ -67,6 +67,17 @@
         "https://www.newsquawk.com/headlines/us-sells-usd-69bln-of-2-year-notes-stop-through-03bps"
       ],
       "researched_at": "2026-11-23T21:33:45Z",
+      "model": "claude-opus-5-5"
+    },
+    "91282CRZ6|2026-11-24": {
+      "summary": "🎯 총평: Average\n1. Tail: +0.3 bp. WI 4.716%보다 0.3bp 높은 4.719%에 낙찰된 미미한 tail로, 5년 구간 금리에 의미 있는 추가 상승 압력은 주지 않았다.\n2. BTC: 2.37x vs 6avg 2.31x. 응찰률이 평균을 웃돌아 700억 달러 물량에 대한 전체 수요는 무난했다.\n3. Indirect 54.3% vs 6avg 61.92%. 해외·기관 수요가 평균보다 7%p 넘게 약했고 직접 입찰(36.7%)이 빈자리를 메웠다. PD 9.0% vs 6avg 12.6%. 딜러 인수 비중이 평균을 크게 밑돌아 재고 부담은 적다.\n4. 결론: 4.7%대 5년물이 국내 실수요로 무리 없이 소화됐지만, 2년물에 이어 이틀 연속 해외 수요가 둔화돼 7년물 경매에서 Indirect 회복 여부가 중기 금리 경로의 시험대다.",
+      "tail_bps": 0.3,
+      "wi_rate": 4.716,
+      "sources": [
+        "https://investinglive.com/news/the-us-treasury-sells-70-billion-of-5-year-notes-at-a-high-yield-of-4-719/",
+        "https://www.newsquawk.com/headlines/us-sells-usd-70bln-of-5-year-notes-tail-03bps"
+      ],
+      "researched_at": "2026-11-24T21:34:02Z",
       "model": "claude-opus-5-5"
     }
   }
