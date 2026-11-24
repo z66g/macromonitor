@@ -97,5 +97,13 @@
       "status": "ok",
       "detail": "없음"
     }
+  ],
+  "diagnosis": [
+    {
+      "check": "이벤트 결과",
+      "likely_cause": "11-18 세인트루이스 FSI만 data/econ_results_ai.json·econ_results.json 어디에도 없음 — 에이전트가 이 주간 이벤트를 조사하지 않았거나 FRED STLFSI4 미반영으로 보류됐다 사라진 것(spec·FRED_PROXY_ALLOW 설정은 정상). 미시간(11-20)은 게시되어 해소됨. 11-23 점검의 T3 broadDollar 결손도 이번 점검에서 해소(일시 FRED 오류로 확인).",
+      "suggested_fix": "claude.ai/code/routines '이벤트 결과' 실행 이력 확인 후 재실행(ops/routines/econ.md); 11-18 이벤트는 조사 창(발표 2~10일)이 11-28경 끝나므로 그 전에 처리.",
+      "confidence": "medium"
+    }
   ]
 }
