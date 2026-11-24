@@ -1,0 +1,1964 @@
+{
+ "session": "2026-11-24",
+ "session_complete": true,
+ "generated_at": "2026-11-24T21:20:27+00:00",
+ "market": {
+  "SPY": {
+   "name": "S&P 500 (SPY)",
+   "group": "equity",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 718.58,
+   "chg_1d": -0.51,
+   "chg_5d": -1.89,
+   "chg_20d": -6.64,
+   "z_1d": -0.41,
+   "z_5d": -1.09,
+   "vs_50dma_pct": -5.28,
+   "vs_200dma_pct": -1.97,
+   "pctile_1y": 44.0,
+   "high_52w": 779.09,
+   "low_52w": 631.97,
+   "stale": false
+  },
+  "QQQ": {
+   "name": "나스닥100 (QQQ)",
+   "group": "equity",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 638.1,
+   "chg_1d": -1.99,
+   "chg_5d": -2.87,
+   "chg_20d": -11.53,
+   "z_1d": -1.03,
+   "z_5d": -1.0,
+   "vs_50dma_pct": -9.93,
+   "vs_200dma_pct": -6.63,
+   "pctile_1y": 39.0,
+   "high_52w": 759.66,
+   "low_52w": 558.28,
+   "stale": false
+  },
+  "IWM": {
+   "name": "러셀2000 (IWM)",
+   "group": "equity",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 267.14,
+   "chg_1d": 0.53,
+   "chg_5d": -0.71,
+   "chg_20d": -4.65,
+   "z_1d": 0.4,
+   "z_5d": -0.31,
+   "vs_50dma_pct": -3.72,
+   "vs_200dma_pct": -4.45,
+   "pctile_1y": 38.0,
+   "high_52w": 305.09,
+   "low_52w": 239.61,
+   "stale": false
+  },
+  "RSP": {
+   "name": "S&P 동일가중 (RSP)",
+   "group": "equity",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 213.96,
+   "chg_1d": 0.54,
+   "chg_5d": -0.83,
+   "chg_20d": -1.64,
+   "z_1d": 0.57,
+   "z_5d": -0.6,
+   "vs_50dma_pct": -0.37,
+   "vs_200dma_pct": 2.21,
+   "pctile_1y": 75.0,
+   "high_52w": 223.33,
+   "low_52w": 186.53,
+   "stale": false
+  },
+  "VIX": {
+   "name": "VIX",
+   "group": "vol",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 26.33,
+   "chg_1d": -1.09,
+   "chg_5d": 3.42,
+   "chg_20d": 50.29,
+   "z_1d": -0.08,
+   "z_5d": 0.25,
+   "vs_50dma_pct": 39.99,
+   "vs_200dma_pct": 40.45,
+   "pctile_1y": 95.0,
+   "high_52w": 35.89,
+   "low_52w": 13.47,
+   "stale": false
+  },
+  "MOVE": {
+   "name": "MOVE",
+   "group": "vol",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 98.9113,
+   "chg_1d": -1.98,
+   "chg_5d": -2.91,
+   "chg_20d": -3.21,
+   "z_1d": -0.37,
+   "z_5d": -0.29,
+   "vs_50dma_pct": 1.32,
+   "vs_200dma_pct": 22.6,
+   "pctile_1y": 88.0,
+   "high_52w": 115.02,
+   "low_52w": 55.77,
+   "stale": false
+  },
+  "US3M": {
+   "name": "미 3개월 금리",
+   "group": "rates",
+   "unit": "%p→bp",
+   "date": "2026-11-24",
+   "close": 4.168,
+   "chg_1d": 2.1,
+   "chg_5d": 3.0,
+   "chg_20d": 12.8,
+   "z_1d": 0.86,
+   "z_5d": 0.63,
+   "vs_50dma_pct": 2.88,
+   "vs_200dma_pct": 11.08,
+   "pctile_1y": 100.0,
+   "high_52w": 4.168,
+   "low_52w": 3.507,
+   "stale": false
+  },
+  "US5Y": {
+   "name": "미 5년 금리",
+   "group": "rates",
+   "unit": "%p→bp",
+   "date": "2026-11-24",
+   "close": 4.712,
+   "chg_1d": -1.6,
+   "chg_5d": -18.8,
+   "chg_20d": -12.8,
+   "z_1d": -0.26,
+   "z_5d": -1.9,
+   "vs_50dma_pct": -3.54,
+   "vs_200dma_pct": 9.07,
+   "pctile_1y": 81.0,
+   "high_52w": 5.089,
+   "low_52w": 3.512,
+   "stale": false
+  },
+  "US10Y": {
+   "name": "미 10년 금리",
+   "group": "rates",
+   "unit": "%p→bp",
+   "date": "2026-11-24",
+   "close": 4.904,
+   "chg_1d": -1.4,
+   "chg_5d": -19.9,
+   "chg_20d": -8.9,
+   "z_1d": -0.25,
+   "z_5d": -2.16,
+   "vs_50dma_pct": -3.35,
+   "vs_200dma_pct": 6.38,
+   "pctile_1y": 81.0,
+   "high_52w": 5.311,
+   "low_52w": 3.962,
+   "stale": false
+  },
+  "US30Y": {
+   "name": "미 30년 금리",
+   "group": "rates",
+   "unit": "%p→bp",
+   "date": "2026-11-24",
+   "close": 5.292,
+   "chg_1d": -0.2,
+   "chg_5d": -16.6,
+   "chg_20d": -1.3,
+   "z_1d": -0.04,
+   "z_5d": -2.01,
+   "vs_50dma_pct": -2.41,
+   "vs_200dma_pct": 3.6,
+   "pctile_1y": 81.0,
+   "high_52w": 5.665,
+   "low_52w": 4.633,
+   "stale": false
+  },
+  "TLT": {
+   "name": "장기국채 (TLT)",
+   "group": "bonds",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 81.49,
+   "chg_1d": -0.24,
+   "chg_5d": 2.44,
+   "chg_20d": -0.17,
+   "z_1d": -0.35,
+   "z_5d": 1.83,
+   "vs_50dma_pct": 1.73,
+   "vs_200dma_pct": -3.06,
+   "pctile_1y": 17.0,
+   "high_52w": 90.82,
+   "low_52w": 77.11,
+   "stale": false
+  },
+  "HYG": {
+   "name": "하이일드 (HYG)",
+   "group": "credit",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 76.43,
+   "chg_1d": -0.12,
+   "chg_5d": -0.26,
+   "chg_20d": -1.51,
+   "z_1d": -0.4,
+   "z_5d": -0.52,
+   "vs_50dma_pct": -1.09,
+   "vs_200dma_pct": -3.48,
+   "pctile_1y": 1.0,
+   "high_52w": 81.18,
+   "low_52w": 76.33,
+   "stale": false
+  },
+  "LQD": {
+   "name": "투자등급 (LQD)",
+   "group": "credit",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 103.79,
+   "chg_1d": -0.13,
+   "chg_5d": 1.02,
+   "chg_20d": -0.49,
+   "z_1d": -0.32,
+   "z_5d": 1.35,
+   "vs_50dma_pct": 0.33,
+   "vs_200dma_pct": -3.09,
+   "pctile_1y": 12.0,
+   "high_52w": 112.05,
+   "low_52w": 101.83,
+   "stale": false
+  },
+  "DXY": {
+   "name": "달러인덱스",
+   "group": "fx",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 103.821,
+   "chg_1d": -0.48,
+   "chg_5d": 0.32,
+   "chg_20d": 1.47,
+   "z_1d": -1.54,
+   "z_5d": 0.41,
+   "vs_50dma_pct": 1.72,
+   "vs_200dma_pct": 3.74,
+   "pctile_1y": 99.0,
+   "high_52w": 104.32,
+   "low_52w": 96.22,
+   "stale": false
+  },
+  "USDJPY": {
+   "name": "달러/엔",
+   "group": "fx",
+   "unit": "%",
+   "date": "2026-11-23",
+   "close": 159.224,
+   "chg_1d": 0.18,
+   "chg_5d": -0.19,
+   "chg_20d": 1.08,
+   "z_1d": 0.38,
+   "z_5d": -0.17,
+   "vs_50dma_pct": 0.74,
+   "vs_200dma_pct": 0.21,
+   "pctile_1y": 67.0,
+   "high_52w": 163.864,
+   "low_52w": 152.453,
+   "stale": true
+  },
+  "GOLD": {
+   "name": "금",
+   "group": "commodity",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 3548.5,
+   "chg_1d": -2.82,
+   "chg_5d": -8.17,
+   "chg_20d": -12.91,
+   "z_1d": -1.84,
+   "z_5d": -2.15,
+   "vs_50dma_pct": -13.05,
+   "vs_200dma_pct": -19.91,
+   "pctile_1y": 1.0,
+   "high_52w": 5318.3999,
+   "low_52w": 3515.3999,
+   "stale": false
+  },
+  "SILVER": {
+   "name": "은",
+   "group": "commodity",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 40.555,
+   "chg_1d": -6.01,
+   "chg_5d": -14.24,
+   "chg_20d": -25.3,
+   "z_1d": -2.3,
+   "z_5d": -1.61,
+   "vs_50dma_pct": -26.96,
+   "vs_200dma_pct": -39.59,
+   "pctile_1y": 0.0,
+   "high_52w": 115.08,
+   "low_52w": 40.555,
+   "stale": false
+  },
+  "WTI": {
+   "name": "WTI 원유",
+   "group": "commodity",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 81.47,
+   "chg_1d": 1.62,
+   "chg_5d": -5.28,
+   "chg_20d": -18.45,
+   "z_1d": 0.56,
+   "z_5d": -0.65,
+   "vs_50dma_pct": -12.62,
+   "vs_200dma_pct": -7.9,
+   "pctile_1y": 40.0,
+   "high_52w": 112.95,
+   "low_52w": 55.27,
+   "stale": false
+  },
+  "COPPER": {
+   "name": "구리",
+   "group": "commodity",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 5.4835,
+   "chg_1d": -2.55,
+   "chg_5d": -8.24,
+   "chg_20d": -17.19,
+   "z_1d": -1.6,
+   "z_5d": -2.49,
+   "vs_50dma_pct": -14.27,
+   "vs_200dma_pct": -11.85,
+   "pctile_1y": 12.0,
+   "high_52w": 6.8035,
+   "low_52w": 4.962,
+   "stale": false
+  },
+  "NATGAS": {
+   "name": "천연가스",
+   "group": "commodity",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 3.687,
+   "chg_1d": 15.8,
+   "chg_5d": 14.93,
+   "chg_20d": 36.71,
+   "z_1d": 4.92,
+   "z_5d": 1.0,
+   "vs_50dma_pct": 20.29,
+   "vs_200dma_pct": 24.24,
+   "pctile_1y": 87.0,
+   "high_52w": 7.46,
+   "low_52w": 2.523,
+   "stale": false
+  },
+  "BTC": {
+   "name": "비트코인",
+   "group": "crypto",
+   "unit": "%",
+   "date": "2026-11-23",
+   "close": 59830.0703,
+   "chg_1d": -2.26,
+   "chg_5d": -3.35,
+   "chg_20d": -25.59,
+   "z_1d": -1.15,
+   "z_5d": -0.66,
+   "vs_50dma_pct": -20.9,
+   "vs_200dma_pct": -17.05,
+   "pctile_1y": 2.0,
+   "high_52w": 86602.9141,
+   "low_52w": 58558.8594,
+   "stale": false
+  },
+  "XLK": {
+   "name": "기술",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 157.09,
+   "chg_1d": -3.26,
+   "chg_5d": -3.78,
+   "chg_20d": -17.1,
+   "z_1d": -1.34,
+   "z_5d": -0.95,
+   "vs_50dma_pct": -14.37,
+   "vs_200dma_pct": -8.39,
+   "pctile_1y": 41.0,
+   "high_52w": 202.0,
+   "low_52w": 127.5,
+   "stale": false
+  },
+  "XLF": {
+   "name": "금융",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 56.11,
+   "chg_1d": 0.83,
+   "chg_5d": -1.68,
+   "chg_20d": 0.41,
+   "z_1d": 0.74,
+   "z_5d": -0.91,
+   "vs_50dma_pct": 0.5,
+   "vs_200dma_pct": 3.84,
+   "pctile_1y": 76.0,
+   "high_52w": 59.2,
+   "low_52w": 47.81,
+   "stale": false
+  },
+  "XLE": {
+   "name": "에너지",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 60.43,
+   "chg_1d": 0.94,
+   "chg_5d": -4.62,
+   "chg_20d": -11.41,
+   "z_1d": 0.59,
+   "z_5d": -1.36,
+   "vs_50dma_pct": -6.3,
+   "vs_200dma_pct": 1.05,
+   "pctile_1y": 68.0,
+   "high_52w": 70.02,
+   "low_52w": 43.81,
+   "stale": false
+  },
+  "XLV": {
+   "name": "헬스케어",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 184.74,
+   "chg_1d": 2.97,
+   "chg_5d": -0.27,
+   "chg_20d": 3.1,
+   "z_1d": 2.55,
+   "z_5d": -0.12,
+   "vs_50dma_pct": 4.33,
+   "vs_200dma_pct": 14.66,
+   "pctile_1y": 96.0,
+   "high_52w": 189.66,
+   "low_52w": 142.84,
+   "stale": false
+  },
+  "XLY": {
+   "name": "임의소비재",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 117.72,
+   "chg_1d": 0.68,
+   "chg_5d": 0.53,
+   "chg_20d": 1.97,
+   "z_1d": 0.47,
+   "z_5d": 0.21,
+   "vs_50dma_pct": 2.92,
+   "vs_200dma_pct": 2.06,
+   "pctile_1y": 60.0,
+   "high_52w": 124.52,
+   "low_52w": 105.66,
+   "stale": false
+  },
+  "XLP": {
+   "name": "필수소비재",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 91.88,
+   "chg_1d": 1.66,
+   "chg_5d": 0.46,
+   "chg_20d": 5.43,
+   "z_1d": 1.49,
+   "z_5d": 0.21,
+   "vs_50dma_pct": 6.0,
+   "vs_200dma_pct": 8.02,
+   "pctile_1y": 99.0,
+   "high_52w": 92.6,
+   "low_52w": 76.62,
+   "stale": false
+  },
+  "XLI": {
+   "name": "산업재",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 161.61,
+   "chg_1d": -0.53,
+   "chg_5d": -1.91,
+   "chg_20d": -3.76,
+   "z_1d": -0.4,
+   "z_5d": -0.91,
+   "vs_50dma_pct": -3.59,
+   "vs_200dma_pct": -6.7,
+   "pctile_1y": 14.0,
+   "high_52w": 186.51,
+   "low_52w": 150.0,
+   "stale": false
+  },
+  "XLB": {
+   "name": "소재",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 50.17,
+   "chg_1d": 0.54,
+   "chg_5d": -1.32,
+   "chg_20d": -3.11,
+   "z_1d": 0.46,
+   "z_5d": -0.55,
+   "vs_50dma_pct": -1.17,
+   "vs_200dma_pct": -2.04,
+   "pctile_1y": 38.0,
+   "high_52w": 53.9,
+   "low_52w": 43.26,
+   "stale": false
+  },
+  "XLU": {
+   "name": "유틸리티",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 43.4,
+   "chg_1d": 0.18,
+   "chg_5d": -0.05,
+   "chg_20d": 1.28,
+   "z_1d": 0.19,
+   "z_5d": -0.02,
+   "vs_50dma_pct": 3.3,
+   "vs_200dma_pct": -2.11,
+   "pctile_1y": 38.0,
+   "high_52w": 47.73,
+   "low_52w": 39.25,
+   "stale": false
+  },
+  "XLRE": {
+   "name": "부동산",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 43.46,
+   "chg_1d": 1.31,
+   "chg_5d": -0.3,
+   "chg_20d": 2.4,
+   "z_1d": 1.31,
+   "z_5d": -0.15,
+   "vs_50dma_pct": 2.07,
+   "vs_200dma_pct": -0.21,
+   "pctile_1y": 52.0,
+   "high_52w": 46.01,
+   "low_52w": 40.01,
+   "stale": false
+  },
+  "XLC": {
+   "name": "통신",
+   "group": "sector",
+   "unit": "%",
+   "date": "2026-11-24",
+   "close": 104.45,
+   "chg_1d": 0.82,
+   "chg_5d": -0.77,
+   "chg_20d": 0.84,
+   "z_1d": 0.58,
+   "z_5d": -0.33,
+   "vs_50dma_pct": -3.47,
+   "vs_200dma_pct": -6.65,
+   "pctile_1y": 5.0,
+   "high_52w": 120.08,
+   "low_52w": 99.9,
+   "stale": false
+  }
+ },
+ "sector_rank": [
+  {
+   "key": "XLV",
+   "name": "헬스케어",
+   "chg_1d": 2.97
+  },
+  {
+   "key": "XLP",
+   "name": "필수소비재",
+   "chg_1d": 1.66
+  },
+  {
+   "key": "XLRE",
+   "name": "부동산",
+   "chg_1d": 1.31
+  },
+  {
+   "key": "XLE",
+   "name": "에너지",
+   "chg_1d": 0.94
+  },
+  {
+   "key": "XLF",
+   "name": "금융",
+   "chg_1d": 0.83
+  },
+  {
+   "key": "XLC",
+   "name": "통신",
+   "chg_1d": 0.82
+  },
+  {
+   "key": "XLY",
+   "name": "임의소비재",
+   "chg_1d": 0.68
+  },
+  {
+   "key": "XLB",
+   "name": "소재",
+   "chg_1d": 0.54
+  },
+  {
+   "key": "XLU",
+   "name": "유틸리티",
+   "chg_1d": 0.18
+  },
+  {
+   "key": "XLI",
+   "name": "산업재",
+   "chg_1d": -0.53
+  },
+  {
+   "key": "XLK",
+   "name": "기술",
+   "chg_1d": -3.26
+  }
+ ],
+ "rates": {
+  "dgs2": {
+   "date": "2026-11-20",
+   "value": 4.63,
+   "chg_1d_bp": -13.0,
+   "chg_5d_bp": -25.0
+  },
+  "dgs10": {
+   "date": "2026-11-20",
+   "value": 4.92,
+   "chg_1d_bp": -12.0,
+   "chg_5d_bp": -23.0
+  },
+  "dgs30": {
+   "date": "2026-11-20",
+   "value": 5.31,
+   "chg_1d_bp": -9.0,
+   "chg_5d_bp": -16.0
+  },
+  "s2s10_bp": 29.0
+ },
+ "plumbing": {
+  "net_liquidity_b": 5824.57,
+  "nl_4w_avg_b": 5749.38,
+  "nl_regime": "risk_on",
+  "nl_asof": "2026-11-24",
+  "tga_b": 880.8,
+  "reserves_credit_b": 6705.67,
+  "on_rrp_b": 0.301,
+  "on_rrp_5d_chg_b": -0.03,
+  "repo_regime": "divergence",
+  "sofr": {
+   "date": "2026-11-23",
+   "rate": 3.92,
+   "chg_bp": 0.0,
+   "volume_b": 3173
+  },
+  "iorb": 3.9,
+  "sofr_minus_iorb_bp": 2.0,
+  "srf": {
+   "date": "2026-11-24",
+   "accepted_b": 0.0
+  },
+  "ig_oas": {
+   "current": 0.97,
+   "prev": 0.98,
+   "delta": -0.01,
+   "asOf": "2026-11-23",
+   "label": "IG 회사채 OAS (BAMLC0A0CM)",
+   "freq": "일별"
+  },
+  "ccc_oas": {
+   "current": 13.87,
+   "prev": 14.02,
+   "delta": -0.15,
+   "asOf": "2026-11-23",
+   "label": "CCC 이하 HY OAS (BAMLH0A3HYC)",
+   "freq": "일별"
+  },
+  "stlfsi": -0.8655,
+  "nfci": -0.478,
+  "tga_daily": {
+   "date": "2026-11-20",
+   "value_b": 880.8,
+   "chg_1d_b": -10.4,
+   "chg_5d_b": -43.8
+  }
+ },
+ "events": {
+  "econ_results": [],
+  "auctions": [
+   {
+    "term": "5-Year",
+    "type": "Note",
+    "high_yield": 4.719,
+    "btc": 2.37,
+    "btc_avg6": 2.31,
+    "tail_bps": null,
+    "grade": null,
+    "summary": null
+   }
+  ],
+  "upcoming_7d": [
+   {
+    "date": "2026-11-25",
+    "name": "GDP 성장률",
+    "imp": "high",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-25",
+    "name": "내구재 주문",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-25",
+    "name": "주택착공",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-25",
+    "name": "개인소비지출 (PCE · Core PCE)",
+    "imp": "high",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-25",
+    "name": "세인트루이스 FSI",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-26",
+    "name": "실업수당 청구 (신규·연속) 주간 발표",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-30",
+    "name": "월말 기관 리밸런싱 구간",
+    "imp": "medium",
+    "estimated": true
+   },
+   {
+    "date": "2026-12-01",
+    "name": "구인이직보고서 (JOLTS)",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-12-01",
+    "name": "ISM 제조업 PMI",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-12-02",
+    "name": "세인트루이스 FSI",
+    "imp": "medium",
+    "estimated": false
+   }
+  ]
+ },
+ "news_headlines": [
+  {
+   "time": "2026-11-24T20:30+00:00",
+   "title": "Bianco: Refinery Damage, De-Globalization Mean Inflation Here To Stay",
+   "title_ko": null,
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/markets/bianco-refinery-damage-de-globalization-mean-inflation-here-stay"
+  },
+  {
+   "time": "2026-11-24T20:15+00:00",
+   "title": "\"This System Has Been Fragile\": Thanksgiving Flyers Head Into Storms On Both Coasts",
+   "title_ko": null,
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/technology/system-has-been-fragile-thanksgiving-flyers-head-storms-both-coasts"
+  },
+  {
+   "time": "2026-11-24T20:00+00:00",
+   "title": "Larry Fink Plots His Next Major Move Beyond BlackRock: Report",
+   "title_ko": null,
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/economics/larry-fink-plots-his-next-major-move-beyond-blackrock-report"
+  },
+  {
+   "time": "2026-11-24T19:47+00:00",
+   "title": "Tesla-SpaceX Merger Could Be Announced As Soon As Early 2027, RBC Says",
+   "title_ko": "테슬라-스페이스X 3조 5천억 달러 규모 메가 합병 협상 주역 5인 공개",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/markets/meet-five-insiders-negotiating-35-trillion-tesla-spacex-mega-merger-deal"
+  },
+  {
+   "time": "2026-11-24T19:45+00:00",
+   "title": "Iraq Refuses To Accept OPEC+ Assessment Of Its Production Capacity",
+   "title_ko": null,
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/energy/iraq-refuses-accept-opec-assessment-its-production-capacity"
+  },
+  {
+   "time": "2026-11-24T19:15+00:00",
+   "title": "\"There Is Always Someone Crazier Than You\": Michigan Student Paper Rationalizes Campus Assault",
+   "title_ko": "미시간대 학생 신문, 캠퍼스 폭행 합리화 논란",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/political/there-always-someone-crazier-you-michigan-student-paper-rationalizes-campus-assault"
+  },
+  {
+   "time": "2026-11-24T19:00+00:00",
+   "title": "Follow The Money: Major Anthropic Backer Bankrolled Podcast Peddling 'Cold War Spy Scandal' Huang Hysteria",
+   "title_ko": "앤트로픽 주요 후원자, '냉전 스파이 스캔들' 젠슨 황 히스테리 조장 팟캐스트 지원",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/ai/follow-money-major-anthropic-backer-bankrolled-podcast-peddling-cold-war-spy-scandal-huang"
+  },
+  {
+   "time": "2026-11-24T18:45+00:00",
+   "title": "Pension Goes Full CDO: New York's Giant Retirement Fund Bundles Blue Owl, Blackstone Fund Stakes Into $4BN CFO",
+   "title_ko": "뉴욕 거대 연기금, 블루 아울·블랙스톤 지분 40억 달러 규모 CFO로 유동화",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/markets/pension-goes-full-cdo-new-yorks-giant-reitrement-fund-bundles-blue-owl-blackstone-fund"
+  },
+  {
+   "time": "2026-11-24T18:30+00:00",
+   "title": "Israel's Architect Of Covert Action In Iran Says Third Round Of War 'Inevitable'",
+   "title_ko": "이스라엘 전 모사드 국장, 이란과의 3차 전쟁 '불가피' 경고",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/geopolitical/israels-architect-covert-action-iran-says-third-round-war-inevitable"
+  },
+  {
+   "time": "2026-11-24T18:22+00:00",
+   "title": "Ugly 5Y Auction: Foreign Demand Slides Resulting In 13th Consecutive Tail, Record Directs",
+   "title_ko": "미국 5년물 국채 입찰 부진: 외국인 수요 감소, 13회 연속 테일 발생",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/markets/ugly-5y-auction-foreign-demand-slides-resulting-13th-consecutive-tail-record-directs"
+  },
+  {
+   "time": "2026-11-24T18:18+00:00",
+   "title": "How brewers can protect beers from smoke-tainted hops",
+   "title_ko": "양조업계, 훈연 오염 홉으로부터 맥주 보호 방안 연구",
+   "source": "Ars Technica Science",
+   "link": "https://arstechnica.com/science/2026/11/how-brewers-can-protect-beers-from-smoke-tainted-hops/"
+  },
+  {
+   "time": "2026-11-24T17:50+00:00",
+   "title": "Utah moves to drop criminal pursuit of Kalshi after the firm halted services there",
+   "title_ko": "유타주, 칼시 서비스 중단 후 형사 고발 철회 움직임",
+   "source": "CoinDesk",
+   "link": "https://www.coindesk.com/policy/2026/11/24/utah-moves-to-drop-criminal-pursuit-of-kalshi-after-the-firm-halted-services-there"
+  },
+  {
+   "time": "2026-11-24T17:45+00:00",
+   "title": "White House Debating Another Assassination Campaign Inside Iran",
+   "title_ko": "백악관, 이란 내부 추가 암살 작전 논의",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/geopolitical/white-house-debating-another-assassination-campaign-inside-iran"
+  },
+  {
+   "time": "2026-11-24T17:30+00:00",
+   "title": "This Red State Is Wooing Conservatives Terrified That Texas Is Becoming The Next California",
+   "title_ko": "텍사스의 캘리포니아화 우려 보수층, 오클라호마로 유인 전략",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/political/red-state-wooing-conservatives-terrified-texas-becoming-next-california"
+  },
+  {
+   "time": "2026-11-24T17:26+00:00",
+   "title": "FirstEnergy utilities get approval for $2.5B gas plant in West Virginia",
+   "title_ko": "FirstEnergy 자회사, 웨스트버지니아 25억 달러 규모 가스 발전소 건설 승인",
+   "source": "Utility Dive",
+   "link": "https://www.utilitydive.com/news/firstenergy-utilities-get-approval-for-25b-gas-plant-in-west-virginia/875646/"
+  },
+  {
+   "time": "2026-11-24T17:15+00:00",
+   "title": "\"Shoot Trump, Be A Hero\": Feds Reveal The Stickers That Got A Venezuelan Anti-ICE Activist Arrested In Utah",
+   "title_ko": "연방 당국, 트럼프 암살 선동 스티커로 베네수엘라 반(反)ICE 활동가 체포",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/markets/shoot-trump-be-hero-feds-reveal-stickers-got-venezuelan-anti-ice-activist-arrested-utah"
+  },
+  {
+   "time": "2026-11-24T16:45+00:00",
+   "title": "Nearly A Dozen Injured After Houthi Missile Strikes Tallest Tower In Saudi Capital",
+   "title_ko": "후티 반군 미사일, 사우디 수도 최고층 빌딩 타격…10여 명 부상",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/geopolitical/nearly-dozen-injured-after-houthi-missile-strikes-tallest-tower-saudi-capital"
+  },
+  {
+   "time": "2026-11-24T16:30+00:00",
+   "title": "Anthropic, OpenAI Insiders Insist They've Built Something So Dangerous They Can't Control It... And Want Everyone Leashed",
+   "title_ko": "앤트로픽·오픈AI 내부자들, \"통제 불가능한 위험한 AI 개발\" 경고…규제 촉구",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/markets/anthropic-and-openai-insiders-insist-theyve-built-something-so-dangerous-they-cant-control"
+  },
+  {
+   "time": "2026-11-24T16:15+00:00",
+   "title": "Third Deputy Out: After Bongino And Bailey, FBI No. 2 Raia To Retire Days After Patel Skips Hearing",
+   "title_ko": "FBI 2인자 라이아 부국장, 파텔 청문회 불참 후 사임 예정…세 번째 고위직 이탈",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/political/third-deputy-out-after-bongino-and-bailey-fbi-no-2-raia-retire-days-after-patel-skips"
+  },
+  {
+   "time": "2026-11-24T16:11+00:00",
+   "title": "TVA touts $1.7B data center deal under new large-load tariff",
+   "title_ko": "TVA, 신규 대규모 부하 요금제 적용 17억 달러 데이터센터 계약 체결",
+   "source": "Utility Dive",
+   "link": "https://www.utilitydive.com/news/tva-touts-17b-data-center-deal-under-new-large-load-tariff/875630/"
+  },
+  {
+   "time": "2026-11-24T16:03+00:00",
+   "title": "FERC must take action to protect ratepayers from higher transmission costs in SPP",
+   "title_ko": "SPP 송전 비용 상승, FERC의 소비자 보호 조치 필요",
+   "source": "Utility Dive",
+   "link": "https://www.utilitydive.com/news/spp-decision-to-prevent-transmission-competition-escalates-electric-prices/874143/"
+  },
+  {
+   "time": "2026-11-24T16:01+00:00",
+   "title": "Homo erectus lived in the rainforest alongside Denisovans",
+   "title_ko": "호모 에렉투스, 데니소바인과 열대우림서 공존",
+   "source": "Ars Technica Science",
+   "link": "https://arstechnica.com/science/2026/11/homo-erectus-lived-in-the-rainforest-alongside-denisovans/"
+  },
+  {
+   "time": "2026-11-24T16:00+00:00",
+   "title": "'AI trade never died': Traders see room for market recovery, but bitcoin's participation is another story",
+   "title_ko": "“AI 랠리 여전히 유효” 시장 회복 기대감, 비트코인 동참은 미지수",
+   "source": "CoinDesk",
+   "link": "https://www.coindesk.com/markets/2026/11/24/ai-trade-never-died-traders-see-room-for-market-recovery-despite-bitcoin-s-weakness"
+  },
+  {
+   "time": "2026-11-24T16:00+00:00",
+   "title": "Nvidiaaargh! > Nvidiaaah?",
+   "title_ko": "엔비디아 주가, 극심한 변동성 속 향방은?",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/markets/nvidiaaargh-nvidiaaah"
+  },
+  {
+   "time": "2026-11-24T15:54+00:00",
+   "title": "Midterms provide clarity on data center development: Vistra CEO",
+   "title_ko": "비스트라 CEO \"중간선거, 데이터센터 개발 명확성 제공\"",
+   "source": "Utility Dive",
+   "link": "https://www.utilitydive.com/news/vistra-midterms-data-center-ercot-pjm/875626/"
+  },
+  {
+   "time": "2026-11-24T15:50+00:00",
+   "title": "\"Lock And Load\" On Gold & Commodities When Fed Pivots, Jeff Currie Says. Until Then, More Pain Ahead...",
+   "title_ko": "연준 피벗 시 금·원자재 '매수' 기회…그 전까지는 추가 하락 전망",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/commodities/lock-and-load-gold-and-commodities-when-fed-pivots-jeff-currie-says-until-then-more"
+  },
+  {
+   "time": "2026-11-24T15:35+00:00",
+   "title": "No Smoking Gun: WSJ Abruptly Walks Back The Alice Huang Spy Story",
+   "title_ko": "WSJ, 앨리스 황 스파이 스토리 보도 철회…결정적 증거 부재",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/ai/no-smoking-gun-wsj-abruptly-walks-back-alice-huang-spy-story"
+  },
+  {
+   "time": "2026-11-24T15:25+00:00",
+   "title": "3 Young Women May Have Died From COVID-19 Vaccines, FDA Investigation Finds",
+   "title_ko": "FDA 조사 결과, 젊은 여성 3명 코로나19 백신 접종 후 사망 가능성 제기",
+   "source": "ZeroHedge",
+   "link": "https://www.zerohedge.com/covid-19/3-young-women-may-have-died-covid-19-vaccines-fda-investigation-finds"
+  },
+  {
+   "time": "2026-11-24T15:06+00:00",
+   "title": "Anchorage Digital to unveil new asset-management subsidiary",
+   "title_ko": "앵커리지 디지털, 자산운용 자회사 신설 발표",
+   "source": "CoinDesk",
+   "link": "https://www.coindesk.com/business/2026/11/24/anchorage-digital-to-unveil-new-asset-management-subsidiary"
+  },
+  {
+   "time": "2026-11-24T14:40+00:00",
+   "title": "South Korea proposes ending 2017 ICO ban to boost jobs and onshore crypto investment",
+   "title_ko": "한국, 일자리 창출 및 국내 암호화폐 투자 활성화 위해 2017년 ICO 금지 해제 제안",
+   "source": "CoinDesk",
+   "link": "https://www.coindesk.com/policy/2026/11/24/south-korea-proposes-ending-2017-ico-ban-to-boost-jobs-and-onshore-crypto-investment"
+  }
+ ],
+ "anomalies": [
+  {
+   "kind": "move",
+   "key": "NATGAS",
+   "score": 4.92,
+   "text": "천연가스 +15.8% (60일 변동성 대비 +4.9σ)",
+   "z": 4.92
+  },
+  {
+   "kind": "move",
+   "key": "XLV",
+   "score": 2.55,
+   "text": "헬스케어 +2.97% (60일 변동성 대비 +2.5σ)",
+   "z": 2.55
+  },
+  {
+   "kind": "plumbing",
+   "key": "SOFR-IORB",
+   "score": 2.5,
+   "text": "SOFR가 IORB 위 2.0bp — 단기자금 압박"
+  },
+  {
+   "kind": "move",
+   "key": "SILVER",
+   "score": 2.3,
+   "text": "은 -6.01% (60일 변동성 대비 -2.3σ)",
+   "z": -2.3
+  },
+  {
+   "kind": "move5",
+   "key": "COPPER",
+   "score": 2.24,
+   "text": "구리 5일 누적 -8.24% (5일 변동 분포 대비 -2.5σ)",
+   "z": -2.49
+  },
+  {
+   "kind": "divergence",
+   "key": "QQQ/RSP",
+   "score": 2.14,
+   "text": "나스닥100 (QQQ) vs 동일가중(RSP) 격차 -2.53%p — 대형 기술주 이탈, 폭은 유지"
+  },
+  {
+   "kind": "move5",
+   "key": "US10Y",
+   "score": 1.94,
+   "text": "미 10년 금리 5일 누적 -19.9bp (5일 변동 분포 대비 -2.2σ)",
+   "z": -2.16
+  },
+  {
+   "kind": "move5",
+   "key": "GOLD",
+   "score": 1.94,
+   "text": "금 5일 누적 -8.17% (5일 변동 분포 대비 -2.1σ)",
+   "z": -2.15
+  },
+  {
+   "kind": "move5",
+   "key": "US30Y",
+   "score": 1.81,
+   "text": "미 30년 금리 5일 누적 -16.6bp (5일 변동 분포 대비 -2.0σ)",
+   "z": -2.01
+  },
+  {
+   "kind": "level",
+   "key": "MOVE",
+   "score": 1.8,
+   "text": "MOVE 100 하향 돌파 (100.91→98.91)",
+   "level": 100,
+   "dir": "down"
+  }
+ ],
+ "analogs": [
+  {
+   "asset": "NATGAS",
+   "trigger": "천연가스 +15.8% (60일 변동성 대비 +4.9σ)",
+   "condition": "같은 방향 1일 변동 +3.9σ 이상",
+   "regime_filter": "국면 조건 없음 (표본 부족)",
+   "n": 21,
+   "period": "2009-03-19 ~ 2026-09-24",
+   "forward": {
+    "NATGAS": {
+     "1d": {
+      "n": 21,
+      "median": -0.34,
+      "mean": -0.05,
+      "pct_positive": 48.0,
+      "p10": -6.46,
+      "worst": -25.95,
+      "best": 24.78
+     },
+     "5d": {
+      "n": 21,
+      "median": 1.05,
+      "mean": 3.39,
+      "pct_positive": 57.0,
+      "p10": -10.89,
+      "worst": -21.98,
+      "best": 77.99
+     },
+     "20d": {
+      "n": 21,
+      "median": 5.36,
+      "mean": 5.04,
+      "pct_positive": 67.0,
+      "p10": -22.93,
+      "worst": -28.65,
+      "best": 27.59
+     },
+     "60d": {
+      "n": 20,
+      "median": 7.83,
+      "mean": 7.94,
+      "pct_positive": 70.0,
+      "p10": -32.25,
+      "worst": -33.6,
+      "best": 88.57
+     }
+    }
+   },
+   "responses": {
+    "NATGAS": {
+     "hold_20d": {
+      "n": 21,
+      "median": 5.36,
+      "mean": 5.04,
+      "pct_positive": 67.0,
+      "p10": -22.93,
+      "worst": -28.65,
+      "best": 27.59
+     },
+     "sell_next_day_avoided": {
+      "n": 21,
+      "median": -8.94,
+      "mean": -5.52,
+      "pct_positive": 33.0,
+      "p10": -25.37,
+      "worst": -30.09,
+      "best": 38.24
+     },
+     "add_next_day_20d": {
+      "n": 21,
+      "median": 8.94,
+      "mean": 5.52,
+      "pct_positive": 67.0,
+      "p10": -14.49,
+      "worst": -38.24,
+      "best": 30.09
+     },
+     "wait5_then_add_20d": {
+      "n": 21,
+      "median": 9.19,
+      "mean": 4.38,
+      "pct_positive": 62.0,
+      "p10": -16.47,
+      "worst": -57.31,
+      "best": 31.37
+     },
+     "max_adverse_20d": {
+      "n": 21,
+      "median": -6.4,
+      "mean": -8.8,
+      "pct_positive": 14.0,
+      "p10": -22.93,
+      "worst": -37.09,
+      "best": 4.25
+     },
+     "best_by_median": "wait5_then_add_20d"
+    }
+   },
+   "closest": [
+    {
+     "date": "2012-06-14",
+     "z": 4.76,
+     "move_1d": 14.19,
+     "spy_5d": -0.77,
+     "spy_20d": 1.71,
+     "vix_level": 21.68
+    },
+    {
+     "date": "2015-10-29",
+     "z": 5.16,
+     "move_1d": 11.02,
+     "spy_5d": 0.63,
+     "spy_20d": 0.35,
+     "vix_level": 14.61
+    },
+    {
+     "date": "2018-11-05",
+     "z": 5.03,
+     "move_1d": 8.62,
+     "spy_5d": -0.3,
+     "spy_20d": -1.15,
+     "vix_level": 19.96
+    },
+    {
+     "date": "2020-09-29",
+     "z": 4.7,
+     "move_1d": 21.89,
+     "spy_5d": 0.77,
+     "spy_20d": 1.76,
+     "vix_level": 26.27
+    },
+    {
+     "date": "2025-10-30",
+     "z": 4.72,
+     "move_1d": 17.18,
+     "spy_5d": -1.4,
+     "spy_20d": 0.52,
+     "vix_level": 16.91
+    },
+    {
+     "date": "2026-01-20",
+     "z": 5.16,
+     "move_1d": 25.91,
+     "spy_5d": 2.64,
+     "spy_20d": 1.29,
+     "vix_level": 20.09
+    }
+   ]
+  },
+  {
+   "asset": "SILVER",
+   "trigger": "은 -6.01% (60일 변동성 대비 -2.3σ)",
+   "condition": "같은 방향 1일 변동 -2.0σ 이상",
+   "regime_filter": "S&P 500 200일선 아래 국면만",
+   "n": 22,
+   "period": "2007-11-12 ~ 2025-04-03",
+   "forward": {
+    "SILVER": {
+     "1d": {
+      "n": 22,
+      "median": -0.69,
+      "mean": -1.21,
+      "pct_positive": 41.0,
+      "p10": -8.64,
+      "worst": -17.75,
+      "best": 12.97
+     },
+     "5d": {
+      "n": 22,
+      "median": 0.92,
+      "mean": 0.45,
+      "pct_positive": 55.0,
+      "p10": -16.35,
+      "worst": -16.6,
+      "best": 12.33
+     },
+     "20d": {
+      "n": 22,
+      "median": 1.89,
+      "mean": 0.5,
+      "pct_positive": 59.0,
+      "p10": -17.17,
+      "worst": -21.65,
+      "best": 25.84
+     },
+     "60d": {
+      "n": 22,
+      "median": -2.09,
+      "mean": 0.1,
+      "pct_positive": 45.0,
+      "p10": -19.57,
+      "worst": -36.29,
+      "best": 39.18
+     }
+    },
+    "GOLD": {
+     "1d": {
+      "n": 22,
+      "median": -0.44,
+      "mean": -0.41,
+      "pct_positive": 36.0,
+      "p10": -4.23,
+      "worst": -5.85,
+      "best": 7.83
+     },
+     "5d": {
+      "n": 22,
+      "median": 0.49,
+      "mean": 0.86,
+      "pct_positive": 59.0,
+      "p10": -7.11,
+      "worst": -8.37,
+      "best": 11.7
+     },
+     "20d": {
+      "n": 22,
+      "median": 0.23,
+      "mean": 1.98,
+      "pct_positive": 50.0,
+      "p10": -7.32,
+      "worst": -12.13,
+      "best": 19.16
+     },
+     "60d": {
+      "n": 22,
+      "median": 3.01,
+      "mean": 1.73,
+      "pct_positive": 59.0,
+      "p10": -9.18,
+      "worst": -15.43,
+      "best": 16.99
+     }
+    }
+   },
+   "responses": {
+    "SILVER": {
+     "hold_20d": {
+      "n": 22,
+      "median": 1.89,
+      "mean": 0.5,
+      "pct_positive": 59.0,
+      "p10": -17.17,
+      "worst": -21.65,
+      "best": 25.84
+     },
+     "sell_next_day_avoided": {
+      "n": 22,
+      "median": -1.7,
+      "mean": -1.92,
+      "pct_positive": 27.0,
+      "p10": -11.7,
+      "worst": -28.9,
+      "best": 17.85
+     },
+     "add_next_day_20d": {
+      "n": 22,
+      "median": 1.7,
+      "mean": 1.92,
+      "pct_positive": 73.0,
+      "p10": -13.18,
+      "worst": -17.85,
+      "best": 28.9
+     },
+     "wait5_then_add_20d": {
+      "n": 22,
+      "median": 0.58,
+      "mean": -0.55,
+      "pct_positive": 50.0,
+      "p10": -16.14,
+      "worst": -26.92,
+      "best": 15.23
+     },
+     "max_adverse_20d": {
+      "n": 22,
+      "median": -5.1,
+      "mean": -7.35,
+      "pct_positive": 9.0,
+      "p10": -21.65,
+      "worst": -28.39,
+      "best": 1.3
+     },
+     "best_by_median": "hold_20d"
+    },
+    "GOLD": {
+     "hold_20d": {
+      "n": 22,
+      "median": 0.23,
+      "mean": 1.98,
+      "pct_positive": 50.0,
+      "p10": -7.32,
+      "worst": -12.13,
+      "best": 19.16
+     },
+     "sell_next_day_avoided": {
+      "n": 22,
+      "median": -1.88,
+      "mean": -2.42,
+      "pct_positive": 41.0,
+      "p10": -15.2,
+      "worst": -21.83,
+      "best": 11.06
+     },
+     "add_next_day_20d": {
+      "n": 22,
+      "median": 1.88,
+      "mean": 2.42,
+      "pct_positive": 59.0,
+      "p10": -8.24,
+      "worst": -11.06,
+      "best": 21.83
+     },
+     "wait5_then_add_20d": {
+      "n": 22,
+      "median": 1.59,
+      "mean": 1.06,
+      "pct_positive": 50.0,
+      "p10": -11.65,
+      "worst": -17.2,
+      "best": 10.66
+     },
+     "max_adverse_20d": {
+      "n": 22,
+      "median": -3.79,
+      "mean": -3.92,
+      "pct_positive": 5.0,
+      "p10": -8.43,
+      "worst": -14.98,
+      "best": 0.89
+     },
+     "best_by_median": "add_next_day_20d"
+    }
+   },
+   "closest": [
+    {
+     "date": "2009-02-26",
+     "z": -2.36,
+     "move_1d": -6.65,
+     "spy_5d": -9.02,
+     "spy_20d": 9.9,
+     "vix_level": 44.66
+    },
+    {
+     "date": "2009-03-18",
+     "z": -2.25,
+     "move_1d": -5.79,
+     "spy_5d": 1.9,
+     "spy_20d": 8.22,
+     "vix_level": 40.06
+    },
+    {
+     "date": "2015-09-28",
+     "z": -2.32,
+     "move_1d": -3.76,
+     "spy_5d": 5.56,
+     "spy_20d": 10.1,
+     "vix_level": 27.63
+    },
+    {
+     "date": "2015-12-17",
+     "z": -2.39,
+     "move_1d": -3.76,
+     "spy_5d": 0.4,
+     "spy_20d": -8.2,
+     "vix_level": 18.94
+    },
+    {
+     "date": "2022-03-09",
+     "z": -2.3,
+     "move_1d": -4.21,
+     "spy_5d": 1.92,
+     "spy_20d": 4.47,
+     "vix_level": 32.45
+    },
+    {
+     "date": "2022-07-01",
+     "z": -2.27,
+     "move_1d": -3.38,
+     "spy_5d": 0.78,
+     "spy_20d": 7.75,
+     "vix_level": 26.7
+    }
+   ]
+  },
+  {
+   "asset": "COPPER",
+   "trigger": "구리 5일 누적 -8.24% (5일 변동 분포 대비 -2.5σ)",
+   "condition": "같은 방향 5일 누적 변동 -2.0σ 이상",
+   "regime_filter": "S&P 500 200일선 아래 국면만",
+   "n": 20,
+   "period": "2008-07-10 ~ 2025-04-04",
+   "forward": {
+    "COPPER": {
+     "1d": {
+      "n": 20,
+      "median": -0.33,
+      "mean": -1.22,
+      "pct_positive": 35.0,
+      "p10": -5.99,
+      "worst": -6.68,
+      "best": 3.95
+     },
+     "5d": {
+      "n": 20,
+      "median": -0.28,
+      "mean": -2.17,
+      "pct_positive": 50.0,
+      "p10": -14.17,
+      "worst": -14.46,
+      "best": 8.37
+     },
+     "20d": {
+      "n": 20,
+      "median": -1.27,
+      "mean": -5.25,
+      "pct_positive": 40.0,
+      "p10": -23.06,
+      "worst": -38.78,
+      "best": 11.7
+     },
+     "60d": {
+      "n": 20,
+      "median": -2.88,
+      "mean": -6.74,
+      "pct_positive": 45.0,
+      "p10": -48.66,
+      "worst": -57.05,
+      "best": 21.82
+     }
+    },
+    "SPY": {
+     "1d": {
+      "n": 20,
+      "median": -0.27,
+      "mean": -0.21,
+      "pct_positive": 45.0,
+      "p10": -5.54,
+      "worst": -6.51,
+      "best": 5.4
+     },
+     "5d": {
+      "n": 20,
+      "median": -0.19,
+      "mean": -0.47,
+      "pct_positive": 40.0,
+      "p10": -7.05,
+      "worst": -10.78,
+      "best": 5.67
+     },
+     "20d": {
+      "n": 20,
+      "median": -0.25,
+      "mean": -0.24,
+      "pct_positive": 50.0,
+      "p10": -11.32,
+      "worst": -24.63,
+      "best": 18.32
+     },
+     "60d": {
+      "n": 20,
+      "median": 0.27,
+      "mean": -0.53,
+      "pct_positive": 50.0,
+      "p10": -22.64,
+      "worst": -34.01,
+      "best": 33.0
+     }
+    }
+   },
+   "responses": {
+    "COPPER": {
+     "hold_20d": {
+      "n": 20,
+      "median": -1.27,
+      "mean": -5.25,
+      "pct_positive": 40.0,
+      "p10": -23.06,
+      "worst": -38.78,
+      "best": 11.7
+     },
+     "sell_next_day_avoided": {
+      "n": 20,
+      "median": -0.98,
+      "mean": 4.01,
+      "pct_positive": 45.0,
+      "p10": -10.43,
+      "worst": -11.66,
+      "best": 38.16
+     },
+     "add_next_day_20d": {
+      "n": 20,
+      "median": 0.98,
+      "mean": -4.01,
+      "pct_positive": 55.0,
+      "p10": -25.95,
+      "worst": -38.16,
+      "best": 11.66
+     },
+     "wait5_then_add_20d": {
+      "n": 20,
+      "median": -0.19,
+      "mean": -2.87,
+      "pct_positive": 50.0,
+      "p10": -26.62,
+      "worst": -32.8,
+      "best": 13.96
+     },
+     "max_adverse_20d": {
+      "n": 20,
+      "median": -6.83,
+      "mean": -10.32,
+      "pct_positive": 10.0,
+      "p10": -23.06,
+      "worst": -42.59,
+      "best": 1.15
+     },
+     "best_by_median": "add_next_day_20d"
+    },
+    "SPY": {
+     "hold_20d": {
+      "n": 20,
+      "median": -0.25,
+      "mean": -0.24,
+      "pct_positive": 50.0,
+      "p10": -11.32,
+      "worst": -24.63,
+      "best": 18.32
+     },
+     "sell_next_day_avoided": {
+      "n": 20,
+      "median": -2.48,
+      "mean": 0.01,
+      "pct_positive": 45.0,
+      "p10": -11.72,
+      "worst": -12.26,
+      "best": 27.62
+     },
+     "add_next_day_20d": {
+      "n": 20,
+      "median": 2.48,
+      "mean": -0.01,
+      "pct_positive": 55.0,
+      "p10": -13.11,
+      "worst": -27.62,
+      "best": 12.26
+     },
+     "wait5_then_add_20d": {
+      "n": 20,
+      "median": 1.3,
+      "mean": 0.27,
+      "pct_positive": 55.0,
+      "p10": -17.71,
+      "worst": -29.81,
+      "best": 22.47
+     },
+     "max_adverse_20d": {
+      "n": 20,
+      "median": -3.78,
+      "mean": -6.31,
+      "pct_positive": 10.0,
+      "p10": -21.56,
+      "worst": -24.63,
+      "best": 2.06
+     },
+     "best_by_median": "add_next_day_20d"
+    }
+   },
+   "closest": [
+    {
+     "date": "2008-09-05",
+     "z": -2.29,
+     "move_1d": -5.26,
+     "spy_5d": 1.34,
+     "spy_20d": -11.32,
+     "vix_level": 23.06
+    },
+    {
+     "date": "2008-11-05",
+     "z": -2.32,
+     "move_1d": -7.02,
+     "spy_5d": -10.78,
+     "spy_20d": -11.32,
+     "vix_level": 54.56
+    },
+    {
+     "date": "2008-12-04",
+     "z": -2.31,
+     "move_1d": -5.31,
+     "spy_5d": 3.09,
+     "spy_20d": 8.85,
+     "vix_level": 63.64
+    },
+    {
+     "date": "2010-06-07",
+     "z": -2.55,
+     "move_1d": -1.9,
+     "spy_5d": 3.81,
+     "spy_20d": -2.48,
+     "vix_level": 36.57
+    },
+    {
+     "date": "2011-08-05",
+     "z": -2.63,
+     "move_1d": -2.79,
+     "spy_5d": -1.63,
+     "spy_20d": -1.86,
+     "vix_level": 32.0
+    },
+    {
+     "date": "2015-09-23",
+     "z": -2.38,
+     "move_1d": -0.07,
+     "spy_5d": -1.02,
+     "spy_20d": 4.26,
+     "vix_level": 22.13
+    }
+   ]
+  },
+  {
+   "asset": "US10Y",
+   "trigger": "미 10년 금리 5일 누적 -19.9bp (5일 변동 분포 대비 -2.2σ)",
+   "condition": "같은 방향 5일 누적 변동 -2.0σ 이상",
+   "regime_filter": "S&P 500 200일선 아래 국면만",
+   "n": 30,
+   "period": "2008-01-02 ~ 2025-04-03",
+   "forward": {
+    "TLT": {
+     "1d": {
+      "n": 30,
+      "median": -0.19,
+      "mean": -0.29,
+      "pct_positive": 47.0,
+      "p10": -1.66,
+      "worst": -3.42,
+      "best": 2.26
+     },
+     "5d": {
+      "n": 30,
+      "median": -0.08,
+      "mean": -0.43,
+      "pct_positive": 47.0,
+      "p10": -4.29,
+      "worst": -5.91,
+      "best": 4.37
+     },
+     "20d": {
+      "n": 30,
+      "median": -0.41,
+      "mean": 0.09,
+      "pct_positive": 47.0,
+      "p10": -6.54,
+      "worst": -7.47,
+      "best": 17.07
+     },
+     "60d": {
+      "n": 30,
+      "median": -0.37,
+      "mean": 0.45,
+      "pct_positive": 47.0,
+      "p10": -15.55,
+      "worst": -18.78,
+      "best": 17.75
+     }
+    },
+    "SPY": {
+     "1d": {
+      "n": 30,
+      "median": -0.02,
+      "mean": 0.4,
+      "pct_positive": 50.0,
+      "p10": -2.32,
+      "worst": -5.85,
+      "best": 5.84
+     },
+     "5d": {
+      "n": 30,
+      "median": 1.02,
+      "mean": 1.02,
+      "pct_positive": 53.0,
+      "p10": -4.76,
+      "worst": -6.38,
+      "best": 19.4
+     },
+     "20d": {
+      "n": 30,
+      "median": 3.52,
+      "mean": 2.83,
+      "pct_positive": 70.0,
+      "p10": -6.52,
+      "worst": -12.2,
+      "best": 16.89
+     },
+     "60d": {
+      "n": 30,
+      "median": 3.62,
+      "mean": 3.42,
+      "pct_positive": 70.0,
+      "p10": -8.94,
+      "worst": -14.08,
+      "best": 25.06
+     }
+    }
+   },
+   "responses": {
+    "TLT": {
+     "hold_20d": {
+      "n": 30,
+      "median": -0.41,
+      "mean": 0.09,
+      "pct_positive": 47.0,
+      "p10": -6.54,
+      "worst": -7.47,
+      "best": 17.07
+     },
+     "sell_next_day_avoided": {
+      "n": 30,
+      "median": 0.05,
+      "mean": -0.38,
+      "pct_positive": 50.0,
+      "p10": -6.85,
+      "worst": -18.79,
+      "best": 6.41
+     },
+     "add_next_day_20d": {
+      "n": 30,
+      "median": -0.05,
+      "mean": 0.38,
+      "pct_positive": 50.0,
+      "p10": -5.55,
+      "worst": -6.41,
+      "best": 18.79
+     },
+     "wait5_then_add_20d": {
+      "n": 30,
+      "median": 0.06,
+      "mean": -0.07,
+      "pct_positive": 50.0,
+      "p10": -6.4,
+      "worst": -11.7,
+      "best": 14.22
+     },
+     "max_adverse_20d": {
+      "n": 30,
+      "median": -3.07,
+      "mean": -3.3,
+      "pct_positive": 7.0,
+      "p10": -7.45,
+      "worst": -10.76,
+      "best": 0.49
+     },
+     "best_by_median": "wait5_then_add_20d"
+    },
+    "SPY": {
+     "hold_20d": {
+      "n": 30,
+      "median": 3.52,
+      "mean": 2.83,
+      "pct_positive": 70.0,
+      "p10": -6.52,
+      "worst": -12.2,
+      "best": 16.89
+     },
+     "sell_next_day_avoided": {
+      "n": 30,
+      "median": -2.69,
+      "mean": -2.4,
+      "pct_positive": 30.0,
+      "p10": -9.5,
+      "worst": -12.17,
+      "best": 11.83
+     },
+     "add_next_day_20d": {
+      "n": 30,
+      "median": 2.69,
+      "mean": 2.4,
+      "pct_positive": 70.0,
+      "p10": -5.17,
+      "worst": -11.83,
+      "best": 12.17
+     },
+     "wait5_then_add_20d": {
+      "n": 30,
+      "median": 3.08,
+      "mean": 1.52,
+      "pct_positive": 63.0,
+      "p10": -6.06,
+      "worst": -16.74,
+      "best": 18.01
+     },
+     "max_adverse_20d": {
+      "n": 30,
+      "median": -1.97,
+      "mean": -4.04,
+      "pct_positive": 23.0,
+      "p10": -13.16,
+      "worst": -25.06,
+      "best": 5.39
+     },
+     "best_by_median": "hold_20d"
+    }
+   },
+   "closest": [
+    {
+     "date": "2008-01-17",
+     "z": -2.2,
+     "move_1d": -7.2,
+     "spy_5d": -0.29,
+     "spy_20d": 1.28,
+     "vix_level": 28.46
+    },
+    {
+     "date": "2008-02-29",
+     "z": -2.14,
+     "move_1d": -18.1,
+     "spy_5d": -3.07,
+     "spy_20d": -1.38,
+     "vix_level": 26.54
+    },
+    {
+     "date": "2010-05-20",
+     "z": -2.14,
+     "move_1d": -9.5,
+     "spy_5d": 2.99,
+     "spy_20d": 3.9,
+     "vix_level": 45.79
+    },
+    {
+     "date": "2011-11-03",
+     "z": -2.13,
+     "move_1d": 6.0,
+     "spy_5d": -1.53,
+     "spy_20d": -1.1,
+     "vix_level": 30.5
+    },
+    {
+     "date": "2022-11-11",
+     "z": -2.21,
+     "move_1d": -1.6,
+     "spy_5d": -0.62,
+     "spy_20d": 0.11,
+     "vix_level": 22.52
+    },
+    {
+     "date": "2023-01-09",
+     "z": -2.15,
+     "move_1d": -5.2,
+     "spy_5d": 2.56,
+     "spy_20d": 7.05,
+     "vix_level": 21.97
+    }
+   ]
+  }
+ ],
+ "data_status": {
+  "market.SPY": "ok",
+  "market.QQQ": "ok",
+  "market.IWM": "ok",
+  "market.RSP": "ok",
+  "market.VIX": "ok",
+  "market.MOVE": "ok",
+  "market.US3M": "ok",
+  "market.US5Y": "ok",
+  "market.US10Y": "ok",
+  "market.US30Y": "ok",
+  "market.TLT": "ok",
+  "market.HYG": "ok",
+  "market.LQD": "ok",
+  "market.DXY": "ok",
+  "market.USDJPY": "ok",
+  "market.GOLD": "ok",
+  "market.SILVER": "ok",
+  "market.WTI": "ok",
+  "market.COPPER": "ok",
+  "market.NATGAS": "ok",
+  "market.BTC": "ok",
+  "market.XLK": "ok",
+  "market.XLF": "ok",
+  "market.XLE": "ok",
+  "market.XLV": "ok",
+  "market.XLY": "ok",
+  "market.XLP": "ok",
+  "market.XLI": "ok",
+  "market.XLB": "ok",
+  "market.XLU": "ok",
+  "market.XLRE": "ok",
+  "market.XLC": "ok",
+  "worker/liq": "ok",
+  "worker/yields-hist": "ok",
+  "worker/liq-tower": "ok",
+  "worker/pipe3": "ok",
+  "worker/ofr-fsi": "ok",
+  "worker/calendar": "ok",
+  "worker/fred?series_id=IORB&limit=5&sort_order=desc": "ok",
+  "worker/news": "ok",
+  "nyfed.sofr": "ok",
+  "nyfed.srf": "ok"
+ }
+}
