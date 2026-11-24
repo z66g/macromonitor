@@ -1,7 +1,7 @@
 {
- "updated": "2026-11-20T22:39:09+00:00",
- "calendar_saved_at": "2026-11-20T19:55:20.029Z",
- "today_kst": "2026-11-21",
+ "updated": "2026-11-24T02:53:21+00:00",
+ "calendar_saved_at": "2026-11-24T01:55:05.723Z",
+ "today_kst": "2026-11-24",
  "events": [
   {
    "key": "2026-11-17|소매판매",
@@ -177,6 +177,14 @@
    "name": "실업수당 청구 (신규·연속) 주간 발표",
    "indicator": "claims",
    "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-15|생산자물가 (PPI)",
+   "date": "2026-12-15",
+   "name": "생산자물가 (PPI)",
+   "indicator": "ppi",
+   "imp": "high",
    "estimated": false
   }
  ]
