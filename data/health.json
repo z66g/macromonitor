@@ -1,41 +1,41 @@
 {
-  "checked_at": "2026-11-23T03:28:14+00:00",
-  "status": "fail",
+  "checked_at": "2026-11-24T06:42:45+00:00",
+  "status": "warn",
   "checks": [
     {
       "name": "T1 순유동성",
       "status": "ok",
-      "detail": "NL $5814.07B score 0.9% asOf 2026-11-20 · {'walcl': 'H.4.1 reserve_credit (2026-11-19)', 'tga': 'DTS daily (2026-11-19)', 'rrp': 'FRED RRPONTSYD daily'}"
+      "detail": "NL $5824.52B score 1.09% asOf 2026-11-23 · {'walcl': 'H.4.1 reserve_credit (2026-11-19)', 'tga': 'DTS daily (2026-11-20)', 'rrp': 'FRED RRPONTSYD daily'}"
     },
     {
       "name": "국채 수익률",
       "status": "ok",
-      "detail": "DGS10 5.04 asOf 2026-11-19"
+      "detail": "DGS10 4.92 asOf 2026-11-20"
     },
     {
       "name": "T2 실물경제",
       "status": "ok",
-      "detail": "캐시 2.1h 전 · 실업률 2026-10 (발표 2026-11-06)"
+      "detail": "캐시 5.3h 전 · 실업률 2026-10 (발표 2026-11-07)"
     },
     {
       "name": "T3 글로벌",
-      "status": "fail",
-      "detail": "빈 시리즈 ['broadDollar'] · 캐시 1.7h 전"
+      "status": "ok",
+      "detail": "빈 시리즈 없음 · 캐시 5.0h 전"
     },
     {
       "name": "시세 스냅샷",
       "status": "ok",
-      "detail": "33종목 · 저장 0.1h 전 · 6h 넘은 종목 없음"
+      "detail": "33종목 · 저장 0.3h 전 · 6h 넘은 종목 없음"
     },
     {
       "name": "이벤트 캘린더",
       "status": "ok",
-      "detail": "54건 · error=None"
+      "detail": "56건 · error=None"
     },
     {
       "name": "FOMC 일정 하드코딩",
       "status": "ok",
-      "detail": "마지막 등록일 2027-11-17 (359일 남음) — 60일 이내면 다음 해 일정 추가 필요"
+      "detail": "마지막 등록일 2027-11-17 (358일 남음) — 60일 이내면 다음 해 일정 추가 필요"
     },
     {
       "name": "유동성 예측모델",
@@ -45,22 +45,22 @@
     {
       "name": "DTS TGA",
       "status": "ok",
-      "detail": "최신 2026-11-19 $891.2B"
+      "detail": "최신 2026-11-20 $880.8B"
     },
     {
       "name": "QRA",
       "status": "ok",
-      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (21일 전)"
+      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (22일 전)"
     },
     {
       "name": "뉴스 수집·번역",
       "status": "ok",
-      "detail": "227건 · 번역 225건 (99%) · 수집 0.4h 전"
+      "detail": "227건 · 번역 227건 (100%) · 수집 0.1h 전"
     },
     {
       "name": "뉴스 다이제스트",
       "status": "ok",
-      "detail": "생성 0.5h 전 · 3건"
+      "detail": "생성 0.7h 전 · 3건"
     },
     {
       "name": "H.4.1 이력",
@@ -75,7 +75,7 @@
     {
       "name": "경매 데이터 스키마",
       "status": "ok",
-      "detail": "157건 · 갱신 2026-11-20T21:00"
+      "detail": "158건 · 갱신 2026-11-23T21:00"
     },
     {
       "name": "경매 요약",
@@ -85,37 +85,17 @@
     {
       "name": "이벤트 결과",
       "status": "warn",
-      "detail": "게시 4건 · 누락 ['2026-11-18|세인트루이스 FSI', '2026-11-20|소비자심리 (미시간)'] · 3일 넘은 보류 없음 · 거부 없음"
+      "detail": "게시 5건 · 누락 ['2026-11-18|세인트루이스 FSI'] · 3일 넘은 보류 없음 · 거부 없음"
     },
     {
       "name": "데일리 리포트",
       "status": "ok",
-      "detail": "세션 2026-11-20: 게시됨"
+      "detail": "세션 2026-11-23: 게시됨"
     },
     {
       "name": "GitHub Actions 실패(24h)",
       "status": "ok",
       "detail": "없음"
-    }
-  ],
-  "diagnosis": [
-    {
-      "check": "헬스체크 실행",
-      "likely_cause": "checked_at(2026-11-23 03:28 UTC)이 6시간 넘음 — 11-23 23:00 UTC 점검이 아직 안 돌았거나 GitHub schedule 지연(최근 며칠 02~04시 UTC 실행 패턴).",
-      "suggested_fix": "health-check.yml 실행 이력 확인, 필요 시 cron-job.org dispatch 추가.",
-      "confidence": "medium"
-    },
-    {
-      "check": "T3 글로벌",
-      "likely_cause": "worker.js T3 빌드의 fredArr('DTWEXBGS')가 응답 실패·비정상(FRED 429/일시 오류)이면 예외 없이 []를 반환해 broadDollar가 빈 시리즈로 기록됨(KV_VALIDATORS를 통과한 일시 결손 가능성, 11-22까지는 없던 새 항목).",
-      "suggested_fix": "worker.js T3의 fredArr 실패 시 직전 KV 값의 broadDollar 유지 또는 로그 추가; 다음 :45 cron 후 재점검, 지속되면 FRED_API_KEY·DTWEXBGS 상태 확인.",
-      "confidence": "low"
-    },
-    {
-      "check": "이벤트 결과",
-      "likely_cause": "11-20 미시간은 11-23 22:41 UTC 에이전트·병합 커밋으로 이후 게시됨(점검 시각 이후라 이 항목은 해소 예상). 11-18 세인트루이스 FSI는 econ_results.json에 아직 없음 — FRED STLFSI4 미반영 보류 또는 미조사.",
-      "suggested_fix": "다음 헬스체크에서 FSI 해소 확인; 계속 누락이면 '이벤트 결과' 예약작업 실행 이력과 data/econ_spec.json의 stlfsi 항목·FRED_PROXY_ALLOW 확인.",
-      "confidence": "medium"
     }
   ]
 }
