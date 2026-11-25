@@ -97,5 +97,19 @@
       "status": "ok",
       "detail": "없음"
     }
+  ],
+  "diagnosis": [
+    {
+      "check": "이벤트 결과",
+      "likely_cause": "2026-11-18 세인트루이스 FSI(주간 STLFSI4)가 econ_results·pending·rejects·econ_results_ai 어디에도 없음 — 이벤트 결과 에이전트가 해당 주간 이벤트를 조사 대상에서 누락한 것으로 보이며, 7일 경과라 정상 지연은 아님.",
+      "suggested_fix": "ops/routines/econ.md 대상 선정 규칙을 확인하고 data/econ_results_ai.json에 2026-11-18|세인트루이스 FSI 항목을 추가해 재실행(merge_econ_results.py가 FRED STLFSI4로 대조); 11-25분 반영 여부도 확인.",
+      "confidence": "medium"
+    },
+    {
+      "check": "헬스체크 실행 시각",
+      "likely_cause": "checked_at(2026-11-25 05:12 UTC)이 진단 시점(23:38 UTC)보다 18시간 전이며 23:00 UTC 점검이 아직 커밋되지 않음 — GitHub schedule 지연/누락 가능성(오늘 점검은 05:12에 실행된 것으로 보임).",
+      "suggested_fix": ".github/workflows/health-check.yml 실행 이력을 확인하고 필요하면 workflow_dispatch로 수동 실행.",
+      "confidence": "medium"
+    }
   ]
 }
