@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25T16:42:35+00:00",
+ "updated": "2026-11-25T22:42:08+00:00",
  "results": {
   "2026-11-13|생산자물가 (PPI)": {
    "indicator": "ppi",
@@ -143,6 +143,33 @@
    "model": "claude-sonnet-5-5",
    "published_at": "2026-11-23T22:41:38+00:00"
   },
+  "2026-11-25|GDP 성장률": {
+   "indicator": "gdp",
+   "date": "2026-11-25",
+   "name": "GDP 성장률",
+   "period": "2026-Q3",
+   "primary": "qoq_saar",
+   "metrics": {
+    "qoq_saar": {
+     "actual": 4.3,
+     "forecast": 3.5,
+     "previous": 2.2,
+     "previous_revised": null,
+     "label": "실질 GDP (전기비 연율)",
+     "unit": "%"
+    }
+   },
+   "surprise": "above",
+   "interpretation": "3분기 실질 GDP 2차 추정 4.3%(연율)로 예상(3.5%)과 속보치(3.4%)를 모두 상회 — 소비·기업투자 상향 개정이 성장 모멘텀을 뒷받침.",
+   "sources": [
+    "https://www.aol.com/articles/us-third-quarter-gdp-growth-142544000.html",
+    "https://eyeonhousing.org/2026/10/u-s-economy-accelerated-in-the-third-quarter-of-2026/"
+   ],
+   "verified": "fred",
+   "researched_at": "2026-11-25T22:41:56+00:00",
+   "model": "claude-sonnet-5-5",
+   "published_at": "2026-11-25T22:42:08+00:00"
+  },
   "2026-11-25|개인소비지출 (PCE · Core PCE)": {
    "indicator": "pce",
    "date": "2026-11-25",
@@ -184,6 +211,33 @@
    "researched_at": "2026-11-25T16:42:22Z",
    "model": "claude-sonnet-5-5",
    "published_at": "2026-11-25T16:42:35+00:00"
+  },
+  "2026-11-25|내구재 주문": {
+   "indicator": "durable",
+   "date": "2026-11-25",
+   "name": "내구재 주문",
+   "period": "2026-10",
+   "primary": "mom",
+   "metrics": {
+    "mom": {
+     "actual": 0.2,
+     "forecast": 0.6,
+     "previous": 1.8,
+     "previous_revised": 2.0,
+     "label": "내구재 주문 MoM",
+     "unit": "%"
+    }
+   },
+   "surprise": "below",
+   "interpretation": "10월 내구재 주문 +0.2%로 예상(0.6%) 하회, 9월은 2.0%로 상향 수정 — 핵심 자본재 수주는 1.2% 증가해 기업 설비투자 흐름은 유지.",
+   "sources": [
+    "https://investinglive.com/news/investinglive-americas-fx-news-wrap-25-nov-it-s-a-wrap-s-p-500-and-nasdaq-pare-steep-losses/",
+    "https://www.rttnews.com/3718030/u-s-durable-goods-orders-rise-0-2-in-october-less-than-expected.aspx"
+   ],
+   "verified": "fred",
+   "researched_at": "2026-11-25T22:41:56+00:00",
+   "model": "claude-sonnet-5-5",
+   "published_at": "2026-11-25T22:42:08+00:00"
   },
   "2026-11-25|주택착공": {
    "indicator": "housing",
