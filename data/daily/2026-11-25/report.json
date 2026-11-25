@@ -1,0 +1,969 @@
+{
+ "session": "2026-11-25",
+ "headline": "뜨거운 PCE와 부진한 경매에도 금리가 내렸다, 채권은 인상보다 성장 둔화를 산다",
+ "regime": {
+  "label": "transition",
+  "one_liner": "순유동성은 4주 평균 위지만 S&P 500은 200일선 아래(−2.25%), VIX 1년 분위 98. 매도가 AI 대형주에 갇힌 전환 국면."
+ },
+ "yesterday_check": [
+  {
+   "point": "근원 PCE 뒤 5년물 4.85% 재돌파",
+   "outcome": "근원 PCE는 예상을 웃돌았지만 5년물은 4.66%로 오히려 하락 — 미충족, 평탄화 해석 유지",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 4.85,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "QQQ 630 하회와 동일가중 동반 하락",
+   "outcome": "QQQ 633.9로 장중 밑돌았다 회복, 동일가중 +0.83% — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 630,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "VIX 30 돌파",
+   "outcome": "VIX 27.96 — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 30,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "은 40달러·구리 5.0달러 하회",
+   "outcome": "은 41.33·구리 5.48로 반등 — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 40,
+     "threshold": true
+    },
+    {
+     "value": 5.0,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "천연가스 3.4달러 하회",
+   "outcome": "3.69 — 미충족. 다만 이날 수치는 12월물 만기에 따른 1월물 교체가 섞였다",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 3.4,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "drivers": [
+  {
+   "title": "인플레·공급 악재를 무시한 금리 하락 — 시장은 '지금 인상, 곧 둔화'에 걸었다",
+   "anomaly_keys": [
+    "US10Y",
+    "US5Y",
+    "US30Y",
+    "US3M"
+   ],
+   "body": "근원 PCE 전년비 3.3%로 예상 3.2% 상회, 7년물 입찰은 1bp 테일로 2024년 5월 이후 가장 부진했다(보도). 그런데 10년물은 하루 −5.6bp, 5일 −21.8bp(−2.37σ). 5년물 −22.4bp가 가장 많이 내렸고 3개월물은 4.16%로 1년 최고. 앞단은 12월 인상을 지키고 중간 구간은 인상 뒤 성장 둔화·인하를 사는 구조다. 악재를 무시한 매수는 AI 매도·관세 우려에 대한 성장 헤지로 본다. MOVE 97.5로 제자리라 공포 매수가 아닌 질서 있는 재가격. 무효화: 5년물이 4.85% 위로 돌아가면 둔화 베팅은 접힌 것.",
+   "sources": [
+    "https://www.zerohedge.com/markets/ugly-7y-auction-prices-biggest-tail-may-2024-directs-soar",
+    "https://globaleye24.com/news/weak-7-year-treasury-auction-tails-by-1bp-3515",
+    "https://helious.io/news/auc-91282CSA0-2026-11-25/7-year-note-auction-in-line",
+    "https://edition.cnn.com/2026/11/25/business/ai-sell-off-despite-huang-nvidia-return"
+   ],
+   "cited_numbers": [
+    {
+     "value": 1,
+     "source": "https://globaleye24.com/news/weak-7-year-treasury-auction-tails-by-1bp-3515"
+    },
+    {
+     "value": 4.85,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "AI 매도는 장중 투매 뒤 되감겼고, 동일가중은 50일선을 넘었다",
+   "anomaly_keys": [
+    "QQQ/RSP",
+    "RSP"
+   ],
+   "body": "장 초반 나스닥이 4% 넘게, 다우가 1,000포인트 넘게 밀렸다가 대부분 되돌렸다(보도). 엔비디아는 약 4% 하락, AI 지출·수익성 의문에 관세·인상 우려가 겹쳤다(보도). 종가는 QQQ −0.65%, 동일가중 +0.83%, 러셀2000 +0.64%. 동일가중은 50일선 위(+0.43%), QQQ는 50일선 아래 −10.34%. 쏠렸던 AI 롱의 청산이지 주식 전체 이탈은 아니다. 무효화: 동일가중이 50일선 아래로 되밀리며 QQQ와 함께 빠지면 총노출 축소로 번진 것.",
+   "sources": [
+    "https://abcnews.com/Business/stocks-tumble-tech-sell-off-resumes-nvidia-falls/story?id=138442070",
+    "https://www.cnbc.com/2026/11/25/nvidia-ai-stock-tech-selloff.html",
+    "https://edition.cnn.com/2026/11/25/business/ai-sell-off-despite-huang-nvidia-return",
+    "https://www.fool.com/investing/2026/11/25/why-nvidia-stock-is-falling-again/"
+   ],
+   "cited_numbers": [
+    {
+     "value": 4,
+     "source": "https://abcnews.com/Business/stocks-tumble-tech-sell-off-resumes-nvidia-falls/story?id=138442070"
+    },
+    {
+     "value": 1000,
+     "source": "https://abcnews.com/Business/stocks-tumble-tech-sell-off-resumes-nvidia-falls/story?id=138442070"
+    }
+   ]
+  },
+  {
+   "title": "천연가스 급등은 월물 교체 착시",
+   "anomaly_keys": [
+    "NATGAS"
+   ],
+   "body": "천연가스 +10.89%(3.36σ)는 새 수요가 아니다. 12월물이 25일 최종 결제를 맞으며 연속 시세가 1월물로 넘어갔다. 12월물은 24일 3.323달러로 마감했고(보도) 이날 종가 3.69는 1월물이라, 상승분 대부분은 겨울 월물에 붙은 월물 간 가격차다. 따라서 팩트시트의 천연가스 유사 국면 통계도 적용하지 않는다. 무효화: 휴장 뒤 1월물 자체가 4.0달러를 넘으면 한파 수요의 재가격으로 다시 본다.",
+   "sources": [
+    "https://wisevoter.com/world/us/2026/11/25/natural-gas-prices-swing-december-contract-expiry",
+    "https://tipranks.com/news/the-fly-commod/natural-gas-rebounds-ahead-of-december-contract-expiry"
+   ],
+   "cited_numbers": [
+    {
+     "value": 3.323,
+     "source": "https://wisevoter.com/world/us/2026/11/25/natural-gas-prices-swing-december-contract-expiry"
+    },
+    {
+     "value": 4.0,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "skipped_anomalies": [
+  {
+   "key": "SOFR-IORB",
+   "reason": "월말 국채 결제를 앞둔 단기자금 압박 — 원인 확인이 안 돼 배관 섹션에서 수준만 점검"
+  }
+ ],
+ "plumbing": {
+  "body": "SOFR−IORB 4bp(SOFR 3.94%, 하루 +2bp)로 넓어졌다. 역레포 0.3B로 완충이 바닥이고 TGA 899B로 높아 월말 국채 결제 앞 압박으로 추정(확인된 촉매 없음). SRF 이용 0B. 순유동성 5,807B는 4주 평균(5,766B) 위. 신용은 위아래가 갈렸다: IG OAS +1bp인데 CCC 이하는 14.05%로 +18bp, LQD 5일 +1.11% 대 HYG −0.17% — 금리 하락 혜택은 우량 신용에만.",
+  "cited_numbers": []
+ },
+ "analogs": [
+  {
+   "asset": "US10Y",
+   "body": "S&P 500이 200일선 아래인 국면에서 10년물 5일 하락이 이만큼 컸던 경우는 30번. 20일 뒤 S&P 500 상승 비율 70%, 중앙값 +3.52%, 하위 10% −6.52%. 보유가 중앙값 기준 가장 나았고 다음날 매도는 중앙값 2.69%의 상승을 놓쳤다. 다만 보유 중 최대 역행 하위 10%는 −13.16%. 채권 쪽은 TLT 20일 상승 비율 47%로 추가 랠리는 동전 던지기였다. 가장 닮은 사례는 연준 인상 막바지에 무역분쟁·기술주 매도가 겹친 2018-12-06으로 S&P 500 20일 −5.73%. 2025-04-03 관세 충격 뒤엔 +5.6%였지만 인하 기대가 받쳤다. 지금은 연준이 인상 쪽이라 2018년 경로의 무게를 더 둔다.",
+   "sources": [],
+   "cited_numbers": []
+  }
+ ],
+ "sectors": {
+  "body": "11개 섹터 중 8곳 상승. 소재 +2.05%가 1위로 구리 +2.14%·은 +1.4% 반등을 따라갔고, 기술 −0.81%가 꼴찌. 전날 피신처였던 헬스케어는 −0.56%로 반납한 반면 산업재 +0.83%·금융 +0.7%가 올라, 방어주가 아니라 경기 민감 가치주로 돈이 옮겼다.",
+  "cited_numbers": []
+ },
+ "watchpoints": [
+  {
+   "condition": "5년물 4.85% 재돌파(현재 4.66%)",
+   "implication": "성장 둔화 베팅이 접히고 인상 경로가 다시 장기물까지 끌어올린다"
+  },
+  {
+   "condition": "동일가중 RSP 50일선 하회와 QQQ 620 하회 동반(현재 QQQ 633.9)",
+   "implication": "AI 롱 청산이 주식 총노출 축소로 확산"
+  },
+  {
+   "condition": "월말(11/30~12/1) SOFR−IORB 10bp 이상 또는 SRF 이용 발생(현재 4bp)",
+   "implication": "역레포 완충이 없는 상태에서 지준이 빠듯해졌다는 신호 — 결제일 일회성인지 확인"
+  },
+  {
+   "condition": "CCC 이하 OAS 14.5% 돌파(현재 14.05%)",
+   "implication": "AI 부채 보험료 상승이 하이일드 하단 전반으로 번진다"
+  },
+  {
+   "condition": "천연가스 1월물 4.0달러 돌파 또는 3.4달러 하회(현재 3.69)",
+   "implication": "돌파면 한파 수요 재가격, 하회면 저장량 부담이 다시 우위"
+  }
+ ],
+ "risks": [
+  "추수감사절 휴장·단축 거래로 얇은 유동성에서 관세·AI 헤드라인 한 줄에 가격이 과장될 수 있다",
+  "12월 1일 ISM 제조업이 강하게 나오면 중간 구간 금리 하락이 한꺼번에 되돌려질 수 있다"
+ ],
+ "written_at": "2026-11-25T21:43:45Z",
+ "model": "claude-opus-5-5",
+ "dashboard": {
+  "rows": [
+   {
+    "key": "SPY",
+    "name": "S&P 500 (SPY)",
+    "close": 716.7,
+    "chg_1d": -0.29,
+    "chg_5d": -1.85,
+    "z_1d": -0.23,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "QQQ",
+    "name": "나스닥100 (QQQ)",
+    "close": 633.93,
+    "chg_1d": -0.65,
+    "chg_5d": -3.88,
+    "z_1d": -0.34,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "IWM",
+    "name": "러셀2000 (IWM)",
+    "close": 268.85,
+    "chg_1d": 0.64,
+    "chg_5d": -0.47,
+    "z_1d": 0.49,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "RSP",
+    "name": "S&P 동일가중 (RSP)",
+    "close": 215.74,
+    "chg_1d": 0.83,
+    "chg_5d": 0.14,
+    "z_1d": 0.88,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "VIX",
+    "name": "VIX",
+    "close": 27.96,
+    "chg_1d": 6.07,
+    "chg_5d": 13.84,
+    "z_1d": 0.47,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "MOVE",
+    "name": "MOVE",
+    "close": 97.5235,
+    "chg_1d": -1.33,
+    "chg_5d": -0.64,
+    "z_1d": -0.25,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "US3M",
+    "name": "미 3개월 금리",
+    "close": 4.155,
+    "chg_1d": -1.3,
+    "chg_5d": 1.0,
+    "z_1d": -0.53,
+    "unit": "bp",
+    "stale": false
+   },
+   {
+    "key": "US5Y",
+    "name": "미 5년 금리",
+    "close": 4.66,
+    "chg_1d": -5.2,
+    "chg_5d": -22.4,
+    "z_1d": -0.84,
+    "unit": "bp",
+    "stale": false
+   },
+   {
+    "key": "US10Y",
+    "name": "미 10년 금리",
+    "close": 4.848,
+    "chg_1d": -5.6,
+    "chg_5d": -21.8,
+    "z_1d": -1.0,
+    "unit": "bp",
+    "stale": false
+   },
+   {
+    "key": "US30Y",
+    "name": "미 30년 금리",
+    "close": 5.235,
+    "chg_1d": -5.7,
+    "chg_5d": -17.7,
+    "z_1d": -1.25,
+    "unit": "bp",
+    "stale": false
+   },
+   {
+    "key": "TLT",
+    "name": "장기국채 (TLT)",
+    "close": 82.24,
+    "chg_1d": 0.92,
+    "chg_5d": 2.52,
+    "z_1d": 1.34,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "HYG",
+    "name": "하이일드 (HYG)",
+    "close": 76.52,
+    "chg_1d": 0.12,
+    "chg_5d": -0.17,
+    "z_1d": 0.4,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "DXY",
+    "name": "달러인덱스",
+    "close": 103.703,
+    "chg_1d": -0.1,
+    "chg_5d": -0.15,
+    "z_1d": -0.33,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "USDJPY",
+    "name": "달러/엔",
+    "close": 159.196,
+    "chg_1d": 0.12,
+    "chg_5d": -0.19,
+    "z_1d": 0.24,
+    "unit": "%",
+    "stale": true
+   },
+   {
+    "key": "GOLD",
+    "name": "금",
+    "close": 3598.7,
+    "chg_1d": 1.03,
+    "chg_5d": -3.83,
+    "z_1d": 0.67,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "WTI",
+    "name": "WTI 원유",
+    "close": 84.22,
+    "chg_1d": 2.64,
+    "chg_5d": 1.15,
+    "z_1d": 0.91,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "COPPER",
+    "name": "구리",
+    "close": 5.4775,
+    "chg_1d": 2.14,
+    "chg_5d": -3.22,
+    "z_1d": 1.27,
+    "unit": "%",
+    "stale": false
+   },
+   {
+    "key": "BTC",
+    "name": "비트코인",
+    "close": 60152.0508,
+    "chg_1d": 0.68,
+    "chg_5d": 2.3,
+    "z_1d": 0.34,
+    "unit": "%",
+    "stale": false
+   }
+  ],
+  "sectors_top": [
+   {
+    "key": "XLB",
+    "name": "소재",
+    "chg_1d": 2.05
+   },
+   {
+    "key": "XLRE",
+    "name": "부동산",
+    "chg_1d": 0.92
+   },
+   {
+    "key": "XLC",
+    "name": "통신",
+    "chg_1d": 0.89
+   }
+  ],
+  "sectors_bottom": [
+   {
+    "key": "XLK",
+    "name": "기술",
+    "chg_1d": -0.81
+   },
+   {
+    "key": "XLV",
+    "name": "헬스케어",
+    "chg_1d": -0.56
+   },
+   {
+    "key": "XLY",
+    "name": "임의소비재",
+    "chg_1d": -0.2
+   }
+  ],
+  "plumbing": {
+   "net_liquidity_b": 5806.57,
+   "nl_4w_avg_b": 5766.4,
+   "tga_b": 898.8,
+   "on_rrp_b": 0.3,
+   "sofr_minus_iorb_bp": 4.0,
+   "stlfsi": -0.0697
+  },
+  "upcoming": [
+   {
+    "date": "2026-11-26",
+    "name": "실업수당 청구 (신규·연속) 주간 발표",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-11-30",
+    "name": "월말 기관 리밸런싱 구간",
+    "imp": "medium",
+    "estimated": true
+   },
+   {
+    "date": "2026-12-01",
+    "name": "구인이직보고서 (JOLTS)",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-12-01",
+    "name": "ISM 제조업 PMI",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-12-02",
+    "name": "세인트루이스 FSI",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-12-03",
+    "name": "내구재 주문",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-12-03",
+    "name": "실업수당 청구 (신규·연속) 주간 발표",
+    "imp": "medium",
+    "estimated": false
+   },
+   {
+    "date": "2026-12-03",
+    "name": "ISM 서비스업 PMI",
+    "imp": "medium",
+    "estimated": false
+   }
+  ],
+  "econ_results": [
+   {
+    "indicator": "pce",
+    "date": "2026-11-25",
+    "name": "개인소비지출 (PCE · Core PCE)",
+    "period": "2026-10",
+    "primary": "core_yoy",
+    "metrics": {
+     "core_yoy": {
+      "actual": 3.3,
+      "forecast": 3.2,
+      "previous": 3.1,
+      "previous_revised": null,
+      "label": "근원 PCE YoY",
+      "unit": "%"
+     },
+     "core_mom": {
+      "actual": 0.3,
+      "forecast": 0.3,
+      "previous": 0.3,
+      "previous_revised": null,
+      "label": "근원 PCE MoM",
+      "unit": "%"
+     },
+     "yoy": {
+      "actual": 3.8,
+      "forecast": 3.8,
+      "previous": 3.6,
+      "previous_revised": null,
+      "label": "PCE YoY",
+      "unit": "%"
+     }
+    },
+    "surprise": "above",
+    "interpretation": "근원 PCE 전년비 3.3%로 예상(3.2%) 상회, 2023년 말 이후 최고 수준 — 월간 근원 0.3%는 부합, 헤드라인 3.8%도 부합.",
+    "sources": [
+     "https://investinglive.com/news/us-october-pce-core-inflation-m-m-vs-0-3-expected/"
+    ],
+    "verified": "fred",
+    "researched_at": "2026-11-25T16:42:22Z",
+    "model": "claude-sonnet-5-5",
+    "published_at": "2026-11-25T16:42:35+00:00"
+   },
+   {
+    "indicator": "housing",
+    "date": "2026-11-25",
+    "name": "주택착공",
+    "period": "2026-10",
+    "primary": "starts",
+    "metrics": {
+     "starts": {
+      "actual": 1309,
+      "forecast": 1230,
+      "previous": 1221,
+      "previous_revised": 1191,
+      "label": "주택착공 (연율)",
+      "unit": "K"
+     }
+    },
+    "surprise": "above",
+    "interpretation": "주택착공 연율 1.309M으로 예상(1.23M)을 상회, 9월 수정치(1.191M) 대비 반등 — 다만 허가는 1.295M으로 감소해 선행 신호는 엇갈림.",
+    "sources": [
+     "https://fxtribune.com/news/us-housing-starts-rise-to-1-309k-in-october-2026/",
+     "https://www.citybiz.co/article/935728/u-s-housing-starts-surge-9-9-in-october-beating-forecasts-as-building-permits-lag/"
+    ],
+    "verified": "fred",
+    "researched_at": "2026-11-25T16:42:22Z",
+    "model": "claude-sonnet-5-5",
+    "published_at": "2026-11-25T16:42:35+00:00"
+   }
+  ],
+  "data_failures": []
+ },
+ "anomalies": [
+  {
+   "kind": "move",
+   "key": "NATGAS",
+   "score": 3.36,
+   "text": "천연가스 +10.89% (60일 변동성 대비 +3.4σ)",
+   "z": 3.36
+  },
+  {
+   "kind": "plumbing",
+   "key": "SOFR-IORB",
+   "score": 2.5,
+   "text": "SOFR가 IORB 위 4.0bp — 단기자금 압박"
+  },
+  {
+   "kind": "move5",
+   "key": "US10Y",
+   "score": 2.13,
+   "text": "미 10년 금리 5일 누적 -21.8bp (5일 변동 분포 대비 -2.4σ)",
+   "z": -2.37
+  },
+  {
+   "kind": "move5",
+   "key": "US5Y",
+   "score": 2.05,
+   "text": "미 5년 금리 5일 누적 -22.4bp (5일 변동 분포 대비 -2.3σ)",
+   "z": -2.28
+  },
+  {
+   "kind": "move5",
+   "key": "US30Y",
+   "score": 1.94,
+   "text": "미 30년 금리 5일 누적 -17.7bp (5일 변동 분포 대비 -2.1σ)",
+   "z": -2.15
+  },
+  {
+   "kind": "event",
+   "key": "개인소비지출 (PCE · Core PCE)",
+   "score": 1.8,
+   "text": "개인소비지출 (PCE · Core PCE) 근원 PCE YoY 실제 3.3 vs 예상 3.2 (상회)"
+  }
+ ],
+ "analog_stats": [
+  {
+   "asset": "NATGAS",
+   "trigger": "천연가스 +10.89% (60일 변동성 대비 +3.4σ)",
+   "condition": "같은 방향 1일 변동 +2.7σ 이상",
+   "regime_filter": "S&P 500 200일선 아래 국면만",
+   "n": 12,
+   "period": "2008-02-28 ~ 2022-01-27",
+   "forward": {
+    "NATGAS": {
+     "1d": {
+      "n": 12,
+      "median": -2.4,
+      "mean": -3.94,
+      "pct_positive": 8.0,
+      "p10": -25.95,
+      "worst": -25.95,
+      "best": 1.27
+     },
+     "5d": {
+      "n": 12,
+      "median": -3.87,
+      "mean": -3.17,
+      "pct_positive": 25.0,
+      "p10": -21.98,
+      "worst": -21.98,
+      "best": 24.12
+     },
+     "20d": {
+      "n": 12,
+      "median": -5.83,
+      "mean": -6.11,
+      "pct_positive": 25.0,
+      "p10": -28.65,
+      "worst": -28.65,
+      "best": 24.95
+     },
+     "60d": {
+      "n": 12,
+      "median": -16.2,
+      "mean": -12.32,
+      "pct_positive": 25.0,
+      "p10": -32.67,
+      "worst": -32.67,
+      "best": 25.56
+     }
+    }
+   },
+   "responses": {
+    "NATGAS": {
+     "hold_20d": {
+      "n": 12,
+      "median": -5.83,
+      "mean": -6.11,
+      "pct_positive": 25.0,
+      "p10": -28.65,
+      "worst": -28.65,
+      "best": 24.95
+     },
+     "sell_next_day_avoided": {
+      "n": 12,
+      "median": 2.45,
+      "mean": 2.34,
+      "pct_positive": 67.0,
+      "p10": -25.37,
+      "worst": -25.37,
+      "best": 23.22
+     },
+     "add_next_day_20d": {
+      "n": 12,
+      "median": -2.45,
+      "mean": -2.34,
+      "pct_positive": 33.0,
+      "p10": -23.22,
+      "worst": -23.22,
+      "best": 25.37
+     },
+     "wait5_then_add_20d": {
+      "n": 12,
+      "median": -7.79,
+      "mean": -6.61,
+      "pct_positive": 17.0,
+      "p10": -16.47,
+      "worst": -16.47,
+      "best": 9.19
+     },
+     "max_adverse_20d": {
+      "n": 12,
+      "median": -14.89,
+      "mean": -13.87,
+      "pct_positive": 0.0,
+      "p10": -37.09,
+      "worst": -37.09,
+      "best": -0.67
+     },
+     "best_by_median": "sell_next_day_avoided"
+    }
+   },
+   "closest": [
+    {
+     "date": "2008-09-17",
+     "z": 3.17,
+     "move_1d": 8.67,
+     "spy_5d": 1.99,
+     "spy_20d": -22.8,
+     "vix_level": 36.22
+    },
+    {
+     "date": "2009-05-28",
+     "z": 3.05,
+     "move_1d": 11.84,
+     "spy_5d": 3.97,
+     "spy_20d": 1.28,
+     "vix_level": 31.67
+    },
+    {
+     "date": "2011-11-29",
+     "z": 3.16,
+     "move_1d": 8.0,
+     "spy_5d": 5.17,
+     "spy_20d": 3.98,
+     "vix_level": 30.64
+    },
+    {
+     "date": "2015-12-21",
+     "z": 2.86,
+     "move_1d": 8.15,
+     "spy_5d": 2.84,
+     "spy_20d": -7.43,
+     "vix_level": 18.7
+    },
+    {
+     "date": "2019-01-14",
+     "z": 2.89,
+     "move_1d": 15.88,
+     "spy_5d": 2.12,
+     "spy_20d": 6.49,
+     "vix_level": 19.07
+    },
+    {
+     "date": "2020-03-10",
+     "z": 3.27,
+     "move_1d": 8.89,
+     "spy_5d": -12.35,
+     "spy_20d": -8.08,
+     "vix_level": 47.3
+    }
+   ]
+  },
+  {
+   "asset": "US10Y",
+   "trigger": "미 10년 금리 5일 누적 -21.8bp (5일 변동 분포 대비 -2.4σ)",
+   "condition": "같은 방향 5일 누적 변동 -2.0σ 이상",
+   "regime_filter": "S&P 500 200일선 아래 국면만",
+   "n": 30,
+   "period": "2008-01-02 ~ 2025-04-03",
+   "forward": {
+    "TLT": {
+     "1d": {
+      "n": 30,
+      "median": -0.19,
+      "mean": -0.29,
+      "pct_positive": 47.0,
+      "p10": -1.66,
+      "worst": -3.42,
+      "best": 2.26
+     },
+     "5d": {
+      "n": 30,
+      "median": -0.08,
+      "mean": -0.43,
+      "pct_positive": 47.0,
+      "p10": -4.29,
+      "worst": -5.91,
+      "best": 4.37
+     },
+     "20d": {
+      "n": 30,
+      "median": -0.41,
+      "mean": 0.09,
+      "pct_positive": 47.0,
+      "p10": -6.54,
+      "worst": -7.47,
+      "best": 17.07
+     },
+     "60d": {
+      "n": 30,
+      "median": -0.37,
+      "mean": 0.45,
+      "pct_positive": 47.0,
+      "p10": -15.55,
+      "worst": -18.78,
+      "best": 17.75
+     }
+    },
+    "SPY": {
+     "1d": {
+      "n": 30,
+      "median": -0.02,
+      "mean": 0.4,
+      "pct_positive": 50.0,
+      "p10": -2.32,
+      "worst": -5.85,
+      "best": 5.84
+     },
+     "5d": {
+      "n": 30,
+      "median": 1.02,
+      "mean": 1.02,
+      "pct_positive": 53.0,
+      "p10": -4.76,
+      "worst": -6.38,
+      "best": 19.4
+     },
+     "20d": {
+      "n": 30,
+      "median": 3.52,
+      "mean": 2.83,
+      "pct_positive": 70.0,
+      "p10": -6.52,
+      "worst": -12.2,
+      "best": 16.89
+     },
+     "60d": {
+      "n": 30,
+      "median": 3.62,
+      "mean": 3.42,
+      "pct_positive": 70.0,
+      "p10": -8.94,
+      "worst": -14.08,
+      "best": 25.06
+     }
+    }
+   },
+   "responses": {
+    "TLT": {
+     "hold_20d": {
+      "n": 30,
+      "median": -0.41,
+      "mean": 0.09,
+      "pct_positive": 47.0,
+      "p10": -6.54,
+      "worst": -7.47,
+      "best": 17.07
+     },
+     "sell_next_day_avoided": {
+      "n": 30,
+      "median": 0.05,
+      "mean": -0.38,
+      "pct_positive": 50.0,
+      "p10": -6.85,
+      "worst": -18.79,
+      "best": 6.41
+     },
+     "add_next_day_20d": {
+      "n": 30,
+      "median": -0.05,
+      "mean": 0.38,
+      "pct_positive": 50.0,
+      "p10": -5.55,
+      "worst": -6.41,
+      "best": 18.79
+     },
+     "wait5_then_add_20d": {
+      "n": 30,
+      "median": 0.06,
+      "mean": -0.07,
+      "pct_positive": 50.0,
+      "p10": -6.4,
+      "worst": -11.7,
+      "best": 14.22
+     },
+     "max_adverse_20d": {
+      "n": 30,
+      "median": -3.07,
+      "mean": -3.3,
+      "pct_positive": 7.0,
+      "p10": -7.45,
+      "worst": -10.76,
+      "best": 0.49
+     },
+     "best_by_median": "wait5_then_add_20d"
+    },
+    "SPY": {
+     "hold_20d": {
+      "n": 30,
+      "median": 3.52,
+      "mean": 2.83,
+      "pct_positive": 70.0,
+      "p10": -6.52,
+      "worst": -12.2,
+      "best": 16.89
+     },
+     "sell_next_day_avoided": {
+      "n": 30,
+      "median": -2.69,
+      "mean": -2.4,
+      "pct_positive": 30.0,
+      "p10": -9.5,
+      "worst": -12.17,
+      "best": 11.83
+     },
+     "add_next_day_20d": {
+      "n": 30,
+      "median": 2.69,
+      "mean": 2.4,
+      "pct_positive": 70.0,
+      "p10": -5.17,
+      "worst": -11.83,
+      "best": 12.17
+     },
+     "wait5_then_add_20d": {
+      "n": 30,
+      "median": 3.08,
+      "mean": 1.52,
+      "pct_positive": 63.0,
+      "p10": -6.06,
+      "worst": -16.74,
+      "best": 18.01
+     },
+     "max_adverse_20d": {
+      "n": 30,
+      "median": -1.97,
+      "mean": -4.04,
+      "pct_positive": 23.0,
+      "p10": -13.16,
+      "worst": -25.06,
+      "best": 5.39
+     },
+     "best_by_median": "hold_20d"
+    }
+   },
+   "closest": [
+    {
+     "date": "2008-10-07",
+     "z": -2.25,
+     "move_1d": 8.0,
+     "spy_5d": -0.18,
+     "spy_20d": 0.38,
+     "vix_level": 53.68
+    },
+    {
+     "date": "2016-02-08",
+     "z": -2.34,
+     "move_1d": -11.3,
+     "spy_5d": 2.35,
+     "spy_20d": 7.0,
+     "vix_level": 26.0
+    },
+    {
+     "date": "2016-06-27",
+     "z": -2.42,
+     "move_1d": -11.9,
+     "spy_5d": 4.41,
+     "spy_20d": 8.59,
+     "vix_level": 23.85
+    },
+    {
+     "date": "2018-12-06",
+     "z": -2.26,
+     "move_1d": -4.8,
+     "spy_5d": -1.66,
+     "spy_20d": -5.73,
+     "vix_level": 21.19
+    },
+    {
+     "date": "2022-10-04",
+     "z": -2.37,
+     "move_1d": -3.4,
+     "spy_5d": -5.35,
+     "spy_20d": 1.73,
+     "vix_level": 29.07
+    },
+    {
+     "date": "2025-04-03",
+     "z": -2.45,
+     "move_1d": -14.1,
+     "spy_5d": -2.26,
+     "spy_20d": 5.6,
+     "vix_level": 30.02
+    }
+   ]
+  }
+ ],
+ "verified_at": "2026-11-25T21:44:00+00:00",
+ "draft_hash": "93fad5a17b008eb7433b2100ffce7fd90f7e700d366488ab9c30dfd6385ec2df",
+ "telegram_sent": false
+}
