@@ -1,26 +1,26 @@
 {
-  "checked_at": "2026-11-24T06:42:45+00:00",
+  "checked_at": "2026-11-25T05:12:29+00:00",
   "status": "warn",
   "checks": [
     {
       "name": "T1 순유동성",
       "status": "ok",
-      "detail": "NL $5824.52B score 1.09% asOf 2026-11-23 · {'walcl': 'H.4.1 reserve_credit (2026-11-19)', 'tga': 'DTS daily (2026-11-20)', 'rrp': 'FRED RRPONTSYD daily'}"
+      "detail": "NL $5806.57B score 0.99% asOf 2026-11-24 · {'walcl': 'H.4.1 reserve_credit (2026-11-19)', 'tga': 'DTS daily (2026-11-23)', 'rrp': 'FRED RRPONTSYD daily'}"
     },
     {
       "name": "국채 수익률",
       "status": "ok",
-      "detail": "DGS10 4.92 asOf 2026-11-20"
+      "detail": "DGS10 4.92 asOf 2026-11-23"
     },
     {
       "name": "T2 실물경제",
       "status": "ok",
-      "detail": "캐시 5.3h 전 · 실업률 2026-10 (발표 2026-11-07)"
+      "detail": "캐시 3.8h 전 · 실업률 2026-10 (발표 2026-11-06)"
     },
     {
       "name": "T3 글로벌",
       "status": "ok",
-      "detail": "빈 시리즈 없음 · 캐시 5.0h 전"
+      "detail": "빈 시리즈 없음 · 캐시 3.5h 전"
     },
     {
       "name": "시세 스냅샷",
@@ -30,12 +30,12 @@
     {
       "name": "이벤트 캘린더",
       "status": "ok",
-      "detail": "56건 · error=None"
+      "detail": "58건 · error=None"
     },
     {
       "name": "FOMC 일정 하드코딩",
       "status": "ok",
-      "detail": "마지막 등록일 2027-11-17 (358일 남음) — 60일 이내면 다음 해 일정 추가 필요"
+      "detail": "마지막 등록일 2027-11-17 (357일 남음) — 60일 이내면 다음 해 일정 추가 필요"
     },
     {
       "name": "유동성 예측모델",
@@ -45,22 +45,22 @@
     {
       "name": "DTS TGA",
       "status": "ok",
-      "detail": "최신 2026-11-20 $880.8B"
+      "detail": "최신 2026-11-23 $898.8B"
     },
     {
       "name": "QRA",
       "status": "ok",
-      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (22일 전)"
+      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (23일 전)"
     },
     {
       "name": "뉴스 수집·번역",
       "status": "ok",
-      "detail": "227건 · 번역 227건 (100%) · 수집 0.1h 전"
+      "detail": "227건 · 번역 225건 (99%) · 수집 0.1h 전"
     },
     {
       "name": "뉴스 다이제스트",
       "status": "ok",
-      "detail": "생성 0.7h 전 · 3건"
+      "detail": "생성 2.2h 전 · 3건"
     },
     {
       "name": "H.4.1 이력",
@@ -75,7 +75,7 @@
     {
       "name": "경매 데이터 스키마",
       "status": "ok",
-      "detail": "158건 · 갱신 2026-11-23T21:00"
+      "detail": "161건 · 갱신 2026-11-24T21:00"
     },
     {
       "name": "경매 요약",
@@ -90,20 +90,12 @@
     {
       "name": "데일리 리포트",
       "status": "ok",
-      "detail": "세션 2026-11-23: 게시됨"
+      "detail": "세션 2026-11-24: 게시됨"
     },
     {
       "name": "GitHub Actions 실패(24h)",
       "status": "ok",
       "detail": "없음"
-    }
-  ],
-  "diagnosis": [
-    {
-      "check": "이벤트 결과",
-      "likely_cause": "11-18 세인트루이스 FSI만 data/econ_results_ai.json·econ_results.json 어디에도 없음 — 에이전트가 이 주간 이벤트를 조사하지 않았거나 FRED STLFSI4 미반영으로 보류됐다 사라진 것(spec·FRED_PROXY_ALLOW 설정은 정상). 미시간(11-20)은 게시되어 해소됨. 11-23 점검의 T3 broadDollar 결손도 이번 점검에서 해소(일시 FRED 오류로 확인).",
-      "suggested_fix": "claude.ai/code/routines '이벤트 결과' 실행 이력 확인 후 재실행(ops/routines/econ.md); 11-18 이벤트는 조사 창(발표 2~10일)이 11-28경 끝나므로 그 전에 처리.",
-      "confidence": "medium"
     }
   ]
 }
