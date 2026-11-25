@@ -1,147 +1,183 @@
 {
-  "updated": "2026-11-25T16:42:22Z",
-  "entries": {
-    "2026-11-13|생산자물가 (PPI)": {
-      "period": "2026-10",
-      "metrics": {
-        "mom": {
-          "actual": 0.3,
-          "forecast": 0.4,
-          "previous": 1.3,
-          "previous_revised": null
-        },
-        "yoy": {
-          "actual": 6.5,
-          "forecast": 6.6,
-          "previous": 6.3,
-          "previous_revised": null
-        }
-      },
-      "interpretation": "최종수요 월간 0.3%로 예상(0.4%) 하회했으나 전년비 6.5%로 높은 수준 유지 — 9월 급등(1.3%) 이후 소폭 진정.",
-      "sources": [
-        "https://www.bls.gov/news.release/ppi.nr0.htm",
-        "https://www.stocktitan.net/articles/october-2026-ppi-preview-yearly-rate"
-      ],
-      "researched_at": "2026-11-16T16:41:26Z",
-      "model": "claude-sonnet-5-5"
+ "updated": "2026-11-25T22:41:56+00:00",
+ "entries": {
+  "2026-11-13|생산자물가 (PPI)": {
+   "period": "2026-10",
+   "metrics": {
+    "mom": {
+     "actual": 0.3,
+     "forecast": 0.4,
+     "previous": 1.3,
+     "previous_revised": null
     },
-    "2026-11-17|소매판매": {
-      "period": "2026-10",
-      "metrics": {
-        "mom": {
-          "actual": 0.2,
-          "forecast": 0.2,
-          "previous": 0.8,
-          "previous_revised": null
-        }
-      },
-      "interpretation": "소매판매 월간 0.2%로 예상(0.2%)에 부합, 9월 급증(0.8%) 이후 둔화 — 근원(자동차·휘발유 등 제외)은 0.6%로 예상(0.4%) 상회.",
-      "sources": [
-        "https://www.investing.com/news/economy-news/us-retail-sales-increase-moderately-in-october-5033051"
-      ],
-      "researched_at": "2026-11-18T16:41:31Z",
-      "model": "claude-sonnet-5-5"
-    },
-    "2026-11-18|주택착공": {
-      "period": "2026-10",
-      "metrics": {
-        "starts": {
-          "actual": 1309,
-          "forecast": 1230,
-          "previous": 1221,
-          "previous_revised": 1191
-        }
-      },
-      "interpretation": "주택착공 연율 1.309M으로 예상(1.23M)을 상회, 9월 수정치(1.191M) 대비 반등 — 다만 허가는 1.295M으로 감소해 선행 신호는 엇갈림.",
-      "sources": [
-        "https://fxtribune.com/news/us-housing-starts-rise-to-1-309k-in-october-2026/",
-        "https://www.citybiz.co/article/935728/u-s-housing-starts-surge-9-9-in-october-beating-forecasts-as-building-permits-lag/"
-      ],
-      "researched_at": "2026-11-18T22:41:12Z",
-      "model": "claude-sonnet-5-5"
-    },
-    "2026-11-19|실업수당 청구 (신규·연속) 주간 발표": {
-      "period": "2026-11-14",
-      "metrics": {
-        "initial": {
-          "actual": 203,
-          "forecast": 197,
-          "previous": 200,
-          "previous_revised": 202
-        }
-      },
-      "interpretation": "신규 청구 20.3만 건으로 예상(19.7만) 상회했으나 여전히 낮은 수준 — 미시간주 온라인 신청 시스템 도입 영향 가능성이 거론됨.",
-      "sources": [
-        "https://www.investing.com/news/economy-news/us-weekly-jobless-claims-increase-slightly-5039110",
-        "https://www.spokesman.com/stories/2026/nov/19/us-weekly-jobless-claims-edge-up-but-labor-market-/"
-      ],
-      "researched_at": "2026-11-19T22:41:36Z",
-      "model": "claude-sonnet-5-5"
-    },
-    "2026-11-20|소비자심리 (미시간)": {
-      "period": "2026-11",
-      "metrics": {
-        "sentiment": {
-          "actual": 51.5,
-          "forecast": null,
-          "previous": 48.0,
-          "previous_revised": null
-        }
-      },
-      "interpretation": "11월 최종 51.5로 잠정치(51.0)보다 소폭 상향, 10월(48.0) 대비 반등 — 선거 이후 기업경기 기대 개선이 주도했으나 수준은 여전히 낮음.",
-      "sources": [
-        "https://www.advisorperspectives.com/dshort/updates/2026/11/20/consumer-sentiment-recovers-significantly",
-        "https://seekingalpha.com/news/4675184-consumer-sentiment-revised-slightly-higher-in-novembers-final-print"
-      ],
-      "researched_at": "2026-11-23T22:41:19Z",
-      "model": "claude-sonnet-5-5"
-    },
-    "2026-11-25|개인소비지출 (PCE · Core PCE)": {
-      "period": "2026-10",
-      "metrics": {
-        "core_yoy": {
-          "actual": 3.3,
-          "forecast": 3.2,
-          "previous": 3.1,
-          "previous_revised": null
-        },
-        "core_mom": {
-          "actual": 0.3,
-          "forecast": 0.3,
-          "previous": 0.3,
-          "previous_revised": null
-        },
-        "yoy": {
-          "actual": 3.8,
-          "forecast": 3.8,
-          "previous": 3.6,
-          "previous_revised": null
-        }
-      },
-      "interpretation": "근원 PCE 전년비 3.3%로 예상(3.2%) 상회, 2023년 말 이후 최고 수준 — 월간 근원 0.3%는 부합, 헤드라인 3.8%도 부합.",
-      "sources": [
-        "https://investinglive.com/news/us-october-pce-core-inflation-m-m-vs-0-3-expected/"
-      ],
-      "researched_at": "2026-11-25T16:42:22Z",
-      "model": "claude-sonnet-5-5"
-    },
-    "2026-11-25|주택착공": {
-      "period": "2026-10",
-      "metrics": {
-        "starts": {
-          "actual": 1309,
-          "forecast": 1230,
-          "previous": 1221,
-          "previous_revised": 1191
-        }
-      },
-      "interpretation": "주택착공 연율 1.309M으로 예상(1.23M)을 상회, 9월 수정치(1.191M) 대비 반등 — 다만 허가는 1.295M으로 감소해 선행 신호는 엇갈림.",
-      "sources": [
-        "https://fxtribune.com/news/us-housing-starts-rise-to-1-309k-in-october-2026/",
-        "https://www.citybiz.co/article/935728/u-s-housing-starts-surge-9-9-in-october-beating-forecasts-as-building-permits-lag/"
-      ],
-      "researched_at": "2026-11-25T16:42:22Z",
-      "model": "claude-sonnet-5-5"
+    "yoy": {
+     "actual": 6.5,
+     "forecast": 6.6,
+     "previous": 6.3,
+     "previous_revised": null
     }
+   },
+   "interpretation": "최종수요 월간 0.3%로 예상(0.4%) 하회했으나 전년비 6.5%로 높은 수준 유지 — 9월 급등(1.3%) 이후 소폭 진정.",
+   "sources": [
+    "https://www.bls.gov/news.release/ppi.nr0.htm",
+    "https://www.stocktitan.net/articles/october-2026-ppi-preview-yearly-rate"
+   ],
+   "researched_at": "2026-11-16T16:41:26Z",
+   "model": "claude-sonnet-5-5"
+  },
+  "2026-11-17|소매판매": {
+   "period": "2026-10",
+   "metrics": {
+    "mom": {
+     "actual": 0.2,
+     "forecast": 0.2,
+     "previous": 0.8,
+     "previous_revised": null
+    }
+   },
+   "interpretation": "소매판매 월간 0.2%로 예상(0.2%)에 부합, 9월 급증(0.8%) 이후 둔화 — 근원(자동차·휘발유 등 제외)은 0.6%로 예상(0.4%) 상회.",
+   "sources": [
+    "https://www.investing.com/news/economy-news/us-retail-sales-increase-moderately-in-october-5033051"
+   ],
+   "researched_at": "2026-11-18T16:41:31Z",
+   "model": "claude-sonnet-5-5"
+  },
+  "2026-11-18|주택착공": {
+   "period": "2026-10",
+   "metrics": {
+    "starts": {
+     "actual": 1309,
+     "forecast": 1230,
+     "previous": 1221,
+     "previous_revised": 1191
+    }
+   },
+   "interpretation": "주택착공 연율 1.309M으로 예상(1.23M)을 상회, 9월 수정치(1.191M) 대비 반등 — 다만 허가는 1.295M으로 감소해 선행 신호는 엇갈림.",
+   "sources": [
+    "https://fxtribune.com/news/us-housing-starts-rise-to-1-309k-in-october-2026/",
+    "https://www.citybiz.co/article/935728/u-s-housing-starts-surge-9-9-in-october-beating-forecasts-as-building-permits-lag/"
+   ],
+   "researched_at": "2026-11-18T22:41:12Z",
+   "model": "claude-sonnet-5-5"
+  },
+  "2026-11-19|실업수당 청구 (신규·연속) 주간 발표": {
+   "period": "2026-11-14",
+   "metrics": {
+    "initial": {
+     "actual": 203,
+     "forecast": 197,
+     "previous": 200,
+     "previous_revised": 202
+    }
+   },
+   "interpretation": "신규 청구 20.3만 건으로 예상(19.7만) 상회했으나 여전히 낮은 수준 — 미시간주 온라인 신청 시스템 도입 영향 가능성이 거론됨.",
+   "sources": [
+    "https://www.investing.com/news/economy-news/us-weekly-jobless-claims-increase-slightly-5039110",
+    "https://www.spokesman.com/stories/2026/nov/19/us-weekly-jobless-claims-edge-up-but-labor-market-/"
+   ],
+   "researched_at": "2026-11-19T22:41:36Z",
+   "model": "claude-sonnet-5-5"
+  },
+  "2026-11-20|소비자심리 (미시간)": {
+   "period": "2026-11",
+   "metrics": {
+    "sentiment": {
+     "actual": 51.5,
+     "forecast": null,
+     "previous": 48.0,
+     "previous_revised": null
+    }
+   },
+   "interpretation": "11월 최종 51.5로 잠정치(51.0)보다 소폭 상향, 10월(48.0) 대비 반등 — 선거 이후 기업경기 기대 개선이 주도했으나 수준은 여전히 낮음.",
+   "sources": [
+    "https://www.advisorperspectives.com/dshort/updates/2026/11/20/consumer-sentiment-recovers-significantly",
+    "https://seekingalpha.com/news/4675184-consumer-sentiment-revised-slightly-higher-in-novembers-final-print"
+   ],
+   "researched_at": "2026-11-23T22:41:19Z",
+   "model": "claude-sonnet-5-5"
+  },
+  "2026-11-25|개인소비지출 (PCE · Core PCE)": {
+   "period": "2026-10",
+   "metrics": {
+    "core_yoy": {
+     "actual": 3.3,
+     "forecast": 3.2,
+     "previous": 3.1,
+     "previous_revised": null
+    },
+    "core_mom": {
+     "actual": 0.3,
+     "forecast": 0.3,
+     "previous": 0.3,
+     "previous_revised": null
+    },
+    "yoy": {
+     "actual": 3.8,
+     "forecast": 3.8,
+     "previous": 3.6,
+     "previous_revised": null
+    }
+   },
+   "interpretation": "근원 PCE 전년비 3.3%로 예상(3.2%) 상회, 2023년 말 이후 최고 수준 — 월간 근원 0.3%는 부합, 헤드라인 3.8%도 부합.",
+   "sources": [
+    "https://investinglive.com/news/us-october-pce-core-inflation-m-m-vs-0-3-expected/"
+   ],
+   "researched_at": "2026-11-25T16:42:22Z",
+   "model": "claude-sonnet-5-5"
+  },
+  "2026-11-25|주택착공": {
+   "period": "2026-10",
+   "metrics": {
+    "starts": {
+     "actual": 1309,
+     "forecast": 1230,
+     "previous": 1221,
+     "previous_revised": 1191
+    }
+   },
+   "interpretation": "주택착공 연율 1.309M으로 예상(1.23M)을 상회, 9월 수정치(1.191M) 대비 반등 — 다만 허가는 1.295M으로 감소해 선행 신호는 엇갈림.",
+   "sources": [
+    "https://fxtribune.com/news/us-housing-starts-rise-to-1-309k-in-october-2026/",
+    "https://www.citybiz.co/article/935728/u-s-housing-starts-surge-9-9-in-october-beating-forecasts-as-building-permits-lag/"
+   ],
+   "researched_at": "2026-11-25T16:42:22Z",
+   "model": "claude-sonnet-5-5"
+  },
+  "2026-11-25|GDP 성장률": {
+   "period": "2026-Q3",
+   "metrics": {
+    "qoq_saar": {
+     "actual": 4.3,
+     "forecast": 3.5,
+     "previous": 2.2,
+     "previous_revised": null
+    }
+   },
+   "interpretation": "3분기 실질 GDP 2차 추정 4.3%(연율)로 예상(3.5%)과 속보치(3.4%)를 모두 상회 — 소비·기업투자 상향 개정이 성장 모멘텀을 뒷받침.",
+   "sources": [
+    "https://www.aol.com/articles/us-third-quarter-gdp-growth-142544000.html",
+    "https://eyeonhousing.org/2026/10/u-s-economy-accelerated-in-the-third-quarter-of-2026/"
+   ],
+   "researched_at": "2026-11-25T22:41:56+00:00",
+   "model": "claude-sonnet-5-5"
+  },
+  "2026-11-25|내구재 주문": {
+   "period": "2026-10",
+   "metrics": {
+    "mom": {
+     "actual": 0.2,
+     "forecast": 0.6,
+     "previous": 1.8,
+     "previous_revised": 2.0
+    }
+   },
+   "interpretation": "10월 내구재 주문 +0.2%로 예상(0.6%) 하회, 9월은 2.0%로 상향 수정 — 핵심 자본재 수주는 1.2% 증가해 기업 설비투자 흐름은 유지.",
+   "sources": [
+    "https://investinglive.com/news/investinglive-americas-fx-news-wrap-25-nov-it-s-a-wrap-s-p-500-and-nasdaq-pare-steep-losses/",
+    "https://www.rttnews.com/3718030/u-s-durable-goods-orders-rise-0-2-in-october-less-than-expected.aspx"
+   ],
+   "researched_at": "2026-11-25T22:41:56+00:00",
+   "model": "claude-sonnet-5-5"
   }
+ }
 }
