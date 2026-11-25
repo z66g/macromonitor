@@ -1,7 +1,151 @@
 {
-  "updated": "2026-11-24T21:00:44.560453+00:00",
-  "count": 161,
+  "updated": "2026-11-25T21:00:53.361978+00:00",
+  "count": 165,
   "results": [
+    {
+      "security_type": "Note",
+      "security_term": "7-Year",
+      "group_term": "7-Year",
+      "auction_date": "2026-11-25",
+      "issue_date": "2026-11-30",
+      "maturity_date": "2033-11-30",
+      "cusip": "91282CSA0",
+      "offering_amt": 44000000000.0,
+      "total_accepted": 44000060900.0,
+      "total_tendered": 106923349000.0,
+      "interest_rate": 4.625,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261125_3.pdf",
+      "_analysis": {
+        "btc": 2.43,
+        "high_yield": 4.708,
+        "pd_pct": 8.6,
+        "di_pct": 33.2,
+        "in_pct": 58.2,
+        "pd_accepted": 3748000000.0,
+        "di_accepted": 14445058100.0,
+        "in_accepted": 25325938800.0,
+        "btc_avg6": 2.48,
+        "pd_avg6": 11.73,
+        "in_avg6": 63.65,
+        "tail_bps": null,
+        "wi_rate": null,
+        "grade": {
+          "btc": "neutral",
+          "tail": null,
+          "pd": "strong"
+        },
+        "score_pct": 75
+      },
+      "summary": null
+    },
+    {
+      "security_type": "Bill",
+      "security_term": "17-Week",
+      "group_term": "17-Week",
+      "auction_date": "2026-11-25",
+      "issue_date": "2026-12-01",
+      "maturity_date": "2027-03-30",
+      "cusip": "912797XK8",
+      "offering_amt": 75000000000.0,
+      "total_accepted": 75000206200.0,
+      "total_tendered": 225414708800.0,
+      "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261125_4.pdf",
+      "_analysis": {
+        "btc": 3.01,
+        "high_yield": 4.25,
+        "pd_pct": 35.9,
+        "di_pct": 6.9,
+        "in_pct": 57.2,
+        "pd_accepted": 26300485000.0,
+        "di_accepted": 5069910000.0,
+        "in_accepted": 41984562400.0,
+        "btc_avg6": 2.95,
+        "pd_avg6": 39.02,
+        "in_avg6": 54.0,
+        "tail_bps": null,
+        "wi_rate": null,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      },
+      "summary": null
+    },
+    {
+      "security_type": "Bill",
+      "security_term": "8-Week",
+      "group_term": "8-Week",
+      "auction_date": "2026-11-25",
+      "issue_date": "2026-12-01",
+      "maturity_date": "2027-01-26",
+      "cusip": "912797WR4",
+      "offering_amt": 100000000000.0,
+      "total_accepted": 100000526000.0,
+      "total_tendered": 286363440800.0,
+      "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261125_2.pdf",
+      "_analysis": {
+        "btc": 2.86,
+        "high_yield": 4.12,
+        "pd_pct": 24.3,
+        "di_pct": 5.3,
+        "in_pct": 70.4,
+        "pd_accepted": 23653520000.0,
+        "di_accepted": 5126530000.0,
+        "in_accepted": 68385268200.0,
+        "btc_avg6": 2.56,
+        "pd_avg6": 35.67,
+        "in_avg6": 58.92,
+        "tail_bps": null,
+        "wi_rate": null,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      },
+      "summary": null
+    },
+    {
+      "security_type": "Bill",
+      "security_term": "4-Week",
+      "group_term": "4-Week",
+      "auction_date": "2026-11-25",
+      "issue_date": "2026-12-01",
+      "maturity_date": "2026-12-29",
+      "cusip": "912797WH6",
+      "offering_amt": 105000000000.0,
+      "total_accepted": 105000584400.0,
+      "total_tendered": 276915438300.0,
+      "interest_rate": null,
+      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261125_1.pdf",
+      "_analysis": {
+        "btc": 2.64,
+        "high_yield": 4.115,
+        "pd_pct": 27.9,
+        "di_pct": 4.9,
+        "in_pct": 67.2,
+        "pd_accepted": 27382200000.0,
+        "di_accepted": 4800000000.0,
+        "in_accepted": 65788064100.0,
+        "btc_avg6": 2.76,
+        "pd_avg6": 33.6,
+        "in_avg6": 61.0,
+        "tail_bps": null,
+        "wi_rate": null,
+        "grade": {
+          "btc": "strong",
+          "tail": null,
+          "pd": "weak"
+        },
+        "score_pct": 50
+      },
+      "summary": null
+    },
     {
       "security_type": "Note",
       "security_term": "5-Year",
@@ -37,6 +181,7 @@
         "score_pct": 83
       },
       "summary": "🎯 총평: Average\n1. Tail: +0.3 bp. WI 4.716%보다 0.3bp 높은 4.719%에 낙찰된 미미한 tail로, 5년 구간 금리에 의미 있는 추가 상승 압력은 주지 않았다.\n2. BTC: 2.37x vs 6avg 2.31x. 응찰률이 평균을 웃돌아 700억 달러 물량에 대한 전체 수요는 무난했다.\n3. Indirect 54.3% vs 6avg 61.92%. 해외·기관 수요가 평균보다 7%p 넘게 약했고 직접 입찰(36.7%)이 빈자리를 메웠다. PD 9.0% vs 6avg 12.6%. 딜러 인수 비중이 평균을 크게 밑돌아 재고 부담은 적다.\n4. 결론: 4.7%대 5년물이 국내 실수요로 무리 없이 소화됐지만, 2년물에 이어 이틀 연속 해외 수요가 둔화돼 7년물 경매에서 Indirect 회복 여부가 중기 금리 경로의 시험대다.",
+      "telegram_sent": true,
       "_ai": {
         "sources": [
           "https://investinglive.com/news/the-us-treasury-sells-70-billion-of-5-year-notes-at-a-high-yield-of-4-719/",
@@ -44,8 +189,7 @@
         ],
         "researched_at": "2026-11-24T21:34:02Z",
         "model": "claude-opus-5-5"
-      },
-      "telegram_sent": true
+      }
     },
     {
       "security_type": "FRN",
