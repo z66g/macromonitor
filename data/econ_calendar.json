@@ -1,24 +1,8 @@
 {
- "updated": "2026-11-25T00:39:00+00:00",
- "calendar_saved_at": "2026-11-24T19:55:21.597Z",
- "today_kst": "2026-11-25",
+ "updated": "2026-11-26T00:17:03+00:00",
+ "calendar_saved_at": "2026-11-25T19:55:21.024Z",
+ "today_kst": "2026-11-26",
  "events": [
-  {
-   "key": "2026-11-18|세인트루이스 FSI",
-   "date": "2026-11-18",
-   "name": "세인트루이스 FSI",
-   "indicator": "stlfsi",
-   "imp": "medium",
-   "estimated": false
-  },
-  {
-   "key": "2026-11-18|주택착공",
-   "date": "2026-11-18",
-   "name": "주택착공",
-   "indicator": "housing",
-   "imp": "medium",
-   "estimated": false
-  },
   {
    "key": "2026-11-20|소비자심리 (미시간)",
    "date": "2026-11-20",
@@ -192,6 +176,22 @@
    "date": "2026-12-16",
    "name": "소매판매",
    "indicator": "retail",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-17|실업수당 청구 (신규·연속) 주간 발표",
+   "date": "2026-12-17",
+   "name": "실업수당 청구 (신규·연속) 주간 발표",
+   "indicator": "claims",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-17|주택착공",
+   "date": "2026-12-17",
+   "name": "주택착공",
+   "indicator": "housing",
    "imp": "medium",
    "estimated": false
   }
