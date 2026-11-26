@@ -1,41 +1,41 @@
 {
-  "checked_at": "2026-11-25T05:12:29+00:00",
-  "status": "warn",
+  "checked_at": "2026-11-26T04:40:04+00:00",
+  "status": "ok",
   "checks": [
     {
       "name": "T1 순유동성",
       "status": "ok",
-      "detail": "NL $5806.57B score 0.99% asOf 2026-11-24 · {'walcl': 'H.4.1 reserve_credit (2026-11-19)', 'tga': 'DTS daily (2026-11-23)', 'rrp': 'FRED RRPONTSYD daily'}"
+      "detail": "NL $5746.97B score -0.34% asOf 2026-11-25 · {'walcl': 'H.4.1 reserve_credit (2026-11-19)', 'tga': 'DTS daily (2026-11-24)', 'rrp': 'FRED RRPONTSYD daily'}"
     },
     {
       "name": "국채 수익률",
       "status": "ok",
-      "detail": "DGS10 4.92 asOf 2026-11-23"
+      "detail": "DGS10 4.91 asOf 2026-11-24"
     },
     {
       "name": "T2 실물경제",
       "status": "ok",
-      "detail": "캐시 3.8h 전 · 실업률 2026-10 (발표 2026-11-06)"
+      "detail": "캐시 3.2h 전 · 실업률 2026-10 (발표 2026-11-06)"
     },
     {
       "name": "T3 글로벌",
       "status": "ok",
-      "detail": "빈 시리즈 없음 · 캐시 3.5h 전"
+      "detail": "빈 시리즈 없음 · 캐시 2.9h 전"
     },
     {
       "name": "시세 스냅샷",
       "status": "ok",
-      "detail": "33종목 · 저장 0.3h 전 · 6h 넘은 종목 없음"
+      "detail": "33종목 · 저장 0.2h 전 · 6h 넘은 종목 없음"
     },
     {
       "name": "이벤트 캘린더",
       "status": "ok",
-      "detail": "58건 · error=None"
+      "detail": "55건 · error=None"
     },
     {
       "name": "FOMC 일정 하드코딩",
       "status": "ok",
-      "detail": "마지막 등록일 2027-11-17 (357일 남음) — 60일 이내면 다음 해 일정 추가 필요"
+      "detail": "마지막 등록일 2027-11-17 (356일 남음) — 60일 이내면 다음 해 일정 추가 필요"
     },
     {
       "name": "유동성 예측모델",
@@ -45,22 +45,22 @@
     {
       "name": "DTS TGA",
       "status": "ok",
-      "detail": "최신 2026-11-23 $898.8B"
+      "detail": "최신 2026-11-24 $958.4B"
     },
     {
       "name": "QRA",
       "status": "ok",
-      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (23일 전)"
+      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (24일 전)"
     },
     {
       "name": "뉴스 수집·번역",
       "status": "ok",
-      "detail": "227건 · 번역 225건 (99%) · 수집 0.1h 전"
+      "detail": "228건 · 번역 228건 (100%) · 수집 0.1h 전"
     },
     {
       "name": "뉴스 다이제스트",
       "status": "ok",
-      "detail": "생성 2.2h 전 · 3건"
+      "detail": "생성 1.7h 전 · 4건"
     },
     {
       "name": "H.4.1 이력",
@@ -75,7 +75,7 @@
     {
       "name": "경매 데이터 스키마",
       "status": "ok",
-      "detail": "161건 · 갱신 2026-11-24T21:00"
+      "detail": "165건 · 갱신 2026-11-25T21:00"
     },
     {
       "name": "경매 요약",
@@ -84,32 +84,18 @@
     },
     {
       "name": "이벤트 결과",
-      "status": "warn",
-      "detail": "게시 5건 · 누락 ['2026-11-18|세인트루이스 FSI'] · 3일 넘은 보류 없음 · 거부 없음"
+      "status": "ok",
+      "detail": "게시 9건 · 누락 없음 · 3일 넘은 보류 없음 · 거부 없음"
     },
     {
       "name": "데일리 리포트",
       "status": "ok",
-      "detail": "세션 2026-11-24: 게시됨"
+      "detail": "세션 2026-11-25: 게시됨"
     },
     {
       "name": "GitHub Actions 실패(24h)",
       "status": "ok",
-      "detail": "없음"
-    }
-  ],
-  "diagnosis": [
-    {
-      "check": "이벤트 결과",
-      "likely_cause": "2026-11-18 세인트루이스 FSI(주간 STLFSI4)가 econ_results·pending·rejects·econ_results_ai 어디에도 없음 — 이벤트 결과 에이전트가 해당 주간 이벤트를 조사 대상에서 누락한 것으로 보이며, 7일 경과라 정상 지연은 아님.",
-      "suggested_fix": "ops/routines/econ.md 대상 선정 규칙을 확인하고 data/econ_results_ai.json에 2026-11-18|세인트루이스 FSI 항목을 추가해 재실행(merge_econ_results.py가 FRED STLFSI4로 대조); 11-25분 반영 여부도 확인.",
-      "confidence": "medium"
-    },
-    {
-      "check": "헬스체크 실행 시각",
-      "likely_cause": "checked_at(2026-11-25 05:12 UTC)이 진단 시점(23:38 UTC)보다 18시간 전이며 23:00 UTC 점검이 아직 커밋되지 않음 — GitHub schedule 지연/누락 가능성(오늘 점검은 05:12에 실행된 것으로 보임).",
-      "suggested_fix": ".github/workflows/health-check.yml 실행 이력을 확인하고 필요하면 workflow_dispatch로 수동 실행.",
-      "confidence": "medium"
+      "detail": "없음 · 이후 성공으로 복구됨: ['Generate News Digest (09:00Z)']"
     }
   ]
 }
