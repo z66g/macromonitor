@@ -1,6 +1,6 @@
 {
-  "updated": "2026-11-26T21:00:41.738761+00:00",
-  "count": 165,
+  "updated": "2026-11-27T21:00:41.649479+00:00",
+  "count": 163,
   "results": [
     {
       "security_type": "Note",
@@ -294,9 +294,9 @@
         "pd_accepted": 32326360000.0,
         "di_accepted": 2062600000.0,
         "in_accepted": 52346365600.0,
-        "btc_avg6": 2.74,
-        "pd_avg6": 30.1,
-        "in_avg6": 65.35,
+        "btc_avg6": 2.77,
+        "pd_avg6": 29.78,
+        "in_avg6": 65.38,
         "tail_bps": null,
         "wi_rate": null,
         "grade": {
@@ -645,9 +645,9 @@
         "pd_accepted": 28642630000.0,
         "di_accepted": 4492375000.0,
         "in_accepted": 63448324200.0,
-        "btc_avg6": 2.72,
-        "pd_avg6": 30.18,
-        "in_avg6": 65.28,
+        "btc_avg6": 2.76,
+        "pd_avg6": 29.8,
+        "in_avg6": 65.3,
         "tail_bps": null,
         "wi_rate": null,
         "grade": {
@@ -1070,9 +1070,9 @@
         "pd_accepted": 29337320000.0,
         "di_accepted": 2581600000.0,
         "in_accepted": 65086410000.0,
-        "btc_avg6": 2.76,
-        "pd_avg6": 30.18,
-        "in_avg6": 64.83,
+        "btc_avg6": 2.82,
+        "pd_avg6": 29.67,
+        "in_avg6": 64.7,
         "tail_bps": null,
         "wi_rate": null,
         "grade": {
@@ -1214,9 +1214,9 @@
         "pd_accepted": 32335365000.0,
         "di_accepted": 5406060000.0,
         "in_accepted": 58929371300.0,
-        "btc_avg6": 2.72,
-        "pd_avg6": 29.1,
-        "in_avg6": 66.1,
+        "btc_avg6": 2.79,
+        "pd_avg6": 27.8,
+        "in_avg6": 66.55,
         "tail_bps": null,
         "wi_rate": null,
         "grade": {
@@ -1574,9 +1574,9 @@
         "pd_accepted": 25104400000.0,
         "di_accepted": 5279000000.0,
         "in_accepted": 62128655000.0,
-        "btc_avg6": 2.66,
-        "pd_avg6": 30.1,
-        "in_avg6": 65.55,
+        "btc_avg6": 2.74,
+        "pd_avg6": 28.5,
+        "in_avg6": 65.9,
         "tail_bps": null,
         "wi_rate": null,
         "grade": {
@@ -1862,9 +1862,9 @@
         "pd_accepted": 26140890000.0,
         "di_accepted": 5073162500.0,
         "in_accepted": 60422364000.0,
-        "btc_avg6": 2.58,
-        "pd_avg6": 31.7,
-        "in_avg6": 65.2,
+        "btc_avg6": null,
+        "pd_avg6": null,
+        "in_avg6": null,
         "tail_bps": null,
         "wi_rate": null,
         "grade": {
@@ -2089,42 +2089,6 @@
           "pd": "weak"
         },
         "score_pct": 50
-      },
-      "summary": null
-    },
-    {
-      "security_type": "Bill",
-      "security_term": "6-Week",
-      "group_term": "6-Week",
-      "auction_date": "2026-10-13",
-      "issue_date": "2026-10-15",
-      "maturity_date": "2026-11-27",
-      "cusip": "912797SU2",
-      "offering_amt": 95000000000.0,
-      "total_accepted": null,
-      "total_tendered": null,
-      "interest_rate": null,
-      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2026/R_20261013_3.pdf",
-      "_analysis": {
-        "btc": 2.58,
-        "high_yield": 3.98,
-        "pd_pct": 31.7,
-        "di_pct": 3.2,
-        "in_pct": 65.2,
-        "pd_accepted": 29065145000.0,
-        "di_accepted": 2900000000.0,
-        "in_accepted": 59768443600.0,
-        "btc_avg6": null,
-        "pd_avg6": null,
-        "in_avg6": null,
-        "tail_bps": null,
-        "wi_rate": null,
-        "grade": {
-          "btc": "neutral",
-          "tail": null,
-          "pd": "weak"
-        },
-        "score_pct": 25
       },
       "summary": null
     },
@@ -5977,42 +5941,6 @@
           "pd": "neutral"
         },
         "score_pct": 50
-      },
-      "summary": null
-    },
-    {
-      "security_type": "Bond",
-      "security_term": "19-Year 10-Month",
-      "group_term": "20-Year",
-      "auction_date": "2025-10-22",
-      "issue_date": "2025-10-31",
-      "maturity_date": "2045-08-15",
-      "cusip": "912810UN6",
-      "offering_amt": 13000000000.0,
-      "total_accepted": null,
-      "total_tendered": null,
-      "interest_rate": 4.875,
-      "press_release": "https://www.treasurydirect.gov/instit/annceresult/press/preanre/2025/R_20251022_2.pdf",
-      "_analysis": {
-        "btc": 2.73,
-        "high_yield": 4.506,
-        "pd_pct": 10.0,
-        "di_pct": 26.3,
-        "in_pct": 63.6,
-        "pd_accepted": 1298000000.0,
-        "di_accepted": 3405962100.0,
-        "in_accepted": 8230074000.0,
-        "btc_avg6": 2.64,
-        "pd_avg6": 13.08,
-        "in_avg6": 66.5,
-        "tail_bps": null,
-        "wi_rate": null,
-        "grade": {
-          "btc": "strong",
-          "tail": null,
-          "pd": "strong"
-        },
-        "score_pct": 100
       },
       "summary": null
     }
