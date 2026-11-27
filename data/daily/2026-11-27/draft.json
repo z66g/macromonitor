@@ -1,0 +1,181 @@
+{
+ "session": "2026-11-27",
+ "headline": "AI 반등이 채권 헤지를 걷어냈다, 금속 급등은 휴장 저점의 되감기",
+ "regime": {
+  "label": "transition",
+  "one_liner": "VIX가 5일 새 {{market.VIX.chg_5d}}% 꺾였지만 S&P 500은 여전히 200일선 아래({{market.SPY.vs_200dma_pct}}%), 순유동성은 4주 평균 아래. 위험 선호는 돌아왔고 바닥 확인은 아직인 전환 국면."
+ },
+ "yesterday_check": [
+  {
+   "point": "5년물 4.85% 재돌파",
+   "outcome": "5년물 {{market.US5Y.close}}%로 하루 {{market.US5Y.chg_1d|+}}bp 올랐지만 선 아래 — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 4.85,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "동일가중 50일선 하회와 QQQ 620 하회 동반",
+   "outcome": "동일가중은 50일선 위 {{market.RSP.vs_50dma_pct|+}}%, QQQ {{market.QQQ.close}} — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 620,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "월말 SOFR−IORB 10bp 이상 또는 SRF 이용 발생",
+   "outcome": "SOFR−IORB {{plumbing.sofr_minus_iorb_bp}}bp, SRF {{plumbing.srf.accepted_b}}B 이용 — SRF 조건 충족",
+   "hit": true,
+   "cited_numbers": [
+    {
+     "value": 10,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "CCC 이하 OAS 14.5% 돌파",
+   "outcome": "{{plumbing.ccc_oas.current}}% — 미충족, 다만 더 넓어졌다",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 14.5,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "point": "천연가스 4.0달러 돌파 또는 3.4달러 하회",
+   "outcome": "{{market.NATGAS.close}} — 미충족",
+   "hit": false,
+   "cited_numbers": [
+    {
+     "value": 4.0,
+     "threshold": true
+    },
+    {
+     "value": 3.4,
+     "threshold": true
+    }
+   ]
+  }
+ ],
+ "drivers": [
+  {
+   "title": "은·구리·금 급등은 금리가 아니라 숏 커버링",
+   "anomaly_keys": [
+    "SILVER",
+    "COPPER",
+    "GOLD",
+    "GOLD/DXY"
+   ],
+   "body": "은 {{market.SILVER.chg_1d|+}}%, 구리 {{market.COPPER.chg_1d|+}}%, 금 {{market.GOLD.chg_1d|+}}%. 같은 날 10년물 {{market.US10Y.chg_1d|+}}bp, 달러인덱스 {{market.DXY.chg_1d|+}}%(1년 최고권)이고 선물은 12월 25bp 인상을 99% 반영 중이다(보도). 금리·달러가 모두 역풍인데 오른 건 새 매수가 아니라 숏의 되감기로 본다. 은 직전 값은 추수감사절 얇은 거래의 52주 저점({{market.SILVER.low_52w}}) 부근이었고 20일 누적은 아직 {{market.SILVER.chg_20d}}%. 분석가들도 숏 커버링으로 봤다(보도). 무효화: 은이 고용지표까지 45달러 위를 지키면 실수요 복귀로 다시 본다.",
+   "sources": [
+    "https://www.fxstreet.com/analysis/gold-and-silver-rally-even-as-a-december-fed-hike-is-all-but-certain-202611271710",
+    "https://www.fxstreet.com/news/gold-rebounds-from-15-month-low-but-fed-risks-linger-202611271147",
+    "https://beincrypto.com/gold-silver-prices-rebound-fed-hike/"
+   ],
+   "cited_numbers": [
+    {
+     "value": 25,
+     "source": "https://www.fxstreet.com/analysis/gold-and-silver-rally-even-as-a-december-fed-hike-is-all-but-certain-202611271710"
+    },
+    {
+     "value": 99,
+     "source": "https://www.fxstreet.com/analysis/gold-and-silver-rally-even-as-a-december-fed-hike-is-all-but-certain-202611271710"
+    },
+    {
+     "value": 45,
+     "threshold": true
+    }
+   ]
+  },
+  {
+   "title": "주식이 오르자 채권이 팔렸다 — 성장 헤지의 해제",
+   "anomaly_keys": [
+    "VIX",
+    "RSP",
+    "QQQ/RSP"
+   ],
+   "body": "QQQ {{market.QQQ.chg_1d|+}}%로 동일가중({{market.RSP.chg_1d|+}}%)을 앞섰고 AI주가 주도했다(보도). 동일가중 5일 {{market.RSP.chg_5d|+}}%, VIX {{market.VIX.close}}. 같은 날 30년물 {{market.US30Y.chg_1d|+}}bp, TLT {{market.TLT.chg_1d}}% — 주식 상승이 안전자산 수요를 빨아들였다는 보도대로 AI 매도 때 사 둔 국채 헤지를 푼 것이다. MOVE {{market.MOVE.chg_1d}}%라 인플레 공포의 금리 상승은 아니다. QQQ는 50일선 아래 {{market.QQQ.vs_50dma_pct}}%로 추세 회복은 아니다. 무효화: 금리 상승에 주식이 함께 빠지면 기간 프리미엄 재평가로 바꿔 본다.",
+   "sources": [
+    "https://bloomberg.com/news/articles/2026-11-27/treasuries-retreat-as-gains-in-equities-sap-demand-for-havens",
+    "https://finance.yahoo.com/markets/live/stock-market-today-firday-november-27-dow-sp-500-nasdaq-black-friday-holiday-091152065.html",
+    "https://www.cestriancapitalresearch.com/the-real-meaning-of-thanksgiving-cestrian-daily-market-review-27-november-2026/"
+   ],
+   "cited_numbers": []
+  },
+  {
+   "title": "월말 앞 단기자금 압박, SRF가 다시 열렸다",
+   "anomaly_keys": [
+    "SOFR-IORB",
+    "SRF"
+   ],
+   "body": "SOFR가 IORB 위 {{plumbing.sofr_minus_iorb_bp}}bp, SRF {{plumbing.srf.accepted_b}}B 이용. 역레포 {{plumbing.on_rrp_b}}B로 완충이 없고 TGA {{plumbing.tga_b}}B는 5일 새 {{plumbing.tga_daily.chg_5d_b|+}}B. 지준이 TGA로 빠진 상태에서 월말 국채 결제·연말 대차대조표 관리 수요가 겹친 것으로 추정(확인된 촉매 없음). SOFR가 튀지 않은 건 SRF가 상한으로 작동했다는 뜻. 무효화: 12월 초 결제 뒤에도 SRF 이용이 이어지면 구조적 지준 부족으로 본다.",
+   "sources": [],
+   "cited_numbers": []
+  }
+ ],
+ "skipped_anomalies": [
+  {
+   "key": "NATGAS",
+   "reason": "단축 거래일 1월물 상승으로 확인된 촉매가 없고, 직전 리포트의 월물 교체 영향이 남아 있어 해석 보류"
+  }
+ ],
+ "plumbing": {
+  "body": "순유동성 {{plumbing.net_liquidity_b}}B는 4주 평균({{plumbing.nl_4w_avg_b}}B) 아래 — 주식 반등을 유동성이 받치는 그림은 아니다. IG OAS 제자리, CCC 이하 {{plumbing.ccc_oas.current}}%로 높은 채 멈췄고 HYG 1년 분위 {{market.HYG.pctile_1y|r0}}로 신용 하단은 회복이 없다.",
+  "cited_numbers": []
+ },
+ "analogs": [
+  {
+   "asset": "SILVER",
+   "body": "S&P 500이 200일선 아래일 때 은이 이만큼 튄 경우 {{analogs.SILVER.n|r0}}번(표본 적음). 20일 뒤 은 상승 비율 {{analogs.SILVER.forward.SILVER.20d.pct_positive|r0}}%, 중앙값 {{analogs.SILVER.forward.SILVER.20d.median|+}}%, 하위 10% {{analogs.SILVER.forward.SILVER.20d.p10}}%. 다음날 정리가 중앙값 {{analogs.SILVER.responses.SILVER.sell_next_day_avoided.median|+}}%를 피해 가장 나았고, 보유 시 최대 역행 하위 10%는 {{analogs.SILVER.responses.SILVER.max_adverse_20d.p10}}%. 2022-09-12는 다음날 뜨거운 CPI로 되밀렸고 2022-11-04는 달러 정점과 맞물려 이어졌다. 지금은 달러가 1년 최고권이라 앞쪽에 가깝다.",
+   "sources": [],
+   "cited_numbers": []
+  },
+  {
+   "asset": "VIX",
+   "body": "VIX 5일 급락 뒤 {{analogs.VIX.n|r0}}번 중 S&P 500 20일 상승 비율 {{analogs.VIX.forward.SPY.20d.pct_positive|r0}}%, 중앙값 {{analogs.VIX.forward.SPY.20d.median|+}}%, 하위 10% {{analogs.VIX.forward.SPY.20d.p10}}%. 보유가 중앙값 기준 가장 나았지만 최대 역행 하위 10%는 {{analogs.VIX.responses.SPY.max_adverse_20d.p10}}%. 국면 조건 없는 표본이라 200일선 아래인 지금엔 한계가 있다. 2018-02-12는 진정으로 이어졌고 2008-11-03은 직후 재차 무너졌다.",
+   "sources": [],
+   "cited_numbers": []
+  }
+ ],
+ "sectors": {
+  "body": "11개 섹터 모두 상승, 기술 {{sector_rank.0.chg_1d|+}}% 1위, 유틸리티 {{sector_rank.10.chg_1d|+}}% 꼴찌. 그러나 5일로는 기술 {{market.XLK.chg_5d}}%인 반면 필수소비재 {{market.XLP.chg_5d|+}}%로 52주 최고, 소재 {{market.XLB.chg_5d|+}}%. 돈은 아직 방어·가치 쪽에 있고 기술주 반등은 단축장 숏 커버로 본다.",
+  "cited_numbers": []
+ },
+ "watchpoints": [
+  {
+   "condition": "은 40달러 재하회(현재 {{market.SILVER.close}})",
+   "implication": "이번 급등이 숏 커버링뿐이었다는 확인 — 금속 약세 추세 재개"
+  },
+  {
+   "condition": "10년물 5.0% 돌파와 S&P 500 하락 동반(현재 {{market.US10Y.close}}%)",
+   "implication": "헤지 해제가 아닌 기간 프리미엄 재평가 — 주식·채권 동반 약세"
+  },
+  {
+   "condition": "11/30~12/1 SRF 이용 50B 이상 또는 SOFR−IORB 10bp 이상(현재 {{plumbing.srf.accepted_b}}B, {{plumbing.sofr_minus_iorb_bp}}bp)",
+   "implication": "지준 부족이 월말 일회성을 넘어섰다는 신호"
+  },
+  {
+   "condition": "VIX 28 재돌파와 QQQ 630 하회(현재 VIX {{market.VIX.close}}, QQQ {{market.QQQ.close}})",
+   "implication": "AI 반등이 단축장 착시였고 매도가 재개"
+  },
+  {
+   "condition": "12/4 고용보고서 뒤 S&P 500 200일선 회복(현재 {{market.SPY.vs_200dma_pct}}%)",
+   "implication": "인상 우려를 성장이 이긴다는 판정 — 전환 국면에서 위험 선호로"
+  }
+ ],
+ "risks": [
+  "12월 1일 ISM 제조업·12월 4일 고용이 강하면 1월 추가 인상 베팅이 커지며 금속·기술주 반등을 한꺼번에 되돌릴 수 있다",
+  "중동 해상 공격 헤드라인(검증 안 된 보도)이 유가를 다시 밀어 올리면 인플레 경로가 재가격될 수 있다"
+ ],
+ "written_at": "2026-11-27T21:43:22Z",
+ "model": "claude-opus-5-5"
+}
