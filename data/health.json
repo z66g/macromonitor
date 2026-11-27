@@ -1,6 +1,6 @@
 {
-  "checked_at": "2026-11-26T04:40:04+00:00",
-  "status": "ok",
+  "checked_at": "2026-11-27T04:44:47+00:00",
+  "status": "warn",
   "checks": [
     {
       "name": "T1 순유동성",
@@ -15,27 +15,27 @@
     {
       "name": "T2 실물경제",
       "status": "ok",
-      "detail": "캐시 3.2h 전 · 실업률 2026-10 (발표 2026-11-06)"
+      "detail": "캐시 3.3h 전 · 실업률 2026-10 (발표 2026-11-06)"
     },
     {
       "name": "T3 글로벌",
       "status": "ok",
-      "detail": "빈 시리즈 없음 · 캐시 2.9h 전"
+      "detail": "빈 시리즈 없음 · 캐시 3.0h 전"
     },
     {
       "name": "시세 스냅샷",
       "status": "ok",
-      "detail": "33종목 · 저장 0.2h 전 · 6h 넘은 종목 없음"
+      "detail": "33종목 · 저장 0.3h 전 · 6h 넘은 종목 없음"
     },
     {
       "name": "이벤트 캘린더",
       "status": "ok",
-      "detail": "55건 · error=None"
+      "detail": "53건 · error=None"
     },
     {
       "name": "FOMC 일정 하드코딩",
       "status": "ok",
-      "detail": "마지막 등록일 2027-11-17 (356일 남음) — 60일 이내면 다음 해 일정 추가 필요"
+      "detail": "마지막 등록일 2027-11-17 (355일 남음) — 60일 이내면 다음 해 일정 추가 필요"
     },
     {
       "name": "유동성 예측모델",
@@ -50,17 +50,17 @@
     {
       "name": "QRA",
       "status": "ok",
-      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (24일 전)"
+      "detail": "2026 Q4 · 현재 분기 일치=True · 발표 2026-11-02 (25일 전)"
     },
     {
       "name": "뉴스 수집·번역",
       "status": "ok",
-      "detail": "228건 · 번역 228건 (100%) · 수집 0.1h 전"
+      "detail": "228건 · 번역 227건 (100%) · 수집 0.2h 전"
     },
     {
       "name": "뉴스 다이제스트",
       "status": "ok",
-      "detail": "생성 1.7h 전 · 4건"
+      "detail": "생성 1.6h 전 · 5건"
     },
     {
       "name": "H.4.1 이력",
@@ -75,7 +75,7 @@
     {
       "name": "경매 데이터 스키마",
       "status": "ok",
-      "detail": "165건 · 갱신 2026-11-25T21:00"
+      "detail": "165건 · 갱신 2026-11-26T21:00"
     },
     {
       "name": "경매 요약",
@@ -84,8 +84,8 @@
     },
     {
       "name": "이벤트 결과",
-      "status": "ok",
-      "detail": "게시 9건 · 누락 없음 · 3일 넘은 보류 없음 · 거부 없음"
+      "status": "warn",
+      "detail": "게시 9건 · 누락 ['2026-11-25|세인트루이스 FSI'] · 3일 넘은 보류 없음 · 거부 없음"
     },
     {
       "name": "데일리 리포트",
@@ -94,16 +94,10 @@
     },
     {
       "name": "GitHub Actions 실패(24h)",
-      "status": "ok",
-      "detail": "없음 · 이후 성공으로 복구됨: ['Generate News Digest (09:00Z)']"
-    }
-  ],
-  "diagnosis": [
-    {
-      "check": "헬스체크 실행",
-      "likely_cause": "checked_at(2026-11-26 04:40 UTC)이 6시간보다 오래됨 — 오늘 23:00 UTC 점검이 아직 반영되지 않음(GitHub schedule 지연 가능성, 직전 점검도 04:40에 실행). 기존 점검 결과는 전 항목 ok.",
-      "suggested_fix": ".github/workflows/health-check.yml 실행 여부 확인, 필요 시 workflow_dispatch로 수동 실행 (schedule 지연 시 cron-job.org dispatch 고려).",
-      "confidence": "medium"
+      "status": "warn",
+      "detail": [
+        "Fetch DTS TGA Daily (23:08Z)"
+      ]
     }
   ]
 }
