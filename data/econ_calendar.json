@@ -1,7 +1,7 @@
 {
- "updated": "2026-11-26T00:17:03+00:00",
- "calendar_saved_at": "2026-11-25T19:55:21.024Z",
- "today_kst": "2026-11-26",
+ "updated": "2026-11-27T00:33:49+00:00",
+ "calendar_saved_at": "2026-11-26T19:55:19.347Z",
+ "today_kst": "2026-11-27",
  "events": [
   {
    "key": "2026-11-20|소비자심리 (미시간)",
@@ -48,14 +48,6 @@
    "date": "2026-11-25",
    "name": "주택착공",
    "indicator": "housing",
-   "imp": "medium",
-   "estimated": false
-  },
-  {
-   "key": "2026-11-26|실업수당 청구 (신규·연속) 주간 발표",
-   "date": "2026-11-26",
-   "name": "실업수당 청구 (신규·연속) 주간 발표",
-   "indicator": "claims",
    "imp": "medium",
    "estimated": false
   },
@@ -192,6 +184,14 @@
    "date": "2026-12-17",
    "name": "주택착공",
    "indicator": "housing",
+   "imp": "medium",
+   "estimated": false
+  },
+  {
+   "key": "2026-12-18|소비자심리 (미시간)",
+   "date": "2026-12-18",
+   "name": "소비자심리 (미시간)",
+   "indicator": "umich",
    "imp": "medium",
    "estimated": false
   }
