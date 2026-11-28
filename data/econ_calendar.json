@@ -1,16 +1,8 @@
 {
- "updated": "2026-11-27T00:33:49+00:00",
- "calendar_saved_at": "2026-11-26T19:55:19.347Z",
- "today_kst": "2026-11-27",
+ "updated": "2026-11-28T00:01:44+00:00",
+ "calendar_saved_at": "2026-11-27T19:55:17.194Z",
+ "today_kst": "2026-11-28",
  "events": [
-  {
-   "key": "2026-11-20|소비자심리 (미시간)",
-   "date": "2026-11-20",
-   "name": "소비자심리 (미시간)",
-   "indicator": "umich",
-   "imp": "medium",
-   "estimated": false
-  },
   {
    "key": "2026-11-25|GDP 성장률",
    "date": "2026-11-25",
